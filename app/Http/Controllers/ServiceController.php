@@ -8,9 +8,15 @@ use App\Models\County;
 use App\Models\User;
 
 // 🔹 MODELE AUTO
-use App\Models\CarBrand; // Am corectat numele clasei (Brand -> CarBrand conform modelelor tale)
+use App\Models\CarBrand;
 use App\Models\CarModel;
-use App\Models\CarGeneration; // Asigură-te că ai creat acest model la pasul anterior
+use App\Models\CarGeneration;
+
+// 🔹 MODELE NOMENCLATOR (ADĂUGATE ACUM)
+use App\Models\Combustibil;
+use App\Models\Culoare;
+use App\Models\Caroserie;
+use App\Models\CutieViteze;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -117,56 +123,71 @@ class ServiceController extends Controller
     // 3. SHOW (NESCHIMBAT)
     // ==========================================
     public function show($category, $county, $slug, $id)
-    {
-        $service = Service::withTrashed()->with(['category', 'county', 'user'])->findOrFail($id);
+{
+    $service = Service::withTrashed()
+        ->with([
+            'category',
+            'county',
+            'user',
+            'generation.model.brand',   // brand + model + generație
+            'combustibil',
+            'cutieViteze',
+            'caroserie',
+            'culoare',
+        ])
+        ->findOrFail($id);
 
-        $correctSlug = $service->smart_slug;
-        if ($slug !== $correctSlug) {
-            return redirect()->to($service->public_url, 301);
-        }
-
-        if (!$service->trashed()) {
-            $service->increment('views');
-        }
-
-        return view('services.show', compact('service'));
+    $correctSlug = $service->smart_slug;
+    if ($slug !== $correctSlug) {
+        return redirect()->to($service->public_url, 301);
     }
 
+    if (!$service->trashed()) {
+        $service->increment('views');
+    }
+
+    return view('services.show', compact('service'));
+}
+
+
     // ==========================================
-    // 4. CREATE (ACTUALIZAT COMPLET)
+    // 4. CREATE (MODIFICAT CHIRURGICAL)
     // ==========================================
     public function create()
     {
         // 1. Luăm brandurile
         $brands = CarBrand::orderBy('name')->get();
 
-        // 2. Luăm Modelele + Generațiile (Eager Loading)
-        // Asta rezolvă problema cu Generațiile lipsă
+        // 2. [MODIFICARE] Luăm listele pentru Dropdown-uri
+        $colors = Culoare::all(); 
+        $fuels = Combustibil::all();
+        $bodies = Caroserie::all();
+        $transmissions = CutieViteze::all();
+
+        // 3. Luăm Modelele + Generațiile
         $models = CarModel::with(['generations' => function($q) {
             $q->orderBy('year_start', 'asc');
         }])->get();
 
-        // 3. Construim structura JSON pentru JavaScript
+        // 4. Construim structura JSON pentru JavaScript
         $carData = [];
 
         foreach ($models as $model) {
-            // Sărim peste modelele fără brand
             if (!$model->brand) continue;
 
             $brandName = $model->brand->name;
             $modelName = $model->name;
 
-            // Dacă modelul are generații, le adăugăm
             if ($model->generations->isNotEmpty()) {
                 foreach ($model->generations as $gen) {
                     $carData[$brandName][$modelName][] = [
-                        'name'  => $gen->name,       // ex: "V"
-                        'start' => $gen->year_start, // ex: 2004
-                        'end'   => $gen->year_end    // ex: 2008 sau NULL
+                        'id'    => $gen->id,         // [MODIFICARE] Critic pentru DB!
+                        'name'  => $gen->name,
+                        'start' => $gen->year_start,
+                        'end'   => $gen->year_end
                     ];
                 }
             } else {
-                // Dacă nu are generații, inițializăm un array gol ca să știe JS-ul că există modelul
                 if (!isset($carData[$brandName][$modelName])) {
                     $carData[$brandName][$modelName] = [];
                 }
@@ -177,12 +198,18 @@ class ServiceController extends Controller
             'categories' => Category::orderBy('sort_order', 'asc')->get(),
             'counties'   => County::all(),
             'brands'     => $brands,
-            'carData'    => $carData, // Trimitem structura complexă către View
+            'carData'    => $carData,
+            
+            // [MODIFICARE] Trimitem variabilele noi
+            'colors'        => $colors,
+            'fuels'         => $fuels,
+            'bodies'        => $bodies,
+            'transmissions' => $transmissions
         ]);
     }
 
     // ==========================================
-    // 5. STORE (ACTUALIZAT VALIDARE)
+    // 5. STORE (MODIFICAT CHIRURGICAL)
     // ==========================================
     public function store(Request $request)
     {
@@ -198,20 +225,27 @@ class ServiceController extends Controller
             'name'        => 'nullable|string|max:255',
             'images.*'    => 'image|mimes:jpeg,png,jpg,webp|max:15360',
 
-            // 🔹 CÂMPURI AUTO NOI (Texte venite din Select-uri)
-            'brand'               => 'nullable|string|max:100',
-            'model'               => 'nullable|string|max:100',
-            'generation'          => 'nullable|string|max:100', // NOU
-            'year'                => 'nullable|integer|min:1950|max:' . (date('Y') + 1), // "year" vine din form, nu "year_of_fabrication"
-            'fuel_type'           => 'nullable|string|max:50',
-            'transmission'        => 'nullable|string|max:50',
-            'body_type'           => 'nullable|string|max:100',
-            'power'               => 'nullable|integer',
-            'engine_size'         => 'nullable|integer',
-            'vin'                 => 'nullable|string|max:50',
-            'color'               => 'nullable|string|max:50',
-            'pollution_standard'  => 'nullable|string|max:50',
-            'mileage'             => 'nullable|numeric',
+            // 🔹 [MODIFICARE] VALIDARE CÂMPURI AUTO NOI
+            'car_generation_id' => 'required|integer',
+            'an_fabricatie'     => 'required|integer',
+            'km'                => 'required|integer',
+            'capacitate_cilindrica' => 'nullable|integer',
+            'putere'            => 'nullable|integer',
+            'vin'               => 'nullable|string|max:17',
+            
+            // Validăm ID-urile din dropdown-uri
+            'combustibil_id'    => 'nullable|integer',
+            'cutie_viteze_id'   => 'nullable|integer',
+            'caroserie_id'      => 'nullable|integer',
+            'culoare_id'        => 'nullable|integer',
+            
+            // Câmpurile vechi (opționale acum, le lăsăm ca să nu crape nimic)
+            'brand' => 'nullable|string',
+            'model' => 'nullable|string',
+            'year'  => 'nullable',
+            'fuel_type' => 'nullable',
+            'transmission' => 'nullable',
+            'body_type' => 'nullable',
         ];
 
         if (!Auth::check() && $request->filled('email') && $request->filled('password')) {
@@ -226,7 +260,7 @@ class ServiceController extends Controller
 
         $validated = $request->validate($rules, $messages);
 
-        // 1. CALCULARE NUME UTILIZATOR (VISITOR)
+        // 1. CALCULARE NUME UTILIZATOR (VISITOR) - Neschimbat
         $calculatedName = $request->input('name');
         if (empty($calculatedName) && $request->filled('email')) {
             $emailParts = explode('@', $request->input('email'));
@@ -242,7 +276,7 @@ class ServiceController extends Controller
             $calculatedName = 'Vizitator';
         }
 
-        // 2. LOGICA USER
+        // 2. LOGICA USER - Neschimbat
         $userId = null;
         if (Auth::check()) {
             $userId = Auth::id();
@@ -277,23 +311,22 @@ class ServiceController extends Controller
             $service->email = $request->email;
         }
 
-        // 🔹 Mapare date AUTO (Form -> DB Columns)
-        // Asigură-te că ai aceste coloane în tabelul services sau folosești un tabel separat
-        $service->brand         = $request->input('brand');
-        $service->model         = $request->input('model');
-        // Dacă nu ai coloana generation, poți să o concatenezi la model sau descriere
-        // $service->generation = $request->input('generation'); 
+        // 🔹 [MODIFICARE] Mapare date AUTO NOI
+        // Acestea sunt câmpurile esențiale pentru filtrare
+        $service->car_generation_id = $request->input('car_generation_id');
+        $service->an_fabricatie     = $request->input('an_fabricatie');
+        $service->km                = $request->input('km');
+        $service->vin               = $request->input('vin');
+        $service->putere            = $request->input('putere');
+        $service->capacitate_cilindrica = $request->input('capacitate_cilindrica');
+
+        // Dropdown-uri noi (salvăm ID-urile)
+        $service->combustibil_id    = $request->input('combustibil_id');
+        $service->cutie_viteze_id   = $request->input('cutie_viteze_id');
+        $service->caroserie_id      = $request->input('caroserie_id');
+        $service->culoare_id        = $request->input('culoare_id');
+
         
-        $service->year_of_fabrication = $request->input('year'); // Formularul trimite "year", DB are "year_of_fabrication"
-        $service->mileage       = $request->input('mileage');
-        $service->fuel_type     = $request->input('fuel_type');
-        $service->gearbox       = $request->input('transmission'); // Form "transmission" -> DB "gearbox"
-        $service->body_type     = $request->input('body_type');
-        $service->power         = $request->input('power');
-        
-        // Dacă ai coloane pentru Engine Size, VIN, Color, le pui aici:
-        // $service->engine_size = $request->input('engine_size');
-        // $service->vin = $request->input('vin');
 
         // SLUG
         $words     = Str::of($validated['title'])->explode(' ')->take(5)->implode(' ');
@@ -307,7 +340,7 @@ class ServiceController extends Controller
         $service->slug   = $uniqueSlug;
         $service->status = 'active';
 
-        // IMAGINI
+        // IMAGINI - Neschimbat
         $savedImages = [];
         if ($request->hasFile('images')) {
             $manager     = new ImageManager(new Driver());
@@ -340,16 +373,26 @@ class ServiceController extends Controller
     }
 
     // ==========================================
-    // 6. EDIT (ACTUALIZAT SĂ TRIMITĂ $carData)
+    // 6. EDIT (NESCHIMBAT - Pentru moment)
     // ==========================================
-    public function edit($id)
+  public function edit($id)
     {
         $service = Service::where('id', $id)
-            ->where('user_id', auth()->id())
-            ->firstOrFail();
+    ->where('user_id', auth()->id())
+    ->with(['generation.model.brand'])  // ← schimbat carModel în model
+    ->firstOrFail();
 
-        // Refolosim logica din create() pentru a popula dropdown-urile și la editare
-        $brands = CarBrand::orderBy('name')->get();
+        // 1. Listele necesare pentru dropdown-uri
+        $categories = Category::all();
+        $counties   = County::all();
+        $brands     = CarBrand::orderBy('name')->get();
+        
+        $colors = \App\Models\Culoare::all(); 
+        $fuels = \App\Models\Combustibil::all();
+        $bodies = \App\Models\Caroserie::all();
+        $transmissions = \App\Models\CutieViteze::all();
+
+        // 2. Construim structura pentru JavaScript (CarData)
         $models = CarModel::with(['generations' => function($q) {
             $q->orderBy('year_start', 'asc');
         }])->get();
@@ -363,6 +406,7 @@ class ServiceController extends Controller
             if ($model->generations->isNotEmpty()) {
                 foreach ($model->generations as $gen) {
                     $carData[$brandName][$modelName][] = [
+                        'id'    => $gen->id,
                         'name'  => $gen->name,
                         'start' => $gen->year_start,
                         'end'   => $gen->year_end
@@ -375,75 +419,92 @@ class ServiceController extends Controller
             }
         }
 
-        return view('services.edit', [
-            'service'    => $service,
-            'categories' => Category::all(),
-            'counties'   => County::all(),
-            'brands'     => $brands,
-            'carData'    => $carData, // Trimitem asta și la Edit
-        ]);
+        return view('services.edit', compact(
+            'service', 'categories', 'counties', 'brands', 'carData',
+            'colors', 'fuels', 'bodies', 'transmissions'
+        ));
     }
-
     // ==========================================
-    // 7. UPDATE (ACTUALIZAT VALIDARE)
+    // 7. UPDATE (NESCHIMBAT - Pentru moment)
     // ==========================================
-    public function update(Request $request, $id)
+   public function update(Request $request, $id)
     {
         $service = Service::where('id', $id)
             ->where('user_id', auth()->id())
             ->firstOrFail();
 
+        // 1. VALIDARE
         $validated = $request->validate([
             'title'       => 'required|max:255',
             'description' => 'required',
             'category_id' => 'required|exists:categories,id',
             'county_id'   => 'required|exists:counties,id',
-            'phone'       => 'nullable|string|max:30',
+            'phone'       => 'required|string|max:30',
             'email'       => 'nullable|email|max:120',
             'price_value' => 'nullable|numeric',
             'price_type'  => 'required|in:fixed,negotiable',
             'currency'    => 'required|in:RON,EUR',
             'images.*'    => 'image|mimes:jpeg,png,jpg,webp|max:15360',
 
-            // Câmpuri AUTO
-            'brand'        => 'nullable|string|max:100',
-            'model'        => 'nullable|string|max:100',
-            'year'         => 'nullable|integer|min:1950|max:' . (date('Y') + 1),
-            'mileage'      => 'nullable|numeric',
-            'fuel_type'    => 'nullable|string|max:50',
-            'transmission' => 'nullable|string|max:50',
-            'body_type'    => 'nullable|string|max:100',
-            'power'        => 'nullable|integer',
+            // Câmpurile noi (IDs)
+            'car_generation_id' => 'required|integer',
+            'an_fabricatie'     => 'required|integer',
+            'km'                => 'required|integer',
+            'vin'               => 'nullable|string|max:17',
+            'putere'            => 'nullable|integer',
+            'capacitate_cilindrica' => 'nullable|integer',
+            
+            // Dropdown-uri opționale
+            'combustibil_id'    => 'nullable|integer',
+            'cutie_viteze_id'   => 'nullable|integer',
+            'caroserie_id'      => 'nullable|integer',
+            'culoare_id'        => 'nullable|integer',
         ]);
 
-        $finalImages = $service->images;
-        if (is_string($finalImages)) {
-            $finalImages = json_decode($finalImages, true);
+        // 2. ATRIBUIRE DATE (MANUALĂ)
+        $service->title       = $request->input('title');
+        $service->description = $request->input('description');
+        $service->category_id = $request->input('category_id');
+        $service->county_id   = $request->input('county_id');
+        $service->phone       = $request->input('phone');
+        $service->email       = $request->input('email');
+        $service->price_value = $request->input('price_value');
+        $service->price_type  = $request->input('price_type');
+        $service->currency    = $request->input('currency');
+
+        // 🔹 DATE AUTO (NOILE COLOANE)
+        $service->car_generation_id = $request->input('car_generation_id');
+        $service->an_fabricatie     = $request->input('an_fabricatie');
+        $service->km                = $request->input('km');
+        $service->vin               = $request->input('vin');
+        $service->putere            = $request->input('putere');
+        $service->capacitate_cilindrica = $request->input('capacitate_cilindrica');
+
+        $service->combustibil_id    = $request->input('combustibil_id');
+        $service->cutie_viteze_id   = $request->input('cutie_viteze_id');
+        $service->caroserie_id      = $request->input('caroserie_id');
+        $service->culoare_id        = $request->input('culoare_id');
+
+        // 3. PROCESARE IMAGINI
+        // Luăm imaginile vechi
+        $currentImages = $service->images;
+        if (is_string($currentImages)) {
+            $currentImages = json_decode($currentImages, true);
         }
-        if (!is_array($finalImages)) {
-            $finalImages = [];
+        if (!is_array($currentImages)) {
+            $currentImages = [];
         }
 
-        // Mapare manuală pentru câmpurile care diferă ca nume în DB vs Form
-        $service->title = $validated['title'];
-        $service->description = $validated['description'];
-        $service->price_value = $request->price_value;
-        $service->year_of_fabrication = $request->input('year'); 
-        $service->gearbox = $request->input('transmission');
-        // Restul se face automat prin fill, dar scoatem images din validated
-        unset($validated['images']);
-        unset($validated['year']); // am asignat manual mai sus
-        unset($validated['transmission']);
-        
-        $service->fill($validated);
-
+        // Adăugăm imaginile noi (dacă există)
         if ($request->hasFile('images')) {
-            $manager    = new ImageManager(new Driver());
-            $countyName = County::find($validated['county_id'])->name ?? 'romania';
-            $seoBaseName = Str::slug($validated['title'] . '-' . $countyName);
+            $manager = new ImageManager(new Driver());
+            // Fallback name safe
+            $countyName = County::find($request->county_id)->name ?? 'romania';
+            $seoBaseName = Str::slug($request->title . '-' . $countyName);
 
             foreach ($request->file('images') as $image) {
-                if (count($finalImages) >= 10) break;
+                // Limită de 10 imagini total
+                if (count($currentImages) >= 10) break;
 
                 $name = $seoBaseName . '-' . Str::random(6) . '.jpg';
                 $path = storage_path('app/public/services/' . $name);
@@ -457,48 +518,17 @@ class ServiceController extends Controller
                     ->toJpeg(75)
                     ->save($path);
 
-                $finalImages[] = $name;
+                $currentImages[] = $name;
             }
         }
 
-        $service->images = $finalImages;
+        // Salvăm array-ul final înapoi în DB
+        $service->images = $currentImages;
+        
         $service->save();
 
         return redirect('/contul-meu?tab=anunturi')
-            ->with('success', 'Modificat cu succes!');
-    }
-
-    // ==========================================
-    // 8. DELETE IMAGE (NESCHIMBAT)
-    // ==========================================
-    public function deleteImage(Request $request, $id)
-    {
-        $service   = Service::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
-        $imageName = $request->input('image');
-
-        $currentImages = $service->images;
-        if (is_string($currentImages)) {
-            $currentImages = json_decode($currentImages, true);
-        }
-        if (!is_array($currentImages)) {
-            $currentImages = [];
-        }
-
-        $key = array_search($imageName, $currentImages);
-
-        if ($key !== false) {
-            $path = storage_path('app/public/services/' . $imageName);
-            if (file_exists($path)) {
-                unlink($path);
-            }
-
-            unset($currentImages[$key]);
-            $service->images = array_values($currentImages);
-            $service->save();
-
-            return response()->json(['success' => true]);
-        }
-        return response()->json(['success' => false], 404);
+            ->with('success', 'Anunțul a fost actualizat!');
     }
 
     // ==========================================
@@ -552,7 +582,7 @@ class ServiceController extends Controller
     }
 
     // ==========================================
-    // 11. AJAX HELPER (OPȚIONAL)
+    // 11. AJAX HELPER (NESCHIMBAT)
     // ==========================================
     public function getModelsByBrand(Request $request)
     {

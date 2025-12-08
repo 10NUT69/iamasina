@@ -4,6 +4,38 @@
 
 @section('content')
 
+{{-- ================================================================= --}}
+{{-- 1. FIX: LOGICĂ DE CALCULARE DATE (PENTRU CĂ ÎN DB AVEM DOAR ID-URI) --}}
+{{-- ================================================================= --}}
+@php
+    // Definim valorile implicite (ce avem deja salvat ca text vechi sau input anterior)
+    $valBrand = old('brand', $service->brand);
+    $valModel = old('model', $service->model);
+    $valGenId = old('car_generation_id', $service->car_generation_id);
+    $valYear  = old('an_fabricatie', $service->an_fabricatie ?: $service->year);
+
+    // Dacă Brandul e gol (deci e anunț nou care are doar ID de generație),
+    // interogăm direct baza de date pentru a afla numele Brandului și Modelului.
+    if (empty($valBrand) && !empty($valGenId)) {
+        try {
+            $genRaw = \Illuminate\Support\Facades\DB::table('car_generations')->where('id', $valGenId)->first();
+            if ($genRaw) {
+                $modRaw = \Illuminate\Support\Facades\DB::table('car_models')->where('id', $genRaw->car_model_id)->first();
+                if ($modRaw) {
+                    $valModel = $modRaw->name;
+                    $brandRaw = \Illuminate\Support\Facades\DB::table('car_brands')->where('id', $modRaw->car_brand_id)->first();
+
+                    if ($brandRaw) {
+                        $valBrand = $brandRaw->name;
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // Ignorăm eroarea, rămân câmpurile goale
+        }
+    }
+@endphp
+
 <div class="max-w-3xl mx-auto mt-8 mb-16 px-4 md:px-0">
 
     <div class="text-center mb-10">
@@ -98,22 +130,21 @@
                         Detalii mașină
                     </h3>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-4">
-                        {{-- MARCĂ (din DB) --}}
+                    {{-- BRAND / MODEL / GENERATIE / AN --}}
+                    <div class="space-y-4 mb-4">
+                        {{-- MARCĂ --}}
                         <div>
                             <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Marcă</label>
                             <div class="relative">
-                                @php
-                                    $currentBrand = old('brand', $service->brand);
-                                @endphp
                                 <select name="brand" id="brandSelect"
                                         class="w-full pl-4 pr-10 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040]
                                                bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white
                                                focus:ring-2 focus:ring-primary-end outline-none transition cursor-pointer form-select">
                                     <option value="" class="dark:bg-[#1E1E1E]">Alege marca</option>
                                     @foreach($brands as $brand)
-                                        <option value="{{ $brand->name }}"
-                                            {{ $currentBrand === $brand->name ? 'selected' : '' }}
+                                        {{-- 2. FIX: Folosim $valBrand calculat sus --}}
+                                        <option value="{{ $brand->name }}" 
+                                            {{ ($valBrand == $brand->name) ? 'selected' : '' }}
                                             class="dark:bg-[#1E1E1E]">
                                             {{ $brand->name }}
                                         </option>
@@ -127,92 +158,126 @@
                             </div>
                         </div>
 
-                        {{-- MODEL (din DB, dependent de marcă) --}}
-                        <div>
-                            <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Model</label>
-                            <div class="relative">
-                                <select name="model" id="modelSelect"
-                                        class="w-full pl-4 pr-10 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040]
-                                               bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white
-                                               focus:ring-2 focus:ring-primary-end outline-none transition cursor-pointer form-select"
-                                        disabled>
-                                    <option value="" class="dark:bg-[#1E1E1E]">Alege modelul</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                    </svg>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {{-- MODEL --}}
+                            <div>
+                                <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Model</label>
+                                <div class="relative">
+                                    <select name="model" id="modelSelect"
+                                            class="w-full pl-4 pr-10 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040]
+                                                   bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white
+                                                   focus:ring-2 focus:ring-primary-end outline-none transition cursor-pointer form-select"
+                                            disabled>
+                                        <option value="" class="dark:bg-[#1E1E1E]">Alege modelul</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- GENERATIE --}}
+                            <div>
+                                <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Generație</label>
+                                <div class="relative">
+                                    {{-- IMPORTANT: Name este car_generation_id --}}
+                                    <select name="car_generation_id" id="generationSelect"
+                                            class="w-full pl-4 pr-10 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040]
+                                                   bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white
+                                                   focus:ring-2 focus:ring-primary-end outline-none transition cursor-pointer form-select"
+                                            required disabled>
+                                        <option value="" class="dark:bg-[#1E1E1E]">Alege Generație</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- AN --}}
+                            <div>
+                                <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-300">An</label>
+                                <div class="relative">
+                                    <select name="an_fabricatie" id="yearSelect"
+                                            class="w-full pl-4 pr-10 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040]
+                                                   bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white
+                                                   focus:ring-2 focus:ring-primary-end outline-none transition cursor-pointer form-select"
+                                            required disabled>
+                                        <option value="" class="dark:bg-[#1E1E1E]">An</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-                        {{-- AN FABRICAȚIE --}}
-                        <div>
-                            <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-300">An fabricație</label>
-                            <input type="number" name="year" value="{{ old('year', $service->year) }}"
-                                   placeholder="Ex: 2016"
-                                   class="w-full px-4 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040]
-                                          bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white
-                                          focus:ring-2 focus:ring-primary-end outline-none transition placeholder-gray-400 no-spinner">
-                        </div>
                     </div>
 
+                    {{-- VIN --}}
+                    <div class="mb-4">
+                        <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-300">VIN (Serie Șasiu)</label>
+                        <input type="text" name="vin" value="{{ old('vin', $service->vin) }}" class="w-full px-4 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040] bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white uppercase font-mono" placeholder="WBA...">
+                    </div>
+
+                    {{-- KM / PUTERE / CAPACITATE --}}
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-4">
                         <div>
                             <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Kilometraj (km)</label>
-                            <input type="number" name="mileage" value="{{ old('mileage', $service->mileage) }}"
-                                   placeholder="Ex: 180000"
-                                   class="w-full px-4 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040]
-                                          bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white
-                                          focus:ring-2 focus:ring-primary-end outline-none transition placeholder-gray-400 no-spinner">
+                            <input type="number" name="km" value="{{ old('km', $service->km ?: $service->mileage) }}" class="w-full px-4 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040] bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white" required>
                         </div>
-
                         <div>
-                            <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Combustibil</label>
-                            <select name="fuel_type"
-                                    class="w-full pl-4 pr-10 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040]
-                                           bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white
-                                           focus:ring-2 focus:ring-primary-end outline-none transition cursor-pointer form-select">
-                                <option value="" class="dark:bg-[#1E1E1E]">Alege</option>
-                                <option value="benzina"   {{ old('fuel_type', $service->fuel_type) == 'benzina' ? 'selected' : '' }} class="dark:bg-[#1E1E1E]">Benzină</option>
-                                <option value="motorina"  {{ old('fuel_type', $service->fuel_type) == 'motorina' ? 'selected' : '' }} class="dark:bg-[#1E1E1E]">Motorină</option>
-                                <option value="hibrid"    {{ old('fuel_type', $service->fuel_type) == 'hibrid' ? 'selected' : '' }} class="dark:bg-[#1E1E1E]">Hibrid</option>
-                                <option value="electric"  {{ old('fuel_type', $service->fuel_type) == 'electric' ? 'selected' : '' }} class="dark:bg-[#1E1E1E]">Electric</option>
-                                <option value="gaz"       {{ old('fuel_type', $service->fuel_type) == 'gaz' ? 'selected' : '' }} class="dark:bg-[#1E1E1E]">Gaz</option>
-                            </select>
+                            <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Putere (CP)</label>
+                            <input type="number" name="putere" value="{{ old('putere', $service->putere ?: $service->power) }}" class="w-full px-4 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040] bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white">
                         </div>
-
                         <div>
-                            <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Transmisie</label>
-                            <select name="transmission"
-                                    class="w-full pl-4 pr-10 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040]
-                                           bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white
-                                           focus:ring-2 focus:ring-primary-end outline-none transition cursor-pointer form-select">
-                                <option value="" class="dark:bg-[#1E1E1E]">Alege</option>
-                                <option value="manuala"       {{ old('transmission', $service->transmission) == 'manuala' ? 'selected' : '' }} class="dark:bg-[#1E1E1E]">Manuală</option>
-                                <option value="automata"      {{ old('transmission', $service->transmission) == 'automata' ? 'selected' : '' }} class="dark:bg-[#1E1E1E]">Automată</option>
-                                <option value="semi-automata" {{ old('transmission', $service->transmission) == 'semi-automata' ? 'selected' : '' }} class="dark:bg-[#1E1E1E]">Semi-automată</option>
-                            </select>
+                            <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Capacitate (cm³)</label>
+                            <input type="number" name="capacitate_cilindrica" value="{{ old('capacitate_cilindrica', $service->capacitate_cilindrica) }}" class="w-full px-4 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040] bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white">
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {{-- DROPDOWNS: COMBUSTIBIL / TRANSMISIE / CAROSERIE / CULOARE --}}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
+                        <div>
+                            <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Combustibil</label>
+                            <select name="combustibil_id" class="w-full px-4 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040] bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white outline-none">
+                                <option value="">Alege</option>
+                                @foreach($fuels as $fuel)
+                                    <option value="{{ $fuel->id }}" {{ (old('combustibil_id', $service->combustibil_id) == $fuel->id) ? 'selected' : '' }}>{{ $fuel->nume }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Transmisie</label>
+                            <select name="cutie_viteze_id" class="w-full px-4 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040] bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white outline-none">
+                                <option value="">Alege</option>
+                                @foreach($transmissions as $trans)
+                                    <option value="{{ $trans->id }}" {{ (old('cutie_viteze_id', $service->cutie_viteze_id) == $trans->id) ? 'selected' : '' }}>{{ $trans->nume }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div>
                             <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Caroserie</label>
-                            <input type="text" name="body_type" value="{{ old('body_type', $service->body_type) }}"
-                                   placeholder="Ex: Hatchback, Sedan, SUV"
-                                   class="w-full px-4 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040]
-                                          bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white
-                                          focus:ring-2 focus:ring-primary-end outline-none transition placeholder-gray-400">
+                            <select name="caroserie_id" class="w-full px-4 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040] bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white outline-none">
+                                <option value="">Alege</option>
+                                @foreach($bodies as $body)
+                                    <option value="{{ $body->id }}" {{ (old('caroserie_id', $service->caroserie_id) == $body->id) ? 'selected' : '' }}>{{ $body->nume }}</option>
+                                @endforeach
+                            </select>
                         </div>
-
                         <div>
-                            <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Putere (CP)</label>
-                            <input type="number" name="power" value="{{ old('power', $service->power) }}"
-                                   placeholder="Ex: 150"
-                                   class="w-full px-4 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040]
-                                          bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white
-                                          focus:ring-2 focus:ring-primary-end outline-none transition placeholder-gray-400 no-spinner">
+                            <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Culoare</label>
+                            <select name="culoare_id" class="w-full px-4 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040] bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white outline-none">
+                                <option value="">Alege</option>
+                                @foreach($colors as $color)
+                                    <option value="{{ $color->id }}" {{ (old('culoare_id', $service->culoare_id) == $color->id) ? 'selected' : '' }}>{{ $color->nume }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -225,7 +290,7 @@
                                      bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white
                                      focus:ring-2 focus:ring-primary-end outline-none transition resize-y placeholder-gray-400"
                               required>{{ old('description', $service->description) }}</textarea>
-                     @error('description') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    @error('description') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
         </div>
@@ -399,160 +464,217 @@ select.form-select {
 
 {{-- JAVASCRIPT --}}
 <script>
-// === 1. LOGICĂ IMAGINI NOI (UPLOAD) ===
-let uploadedFiles = [];
-const imageInput = document.getElementById('imageInput');
-const previewContainer = document.getElementById('previewContainer');
-const LIMITA_MB = 15;
+document.addEventListener('DOMContentLoaded', function() {
 
-imageInput.addEventListener('change', function (e) {
-    const newFiles = Array.from(e.target.files);
-    let hasError = false;
+    // 3. FIX: DATELE INITIALE calculate în blocul PHP de mai sus
+    const savedBrand = @json($valBrand);
+    const savedModel = @json($valModel);
+    const savedGenId = @json($valGenId);
+    const savedYear  = @json($valYear);
+    
+    // Structura completă (Brand -> Model -> Generații)
+    const carData = @json($carData ?? []); 
 
-    newFiles.forEach(file => {
-        if (file.size > LIMITA_MB * 1024 * 1024) {
-            alert(`Imaginea "${file.name}" este prea mare!`);
-            hasError = true;
+    // Elementele DOM
+    const brandSel = document.getElementById('brandSelect');
+    const modelSel = document.getElementById('modelSelect');
+    const genSel   = document.getElementById('generationSelect');
+    const yearSel  = document.getElementById('yearSelect');
+
+    // === FUNCȚII AUXILIARE ===
+    function resetSelect(el, defaultText) {
+        el.innerHTML = `<option value="">${defaultText}</option>`;
+        el.disabled = true;
+    }
+
+    function populateYears(start, end, selectedVal = null) {
+        yearSel.innerHTML = '<option value="">An</option>';
+        yearSel.disabled = false;
+        const currentYear = new Date().getFullYear();
+        const finalEnd = end || currentYear;
+        
+        for(let i = finalEnd; i >= start; i--) {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.text = i;
+            if (selectedVal && parseInt(selectedVal) == i) {
+                opt.selected = true;
+            }
+            yearSel.appendChild(opt);
+        }
+    }
+
+    // === LOGICA DE CASCADĂ ===
+    
+    // A. Schimbare Brand
+    brandSel.addEventListener('change', function() {
+        const brand = this.value;
+        resetSelect(modelSel, 'Alege modelul');
+        resetSelect(genSel, 'Alege Generație');
+        resetSelect(yearSel, 'An');
+
+        if (brand && carData[brand]) {
+            modelSel.disabled = false;
+            Object.keys(carData[brand]).forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.text = m;
+                modelSel.appendChild(opt);
+            });
         }
     });
 
-    if (hasError) { updateInputFiles(); return; }
+    // B. Schimbare Model
+    modelSel.addEventListener('change', function() {
+        const brand = brandSel.value;
+        const model = this.value;
+        resetSelect(genSel, 'Alege Generație');
+        resetSelect(yearSel, 'An');
 
-    uploadedFiles = uploadedFiles.concat(newFiles);
-    if (uploadedFiles.length > 10) uploadedFiles = uploadedFiles.slice(0, 10);
+        if (brand && model && carData[brand][model]) {
+            const generations = carData[brand][model];
+            if (generations.length > 0) {
+                genSel.disabled = false;
+                generations.forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g.id; // ID-ul critic pentru DB
+                    opt.text = `${g.name} (${g.start} - ${g.end || 'Prezent'})`;
+                    opt.dataset.start = g.start;
+                    opt.dataset.end = g.end || new Date().getFullYear();
+                    genSel.appendChild(opt);
+                });
+            } else {
+                genSel.disabled = true;
+                genSel.innerHTML = '<option value="">Standard</option>';
+                populateYears(1990, new Date().getFullYear()); 
+            }
+        }
+    });
 
-    renderPreviews();
-    updateInputFiles();
-});
+    // C. Schimbare Generație
+    genSel.addEventListener('change', function() {
+        const selected = this.options[this.selectedIndex];
+        if (selected && selected.dataset.start) {
+            populateYears(parseInt(selected.dataset.start), parseInt(selected.dataset.end));
+        }
+    });
 
-function renderPreviews() {
-    previewContainer.innerHTML = "";
-
-    uploadedFiles.forEach((file, index) => {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const div = document.createElement('div');
-            div.className = `relative group aspect-square rounded-xl overflow-hidden shadow-sm border-2 border-dashed border-green-500/50 bg-green-50 dark:bg-[#1E2A20]`;
+    // === INITIALIZARE (PRE-SELECTARE) ===
+    function initForm() {
+        if (savedBrand && carData[savedBrand]) {
+            // 1. Selectăm Brandul
+            brandSel.value = savedBrand;
+            modelSel.disabled = false;
+            modelSel.innerHTML = '<option value="">Alege modelul</option>';
             
-            div.innerHTML = `
-                <img src="${e.target.result}" class="w-full h-full object-cover opacity-90">
+            // 2. Populăm Modelele
+            Object.keys(carData[savedBrand]).forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.text = m;
+                if (m == savedModel) opt.selected = true;
+                modelSel.appendChild(opt);
+            });
+
+            // 3. Dacă avem Model, populăm Generațiile
+            if (savedModel && carData[savedBrand][savedModel]) {
+                const generations = carData[savedBrand][savedModel];
                 
-                <div class="absolute top-2 left-2 bg-green-600 text-white text-[10px] px-2 py-0.5 rounded shadow z-10">
-                    Nou
-                </div>
+                if (generations.length > 0) {
+                    genSel.disabled = false;
+                    genSel.innerHTML = '<option value="">Alege Generație</option>';
+                    let foundGen = null;
 
-                <div class="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded backdrop-blur-sm font-mono z-10">
-                    ${(file.size / 1024 / 1024).toFixed(2)} MB
-                </div>
+                    generations.forEach(g => {
+                        const opt = document.createElement('option');
+                        opt.value = g.id;
+                        opt.text = `${g.name} (${g.start} - ${g.end || 'Prezent'})`;
+                        opt.dataset.start = g.start;
+                        opt.dataset.end = g.end || new Date().getFullYear();
 
-                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-4">
-                    <button type="button" onclick="removePhoto(${index})" 
-                            class="px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 transition shadow-lg w-full flex items-center justify-center gap-1">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        Anulează
-                    </button>
-                </div>
-            `;
-            previewContainer.appendChild(div);
-        };
-        reader.readAsDataURL(file);
-    });
-}
+                        if (g.id == savedGenId) {
+                            opt.selected = true;
+                            foundGen = g;
+                        }
+                        genSel.appendChild(opt);
+                    });
 
-window.removePhoto = function(index) {
-    uploadedFiles.splice(index, 1);
-    renderPreviews();
-    updateInputFiles();
-}
-
-function updateInputFiles() {
-    const dataTransfer = new DataTransfer();
-    uploadedFiles.forEach(file => { dataTransfer.items.add(file); });
-    imageInput.files = dataTransfer.files;
-}
-
-// === 2. LOGICĂ ȘTERGERE IMAGINI VECHI (AJAX) ===
-window.deleteServerImage = function(imageName, serviceId, containerId) {
-    if (!confirm('Ești sigur că vrei să ștergi această imagine? Nu se poate anula.')) return;
-
-    fetch(`/services/${serviceId}/image`, {
-        method: 'DELETE',
-        headers: { 
-            'Content-Type': 'application/json', 
-            'X-CSRF-TOKEN': '{{ csrf_token() }}' 
-        },
-        body: JSON.stringify({ image: imageName })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const el = document.getElementById(containerId);
-            el.style.transform = 'scale(0.9)';
-            el.style.opacity = '0';
-            setTimeout(() => el.remove(), 300);
-        } else {
-            alert('Eroare la ștergere: ' + (data.message || 'Necunoscută'));
+                    // 4. Dacă avem Generație, populăm Anii
+                    if (foundGen) {
+                        populateYears(parseInt(foundGen.start), parseInt(foundGen.end), savedYear);
+                    }
+                } else {
+                    // Caz Model fără generații
+                    populateYears(1990, new Date().getFullYear(), savedYear);
+                }
+            }
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Eroare de rețea.');
-    });
-}
-
-// === 3. MARCĂ → MODEL (DATE DIN BAZA DE DATE) ===
-// $carModelsByBrand vine din controller (map brand_name => [model1, model2, ...])
-const modelsByBrand = @json($carModelsByBrand ?? []);
-
-const brandSelect = document.getElementById('brandSelect');
-const modelSelect = document.getElementById('modelSelect');
-
-function populateModelsForBrand(brand, preselectedModel = null) {
-    modelSelect.innerHTML = '';
-
-    const placeholder = document.createElement('option');
-    placeholder.value = '';
-    placeholder.textContent = 'Alege modelul';
-    placeholder.className = 'dark:bg-[#1E1E1E]';
-    modelSelect.appendChild(placeholder);
-
-    const models = modelsByBrand[brand] || [];
-
-    if (!brand || models.length === 0) {
-        modelSelect.disabled = true;
-        return;
     }
 
-    models.forEach(model => {
-        const opt = document.createElement('option');
-        opt.value = model;
-        opt.textContent = model;
-        opt.className = 'dark:bg-[#1E1E1E]';
-        if (preselectedModel && preselectedModel === model) {
-            opt.selected = true;
-        }
-        modelSelect.appendChild(opt);
-    });
+    initForm();
 
-    modelSelect.disabled = false;
-}
+    // === LOGICA IMAGINI (Păstrată de la tine) ===
+    let uploadedFiles = [];
+    const imageInput = document.getElementById('imageInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const LIMITA_MB = 15;
 
-if (brandSelect && modelSelect) {
-    brandSelect.addEventListener('change', function () {
-        populateModelsForBrand(this.value, null);
-    });
-
-    // Valorile existente (serviciu + old după validare)
-    const oldBrand  = @json(old('brand', $service->brand));
-    const oldModel  = @json(old('model', $service->model));
-
-    if (oldBrand) {
-        brandSelect.value = oldBrand;
-        populateModelsForBrand(oldBrand, oldModel);
+    if(imageInput && previewContainer) {
+        imageInput.addEventListener('change', function (e) {
+            const newFiles = Array.from(e.target.files);
+            let hasError = false;
+            newFiles.forEach(file => {
+                if (file.size > LIMITA_MB * 1024 * 1024) {
+                    alert(`Imaginea "${file.name}" este prea mare!`);
+                    hasError = true;
+                }
+            });
+            if (hasError) { updateInputFiles(); return; }
+            uploadedFiles = uploadedFiles.concat(newFiles);
+            if (uploadedFiles.length > 10) uploadedFiles = uploadedFiles.slice(0, 10);
+            renderPreviews();
+            updateInputFiles();
+        });
     }
-}
+
+    function renderPreviews() {
+        previewContainer.innerHTML = "";
+        uploadedFiles.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const div = document.createElement('div');
+                div.className = `relative group aspect-square rounded-xl overflow-hidden shadow-sm border-2 border-dashed border-green-500/50 bg-green-50 dark:bg-[#1E2A20]`;
+                div.innerHTML = `
+                    <img src="${e.target.result}" class="w-full h-full object-cover opacity-90">
+                    <div class="absolute top-2 left-2 bg-green-600 text-white text-[10px] px-2 py-0.5 rounded shadow z-10">Nou</div>
+                    <button type="button" onclick="removePhoto(${index})" class="absolute inset-0 w-full h-full bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white font-bold transition">Șterge</button>
+                `;
+                previewContainer.appendChild(div);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    window.removePhoto = function(index) { uploadedFiles.splice(index, 1); renderPreviews(); updateInputFiles(); }
+    function updateInputFiles() { const dt = new DataTransfer(); uploadedFiles.forEach(f => dt.items.add(f)); imageInput.files = dt.files; }
+
+    window.deleteServerImage = function(imageName, serviceId, containerId) {
+        if (!confirm('Ești sigur că vrei să ștergi această imagine?')) return;
+        fetch(`/services/${serviceId}/image`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: JSON.stringify({ image: imageName })
+        }).then(response => response.json()).then(data => {
+            if (data.success) {
+                const el = document.getElementById(containerId);
+                el.style.opacity = '0';
+                setTimeout(() => el.remove(), 300);
+            } else {
+                alert('Eroare la ștergere.');
+            }
+        });
+    }
+});
 </script>
 
 @endsection

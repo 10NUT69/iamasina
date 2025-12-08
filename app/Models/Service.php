@@ -30,21 +30,19 @@ class Service extends Model
         'published_at',
         'expires_at',
 
-        // relații auto pe ID (tabelele brands, car_models)
-        'brand_id',
-        'model_id',
-        'year_of_fabrication',
-        'gearbox',
-
-        // câmpuri specifice pentru anunțuri auto (text / numerice)
+        // câmpuri specifice pentru anunțuri auto
         'brand',
         'model',
-        'year',
-        'mileage',
-        'fuel_type',
-        'transmission',
-        'body_type',
-        'power',
+		'car_generation_id',
+        'vin',
+        'an_fabricatie',
+        'km',
+        'capacitate_cilindrica',
+        'putere',
+        'combustibil_id',
+        'cutie_viteze_id',
+        'caroserie_id',
+        'culoare_id',
     ];
 
     protected $casts = [
@@ -54,43 +52,17 @@ class Service extends Model
         'price_value' => 'float',
 
         // cast pentru câmpurile numerice auto
-        'year' => 'integer',
-        'mileage' => 'integer',
-        'power' => 'integer',
-        'year_of_fabrication' => 'integer',
+        
+		'an_fabricatie' => 'integer',
+        'km' => 'integer',
+        'capacitate_cilindrica' => 'integer',
+        'putere' => 'integer',
     ];
 
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
-    }
-
-    public function county()
-    {
-        return $this->belongsTo(County::class);
-    }
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    public function favorites()
-    {
-        return $this->hasMany(Favorite::class);
-    }
-
-    // 🔹 Relații AUTO noi (pe tabele separate)
-    public function brand()
-    {
-        // dacă vrei și acces la câmpul text 'brand', îl ai în atributul $this->brand
-        return $this->belongsTo(Brand::class);
-    }
-
-    public function carModel()
-    {
-        return $this->belongsTo(CarModel::class, 'model_id');
-    }
+    public function category() { return $this->belongsTo(Category::class); }
+    public function county() { return $this->belongsTo(County::class); }
+    public function user() { return $this->belongsTo(User::class); }
+    public function favorites() { return $this->hasMany(Favorite::class); }
 
     public function isFavoritedBy($user)
     {
@@ -160,6 +132,7 @@ class Service extends Model
         }
 
         // 2. Dacă NU are poze (sau au fost șterse), căutăm poza categoriei
+        // Logica ta: images/defaults/{category-slug}.webp
         if ($this->category) {
             return asset('images/defaults/' . $this->category->slug . '.webp');
         }
@@ -167,4 +140,31 @@ class Service extends Model
         // 3. Fallback absolut (dacă nu are nici categorie)
         return asset('images/defaults/placeholder.png');
     }
+	// Legătura critică: Anunț -> Generație
+    public function generation()
+    {
+        return $this->belongsTo(CarGeneration::class, 'car_generation_id');
+    }
+
+// Legături cu nomenclatoarele (combustibil, cutie, caroserie, culoare)
+public function combustibil()
+{
+    return $this->belongsTo(Combustibil::class, 'combustibil_id');
+}
+
+public function cutieViteze()
+{
+    return $this->belongsTo(CutieViteze::class, 'cutie_viteze_id');
+}
+
+public function caroserie()
+{
+    return $this->belongsTo(Caroserie::class, 'caroserie_id');
+}
+
+public function culoare()
+{
+    return $this->belongsTo(Culoare::class, 'culoare_id');
+}
+
 }

@@ -65,16 +65,16 @@
                                 </div>
 
                                 <div class="grid grid-cols-2 gap-3">
-                                    {{-- Generation --}}
+                                    {{-- Generation (CRITIC: Trimite car_generation_id) --}}
                                     <div class="relative group">
-                                         <select name="generation" id="generationSelect" disabled class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-[#222] disabled:cursor-not-allowed outline-none transition-all">
+                                         <select name="car_generation_id" id="generationSelect" disabled class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-[#222] disabled:cursor-not-allowed outline-none transition-all" required>
                                             <option value="">Gen</option>
-                                        </select>
+                                         </select>
                                     </div>
                                     
                                     {{-- Year --}}
                                     <div class="relative group">
-                                        <select name="year" id="yearSelect" disabled class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-[#222] disabled:cursor-not-allowed outline-none transition-all" required>
+                                        <select name="an_fabricatie" id="yearSelect" disabled class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-[#222] disabled:cursor-not-allowed outline-none transition-all" required>
                                             <option value="">An</option>
                                         </select>
                                     </div>
@@ -82,8 +82,8 @@
                             </div>
                         </div>
 
-                         {{-- Categorie --}}
-                         <div>
+                        {{-- Categorie --}}
+                        <div>
                             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">Categorie</label>
                             <select name="category_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500">
                                 @foreach ($categories as $category)
@@ -93,17 +93,29 @@
                         </div>
                     </div>
 
-                    {{-- DREAPTA: PILLS --}}
+                    {{-- DREAPTA: PILLS (DINAMICE DIN DB) --}}
                     <div class="lg:col-span-7 space-y-6">
+                        
+                        {{-- CULOARE (NOU) --}}
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Culoare</label>
+                            <select name="culoare_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500" required>
+                                <option value="">Alege Culoarea</option>
+                                @foreach($colors as $color)
+                                    <option value="{{ $color->id }}">{{ $color->nume }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
                         {{-- CAROSERIE --}}
                         <div>
                             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Caroserie</label>
-                            <input type="hidden" name="body_type" id="inputBodyType">
+                            <input type="hidden" name="caroserie_id" id="inputBodyType">
                             <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                                @foreach(['Sedan', 'Break', 'SUV', 'Hatch', 'Coupe', 'Cabrio', 'Van', 'Pick-up'] as $type)
-                                    <button type="button" onclick="selectPill('inputBodyType', '{{ $type }}', this)" 
+                                @foreach($bodies as $body)
+                                    <button type="button" onclick="selectPill('inputBodyType', '{{ $body->id }}', this)" 
                                         class="pill-btn px-2 py-2 rounded-lg border border-gray-200 dark:border-[#333] text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-blue-500 hover:text-blue-500 transition-all bg-white dark:bg-[#252525]">
-                                        {{ $type }}
+                                        {{ $body->nume }}
                                     </button>
                                 @endforeach
                             </div>
@@ -113,12 +125,12 @@
                         {{-- COMBUSTIBIL --}}
                         <div>
                             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Combustibil</label>
-                            <input type="hidden" name="fuel_type" id="inputFuel">
+                            <input type="hidden" name="combustibil_id" id="inputFuel">
                             <div class="flex flex-wrap gap-2">
-                                @foreach(['Diesel', 'Benzina', 'Hibrid', 'Electric', 'GPL'] as $fuel)
-                                    <button type="button" onclick="selectPill('inputFuel', '{{ $fuel }}', this)" 
+                                @foreach($fuels as $fuel)
+                                    <button type="button" onclick="selectPill('inputFuel', '{{ $fuel->id }}', this)" 
                                         class="pill-btn px-4 py-2 rounded-lg border border-gray-200 dark:border-[#333] text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-blue-500 hover:text-blue-500 transition-all bg-white dark:bg-[#252525]">
-                                        {{ $fuel }}
+                                        {{ $fuel->nume }}
                                     </button>
                                 @endforeach
                             </div>
@@ -128,14 +140,13 @@
                         {{-- TRANSMISIE --}}
                         <div>
                             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Transmisie</label>
-                            <input type="hidden" name="transmission" id="inputTrans">
+                            <input type="hidden" name="cutie_viteze_id" id="inputTrans">
                             <div class="flex gap-3">
-                                <button type="button" onclick="selectPill('inputTrans', 'Manuala', this)" class="pill-btn flex-1 py-2.5 rounded-lg border border-gray-200 dark:border-[#333] text-sm font-medium bg-white dark:bg-[#252525] hover:border-blue-500 transition-all flex items-center justify-center gap-2">
-                                    ⚙️ Manuală
-                                </button>
-                                <button type="button" onclick="selectPill('inputTrans', 'Automata', this)" class="pill-btn flex-1 py-2.5 rounded-lg border border-gray-200 dark:border-[#333] text-sm font-medium bg-white dark:bg-[#252525] hover:border-blue-500 transition-all flex items-center justify-center gap-2">
-                                    ⚡ Automată
-                                </button>
+                                @foreach($transmissions as $trans)
+                                    <button type="button" onclick="selectPill('inputTrans', '{{ $trans->id }}', this)" class="pill-btn flex-1 py-2.5 rounded-lg border border-gray-200 dark:border-[#333] text-sm font-medium bg-white dark:bg-[#252525] hover:border-blue-500 transition-all flex items-center justify-center gap-2">
+                                        {{ $trans->nume }}
+                                    </button>
+                                @endforeach
                             </div>
                             <p id="err-trans" class="text-red-500 text-xs mt-1 hidden">Alege transmisia.</p>
                         </div>
@@ -149,19 +160,35 @@
                     <span class="text-blue-500">📝</span> Detalii Tehnice & Istoric
                 </h2>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                {{-- VIN CODE --}}
+                <div class="mb-6">
+                    <label class="text-xs font-bold text-gray-500 uppercase mb-1">Serie Șasiu (VIN)</label>
+                    <input type="text" name="vin" placeholder="Ex: WBA..." maxlength="17" class="w-full pl-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-gray-900 dark:text-white uppercase font-mono">
+                    <p class="text-xs text-gray-400 mt-1">Recomandat pentru verificare.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div>
                         <label class="text-xs font-bold text-gray-500 uppercase mb-1">Rulaj (km)</label>
+                        {{-- Name schimbat in 'km' --}}
                         <div class="relative">
-                            <input type="number" name="mileage" placeholder="Ex: 150000" class="w-full pl-3 pr-8 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono" required>
+                            <input type="number" name="km" placeholder="150000" class="w-full pl-3 pr-8 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono" required>
                             <span class="absolute right-3 top-2.5 text-xs font-bold text-gray-400">km</span>
                         </div>
                     </div>
                     <div>
                         <label class="text-xs font-bold text-gray-500 uppercase mb-1">Putere</label>
+                        {{-- Name schimbat in 'putere' --}}
                         <div class="relative">
-                            <input type="number" name="power" placeholder="Ex: 190" class="w-full pl-3 pr-8 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono" required>
+                            <input type="number" name="putere" placeholder="190" class="w-full pl-3 pr-8 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono" required>
                             <span class="absolute right-3 top-2.5 text-xs font-bold text-gray-400">CP</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase mb-1">Capacitate</label>
+                        <div class="relative">
+                            <input type="number" name="capacitate_cilindrica" placeholder="1995" class="w-full pl-3 pr-8 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono">
+                            <span class="absolute right-3 top-2.5 text-xs font-bold text-gray-400">cm³</span>
                         </div>
                     </div>
                 </div>
@@ -201,7 +228,7 @@
 
                 <hr class="border-gray-100 dark:border-[#333] mb-8">
 
-                {{-- PRET SI CONTACT EXISTENT --}}
+                {{-- PRET SI CONTACT --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                     {{-- PRET --}}
                     <div>
@@ -209,19 +236,10 @@
                         <div class="flex items-center gap-3">
                             <div class="relative flex-1">
                                 <input type="number" name="price_value" step="0.01" placeholder="0" class="w-full pl-4 pr-16 py-3 rounded-xl bg-gray-50 dark:bg-[#252525] border-none text-2xl font-bold text-gray-900 dark:text-white outline-none ring-1 ring-gray-200 dark:ring-[#444] focus:ring-2 focus:ring-green-500" required>
-                                {{-- Currency buttons: NEUTRAL --}}
                                 <div class="absolute right-2 top-2 bottom-2 flex bg-white dark:bg-[#333] rounded-lg p-1 border border-gray-100 dark:border-[#444]">
                                     <input type="hidden" name="currency" id="inputCurrency" value="EUR">
-                                    <button type="button" 
-                                            onclick="selectPill('inputCurrency', 'EUR', this)" 
-                                            class="pill-btn px-2 text-xs font-bold rounded text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors selected">
-                                        EUR
-                                    </button>
-                                    <button type="button" 
-                                            onclick="selectPill('inputCurrency', 'RON', this)" 
-                                            class="pill-btn px-2 text-xs font-bold rounded text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
-                                        RON
-                                    </button>
+                                    <button type="button" onclick="selectPill('inputCurrency', 'EUR', this)" class="pill-btn px-2 text-xs font-bold rounded text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors selected">EUR</button>
+                                    <button type="button" onclick="selectPill('inputCurrency', 'RON', this)" class="pill-btn px-2 text-xs font-bold rounded text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">RON</button>
                                 </div>
                             </div>
                         </div>
@@ -250,29 +268,28 @@
                     </div>
                 </div>
 
-                {{-- ================= SECTIUNE GUEST / CONT (NOUĂ) ================= --}}
+                {{-- GUEST / AUTH SECTION --}}
                 @guest
                 <div class="mt-8 pt-8 border-t border-gray-100 dark:border-[#333]">
                     <div class="mb-5 flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800/30">
                         <span class="text-xl">ℹ️</span>
                         <div class="text-sm text-blue-800 dark:text-blue-200">
                             <p class="font-bold mb-1">Nu ai cont?</p>
-                            <p class="opacity-90">Completează datele de mai jos și îți creăm automat un cont. Dacă le lași goale, anunțul va fi <strong>anonim</strong>.</p>
+                            <p class="opacity-90">Completează datele de mai jos și îți creăm automat un cont.</p>
                         </div>
                     </div>
-
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div class="md:col-span-2">
-                             <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nume (Opțional)</label>
-                             <input type="text" name="name" placeholder="Numele tău complet" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm">
+                             <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nume</label>
+                             <input type="text" name="name" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Email (Opțional)</label>
-                            <input type="email" name="email" placeholder="adresa@email.com" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm">
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Email</label>
+                            <input type="email" name="email" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Parolă (Opțional)</label>
-                            <input type="password" name="password" placeholder="Minim 6 caractere" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm">
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Parolă</label>
+                            <input type="password" name="password" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm">
                         </div>
                     </div>
                 </div>
@@ -307,25 +324,9 @@
 <style>
     .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-    
-    /* Stiluri pentru butoanele Pill selectate */
-    .pill-btn.selected { 
-        background-color: #3B82F6; /* blue-500 */
-        color: white !important; 
-        border-color: #3B82F6;
-    }
-    
-    /* Customizare pentru selectorul de preț (Green) */
-    button[onclick*="inputPriceType"].selected, 
-    button[onclick*="inputCurrency"].selected {
-        background-color: #10B981 !important; /* green-500 */
-        color: white !important;
-        border-color: #10B981 !important;
-    }
-
-    /* Reset input number arrows */
-    input[type=number]::-webkit-inner-spin-button, 
-    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .pill-btn.selected { background-color: #3B82F6; color: white !important; border-color: #3B82F6; }
+    button[onclick*="inputPriceType"].selected, button[onclick*="inputCurrency"].selected { background-color: #10B981 !important; color: white !important; border-color: #10B981 !important; }
+    input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 </style>
 
 <script>
@@ -340,7 +341,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitBtn = document.getElementById('submitBtn');
 
     function updateStep() {
-        // Show/Hide steps
         steps.forEach(s => {
             if(parseInt(s.dataset.step) === currentStep) {
                 s.classList.remove('hidden');
@@ -349,8 +349,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 s.classList.add('hidden', 'opacity-0');
             }
         });
-
-        // Update Dots
         dots.forEach((dot, idx) => {
             if (idx + 1 === currentStep) {
                 dot.className = 'step-dot w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-blue-600 text-white transition-all scale-110 shadow-md';
@@ -361,8 +359,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 dot.className = 'step-dot w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-[#333] text-gray-400 transition-all';
             }
         });
-
-        // Buttons
         prevBtn.classList.toggle('hidden', currentStep === 1);
         if(currentStep === totalSteps) {
             nextBtn.classList.add('hidden');
@@ -375,20 +371,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // === 2. PILL SELECTORS LOGIC ===
     window.selectPill = function(inputId, value, btnElement) {
-        // Set hidden input value
         document.getElementById(inputId).value = value;
-        
-        // Visual update
         const parent = btnElement.parentElement;
         const siblings = parent.querySelectorAll('.pill-btn');
         siblings.forEach(el => el.classList.remove('selected'));
         btnElement.classList.add('selected');
 
-        // Hide errors if any
-        const err = document.getElementById('err-' + inputId.replace('input','').toLowerCase()); // simplistic mapping
+        const err = document.getElementById('err-' + inputId.replace('input','').toLowerCase());
         if(err) err.classList.add('hidden');
-        
-        // Special case for Body Type mapping
         if(inputId === 'inputBodyType') document.getElementById('err-body').classList.add('hidden');
         if(inputId === 'inputFuel') document.getElementById('err-fuel').classList.add('hidden');
         if(inputId === 'inputTrans') document.getElementById('err-trans').classList.add('hidden');
@@ -398,9 +388,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function validateCurrentStep() {
         let valid = true;
         const currentEl = document.querySelector(`.step-content[data-step="${currentStep}"]`);
-        
-        // Standard inputs
         const inputs = currentEl.querySelectorAll('input[required], select[required], textarea[required]');
+        
         inputs.forEach(inp => {
             if(!inp.value) {
                 valid = false;
@@ -409,27 +398,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Step 1: Specific Logic for Generation & Pills
         if(currentStep === 1) {
-            // Generatia se valideaza DOAR daca este enabled (adica avem generatii)
-            const genSel = document.getElementById('generationSelect');
-            if (!genSel.disabled && !genSel.value) {
+             // Validare Generatie doar daca e activa
+             const genSel = document.getElementById('generationSelect');
+             if (!genSel.disabled && !genSel.value) {
                 valid = false;
                 genSel.classList.add('ring-2', 'ring-red-500', 'border-red-500');
                 genSel.addEventListener('change', () => genSel.classList.remove('ring-2', 'ring-red-500', 'border-red-500'), {once:true});
-            }
+             }
 
-            if(!document.getElementById('inputBodyType').value) {
-                document.getElementById('err-body').classList.remove('hidden'); valid = false;
-            }
-            if(!document.getElementById('inputFuel').value) {
-                document.getElementById('err-fuel').classList.remove('hidden'); valid = false;
-            }
-            if(!document.getElementById('inputTrans').value) {
-                document.getElementById('err-trans').classList.remove('hidden'); valid = false;
-            }
+            if(!document.getElementById('inputBodyType').value) { document.getElementById('err-body').classList.remove('hidden'); valid = false; }
+            if(!document.getElementById('inputFuel').value) { document.getElementById('err-fuel').classList.remove('hidden'); valid = false; }
+            if(!document.getElementById('inputTrans').value) { document.getElementById('err-trans').classList.remove('hidden'); valid = false; }
         }
-
         return valid;
     }
 
@@ -439,11 +420,7 @@ document.addEventListener('DOMContentLoaded', function() {
             updateStep();
         }
     });
-
-    prevBtn.addEventListener('click', () => {
-        currentStep--;
-        updateStep();
-    });
+    prevBtn.addEventListener('click', () => { currentStep--; updateStep(); });
 
     // === 4. CASCADING SELECTS (Brand -> Model -> Generation -> Year) ===
     const carData = @json($carData ?? []); 
@@ -452,7 +429,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const genSel = document.getElementById('generationSelect');
     const yearSel = document.getElementById('yearSelect');
 
-    // Helper functions
     function populateYears(start, end) {
         yearSel.innerHTML = '<option value="">An</option>';
         yearSel.disabled = false;
@@ -460,14 +436,12 @@ document.addEventListener('DOMContentLoaded', function() {
             yearSel.innerHTML += `<option value="${i}">${i}</option>`;
         }
     }
-
     function resetSelect(el, defaultText) {
         el.innerHTML = `<option value="">${defaultText}</option>`;
         el.disabled = true;
         el.value = "";
     }
 
-    // 1. Change Brand
     brandSel.addEventListener('change', function() {
         const brand = this.value;
         resetSelect(modelSel, 'Model');
@@ -485,42 +459,35 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 2. Change Model
     modelSel.addEventListener('change', function() {
         const brand = brandSel.value;
         const model = this.value;
-        
         resetSelect(genSel, 'Gen');
         resetSelect(yearSel, 'An');
 
         if(brand && model && carData[brand][model]) {
             const generations = carData[brand][model];
-
             if (generations.length > 0) {
-                // CAZ A: Are Generatii -> Obligatoriu de selectat
                 genSel.disabled = false;
                 genSel.classList.remove('bg-gray-100', 'cursor-not-allowed', 'text-gray-400');
-                
                 generations.forEach(g => {
                     const option = document.createElement('option');
-                    option.value = g.name;
+                    // !!! IMPORTANT: Folosim ID-ul generatiei pentru DB !!!
+                    option.value = g.id; 
                     option.text = `${g.name} (${g.start} - ${g.end || 'Prezent'})`;
                     option.dataset.start = g.start;
                     option.dataset.end = g.end || new Date().getFullYear();
                     genSel.appendChild(option);
                 });
             } else {
-                // CAZ B: NU are generatii -> Gri / Optional
                 genSel.disabled = true;
-                genSel.innerHTML = '<option value="">N/A (Standard)</option>';
+                genSel.innerHTML = '<option value="">N/A</option>';
                 genSel.classList.add('bg-gray-100', 'cursor-not-allowed', 'text-gray-400'); 
-                
                 populateYears(1990, new Date().getFullYear());
             }
         }
     });
 
-    // 3. Change Generation
     genSel.addEventListener('change', function() {
         const selected = this.options[this.selectedIndex];
         if(selected && selected.dataset.start) {
@@ -531,7 +498,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // === 5. IMAGE PREVIEW ===
     const imageInput = document.getElementById('imageInput');
     const previewContainer = document.getElementById('previewContainer');
-
     if (imageInput && previewContainer) {
         imageInput.addEventListener('change', function(e) {
             previewContainer.innerHTML = '';
