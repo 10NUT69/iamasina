@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* HEADER NORMAL (mare) */
+#mainHeader {
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+}
+
+/* HEADER MIC (la scroll) */
+.header-scrolled {
+    padding-top: 0.15rem !important;
+    padding-bottom: 0.15rem !important;
+    backdrop-filter: blur(6px);
+}
+.emag-gradient {
+    background: linear-gradient(90deg,
+        #e52620 0%,
+        #d51d68 20%,
+        #7b2bbf 60%,
+        #007bff 100%
+    );
+}
+/* Logo normal */
+.logo-main {
+    height: 2.25rem; /* 36px */
+}
+
+/* Logo mic la scroll */
+.header-scrolled .logo-main {
+    height: 1.6rem !important; /* 25px */
+}
