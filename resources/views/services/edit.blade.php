@@ -133,30 +133,52 @@
                     {{-- BRAND / MODEL / GENERATIE / AN --}}
                     <div class="space-y-4 mb-4">
                         {{-- MARCĂ --}}
-                        <div>
-                            <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Marcă</label>
-                            <div class="relative">
-                                <select name="brand" id="brandSelect"
-                                        class="w-full pl-4 pr-10 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040]
-                                               bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white
-                                               focus:ring-2 focus:ring-primary-end outline-none transition cursor-pointer form-select">
-                                    <option value="" class="dark:bg-[#1E1E1E]">Alege marca</option>
-                                    @foreach($brands as $brand)
-                                        {{-- 2. FIX: Folosim $valBrand calculat sus --}}
-                                        <option value="{{ $brand->name }}" 
-                                            {{ ($valBrand == $brand->name) ? 'selected' : '' }}
-                                            class="dark:bg-[#1E1E1E]">
-                                            {{ $brand->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
+<div>
+    <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Marcă</label>
+    <div class="relative">
+        @php
+            $populareNume = ['Audi', 'BMW', 'Dacia', 'Ford', 'Opel', 'Renault', 'Volkswagen', 'Mercedes-Benz', 'Skoda'];
+            $brandsPopulare = $brands->whereIn('name', $populareNume)->sortBy('name');
+            $toateMarcile = $brands->sortBy('name');
+        @endphp
+
+        <select name="brand" id="brandSelect"
+                class="w-full pl-4 pr-10 py-3.5 rounded-xl border border-gray-300 dark:border-[#404040]
+                       bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white
+                       focus:ring-2 focus:ring-primary-end outline-none transition cursor-pointer form-select">
+            <option value="" class="dark:bg-[#1E1E1E]">Alege marca</option>
+
+            @if($brandsPopulare->isNotEmpty())
+                <optgroup label="Mărci populare">
+                    @foreach($brandsPopulare as $brand)
+                        <option value="{{ $brand->name }}"
+                                {{ $valBrand === $brand->name ? 'selected' : '' }}
+                                class="dark:bg-[#1E1E1E]">
+                            {{ $brand->name }}
+                        </option>
+                    @endforeach
+                </optgroup>
+            @endif
+
+            <optgroup label="Toate mărcile">
+                @foreach($toateMarcile as $brand)
+                    <option value="{{ $brand->name }}"
+                            {{ $valBrand === $brand->name ? 'selected' : '' }}
+                            class="dark:bg-[#1E1E1E]">
+                        {{ $brand->name }}
+                    </option>
+                @endforeach
+            </optgroup>
+        </select>
+
+        <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+        </div>
+    </div>
+</div>
+
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {{-- MODEL --}}

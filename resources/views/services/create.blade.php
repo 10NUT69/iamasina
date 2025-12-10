@@ -59,7 +59,7 @@
                                 {{-- Model --}}
                                 <div class="relative group">
                                     <span class="absolute left-3 top-2.5 text-gray-400">🚘</span>
-                                    <select name="model" id="modelSelect" disabled class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-[#222] disabled:cursor-not-allowed focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none" required>
+                                    <select name="model" id="modelSelect" disabled class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-[#222] disabled:cursor-not-allowed focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none" >
                                         <option value="">Model</option>
                                     </select>
                                 </div>
@@ -67,7 +67,7 @@
                                 <div class="grid grid-cols-2 gap-3">
                                     {{-- Generation (CRITIC: Trimite car_generation_id) --}}
                                     <div class="relative group">
-                                         <select name="car_generation_id" id="generationSelect" disabled class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-[#222] disabled:cursor-not-allowed outline-none transition-all" required>
+                                         <select name="car_generation_id" id="generationSelect" disabled class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-[#222] disabled:cursor-not-allowed outline-none transition-all">
                                             <option value="">Gen</option>
                                          </select>
                                     </div>

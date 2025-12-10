@@ -108,18 +108,55 @@ class Service extends Model
     }
 
     // PUBLIC URL
-    public function getPublicUrlAttribute()
-    {
-        $catSlug = $this->category ? $this->category->slug : 'diverse';
-        $countySlug = $this->county ? $this->county->slug : 'romania';
+      // PUBLIC URL – AUTOTURISME/{brand}/{model}/{year}/{county}/{id}
+   public function getPublicUrlAttribute()
+{
+    $county = $this->county;
+    $countySlug = $county ? $county->slug : 'romania';
 
-        return route('service.show', [ 
-            'category' => $catSlug,
-            'county'   => $countySlug,
-            'slug'     => $this->smart_slug,
-            'id'       => $this->id
+    // Anul – ce ai în anunț (sau anul curent dacă lipsește)
+    $year = (int) ($this->an_fabricatie ?? date('Y'));
+
+    $brandSlug = null;
+    $modelSlug = null;
+
+    // 1. ÎNCERCI VARIANTA CU GENERAȚIE (relații complete)
+    if ($this->car_generation_id && $this->generation) {
+        $generation = $this->generation;
+        $model      = $generation ? $generation->model : null;
+        $brand      = $model ? $model->brand : null;
+
+        if ($brand && $model) {
+            $brandSlug = $brand->slug;
+            $modelSlug = $model->slug;
+        }
+    }
+
+    // 2. FALLBACK: dacă nu avem generație → folosim câmpurile text din DB
+    if (!$brandSlug || !$modelSlug) {
+        if (!empty($this->brand)) {
+            $brandSlug = Str::slug($this->brand);
+        }
+        if (!empty($this->model)) {
+            $modelSlug = Str::slug($this->model);
+        }
+    }
+
+    // 3. Dacă tot avem brand + model + județ → construim URL-ul frumos
+    if ($brandSlug && $modelSlug && $countySlug) {
+        return route('service.show.car', [
+            'brandSlug'  => $brandSlug,
+            'modelSlug'  => $modelSlug,
+            'year'       => $year,
+            'countySlug' => $countySlug,
+            'id'         => $this->id,
         ]);
     }
+
+    // 4. Fallback final (dacă chiar nu avem nimic)
+    return url('/');
+}
+
 
     // ==========================================
     // 🖼️ IMAGINI (LOGICA DE DEFAULT CATEGORIE)

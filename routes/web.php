@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ProfileController;
-// IMPORTAM NOUL CONTROLLER PENTRU AUTO
 use App\Http\Controllers\CarController;
 
 // ADMIN CONTROLLERS
@@ -15,15 +14,30 @@ use App\Http\Controllers\Admin\AdminCategoryController;
 
 /*
 |--------------------------------------------------------------------------
-| PUBLIC ROUTES
+| PUBLIC ROUTES – AUTOTURISME ONLY
 |--------------------------------------------------------------------------
 */
 
-// HOME
+// HOME = listă anunțuri auto
 Route::get('/', [ServiceController::class, 'index'])->name('services.index');
 
-// NOU: PAGINA DE CĂUTARE AUTO (Formularul cu 3 dropdown-uri)
-Route::get('/cautare', [CarController::class, 'index'])->name('cars.search');
+// Alias opțional pentru /autoturisme (folosește aceeași listă)
+Route::get('/autoturisme', [ServiceController::class, 'index'])->name('cars.index');
+
+// Listare după marcă: /autoturisme/volkswagen
+Route::get('/autoturisme/{brandSlug}', [ServiceController::class, 'indexBrand'])
+    ->name('brand.index');
+
+// Pagina de detaliu anunț auto:
+// /autoturisme/{brandSlug}/{modelSlug}/{year}/{countySlug}/{id}
+Route::get(
+    '/autoturisme/{brandSlug}/{modelSlug}/{year}/{countySlug}/{id}',
+    [ServiceController::class, 'showCar']
+)->where([
+    'year' => '[0-9]{4}',
+    'id'   => '[0-9]+',
+])->name('service.show.car');
+
 
 // FORMULAR ADĂUGARE
 Route::get('/adauga-anunt', [ServiceController::class, 'create'])->name('services.create');
@@ -36,18 +50,15 @@ Route::get('/contul-meu', function () {
 
 /*
 |--------------------------------------------------------------------------
-| AJAX ROUTES – REGISTER + PROFILE + AUTO
+| AJAX ROUTES – PROFILE + AUTO
 |--------------------------------------------------------------------------
 */
 
-// --- AUTO (NOUL SISTEM DIN CarController) ---
-// Returnează modelele pentru o marcă (JSON)
+// AUTO – modelele și generațiile (CarController)
 Route::get('/api/models/{brandId}', [CarController::class, 'getModels'])->name('api.cars.models');
-// Returnează generațiile pentru un model (JSON)
 Route::get('/api/generations/{modelId}', [CarController::class, 'getGenerations'])->name('api.cars.generations');
 
-
-// --- VECHIUL SISTEM (îl păstrăm momentan dacă e folosit în alte formulare) ---
+// VECHIUL helper (dacă îl mai folosești)
 Route::get('/ajax/models-by-brand', [ServiceController::class, 'getModelsByBrand'])
     ->name('ajax.models.by.brand');
 
@@ -140,6 +151,19 @@ Route::view('/despre-noi', 'services.about')->name('page.about');
 Route::view('/contact', 'services.contact')->name('page.contact');
 Route::view('/termeni-si-conditii', 'services.terms')->name('page.terms');
 Route::view('/politica-confidentialitate', 'services.privacy')->name('page.privacy');
+
+
+/*
+|--------------------------------------------------------------------------
+| BRAND SEO ROUTES (AUTOTURISME / MARCĂ)
+|--------------------------------------------------------------------------
+|
+| Exemple: /autoturisme/audi
+*/
+
+Route::get('/autoturisme/{brandSlug}', [ServiceController::class, 'indexBrand'])
+    ->name('brand.index');
+
 
 
 /*

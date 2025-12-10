@@ -3,6 +3,8 @@
 @php
     use Illuminate\Support\Str;
 
+    $siteBrand = 'MeseriasBun.ro';
+
     // --- 1. STATUS & FORMATĂRI SIMPLE ---
 
     $isDeleted = $service->trashed();
@@ -19,41 +21,43 @@
         $formattedPhone = preg_replace('/^(\d{4})(\d{3})(\d{3})$/', '$1 $2 $3', $rawPhone);
     }
 
-    // Imagini
-    $images = is_string($service->images)
-        ? json_decode($service->images, true)
-        : ($service->images ?? []);
+    // --- 2. NORMALIZARE DATE AUTO (relații + fallback la câmpurile text) ---
 
-    if ($service->main_image_url) {
-        array_unshift($images, basename($service->main_image_url));
-        $images = array_values(array_unique($images));
-    }
-
-    // --- 2. NORMALIZARE DATE AUTO (NOUA STRUCTURĂ + FALLBACK LA VECHI) ---
-
-    // Brand / Model / Generație din relații
     $brandName      = optional(optional(optional($service->generation)->model)->brand)->name ?: $service->brand;
     $modelName      = optional(optional($service->generation)->model)->name ?: $service->model;
     $generationName = optional($service->generation)->name;
 
-    // An & Km
     $year = $service->an_fabricatie ?? $service->year;
     $km   = $service->km ?? $service->mileage;
 
-    // Motor
     $engine = $service->capacitate_cilindrica
         ?? $service->engine_capacity
         ?? $service->engine_size;
 
     $power = $service->putere ?? $service->power;
 
-    // Combustibil / Cutie / Caroserie / Culoare
     $fuelName  = optional($service->combustibil)->nume ?? $service->fuel_type;
     $transName = optional($service->cutieViteze)->nume ?? $service->transmission;
     $bodyName  = optional($service->caroserie)->nume ?? $service->body_type;
     $colorName = optional($service->culoare)->nume ?? $service->color;
 
-    // --- 3. ICONIȚE (ASPECTE IMPORTANTE) ---
+    // --- 3. IMAGINI ---
+    // Dacă anunțul este șters: nu mai afișăm pozele userului, doar placeholder (prin main_image_url fallback în model)
+    if ($isDeleted) {
+        $images = [];
+    } else {
+        $images = is_string($service->images)
+            ? json_decode($service->images, true)
+            : ($service->images ?? []);
+    }
+
+    if ($service->main_image_url && !$isDeleted) {
+        $images = is_array($images) ? $images : [];
+        array_unshift($images, basename($service->main_image_url));
+        $images = array_values(array_unique($images));
+    }
+
+    // --- 4. QUICK SPECS (iconițe) ---
 
     $quickSpecs = [];
 
@@ -95,8 +99,6 @@
             'icon'  => 'transmission'
         ];
     }
-
-    // dacă nu s-au umplut toate, mai băgăm și Caroserie
     if (count($quickSpecs) < 6 && $bodyName) {
         $quickSpecs[] = [
             'label' => 'Caroserie',
@@ -107,32 +109,115 @@
 
     $quickSpecs = array_slice($quickSpecs, 0, 6);
 
-    // --- 4. DETALII COMPLETE (TABEL JOS) ---
+    // --- 5. DETALII COMPLETE (tabel jos) ---
 
     $fullDetails = [
-        'Marcă'               => $brandName,
-        'Model'               => $modelName,
-        'Generație'           => $generationName,
-        'Anul producției'     => $year,
-        'Kilometraj'          => $km ? number_format($km, 0, '.', ' ') . ' km' : null,
-        'Combustibil'         => $fuelName ? ucfirst($fuelName) : null,
-        'Putere'              => $power ? $power . ' CP' : null,
+        'Marcă'                 => $brandName,
+        'Model'                 => $modelName,
+        'Generație'             => $generationName,
+        'Anul producției'       => $year,
+        'Kilometraj'            => $km ? number_format($km, 0, '.', ' ') . ' km' : null,
+        'Combustibil'           => $fuelName ? ucfirst($fuelName) : null,
+        'Putere'                => $power ? $power . ' CP' : null,
         'Capacitate cilindrică' => $engine ? $engine . ' cm³' : null,
-        'Transmisie'          => $transName ? ucfirst($transName) : null,
-        'Caroserie'           => $bodyName ? ucfirst($bodyName) : null,
-        'Culoare'             => $colorName ? ucfirst($colorName) : null,
-        'VIN (Serie șasiu)'   => $service->vin ?: null,
+        'Transmisie'            => $transName ? ucfirst($transName) : null,
+        'Caroserie'             => $bodyName ? ucfirst($bodyName) : null,
+        'Culoare'               => $colorName ? ucfirst($colorName) : null,
+        'VIN (Serie șasiu)'     => $service->vin ?: null,
     ];
 
-    // Poți păstra și câmpuri speculative dacă le ai în DB:
-    // 'Număr uși'    => $service->doors ?? null,
-    // 'Număr locuri' => $service->seats ?? null,
-    // 'Înmatriculat' => isset($service->registered) ? ($service->registered ? 'Da' : 'Nu') : null,
-
     $fullDetails = array_filter($fullDetails, fn($value) => !is_null($value) && $value !== '');
+
+    // --- 6. SEO (logică din vechiul proiect adaptată la auto) ---
+
+    $seoLocation = $service->county->name ?? 'România';
+
+    $cleanTitleString = preg_replace('/[^\p{L}\p{N}\s]/u', '', $service->title);
+    $cleanTitleString = trim(preg_replace('/\s+/', ' ', $cleanTitleString));
+    $words = explode(' ', $cleanTitleString);
+    $shortUserTitle = implode(' ', array_slice($words, 0, 3));
+
+    $prefix = $isDeleted ? 'INDISPONIBIL - ' : '';
+    $fullSeoTitle = $prefix . $shortUserTitle;
+
+    if ($brandName) {
+        $fullSeoTitle .= ' – ' . $brandName;
+    }
+    $fullSeoTitle .= ' în ' . $seoLocation;
+
+    if (mb_strlen($fullSeoTitle) + mb_strlen(" | ".$siteBrand) <= 70) {
+        $fullSeoTitle .= " | ".$siteBrand;
+    }
+
+    $introPart      = "Cauți {$brandName} {$modelName} în {$seoLocation}? ";
+    $userDesc       = Str::limit(strip_tags($service->description), 120);
+    $seoDescription = $isDeleted
+        ? 'Acest anunț nu mai este valabil.'
+        : $introPart . $userDesc;
+
+    $pageUrl = $service->public_url;
+    $seoImage = $service->main_image_url;
+
+    $schemaData = [
+        "@context" => "https://schema.org",
+        "@type"    => "Vehicle",
+        "name"        => $fullSeoTitle,
+        "description" => $seoDescription,
+        "image"       => $seoImage,
+        "url"         => $pageUrl,
+        "brand"       => $brandName,
+        "model"       => $modelName,
+        "vehicleModelDate" => $year,
+        "offers"      => $isDeleted ? null : [
+            "@type"         => "Offer",
+            "priceCurrency" => $service->currency ?? 'EUR',
+            "price"         => $service->price_value ?? '0',
+            "availability"  => "https://schema.org/InStock"
+        ],
+    ];
+
+    $breadcrumbSchema = [
+        "@context" => "https://schema.org",
+        "@type"    => "BreadcrumbList",
+        "itemListElement" => [
+            [
+                "@type"    => "ListItem",
+                "position" => 1,
+                "name"     => "Acasă",
+                "item"     => route('services.index')
+            ],
+            [
+                "@type"    => "ListItem",
+                "position" => 2,
+                "name"     => trim(($brandName ? $brandName.' ' : '').$modelName.' '.$seoLocation),
+                "item"     => url()->current()
+            ],
+            [
+                "@type"    => "ListItem",
+                "position" => 3,
+                "name"     => Str::limit($service->title, 30)
+            ],
+        ]
+    ];
 @endphp
 
-@section('title', $service->title)
+@section('title', $fullSeoTitle)
+@section('meta_title', $fullSeoTitle)
+@section('meta_description', $seoDescription)
+@section('meta_image', $seoImage)
+
+@section('canonical')
+    <link rel="canonical" href="{{ $pageUrl }}" />
+@endsection
+
+@section('schema')
+<script type="application/ld+json">
+{!! json_encode(array_filter($schemaData), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+</script>
+<script type="application/ld+json">
+{!! json_encode($breadcrumbSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+</script>
+@endsection
 
 @section('content')
 
@@ -200,7 +285,19 @@
         </nav>
     </div>
 
-    <div class="max-w-[1200px] mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    {{-- BANNER ANUNȚ DEZACTIVAT --}}
+    @if($isDeleted)
+        <div class="max-w-[1200px] mx-auto px-4 mb-3">
+            <div class="p-3 bg-red-50 border border-red-100 text-red-600 rounded-lg shadow-sm flex items-center gap-2 text-sm font-semibold">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Acest anunț a fost dezactivat și nu mai este disponibil. Informațiile rămân vizibile pentru referință.
+            </div>
+        </div>
+    @endif
+
+    <div class="max-w-[1200px] mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-6 {{ $isDeleted ? 'opacity-60 grayscale' : '' }}">
 
         {{-- LEFT --}}
         <div class="lg:col-span-8 space-y-6">
@@ -211,7 +308,7 @@
                     <div class="swiper-wrapper">
                         @if(empty($images))
                             <div class="swiper-slide">
-                                <img src="{{ asset('images/default-car.jpg') }}" class="w-full h-full object-cover">
+                                <img src="{{ $service->main_image_url }}" class="w-full h-full object-cover">
                             </div>
                         @else
                             @foreach($images as $img)
@@ -232,11 +329,11 @@
 
                     <div class="absolute bottom-4 right-4 z-20 bg-black/70 text-white text-xs font-bold px-3 py-1.5 rounded flex items-center gap-1.5 pointer-events-none">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        <span class="fraction-pagination">1 / {{ max(1, count($images)) }}</span>
+                        <span class="fraction-pagination">1 / {{ max(1, count($images) ?: 1) }}</span>
                     </div>
                 </div>
 
-                @if(count($images) > 1)
+                @if(!$isDeleted && count($images) > 1)
                     <div class="swiper thumbs-swiper px-3 py-3 bg-white dark:bg-[#1E1E1E] border-t border-gray-100 dark:border-[#333]">
                         <div class="swiper-wrapper">
                             @foreach($images as $img)
@@ -347,7 +444,7 @@
                         </div>
                         <div>
                             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Vânzător</p>
-                            <h4 class="font-bold text-sm text-gray-900 dark:text-white">{{ $service->author_name ?? 'Utilizator' }}</h4>
+                            <h4 class="font-bold text-sm text-gray-900 dark:text:white">{{ $service->author_name ?? 'Utilizator' }}</h4>
                             <p class="text-[10px] text-gray-400">Membru din {{ $service->created_at->format('Y') }}</p>
                         </div>
                     </div>
@@ -394,6 +491,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
 
+        @if(!$isDeleted && count($images) > 1)
         var thumbsSwiper = new Swiper(".thumbs-swiper", {
             spaceBetween: 8,
             slidesPerView: 4.5,
@@ -404,6 +502,7 @@
                 1024: { slidesPerView: 5.5 }
             }
         });
+        @endif
 
         var mainSwiper = new Swiper(".main-swiper", {
             spaceBetween: 10,
@@ -411,9 +510,11 @@
                 nextEl: ".swiper-button-next",
                 prevEl: ".swiper-button-prev",
             },
+            @if(!$isDeleted && count($images) > 1)
             thumbs: {
                 swiper: thumbsSwiper,
             },
+            @endif
             on: {
                 slideChange: function () {
                     const current = this.activeIndex + 1;
