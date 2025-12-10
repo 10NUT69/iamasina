@@ -1,168 +1,153 @@
 @extends('layouts.app')
 
-@section('title', 'MeseriasBun.ro – Găsește Meseriași, Constructori și Instalatori')
-@section('meta_description', 'Ai nevoie de un profesionist? Găsește rapid oferte pentru construcții, renovări și instalații sau publică anunț gratuit pe MeseriasBun.ro.')
+@section('title', 'Anunțuri auto – autoturisme și servicii auto')
+@section('meta_description', 'Caută autoturisme după marcă, model, generație, caroserie, combustibil, cutie de viteze și locație. Publică sau găsește rapid anunțuri auto.')
 @section('meta_image', asset('images/social-share.webp'))
 
-{{-- SECȚIUNEA HERO --}}
+{{-- ======================= HERO + FILTRE ======================= --}}
 @section('hero')
 <div class="relative w-full bg-gray-900 group">
-    
-    {{-- A. IMAGINE + OVERLAY --}}
-    <div class="absolute inset-0 h-[450px] md:h-[480px] w-full overflow-hidden z-0">
-        {{-- Imagine Desktop --}}
-        <img src="{{ asset('images/hero-desktop.webp') }}" alt="Meserias Bun Fundal" 
-             class="hidden md:block w-full h-full object-cover object-center transform transition duration-1000 group-hover:scale-105">
-        
-        {{-- Imagine Mobile --}}
-        <img src="{{ asset('images/hero-mobile.webp') }}" alt="Meserias Bun Fundal" 
+    {{-- FUNDAL --}}
+    <div class="absolute inset-0 h-[260px] md:h-[300px] w-full overflow-hidden z-0">
+        <img src="{{ asset('images/hero-desktop.webp') }}" alt="Fundal auto" 
+             class="hidden md:block w-full h-full object-cover object-center">
+        <img src="{{ asset('images/hero-mobile.webp') }}" alt="Fundal auto" 
              class="block md:hidden w-full h-full object-cover object-center">
-             
-        {{-- 
-            OVERLAY SIMPLU (FĂRĂ GRADIENT COMPLEX):
-            Un strat negru uniform cu 50% opacitate. 
-            Este cel mai sigur pentru lizibilitate pe orice dispozitiv.
-        --}}
-        <div class="absolute inset-0 bg-black/50"></div>
+        <div class="absolute inset-0 bg-black/55"></div>
     </div>
 
-    {{-- B. CONȚINUT TEXT --}}
-    {{-- 
-        MODIFICARE CRITICĂ MOBIL:
-        h-auto (pe mobil): Containerul are înălțimea strict cât textul.
-        md:h-[480px] (pe desktop): Are înălțime fixă pentru centrare.
-        
-        pt-24 (pe mobil): Împinge textul puțin sub header.
-        md:justify-center: Centrează vertical doar pe desktop.
-    --}}
-    <div class="relative z-10 max-w-7xl mx-auto px-4 h-auto md:h-[480px] flex flex-col justify-start md:justify-center items-start pt-24 pb-4 md:pt-16 md:pb-8">
-        
-        <h1 class="text-white font-extrabold tracking-tight drop-shadow-xl text-left mb-2 md:mb-4 max-w-2xl animate-in slide-in-from-left-4 duration-700">
-            <span class="block text-3xl md:text-4xl lg:text-5xl mb-1 md:mb-2">GĂSEȘTI MEȘTERI</span>
+    <div class="relative z-10 max-w-6xl mx-auto px-4 pt-8 pb-4">
+        {{-- TITLU --}}
+        <div class="mb-3 md:mb-4">
+            <h1 class="text-white font-extrabold tracking-tight text-xl md:text-2xl lg:text-3xl">
+                Găsește rapid <span class="text-red-300">autoturisme</span> după filtre precise
+            </h1>
+            <p class="text-gray-200 text-xs md:text-sm mt-1">
+                Alege marca, modelul, generația, caroseria, combustibilul, cutia și locația.
+            </p>
+        </div>
+
+        {{-- CARD CU TABURI + FILTRE --}}
+        <div class="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-lg border border-gray-100 dark:border-[#333]
+            px-3 py-3 md:px-4 md:py-4 w-full md:w-[1000px]">
+
             
-            {{-- TEXT ALB CURAT (FĂRĂ GRADIENT) --}}
-            <span class="block text-3xl md:text-4xl lg:text-5xl text-white font-black">
-                VERIFICAȚI, RAPID!
-            </span>
-        </h1>
+            {{-- TABURI SIMPLE --}}
+            <div class="flex gap-4 pb-3 border-b border-gray-200 dark:border-[#333] text-xs md:text-sm font-semibold">
+                <button type="button"
+                    class="flex items-center gap-1 text-[#CC2E2E] border-b-2 border-[#CC2E2E] pb-2">
+                    <span>🚗</span>
+                    <span>Autoturisme</span>
+                </button>
+                <button type="button"
+                    class="hidden md:flex items-center gap-1 text-gray-400 pb-2 cursor-not-allowed">
+                    <span>⚙️</span>
+                    <span>Piese</span>
+                </button>
+                <button type="button"
+                    class="hidden md:flex items-center gap-1 text-gray-400 pb-2 cursor-not-allowed">
+                    <span>🚚</span>
+                    <span>Camioane</span>
+                </button>
+            </div>
 
-        <p class="text-gray-200 text-sm md:text-lg max-w-xl font-medium mb-4 md:mb-8 leading-relaxed shadow-black drop-shadow-md hidden md:block">
-            Cea mai simplă metodă să găsești profesioniști pentru proiectul tău, oriunde în România.
-        </p>
+            {{-- FILTRE --}}
+            <form id="search-form" onsubmit="event.preventDefault(); loadServices(1);" class="mt-4">
+                <input type="hidden" name="vehicle_type" id="vehicle-type" value="autoturisme">
 
-    </div>
+                {{-- 2 rânduri × 4 coloane pe desktop, 2 coloane pe mobil --}}
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-x-2 md:gap-x-3 gap-y-2 items-end text-xs">
 
-    {{-- C. BARA DE CĂUTARE --}}
-    {{-- 
-        MODIFICARE CRITICĂ MOBIL:
-        mt-4 (pe mobil): O margine mică pozitivă. Deoarece textul de sus e h-auto, bara vine imediat sub el.
-        md:-mt-32 (pe desktop): Margine negativă mare ca să urce peste textul centrat.
-    --}}
-    <div class="relative z-30 max-w-7xl mx-auto px-4 mt-4 md:-mt-32 pb-4">
-        
-        <form id="search-form" onsubmit="event.preventDefault(); loadServices(1);"
-            class="relative w-full transition-all duration-300 ease-out grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 bg-transparent p-0">
+                    {{-- RÂND 1: MARCĂ, MODEL, GENERAȚIE, CAROSERIE --}}
+                    {{-- MARCĂ --}}
+<div>
+    <label class="filter-label block">Marcă</label>
+    <select id="brand-filter" name="brand"
+            class="filter-field w-full md:w-44">
+        <option value="">Alege marcă</option>
+        @foreach($brands as $brand)
+            <option value="{{ $brand->name }}">{{ $brand->name }}</option>
+        @endforeach
+    </select>
+</div>
 
-            {{-- 1. SEARCH INPUT --}}
-            <div class="col-span-1 md:col-span-4 relative group">
-                <div class="flex items-center h-[3.25rem] w-full rounded-xl px-4 transition-all duration-200 cursor-text
-                              bg-white dark:bg-[#1E1E1E] border border-gray-100 dark:border-[#333333] shadow-lg shadow-gray-200/20
-                              hover:bg-gray-50 dark:hover:bg-[#252525]
-                              focus-within:bg-white dark:focus-within:bg-[#252525] 
-                              focus-within:ring-2 focus-within:ring-[#CC2E2E]/20 focus-within:border-[#CC2E2E]"
-                     onclick="this.querySelector('input').focus()">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#CC2E2E] opacity-80 group-focus-within:opacity-100 transition-opacity mr-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <div class="flex-1 min-w-0">
-                        <input type="text" name="search" id="search-input" placeholder="Ce cauți? (ex: Instalator...)" value="{{ request('search') }}"
-                            class="w-full bg-transparent border-none p-0 focus:ring-0 text-base truncate leading-normal font-medium text-gray-900 dark:text-white placeholder-gray-400"
-                            oninput="checkResetVisibility(); debounceLoad()">
+{{-- MODEL --}}
+<div>
+    <label class="filter-label block">Model</label>
+    <select id="model-filter" name="model"
+            class="filter-field w-full md:w-44 bg-gray-100 text-gray-400" disabled>
+        <option value="">Alege model</option>
+    </select>
+</div>
+
+
+                    <div>
+                        <label class="filter-label">Generație</label>
+                        <select id="generation-filter" name="car_generation_id"
+                            class="filter-field w-full md:w-52 bg-gray-100 text-gray-400" disabled>
+                            <option value="">Generație</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="filter-label">Caroserie</label>
+                        <select id="body-filter" name="caroserie_id" class="filter-field w-full md:w-44">
+                            <option value="">Caroserie</option>
+                            @foreach($bodies as $body)
+                                <option value="{{ $body->id }}">{{ $body->nume }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- RÂND 2: COMBUSTIBIL, CUTIE VITEZE, LOCAȚIE, BUTOANE --}}
+                    <div>
+                        <label class="filter-label">Combustibil</label>
+                        <select id="fuel-filter" name="combustibil_id" class="filter-field w-full md:w-44">
+                            <option value="">Combustibil</option>
+                            @foreach($fuels as $fuel)
+                                <option value="{{ $fuel->id }}">{{ $fuel->nume }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="filter-label">Cutie viteze</label>
+                        <select id="gearbox-filter" name="cutie_viteze_id" class="filter-field w-full md:w-40">
+                            <option value="">Cutie viteze</option>
+                            @foreach($transmissions as $trans)
+                                <option value="{{ $trans->id }}">{{ $trans->nume }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="filter-label">Locație</label>
+                        <select id="county-input" name="county" class="filter-field w-full md:w-52">
+                            <option value="">Toate județele</option>
+                            @foreach($counties as $county)
+                                <option value="{{ $county->id }}">{{ $county->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="flex gap-2 justify-end col-span-2 md:col-span-1">
+                        <button type="button" id="reset-btn" onclick="resetFilters()" class="reset-btn flex-1 md:flex-none hidden">
+                            ✖ Resetare
+                        </button>
+                        <button type="submit" class="search-btn flex-1 md:flex-none">
+                            🔍 Caută
+                        </button>
                     </div>
                 </div>
-            </div>
-
-            {{-- 2. CATEGORY DROPDOWN --}}
-            <div id="cat-col" class="col-span-1 md:col-span-3 relative group">
-                <input type="hidden" name="category" id="category-input" value="{{ request('category') }}">
-                <button type="button" onclick="toggleCategoryDropdown()" 
-                    class="flex items-center justify-between h-[3.25rem] w-full rounded-xl px-4 transition-all duration-200 outline-none text-left whitespace-nowrap
-                           bg-white dark:bg-[#1E1E1E] border border-gray-100 dark:border-[#333333] shadow-lg shadow-gray-200/20
-                           hover:bg-gray-50 dark:hover:bg-[#252525]
-                           group-focus:ring-2 group-focus:ring-[#CC2E2E]/20">
-                    <span id="category-display" class="font-medium text-gray-700 dark:text-gray-200 truncate mr-2">
-                        {{ $categories->firstWhere('id', request('category'))->name ?? 'Toate categoriile' }}
-                    </span>
-                    <svg id="category-arrow" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 transform transition-transform duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-                <div id="category-list" class="hidden absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#252525] rounded-xl shadow-2xl z-[999] overflow-hidden origin-top animate-in fade-in zoom-in-95 duration-100 border border-gray-100 dark:border-[#404040] max-h-80 overflow-y-auto custom-scrollbar">
-                    <div class="p-1.5">
-                        <div onclick="selectCategory('', 'Toate categoriile')" class="px-3 py-2.5 rounded-lg cursor-pointer text-base font-medium transition-all select-none mb-1 text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-[#CC2E2E]">Toate categoriile</div>
-                        @foreach($categories as $category)
-                        <div onclick="selectCategory('{{ $category->id }}', '{{ $category->name }}')" class="px-3 py-2.5 rounded-lg cursor-pointer text-base font-medium transition-all select-none {{ request('category') == $category->id ? 'bg-red-50 dark:bg-red-900/20 text-[#CC2E2E]' : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-[#CC2E2E]' }}">{{ $category->name }}</div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-
-            {{-- 3. COUNTY DROPDOWN --}}
-            <div id="county-col" class="col-span-1 md:col-span-3 relative group">
-                <input type="hidden" name="county" id="county-input" value="{{ request('county') }}">
-                <button type="button" onclick="toggleCountyDropdown()" 
-                    class="flex items-center justify-between h-[3.25rem] w-full rounded-xl px-4 transition-all duration-200 outline-none text-left whitespace-nowrap
-                           bg-white dark:bg-[#1E1E1E] border border-gray-100 dark:border-[#333333] shadow-lg shadow-gray-200/20
-                           hover:bg-gray-50 dark:hover:bg-[#252525]">
-                    <span id="county-display" class="font-medium text-gray-700 dark:text-gray-200 truncate mr-2">
-                        {{ $counties->firstWhere('id', request('county'))->name ?? 'Toate județele' }}
-                    </span>
-                    <svg id="county-arrow" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 transform transition-transform duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-                <div id="county-list" class="hidden absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#252525] rounded-xl shadow-2xl z-[999] overflow-hidden origin-top animate-in fade-in zoom-in-95 duration-100 border border-gray-100 dark:border-[#404040] max-h-80 overflow-y-auto custom-scrollbar">
-                    <div class="p-1.5">
-                        <div onclick="selectCounty('', 'Toate județele')" class="px-3 py-2.5 rounded-lg cursor-pointer transition-all text-base font-medium select-none mb-1 text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-[#CC2E2E]">Toate județele</div>
-                        @foreach($counties as $county)
-                            <div onclick="selectCounty('{{ $county->id }}', '{{ $county->name }}')" class="px-3 py-2.5 rounded-lg cursor-pointer transition-all text-base font-medium select-none {{ request('county') == $county->id ? 'bg-red-50 dark:bg-red-900/20 text-[#CC2E2E]' : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-[#CC2E2E]' }}">{{ $county->name }}</div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-
-            {{-- 4. ACTIONS --}}
-            <div id="actions-col" class="col-span-1 md:col-span-2 flex gap-2 h-[3.25rem] overflow-visible">
-                <button type="button" id="reset-btn" onclick="resetFilters()"
-                   class="hidden flex-1 h-full items-center justify-center gap-2 rounded-xl transition-all duration-300 group animate-in slide-in-from-right-4 fade-in whitespace-nowrap
-                          bg-white text-[#CC2E2E] border border-red-100 shadow-lg shadow-red-100/50 hover:bg-red-50 font-bold text-sm
-                          dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30 dark:hover:bg-red-900/40 dark:shadow-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover:rotate-90 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    <span>Șterge</span>
-                </button>
-
-                <button type="submit" class="flex-1 h-full bg-[#CC2E2E] text-white font-bold rounded-xl shadow-lg shadow-red-600/30 hover:bg-[#B72626] transition-all flex items-center gap-2 justify-center text-lg tracking-wide hover:-translate-y-0.5 active:translate-y-0 min-w-[120px]">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <span>Caută</span>
-                </button>
-            </div>
-
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 @endsection
 
+{{-- ======================= CONȚINUT LISTĂ ANUNȚURI ======================= --}}
 @section('content')
 
-{{-- TITLU - SPAȚIERE MOBIL --}}
-{{-- 
-    mt-8 pe mobil: Deoarece bara de căutare nu mai are margine negativă, 
-    ea ocupă spațiu fizic. Nu avem nevoie de margine mare aici.
---}}
 <div class="mt-8 md:mt-12 mb-8 flex items-center gap-3 max-w-7xl mx-auto px-4">
     <span class="w-1.5 h-8 bg-[#CC2E2E] rounded-full shadow-sm"></span>      
     <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-[#F2F2F2]">
@@ -170,12 +155,10 @@
     </h2>
 </div>
 
-{{-- CONTAINER CARDURI --}}
 <div id="services-container" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 pb-10 relative z-0 max-w-7xl mx-auto px-4">
     @include('services.partials.service_cards', ['services' => $services])
 </div>
 
-{{-- LOADING & SCRIPTS (IDENTICE CU CELE ANTERIOARE) --}}
 <div id="loading-indicator" class="text-center py-8 {{ $services->isEmpty() || !$hasMore ? 'hidden' : '' }}">
     <svg class="animate-spin h-8 w-8 text-[#CC2E2E] mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -192,42 +175,120 @@
     let hasMore = document.getElementById('load-more-trigger').dataset.hasMore === 'true';
     let debounceTimer;
 
+    // ====== CAR DATA (brand -> model -> generații) ======
+    const carData = @json($carData ?? []);
+    const brandFilter = document.getElementById('brand-filter');
+    const modelFilter = document.getElementById('model-filter');
+    const generationFilter = document.getElementById('generation-filter');
+
+    function resetSelect(el, placeholder) {
+        if (!el) return;
+        el.innerHTML = `<option value="">${placeholder}</option>`;
+        el.disabled = true;
+        el.classList.add('bg-gray-100', 'text-gray-400');
+    }
+
+    function enableSelect(el) {
+        if (!el) return;
+        el.disabled = false;
+        el.classList.remove('bg-gray-100', 'text-gray-400');
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         checkResetVisibility();
+
+        // Brand -> Model
+        if (brandFilter) {
+            brandFilter.addEventListener('change', function () {
+                const brand = this.value;
+                resetSelect(modelFilter, 'Model');
+                resetSelect(generationFilter, 'Generație');
+
+                if (brand && carData[brand]) {
+                    enableSelect(modelFilter);
+                    Object.keys(carData[brand]).forEach(modelName => {
+                        const opt = document.createElement('option');
+                        opt.value = modelName;
+                        opt.textContent = modelName;
+                        modelFilter.appendChild(opt);
+                    });
+                }
+                debounceLoad();
+            });
+        }
+
+        // Model -> Generație
+        if (modelFilter) {
+            modelFilter.addEventListener('change', function () {
+                const brand = brandFilter.value;
+                const model = this.value;
+                resetSelect(generationFilter, 'Generație');
+
+                if (brand && model && carData[brand] && carData[brand][model]) {
+                    const generations = carData[brand][model];
+                    if (generations.length) {
+                        enableSelect(generationFilter);
+                        generations.forEach(g => {
+                            const opt = document.createElement('option');
+                            opt.value = g.id;  // id din DB
+                            opt.textContent = `${g.name} (${g.start} - ${g.end || 'Prezent'})`;
+                            generationFilter.appendChild(opt);
+                        });
+                    }
+                }
+                debounceLoad();
+            });
+        }
+
+        if (generationFilter) {
+            generationFilter.addEventListener('change', () => debounceLoad());
+        }
+
+        ['body-filter','fuel-filter','gearbox-filter','county-input'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('change', () => debounceLoad());
+        });
+
+        observer.observe(document.getElementById('load-more-trigger'));
     });
 
     function checkResetVisibility() {
-        const s = document.getElementById('search-input').value;
-        const c = document.getElementById('category-input').value;
-        const j = document.getElementById('county-input').value;
-        const btn = document.getElementById('reset-btn');
-        const catCol = document.getElementById('cat-col');
-        const countyCol = document.getElementById('county-col');
-        const actionsCol = document.getElementById('actions-col');
+        const filters = {
+            brand: document.getElementById('brand-filter')?.value,
+            model: document.getElementById('model-filter')?.value,
+            gen: document.getElementById('generation-filter')?.value,
+            body: document.getElementById('body-filter')?.value,
+            fuel: document.getElementById('fuel-filter')?.value,
+            gear: document.getElementById('gearbox-filter')?.value,
+            county: document.getElementById('county-input')?.value,
+        };
 
-        if (s || c || j) {
+        const btn = document.getElementById('reset-btn');
+        if (!btn) return;
+
+        const hasAny = Object.values(filters).some(v => v && v !== '');
+
+        if (hasAny) {
             btn.classList.remove('hidden');
-            btn.classList.add('flex');
-            catCol.classList.remove('md:col-span-3'); catCol.classList.add('md:col-span-2');
-            countyCol.classList.remove('md:col-span-3'); countyCol.classList.add('md:col-span-2');
-            actionsCol.classList.remove('md:col-span-2'); actionsCol.classList.add('md:col-span-4');
         } else {
             btn.classList.add('hidden');
-            btn.classList.remove('flex');
-            catCol.classList.remove('md:col-span-2'); catCol.classList.add('md:col-span-3');
-            countyCol.classList.remove('md:col-span-2'); countyCol.classList.add('md:col-span-3');
-            actionsCol.classList.remove('md:col-span-4'); actionsCol.classList.add('md:col-span-2');
         }
     }
 
     function resetFilters() {
-        document.getElementById('search-input').value = '';
-        document.getElementById('category-input').value = '';
-        document.getElementById('county-input').value = '';
-        document.getElementById('category-display').innerText = 'Toate categoriile';
-        document.getElementById('county-display').innerText = 'Toate județele';
-        document.getElementById('category-list').classList.add('hidden');
-        document.getElementById('county-list').classList.add('hidden');
+        if (brandFilter) brandFilter.value = '';
+        if (modelFilter) resetSelect(modelFilter, 'Model');
+        if (generationFilter) resetSelect(generationFilter, 'Generație');
+        const body = document.getElementById('body-filter');
+        const fuel = document.getElementById('fuel-filter');
+        const gear = document.getElementById('gearbox-filter');
+        const county = document.getElementById('county-input');
+
+        if (body) body.value = '';
+        if (fuel) fuel.value = '';
+        if (gear) gear.value = '';
+        if (county) county.value = '';
+
         checkResetVisibility();
         loadServices(1);
     }
@@ -250,11 +311,16 @@
         isLoading = true;
 
         const params = new URLSearchParams({
-            search: document.getElementById('search-input').value,
-            category: document.getElementById('category-input').value,
-            county: document.getElementById('county-input').value,
             page: page,
-            ajax: 1
+            ajax: 1,
+            vehicle_type: document.getElementById('vehicle-type')?.value || '',
+            brand: document.getElementById('brand-filter')?.value || '',
+            model: document.getElementById('model-filter')?.value || '',
+            car_generation_id: document.getElementById('generation-filter')?.value || '',
+            caroserie_id: document.getElementById('body-filter')?.value || '',
+            combustibil_id: document.getElementById('fuel-filter')?.value || '',
+            cutie_viteze_id: document.getElementById('gearbox-filter')?.value || '',
+            county: document.getElementById('county-input')?.value || '',
         });
 
         fetch(`{{ route('services.index') }}?${params.toString()}`, {
@@ -269,7 +335,7 @@
                      document.getElementById('services-container').innerHTML = `
                         <div class="col-span-full flex flex-col items-center justify-center py-20 px-4 text-center bg-white dark:bg-[#1E1E1E] rounded-3xl border-2 border-dashed border-gray-200 dark:border-[#333333]">
                             <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">Nu am găsit anunțuri</h3>
-                            <button type="button" onclick="resetFilters()" class="px-8 py-3.5 bg-[#CC2E2E] hover:bg-[#B72626] text-white font-bold rounded-xl shadow-lg">Resetează Filtrele</button>
+                            <button type="button" onclick="resetFilters()" class="px-8 py-3.5 bg-[#CC2E2E] hover:bg-[#B72626] text-white font-bold rounded-xl shadow-lg">Resetează filtrele</button>
                         </div>
                     `;
                 }
@@ -292,7 +358,7 @@
 
     function debounceLoad() {
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => loadServices(1), 500);
+        debounceTimer = setTimeout(() => loadServices(1), 400);
     }
 
     const observer = new IntersectionObserver((entries) => {
@@ -301,61 +367,10 @@
         }
     }, { rootMargin: '0px 0px 400px 0px' });
 
-    document.addEventListener('DOMContentLoaded', () => {
-        observer.observe(document.getElementById('load-more-trigger'));
-    });
-
-    function selectCounty(id, name) {
-        document.getElementById('county-input').value = id;
-        document.getElementById('county-display').innerText = name;
-        toggleCountyDropdown(); 
-        checkResetVisibility();
-        loadServices(1);
-    }
-
-    function selectCategory(id, name) {
-        document.getElementById('category-input').value = id;
-        document.getElementById('category-display').innerText = name;
-        toggleCategoryDropdown(); 
-        checkResetVisibility();
-        loadServices(1);
-    }
-    
-    function toggleCountyDropdown() { 
-        const list = document.getElementById('county-list');
-        const arrow = document.getElementById('county-arrow');
-        document.getElementById('category-list').classList.add('hidden');
-        list.classList.toggle('hidden');
-        arrow.style.transform = list.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
-    }
-    
-    function toggleCategoryDropdown() { 
-        const list = document.getElementById('category-list');
-        const arrow = document.getElementById('category-arrow');
-        document.getElementById('county-list').classList.add('hidden');
-        list.classList.toggle('hidden');
-        arrow.style.transform = list.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
-    }
-
-    document.addEventListener('click', function(event) {
-        const catGroup = document.getElementById('cat-col');
-        const countyGroup = document.getElementById('county-col');
-        
-        if (catGroup && !catGroup.contains(event.target)) {
-            document.getElementById('category-list').classList.add('hidden');
-            const arrow = document.getElementById('category-arrow');
-            if(arrow) arrow.style.transform = 'rotate(0deg)';
-        }
-        if (countyGroup && !countyGroup.contains(event.target)) {
-            document.getElementById('county-list').classList.add('hidden');
-             const arrow = document.getElementById('county-arrow');
-            if(arrow) arrow.style.transform = 'rotate(0deg)';
-        }
-    });
-
     function toggleHeart(btn, serviceId) {
-         @if(!auth()->check())
-            window.location.href = "{{ route('login') }}"; return;
+        @if(!auth()->check())
+            window.location.href = "{{ route('login') }}"; 
+            return;
         @endif
         const icon = btn.querySelector('svg');
         const isLiked = icon.classList.contains('text-[#CC2E2E]');
@@ -380,8 +395,58 @@
 </script>
 
 <style>
-    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #e5e7eb; border-radius: 20px; }
+    .filter-label {
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 0.15rem;
+    }
+    .filter-field {
+        height: 2.4rem;
+        font-size: 0.8rem;
+        padding-left: 0.5rem;
+        padding-right: 1.8rem;
+        border-radius: 0.6rem;
+        border: 1px solid #e5e7eb;
+        background-color: #ffffff;
+    }
+    .dark .filter-field {
+        background-color: #1E1E1E;
+        border-color: #333333;
+        color: #f9fafb;
+    }
+    .reset-btn {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        padding: 0 0.9rem;
+        height: 2.4rem;
+        border-radius: 0.6rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #6b7280;
+        white-space: nowrap;
+    }
+    .dark .reset-btn {
+        background-color: #1E1E1E;
+        border-color: #444444;
+        color: #e5e7eb;
+    }
+    .search-btn {
+        background: #CC2E2E;
+        color: #ffffff;
+        border: none;
+        padding: 0 1.1rem;
+        height: 2.4rem;
+        border-radius: 0.6rem;
+        font-size: 0.82rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .search-btn:hover {
+        background: #b72626;
+    }
 </style>
 
 @endsection

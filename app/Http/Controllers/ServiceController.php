@@ -32,68 +32,132 @@ class ServiceController extends Controller
     // 1. INDEX (NESCHIMBAT)
     // ==========================================
     public function index(Request $request)
-    {
-        $page = $request->get('page', 1);
-        $perPageFirst = 10;
-        $perPageNext  = 8;
+{
+    $page = $request->get('page', 1);
+    $perPageFirst = 10;
+    $perPageNext  = 8;
 
-        if ($page == 1) {
-            $limit  = $perPageFirst;
-            $offset = 0;
-        } else {
-            $limit  = $perPageNext;
-            $offset = $perPageFirst + (($page - 2) * $perPageNext);
-        }
+    if ($page == 1) {
+        $limit  = $perPageFirst;
+        $offset = 0;
+    } else {
+        $limit  = $perPageNext;
+        $offset = $perPageFirst + (($page - 2) * $perPageNext);
+    }
 
-        $query = Service::where('status', 'active');
+    // PORNIM DE LA ANUNȚURI ACTIVE
+    $query = Service::where('status', 'active');
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%$search%")
-                    ->orWhere('description', 'like', "%$search%");
-            });
-        }
+    // 🔍 Căutare text (dacă o mai folosești pe undeva)
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('title', 'like', "%$search%")
+              ->orWhere('description', 'like', "%$search%");
+        });
+    }
 
-        if ($request->filled('county')) {
-            $query->where('county_id', $request->county);
-        }
+    // FILTRE VECHI
+    if ($request->filled('county')) {
+        $query->where('county_id', $request->county);
+    }
 
-        if ($request->filled('category')) {
-            $query->where('category_id', $request->category);
-        }
+    if ($request->filled('category')) {
+        $query->where('category_id', $request->category);
+    }
 
-        $totalCount = $query->count();
+    // ================= FILTRE AUTO NOI =================
 
-        $services = $query
-            ->orderBy('created_at', 'desc')
-            ->offset($offset)
-            ->limit($limit)
-            ->get();
+    // Marcă (prin relația generation -> model -> brand)
+    if ($request->filled('brand')) {
+        $brandName = $request->brand;
+        $query->whereHas('generation.model.brand', function ($q) use ($brandName) {
+            $q->where('name', $brandName);
+        });
+    }
 
-        $loadedSoFar = $offset + $services->count();
-        $hasMore     = $loadedSoFar < $totalCount;
+    // Model
+    if ($request->filled('model')) {
+        $modelName = $request->model;
+        $query->whereHas('generation.model', function ($q) use ($modelName) {
+            $q->where('name', $modelName);
+        });
+    }
 
-        if ($request->ajax()) {
-            $html = view('services.partials.service_cards', ['services' => $services])->render();
+    // Generație
+    if ($request->filled('car_generation_id')) {
+        $query->where('car_generation_id', $request->car_generation_id);
+    }
 
-            return response()->json([
-                'html'        => $html,
-                'hasMore'     => $hasMore,
-                'total'       => $totalCount,
-                'loadedCount' => $services->count(),
-            ]);
-        }
+    // Caroserie
+    if ($request->filled('caroserie_id')) {
+        $query->where('caroserie_id', $request->caroserie_id);
+    }
 
-        return view('services.index', [
-            'services'        => $services,
-            'counties'        => County::all(),
-            'categories'      => Category::orderBy('sort_order', 'asc')->get(),
-            'hasMore'         => $hasMore,
-            'currentCategory' => $request->attributes->get('currentCategory'),
-            'currentCounty'   => $request->attributes->get('currentCounty'),
+    // Combustibil
+    if ($request->filled('combustibil_id')) {
+        $query->where('combustibil_id', $request->combustibil_id);
+    }
+
+    // Cutie viteze
+    if ($request->filled('cutie_viteze_id')) {
+        $query->where('cutie_viteze_id', $request->cutie_viteze_id);
+    }
+
+    // Județ (dublăm și filtrul vechi dacă vine doar "county")
+    if ($request->filled('county')) {
+        $query->where('county_id', $request->county);
+    }
+
+    // ================= PAGINARE CUSTOM =================
+    $totalCount = $query->count();
+
+    $services = $query
+        ->orderBy('created_at', 'desc')
+        ->offset($offset)
+        ->limit($limit)
+        ->get();
+
+    $loadedSoFar = $offset + $services->count();
+    $hasMore     = $loadedSoFar < $totalCount;
+
+    // ================= RĂSPUNS AJAX (infinite scroll) =================
+    if ($request->ajax()) {
+        $html = view('services.partials.service_cards', ['services' => $services])->render();
+
+        return response()->json([
+            'html'        => $html,
+            'hasMore'     => $hasMore,
+            'total'       => $totalCount,
+            'loadedCount' => $services->count(),
         ]);
     }
+
+    // ================= DATE PENTRU FILTRE (VIEW) =================
+    $brands        = CarBrand::orderBy('name')->get();
+    $bodies        = Caroserie::orderBy('nume')->get();
+    $fuels         = Combustibil::orderBy('nume')->get();
+    $transmissions = CutieViteze::orderBy('nume')->get();
+    $counties      = County::orderBy('name')->get();
+    $categories    = Category::orderBy('sort_order', 'asc')->get();
+    $carData       = $this->buildCarData();   // helper de mai jos
+
+    return view('services.index', [
+        'services'        => $services,
+        'hasMore'         => $hasMore,
+        'counties'        => $counties,
+        'categories'      => $categories,
+        'currentCategory' => $request->attributes->get('currentCategory'),
+        'currentCounty'   => $request->attributes->get('currentCounty'),
+
+        // pentru index.blade nou:
+        'brands'          => $brands,
+        'bodies'          => $bodies,
+        'fuels'           => $fuels,
+        'transmissions'   => $transmissions,
+        'carData'         => $carData,
+    ]);
+}
 
     // ==========================================
     // 2. INDEX LOCATION (NESCHIMBAT)
@@ -598,4 +662,42 @@ class ServiceController extends Controller
 
         return response()->json($models);
     }
+	protected function buildCarData()
+{
+    $models = CarModel::with([
+        'brand',
+        'generations' => function ($q) {
+            $q->orderBy('year_start', 'asc');
+        }
+    ])->get();
+
+    $carData = [];
+
+    foreach ($models as $model) {
+        if (!$model->brand) {
+            continue;
+        }
+
+        $brandName = $model->brand->name;
+        $modelName = $model->name;
+
+        if ($model->generations->isNotEmpty()) {
+            foreach ($model->generations as $gen) {
+                $carData[$brandName][$modelName][] = [
+                    'id'    => $gen->id,
+                    'name'  => $gen->name,
+                    'start' => $gen->year_start,
+                    'end'   => $gen->year_end,
+                ];
+            }
+        } else {
+            if (!isset($carData[$brandName][$modelName])) {
+                $carData[$brandName][$modelName] = [];
+            }
+        }
+    }
+
+    return $carData;
+}
+
 }
