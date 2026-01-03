@@ -389,14 +389,16 @@ public function index(Request $request)
     if (Auth::check()) {
         $userId = Auth::id();
     } elseif ($request->filled('email') && $request->filled('password')) {
-        $user = User::create([
-            'name'     => $calculatedName,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-        Auth::login($user);
-        $userId = $user->id;
-    }
+    $user = User::create([
+        'user_type' => 'individual',   // ✅ forțăm persoană fizică
+        'name'      => $calculatedName,
+        'email'     => $request->email,
+        'password'  => Hash::make($request->password),
+    ]);
+
+    Auth::login($user);
+    $userId = $user->id;
+}
 
     // 3. CREARE SERVICE
     $service          = new Service();

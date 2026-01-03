@@ -4,549 +4,555 @@
     use Illuminate\Support\Str;
 
     $siteBrand = 'MeseriasBun.ro';
-
-    // --- 1. STATUS & FORMATĂRI SIMPLE ---
-
     $isDeleted = $service->trashed();
-    $hasPhone  = !empty($service->phone);
+    
+    // --- DEALER DETECT ---
+    $sellerUser = $service->user; 
+    $isDealer   = $sellerUser && ($sellerUser->user_type === 'dealer');
 
-    // Preț
-    $formattedPrice = number_format($service->price_value ?? 0, 0, '.', ' ');
-    $currency       = $service->currency ?? 'EUR';
-
-    // Telefon
-    $rawPhone       = preg_replace('/[^0-9]/', '', $service->phone ?? '');
-    $formattedPhone = $service->phone;
+    // --- PHONE LOGIC ---
+    $phoneSource = $isDealer ? ($sellerUser->phone ?? '') : ($service->phone ?? '');
+    $hasPhone    = !empty($phoneSource);
+    $rawPhone       = preg_replace('/[^0-9]/', '', $phoneSource);
+    $formattedPhone = $phoneSource;
     if (strlen($rawPhone) === 10) {
         $formattedPhone = preg_replace('/^(\d{4})(\d{3})(\d{3})$/', '$1 $2 $3', $rawPhone);
     }
 
-    // --- 2. NORMALIZARE DATE AUTO (relații + fallback la câmpurile text) ---
+    // --- PRET ---
+    $formattedPrice = number_format($service->price_value ?? 0, 0, '.', ' ');
+    $currency       = $service->currency ?? 'EUR';
 
+    // --- DATE AUTO ---
     $brandName      = optional(optional(optional($service->generation)->model)->brand)->name ?: $service->brand;
     $modelName      = optional(optional($service->generation)->model)->name ?: $service->model;
     $generationName = optional($service->generation)->name;
-
     $year = $service->an_fabricatie ?? $service->year;
     $km   = $service->km ?? $service->mileage;
-
-    $engine = $service->capacitate_cilindrica
-        ?? $service->engine_capacity
-        ?? $service->engine_size;
-
+    $engine = $service->capacitate_cilindrica ?? $service->engine_capacity ?? $service->engine_size;
     $power = $service->putere ?? $service->power;
-
     $fuelName  = optional($service->combustibil)->nume ?? $service->fuel_type;
     $transName = optional($service->cutieViteze)->nume ?? $service->transmission;
     $bodyName  = optional($service->caroserie)->nume ?? $service->body_type;
     $colorName = optional($service->culoare)->nume ?? $service->color;
 
-    // --- 3. IMAGINI ---
-    // Dacă anunțul este șters: nu mai afișăm pozele userului, doar placeholder (prin main_image_url fallback în model)
-    if ($isDeleted) {
-        $images = [];
-    } else {
-        $images = is_string($service->images)
-            ? json_decode($service->images, true)
-            : ($service->images ?? []);
+    // --- IMAGINI ---
+    $images = [];
+    if (!$isDeleted) {
+        $images = is_string($service->images) ? json_decode($service->images, true) : ($service->images ?? []);
+        if ($service->main_image_url) {
+            $images = is_array($images) ? $images : [];
+            array_unshift($images, basename($service->main_image_url));
+            $images = array_values(array_unique($images));
+        }
     }
-
-    if ($service->main_image_url && !$isDeleted) {
-        $images = is_array($images) ? $images : [];
-        array_unshift($images, basename($service->main_image_url));
-        $images = array_values(array_unique($images));
-    }
-
-    // --- 4. QUICK SPECS (iconițe) ---
-
-    $quickSpecs = [];
-
-    if ($year) {
-        $quickSpecs[] = ['label' => 'An', 'value' => $year, 'icon' => 'calendar'];
-    }
-    if ($km) {
-        $quickSpecs[] = [
-            'label' => 'Km',
-            'value' => number_format($km, 0, '.', ' ') . ' km',
-            'icon'  => 'road'
-        ];
-    }
-    if ($fuelName) {
-        $quickSpecs[] = [
-            'label' => 'Combustibil',
-            'value' => ucfirst($fuelName),
-            'icon'  => 'fuel'
-        ];
-    }
-    if ($engine) {
-        $quickSpecs[] = [
-            'label' => 'Capacitate',
-            'value' => $engine . ' cm³',
-            'icon'  => 'engine'
-        ];
-    }
-    if ($power) {
-        $quickSpecs[] = [
-            'label' => 'Putere',
-            'value' => $power . ' CP',
-            'icon'  => 'power'
-        ];
-    }
-    if ($transName) {
-        $quickSpecs[] = [
-            'label' => 'Cutie',
-            'value' => ucfirst($transName),
-            'icon'  => 'transmission'
-        ];
-    }
-    if (count($quickSpecs) < 6 && $bodyName) {
-        $quickSpecs[] = [
-            'label' => 'Caroserie',
-            'value' => ucfirst($bodyName),
-            'icon'  => 'body'
-        ];
-    }
-
-    $quickSpecs = array_slice($quickSpecs, 0, 6);
-
-    // --- 5. DETALII COMPLETE (tabel jos) ---
-
-    $fullDetails = [
-        'Marcă'                 => $brandName,
-        'Model'                 => $modelName,
-        'Generație'             => $generationName,
-        'Anul producției'       => $year,
-        'Kilometraj'            => $km ? number_format($km, 0, '.', ' ') . ' km' : null,
-        'Combustibil'           => $fuelName ? ucfirst($fuelName) : null,
-        'Putere'                => $power ? $power . ' CP' : null,
-        'Capacitate cilindrică' => $engine ? $engine . ' cm³' : null,
-        'Transmisie'            => $transName ? ucfirst($transName) : null,
-        'Caroserie'             => $bodyName ? ucfirst($bodyName) : null,
-        'Culoare'               => $colorName ? ucfirst($colorName) : null,
-        'VIN (Serie șasiu)'     => $service->vin ?: null,
-    ];
-
-    $fullDetails = array_filter($fullDetails, fn($value) => !is_null($value) && $value !== '');
-
-    // --- 6. SEO (logică din vechiul proiect adaptată la auto) ---
+    // URL-uri complete
+    $fullImageUrls = array_map(function($img) {
+         return Str::startsWith($img, ['http://', 'https://']) ? $img : asset('storage/services/'.$img);
+    }, $images);
 
     $seoLocation = $service->county->name ?? 'România';
-
-    $cleanTitleString = preg_replace('/[^\p{L}\p{N}\s]/u', '', $service->title);
-    $cleanTitleString = trim(preg_replace('/\s+/', ' ', $cleanTitleString));
-    $words = explode(' ', $cleanTitleString);
-    $shortUserTitle = implode(' ', array_slice($words, 0, 3));
-
-    $prefix = $isDeleted ? 'INDISPONIBIL - ' : '';
-    $fullSeoTitle = $prefix . $shortUserTitle;
-
-    if ($brandName) {
-        $fullSeoTitle .= ' – ' . $brandName;
-    }
-    $fullSeoTitle .= ' în ' . $seoLocation;
-
-    if (mb_strlen($fullSeoTitle) + mb_strlen(" | ".$siteBrand) <= 70) {
-        $fullSeoTitle .= " | ".$siteBrand;
-    }
-
-    $introPart      = "Cauți {$brandName} {$modelName} în {$seoLocation}? ";
-    $userDesc       = Str::limit(strip_tags($service->description), 120);
-    $seoDescription = $isDeleted
-        ? 'Acest anunț nu mai este valabil.'
-        : $introPart . $userDesc;
-
-    $pageUrl = $service->public_url;
-    $seoImage = $service->main_image_url;
-
-    $schemaData = [
-        "@context" => "https://schema.org",
-        "@type"    => "Vehicle",
-        "name"        => $fullSeoTitle,
-        "description" => $seoDescription,
-        "image"       => $seoImage,
-        "url"         => $pageUrl,
-        "brand"       => $brandName,
-        "model"       => $modelName,
-        "vehicleModelDate" => $year,
-        "offers"      => $isDeleted ? null : [
-            "@type"         => "Offer",
-            "priceCurrency" => $service->currency ?? 'EUR',
-            "price"         => $service->price_value ?? '0',
-            "availability"  => "https://schema.org/InStock"
-        ],
-    ];
-
-    $breadcrumbSchema = [
-        "@context" => "https://schema.org",
-        "@type"    => "BreadcrumbList",
-        "itemListElement" => [
-            [
-                "@type"    => "ListItem",
-                "position" => 1,
-                "name"     => "Acasă",
-                "item"     => route('services.index')
-            ],
-            [
-                "@type"    => "ListItem",
-                "position" => 2,
-                "name"     => trim(($brandName ? $brandName.' ' : '').$modelName.' '.$seoLocation),
-                "item"     => url()->current()
-            ],
-            [
-                "@type"    => "ListItem",
-                "position" => 3,
-                "name"     => Str::limit($service->title, 30)
-            ],
-        ]
-    ];
+    $fullSeoTitle = ($isDeleted ? 'INDISPONIBIL - ' : '') . $service->title;
+    $currentUrl = url()->current();
 @endphp
 
 @section('title', $fullSeoTitle)
-@section('meta_title', $fullSeoTitle)
-@section('meta_description', $seoDescription)
-@section('meta_image', $seoImage)
-
-@section('canonical')
-    <link rel="canonical" href="{{ $pageUrl }}" />
-@endsection
-
-@section('schema')
-<script type="application/ld+json">
-{!! json_encode(array_filter($schemaData), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
-</script>
-<script type="application/ld+json">
-{!! json_encode($breadcrumbSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
-</script>
-@endsection
 
 @section('content')
-
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 
 <style>
-    .swiper-button-next, .swiper-button-prev {
-        color: white !important;
-        background: rgba(0,0,0,0.3);
-        width: 44px !important;
-        height: 44px !important;
+    /* Swiper Zoom Container Styling */
+    .swiper-slide { display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .swiper-zoom-container { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+    
+    /* Navigation Arrows */
+    .swiper-button-next, .swiper-button-prev { 
+        color: white !important; 
+        background: rgba(0,0,0,0.5); 
+        width: 50px; height: 50px; 
         border-radius: 50%;
         backdrop-filter: blur(4px);
-        transition: background 0.2s;
     }
-    .swiper-button-next:hover, .swiper-button-prev:hover { background: rgba(0,0,0,0.6); }
-    .swiper-button-next:after, .swiper-button-prev:after { font-size: 18px !important; font-weight: bold; }
+    .swiper-button-next:after, .swiper-button-prev:after { font-size: 20px !important; font-weight: bold; }
 
-    .thumbs-swiper .swiper-slide { opacity: 0.6; transition: all 0.2s; border: 2px solid transparent; }
-    .thumbs-swiper .swiper-slide-thumb-active { opacity: 1; border-color: #E03E2D; }
+    /* Glass Effect */
+    .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 
+    /* Custom Scrollbar */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 
-{{-- MOBILE STICKY BAR --}}
-<div class="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-white border-t border-gray-200 shadow-[0_-4px_15px_rgba(0,0,0,0.08)] px-4 py-3 flex items-center justify-between gap-3 safe-area-bottom">
-    <div class="flex flex-col">
-        @if($service->price_value)
-            <div class="flex items-baseline gap-1">
-                <span class="text-xl font-extrabold text-gray-900">{{ $formattedPrice }}</span>
-                <span class="text-xs font-bold text-gray-500">{{ $currency }}</span>
-            </div>
-        @else
-            <span class="text-lg font-bold text-blue-600">Preț la cerere</span>
-        @endif
+{{-- ===================== 1. LIGHTBOX MODAL (Updated Position) ===================== --}}
+<div id="gallery-lightbox" class="fixed inset-0 bg-black hidden flex-col transition-opacity duration-300 opacity-0" style="z-index: 2147483640;" role="dialog" aria-modal="true">
+    
+    {{-- Counter (Top Left - Coborât pentru siguranță) --}}
+    <div class="absolute top-28 left-6 pointer-events-none" style="z-index: 2147483647;">
+        <span class="text-white font-medium text-sm tracking-wide bg-black/60 px-4 py-1.5 rounded-full backdrop-blur-md border border-white/10 shadow-lg">
+            <span id="lb-current">1</span> / {{ count($images) }}
+        </span>
     </div>
 
-    @if($isDeleted)
-        <button disabled class="flex-1 bg-gray-200 text-gray-400 font-bold h-11 rounded-lg text-sm">Indisponibil</button>
-    @elseif($hasPhone)
-        <button onclick="revealPhone('mobile', '{{ $rawPhone }}', '{{ $formattedPhone }}')" id="btn-phone-mobile" class="flex-1 bg-[#E03E2D] active:bg-[#c92a1b] text-white font-bold h-11 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-95 text-sm">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-            <span id="txt-phone-mobile">Sună Vânzătorul</span>
-        </button>
-    @endif
+    {{-- Close Button (Fixed Top Right - COBORÂT MULT) --}}
+    {{-- Top-28 inseamna aprox 112px de sus. Right-6 inseamna aprox 24px dreapta --}}
+    <button onclick="closeGallery()" class="fixed top-28 right-6 md:right-12 p-3 rounded-full bg-white/10 text-white hover:bg-[#E03E2D] hover:border-[#E03E2D] active:scale-95 transition-all focus:outline-none backdrop-blur-md border border-white/30 shadow-2xl cursor-pointer" style="z-index: 2147483647;">
+        <svg class="w-8 h-8 drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    </button>
+
+    {{-- Swiper Container --}}
+    <div class="flex-1 w-full h-full relative overflow-hidden">
+        <div class="swiper lightbox-swiper w-full h-full">
+            <div class="swiper-wrapper">
+                @foreach($fullImageUrls as $url)
+                    <div class="swiper-slide">
+                        <div class="swiper-zoom-container">
+                            <img src="{{ $url }}" class="max-h-full max-w-full object-contain" alt="Gallery Image">
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            
+            {{-- Navigare (Doar Desktop) --}}
+            <div class="swiper-button-next hidden md:flex hover:bg-black/70 transition"></div>
+            <div class="swiper-button-prev hidden md:flex hover:bg-black/70 transition"></div>
+        </div>
+    </div>
 </div>
 
-<div class="bg-[#F2F4F8] dark:bg-[#121212] min-h-screen pb-24 lg:pb-16 font-sans text-sm">
 
-    {{-- BREADCRUMBS --}}
-    <div class="max-w-[1200px] mx-auto px-4 py-4">
-        <nav class="flex items-center text-xs text-gray-500 overflow-x-auto whitespace-nowrap gap-2 no-scrollbar">
-            <a href="/" class="hover:text-[#E03E2D] transition">Acasă</a>
-            <span class="text-gray-300">/</span>
-            @if($brandName)
-                <a href="#" class="hover:text-[#E03E2D] transition">{{ $brandName }}</a>
-            @endif
-            @if($modelName)
-                <span class="text-gray-300">/</span>
-                <a href="#" class="hover:text-[#E03E2D] transition">{{ $modelName }}</a>
-            @endif
-            <span class="text-gray-300">/</span>
-            <span class="text-gray-900 dark:text-gray-300 font-medium truncate max-w-[200px]">{{ $service->title }}</span>
-        </nav>
-    </div>
+{{-- ===================== 2. PAGINA PROPRIU-ZISĂ ===================== --}}
+<div class="bg-[#F8F9FA] dark:bg-[#121212] min-h-screen font-sans text-gray-800 dark:text-gray-200 pb-32 lg:pb-12 pt-6">
 
-    {{-- BANNER ANUNȚ DEZACTIVAT --}}
     @if($isDeleted)
-        <div class="max-w-[1200px] mx-auto px-4 mb-3">
-            <div class="p-3 bg-red-50 border border-red-100 text-red-600 rounded-lg shadow-sm flex items-center gap-2 text-sm font-semibold">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Acest anunț a fost dezactivat și nu mai este disponibil. Informațiile rămân vizibile pentru referință.
+        <div class="max-w-[1280px] mx-auto px-4 mb-4">
+            <div class="bg-red-50 text-red-600 px-4 py-3 rounded-xl border border-red-100 flex items-center gap-3 font-semibold shadow-sm">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                Anunț Indisponibil
             </div>
         </div>
     @endif
 
-    <div class="max-w-[1200px] mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-6 {{ $isDeleted ? 'opacity-60 grayscale' : '' }}">
+    <div class="max-w-[1280px] mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-        {{-- LEFT --}}
+        {{-- === STÂNGA (Galerie, Info, Descriere) === --}}
         <div class="lg:col-span-8 space-y-6">
+            
+            {{-- NAVIGATION TOP BAR (Back + Breadcrumbs) --}}
+            <div class="flex flex-col md:flex-row md:items-center gap-4 mb-2">
+                {{-- Buton Inapoi --}}
+                <button onclick="history.back()" class="self-start inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#1E1E1E] text-gray-700 dark:text-gray-200 rounded-full shadow-sm hover:shadow-md border border-gray-200 dark:border-[#333] transition-all text-sm font-bold">
+                    <svg class="w-4 h-4 text-[#E03E2D]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                    Înapoi
+                </button>
 
-            {{-- 1. GALERIE FOTO --}}
-            <div class="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.03)] overflow-hidden">
-                <div class="swiper main-swiper relative w-full aspect-[4/3] md:aspect-[16/10] bg-gray-100 dark:bg-black group">
-                    <div class="swiper-wrapper">
-                        @if(empty($images))
-                            <div class="swiper-slide">
-                                <img src="{{ $service->main_image_url }}" class="w-full h-full object-cover">
-                            </div>
-                        @else
-                            @foreach($images as $img)
-                                @php
-                                    $imgUrl = Str::startsWith($img, ['http://', 'https://'])
-                                        ? $img
-                                        : asset('storage/services/'.$img);
-                                @endphp
-                                <div class="swiper-slide relative flex items-center justify-center bg-[#000] overflow-hidden">
-                                    <div class="absolute inset-0 bg-cover bg-center blur-2xl opacity-40 scale-110" style="background-image: url('{{ $imgUrl }}')"></div>
-                                    <img src="{{ $imgUrl }}" class="relative w-full h-full object-contain z-10" alt="{{ $service->title }}">
-                                </div>
-                            @endforeach
-                        @endif
-                    </div>
-                    <div class="swiper-button-next !hidden md:!flex opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div class="swiper-button-prev !hidden md:!flex opacity-0 group-hover:opacity-100 transition-opacity"></div>
-
-                    <div class="absolute bottom-4 right-4 z-20 bg-black/70 text-white text-xs font-bold px-3 py-1.5 rounded flex items-center gap-1.5 pointer-events-none">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        <span class="fraction-pagination">1 / {{ max(1, count($images) ?: 1) }}</span>
-                    </div>
+                {{-- Breadcrumbs Colorate --}}
+                <div class="flex items-center text-sm overflow-x-auto no-scrollbar whitespace-nowrap gap-2">
+                    <a href="/" class="font-bold text-gray-400 hover:text-[#E03E2D] transition">Acasă</a>
+                    <span class="text-gray-300">/</span>
+                    @if($brandName)
+                        <a href="#" class="font-bold text-blue-600 dark:text-blue-400 hover:underline">{{ $brandName }}</a>
+                    @endif
+                    @if($modelName)
+                        <span class="text-gray-300">/</span>
+                        <a href="#" class="font-bold text-blue-600 dark:text-blue-400 hover:underline">{{ $modelName }}</a>
+                    @endif
+                    <span class="text-gray-300">/</span>
+                    <span class="text-gray-800 dark:text-gray-200 truncate max-w-[150px]">{{ Str::limit($service->title, 20) }}</span>
                 </div>
+            </div>
 
-                @if(!$isDeleted && count($images) > 1)
-                    <div class="swiper thumbs-swiper px-3 py-3 bg-white dark:bg-[#1E1E1E] border-t border-gray-100 dark:border-[#333]">
+            {{-- GALERIE MOZAIC (Desktop) / SLIDER (Mobil) --}}
+            <div class="rounded-2xl overflow-hidden shadow-sm bg-white dark:bg-[#1E1E1E] relative select-none border border-gray-100 dark:border-[#333]">
+                
+                {{-- Mobile: Slider Simplu --}}
+                <div class="block md:hidden">
+                    <div class="swiper mobile-hero-swiper aspect-[4/3] bg-gray-100 dark:bg-black">
                         <div class="swiper-wrapper">
-                            @foreach($images as $img)
-                                @php
-                                    $thumbUrl = Str::startsWith($img, ['http://', 'https://'])
-                                        ? $img
-                                        : asset('storage/services/'.$img);
-                                @endphp
-                                <div class="swiper-slide !w-24 !h-[4.5rem] rounded-md cursor-pointer overflow-hidden bg-gray-100">
-                                    <img src="{{ $thumbUrl }}" class="w-full h-full object-cover">
+                            @foreach($fullImageUrls as $index => $url)
+                                <div class="swiper-slide cursor-pointer" onclick="openGallery({{ $index }})">
+                                    <img src="{{ $url }}" class="w-full h-full object-cover">
                                 </div>
                             @endforeach
                         </div>
+                        <div class="absolute bottom-3 right-3 bg-black/60 text-white text-xs font-bold px-2.5 py-1 rounded-md z-10 backdrop-blur-sm">
+                            📷 1 / {{ count($images) }}
+                        </div>
                     </div>
-                @endif
+                </div>
+
+                {{-- Desktop: Mozaic 1+2 --}}
+                <div class="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-[480px] cursor-pointer">
+                    @if(isset($fullImageUrls[0]))
+                    <div class="col-span-3 row-span-2 relative overflow-hidden group" onclick="openGallery(0)">
+                        <img src="{{ $fullImageUrls[0] }}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition"></div>
+                    </div>
+                    @endif
+
+                    @if(isset($fullImageUrls[1]))
+                    <div class="col-span-1 row-span-1 relative overflow-hidden group" onclick="openGallery(1)">
+                        <img src="{{ $fullImageUrls[1] }}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                    </div>
+                    @endif
+
+                    @if(isset($fullImageUrls[2]))
+                    <div class="col-span-1 row-span-1 relative overflow-hidden group" onclick="openGallery(2)">
+                        <img src="{{ $fullImageUrls[2] }}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                        @if(count($images) > 3)
+                            <div class="absolute inset-0 bg-black/60 flex items-center justify-center group-hover:bg-black/50 transition">
+                                <span class="text-white font-bold text-lg tracking-wide flex flex-col items-center">
+                                    <span>+{{ count($images) - 3 }}</span>
+                                    <span class="text-xs font-normal opacity-80">poze</span>
+                                </span>
+                            </div>
+                        @endif
+                    </div>
+                    @endif
+                </div>
             </div>
 
-            {{-- 2. ASPECTE IMPORTANTE --}}
-            @if(count($quickSpecs) > 0)
-                <div class="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6">
-                    <h3 class="text-base font-bold text-gray-900 dark:text-white mb-6">Aspecte importante</h3>
-                    <div class="grid grid-cols-3 md:grid-cols-6 gap-y-6 gap-x-2">
-                        @foreach($quickSpecs as $spec)
-                            <div class="flex flex-col items-center text-center gap-2 group">
-                                <div class="w-12 h-12 rounded-full bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 flex items-center justify-center group-hover:text-[#E03E2D] group-hover:bg-red-50 transition-colors duration-300">
-                                    @if($spec['icon'] == 'calendar')
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                    @elseif($spec['icon'] == 'road')
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                    @elseif($spec['icon'] == 'fuel')
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
-                                    @elseif($spec['icon'] == 'transmission')
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-                                    @elseif($spec['icon'] == 'engine')
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                    @elseif($spec['icon'] == 'power')
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                    @else
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
-                                    @endif
-                                </div>
-                                <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">{{ $spec['label'] }}</span>
-                                <span class="text-sm font-bold text-gray-900 dark:text-white leading-tight">{{ $spec['value'] }}</span>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
+            {{-- SOCIAL SHARE BUTTONS --}}
+            <div class="flex flex-wrap gap-2">
+                <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode($currentUrl) }}" target="_blank" class="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1877F2] hover:bg-[#166fe5] text-white rounded-lg text-sm font-bold transition shadow-sm hover:shadow-md">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    Distribuie
+                </a>
+                <a href="https://wa.me/?text={{ urlencode($service->title . ' ' . $currentUrl) }}" target="_blank" class="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-lg text-sm font-bold transition shadow-sm hover:shadow-md">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                    WhatsApp
+                </a>
+                <button onclick="copyLink()" class="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-bold transition shadow-sm hover:shadow-md">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    <span id="copy-text">Copiază Link</span>
+                </button>
+            </div>
 
-            {{-- 3. DESCRIERE --}}
-            <div class="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">Descriere</h3>
-                    <div class="text-xs text-gray-400">ID: {{ $service->id }}</div>
+            {{-- Mobile Title & Price (Vizibil doar pe mobil) --}}
+            <div class="md:hidden space-y-2 mt-4">
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white leading-tight">{{ $service->title }}</h1>
+                <div class="flex items-center gap-2 text-gray-500 text-sm">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 111.314 0z"/></svg>
+                    {{ $seoLocation }}
                 </div>
-                <div class="prose prose-sm dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                <div class="pt-2">
+                    <span class="text-3xl font-extrabold text-[#E03E2D]">{{ $formattedPrice }} {{ $currency }}</span>
+                </div>
+            </div>
+
+            {{-- CHIPS: Specificatii Cheie --}}
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+                @php
+                    $mainSpecs = [
+                        ['label' => 'An', 'val' => $year, 'icon' => 'calendar'],
+                        ['label' => 'Rulaj', 'val' => $km ? number_format($km, 0, '.', ' ').' km' : '-', 'icon' => 'road'],
+                        ['label' => 'Combustibil', 'val' => $fuelName, 'icon' => 'fuel'],
+                        ['label' => 'Putere', 'val' => $power ? $power.' CP' : '-', 'icon' => 'power'],
+                    ];
+                @endphp
+                @foreach($mainSpecs as $spec)
+                    <div class="bg-white dark:bg-[#1E1E1E] p-4 rounded-xl border border-gray-100 dark:border-[#333] shadow-sm flex flex-col justify-center gap-1 hover:border-[#E03E2D]/30 transition group">
+                        <span class="text-xs text-gray-400 uppercase font-bold tracking-wider group-hover:text-[#E03E2D] transition-colors">{{ $spec['label'] }}</span>
+                        <div class="flex items-center gap-2 text-gray-900 dark:text-white font-bold text-base truncate">
+                            {{ $spec['val'] ?? '-' }}
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            {{-- DESCRIERE --}}
+            <div class="bg-white dark:bg-[#1E1E1E] p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-[#333]">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                    <span class="w-1 h-6 bg-[#E03E2D] rounded-full"></span>
+                    Descriere
+                </h3>
+                <div class="prose prose-slate dark:prose-invert max-w-none leading-relaxed whitespace-pre-line text-gray-600 dark:text-gray-300">
                     {{ $service->description }}
                 </div>
             </div>
 
-            {{-- 4. DETALII COMPLETE --}}
-            @if(count($fullDetails) > 0)
-                <div class="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6">
-                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6">Detalii complete</h3>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-0 text-sm">
-                        @foreach($fullDetails as $label => $val)
-                            <div class="flex justify-between py-3 border-b border-gray-100 dark:border-[#333]">
-                                <span class="text-gray-500 dark:text-gray-400">{{ $label }}</span>
-                                <span class="text-gray-900 dark:text-white font-medium text-right">{{ $val }}</span>
+            {{-- TABEL DETALII --}}
+            <div class="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-sm border border-gray-100 dark:border-[#333] overflow-hidden">
+                <div class="p-6 border-b border-gray-100 dark:border-[#333]">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">Specificații Tehnice</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100 dark:divide-[#333]">
+                    <div class="p-0">
+                        @php $specs1 = ['Marcă' => $brandName, 'Model' => $modelName, 'Generație' => $generationName, 'An fabricație' => $year, 'Kilometraj' => $km ? $km.' km' : null]; @endphp
+                        @foreach($specs1 as $k => $v)
+                            @if($v)
+                            <div class="flex justify-between px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#252525] transition">
+                                <span class="text-gray-500">{{ $k }}</span>
+                                <span class="font-semibold text-gray-900 dark:text-white">{{ $v }}</span>
                             </div>
+                            @endif
+                        @endforeach
+                    </div>
+                    <div class="p-0">
+                        @php $specs2 = ['Motorizare' => $engine ? $engine.' cm³' : null, 'Putere' => $power ? $power.' CP' : null, 'Transmisie' => $transName, 'Culoare' => $colorName, 'Caroserie' => $bodyName]; @endphp
+                        @foreach($specs2 as $k => $v)
+                            @if($v)
+                            <div class="flex justify-between px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#252525] transition">
+                                <span class="text-gray-500">{{ $k }}</span>
+                                <span class="font-semibold text-gray-900 dark:text-white">{{ $v }}</span>
+                            </div>
+                            @endif
                         @endforeach
                     </div>
                 </div>
-            @endif
+                @if($service->vin)
+                    <div class="bg-gray-50 dark:bg-[#252525] px-6 py-4 border-t border-gray-100 dark:border-[#333] flex items-center justify-between">
+                        <span class="font-bold text-gray-500">VIN</span>
+                        <span class="font-mono bg-white dark:bg-black border px-2 py-1 rounded text-sm select-all">{{ $service->vin }}</span>
+                    </div>
+                @endif
+            </div>
 
         </div>
 
-        {{-- RIGHT (SIDEBAR) --}}
-        <div class="lg:col-span-4 space-y-6">
+        {{-- === DREAPTA (Sidebar Sticky) === --}}
+        <div class="lg:col-span-4 relative">
             <div class="sticky top-6 space-y-6">
-                <div class="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-[0_2px_15px_rgba(0,0,0,0.06)] border border-gray-100 dark:border-[#333] p-6">
-                    <h1 class="text-lg font-bold text-gray-900 dark:text-white mb-2 leading-snug">{{ $service->title }}</h1>
-                    <div class="flex items-center gap-1 text-xs text-gray-500 mb-6">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 111.314 0z"/></svg>
-                        {{ $service->county->name ?? 'România' }}
+
+                {{-- CARD TITLU & PRET (Doar Desktop) --}}
+                <div class="bg-white dark:bg-[#1E1E1E] p-6 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-gray-100 dark:border-[#333] hidden md:block">
+                    <h1 class="text-xl font-bold text-gray-900 dark:text-white mb-2 leading-snug">{{ $service->title }}</h1>
+                    <div class="text-sm text-gray-500 mb-6 flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 111.314 0z"/></svg>
+                        {{ $seoLocation }}
                     </div>
 
-                    @if($service->price_value)
-                        <div class="flex items-end gap-2 mb-1">
-                            <span class="text-3xl font-black text-gray-900 dark:text-white">{{ $formattedPrice }}</span>
-                            <span class="text-xl font-bold text-gray-500 mb-1">{{ $currency }}</span>
-                        </div>
-                        @if($service->price_type === 'negotiable')
-                            <span class="inline-block text-[10px] bg-green-50 text-green-700 font-bold px-2 py-0.5 rounded uppercase tracking-wide">Negociabil</span>
-                        @else
-                            <span class="inline-block text-[10px] bg-gray-100 text-gray-500 font-bold px-2 py-0.5 rounded uppercase tracking-wide">Preț Fix</span>
-                        @endif
-                    @else
-                        <div class="text-2xl font-bold text-blue-600">Preț la cerere</div>
+                    <div class="flex items-baseline gap-2 mb-2">
+                        <span class="text-4xl font-extrabold text-gray-900 dark:text-white">{{ $formattedPrice }}</span>
+                        <span class="text-xl font-bold text-gray-500">{{ $currency }}</span>
+                    </div>
+                    @if($service->price_type === 'negotiable')
+                        <span class="inline-block px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded uppercase">Negociabil</span>
                     @endif
+                </div>
 
-                    <hr class="border-gray-100 dark:border-[#333] my-6">
+                {{-- CARD VANZATOR (Complet) --}}
+                <div class="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-gray-100 dark:border-[#333] overflow-hidden">
+                    <div class="p-6">
+                        @if($isDealer)
+                            {{-- === DEALER MODE (Toate detaliile) === --}}
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="bg-[#E03E2D] text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">Dealer Autorizat</span>
+                                <div class="flex items-center text-green-600 text-xs font-bold gap-1">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                    Verificat
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center gap-4 mb-5">
+                                <div class="w-14 h-14 shrink-0 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-xl font-black text-[#E03E2D]">
+                                    {{ substr(($sellerUser->company_name ?? 'D'), 0, 1) }}
+                                </div>
+                                <div class="overflow-hidden">
+                                    <h4 class="font-bold text-lg text-gray-900 dark:text-white leading-tight truncate">
+                                        {{ $sellerUser->company_name ?? 'Parc Auto' }}
+                                    </h4>
+                                    <p class="text-xs text-gray-500 mt-0.5 truncate">Dealer Auto • Înregistrat {{ $sellerUser->created_at->format('Y') }}</p>
+                                </div>
+                            </div>
 
-                    <div class="flex items-start gap-4 mb-6">
-                        <div class="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900 text-[#E03E2D] flex items-center justify-center font-bold text-lg">
-                            {{ substr($service->author_name ?? 'U', 0, 1) }}
-                        </div>
-                        <div>
-                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Vânzător</p>
-                            <h4 class="font-bold text-sm text-gray-900 dark:text:white">{{ $service->author_name ?? 'Utilizator' }}</h4>
-                            <p class="text-[10px] text-gray-400">Membru din {{ $service->created_at->format('Y') }}</p>
-                        </div>
-                    </div>
+                            {{-- LISTA DATE DEALER --}}
+                            <div class="space-y-3 mb-6">
+                                @if(!empty($sellerUser->cui))
+                                <div class="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#252525]">
+                                    <div class="w-6 h-6 flex items-center justify-center rounded-full bg-white dark:bg-[#333] text-gray-400 shrink-0 border border-gray-100 dark:border-[#444]">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5l5 5v11a2 2 0 01-2 2z" /></svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-[10px] text-gray-400 font-bold uppercase">CUI / CIF</p>
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $sellerUser->cui }}</p>
+                                    </div>
+                                </div>
+                                @endif
 
-                    <div class="space-y-3">
-                        @if($isDeleted)
-                            <div class="w-full bg-gray-100 py-3 rounded-lg text-center text-gray-400 font-bold text-sm">Anunț Dezactivat</div>
-                        @elseif($hasPhone)
-                            <button onclick="revealPhone('desktop', '{{ $rawPhone }}', '{{ $formattedPhone }}')" id="btn-phone-desktop" class="w-full bg-[#E03E2D] hover:bg-[#c92a1b] text-white font-bold py-3 rounded-lg shadow-lg shadow-red-500/20 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2 group">
-                                <svg class="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                                <span id="txt-phone-desktop">Arată numărul</span>
-                            </button>
-                            <button class="w-full bg-white border-2 border-[#E03E2D] text-[#E03E2D] hover:bg-red-50 font-bold py-3 rounded-lg transition-colors text-sm">
-                                Trimite mesaj
-                            </button>
+                                @if(!empty($sellerUser->county) || !empty($sellerUser->city))
+                                <div class="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#252525]">
+                                    <div class="w-6 h-6 flex items-center justify-center rounded-full bg-white dark:bg-[#333] text-gray-400 shrink-0 border border-gray-100 dark:border-[#444]">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 111.314 0z" /></svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-[10px] text-gray-400 font-bold uppercase">Locație</p>
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                                            {{ trim(($sellerUser->city ? $sellerUser->city.', ' : '') . ($sellerUser->county ?? '')) }}
+                                        </p>
+                                    </div>
+                                </div>
+                                @endif
+
+                                @if(!empty($sellerUser->address) || !empty($sellerUser->adresa))
+                                <div class="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#252525]">
+                                    <div class="w-6 h-6 flex items-center justify-center rounded-full bg-white dark:bg-[#333] text-gray-400 shrink-0 border border-gray-100 dark:border-[#444]">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-[10px] text-gray-400 font-bold uppercase">Adresă Parc</p>
+                                        <p class="text-xs font-semibold text-gray-900 dark:text-white leading-relaxed">
+                                            {{ $sellerUser->address ?? $sellerUser->adresa }}
+                                        </p>
+                                    </div>
+                                </div>
+                                @endif
+                            </div>
+
                         @else
-                            <button class="w-full bg-[#E03E2D] text-white font-bold py-3 rounded-lg text-sm">
-                                Trimite mesaj
-                            </button>
+                            {{-- === PRIVATE SELLER (Simplu) === --}}
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg">
+                                    {{ substr($service->author_name ?? 'U', 0, 1) }}
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-400 font-bold uppercase">Vânzător Privat</p>
+                                    <h4 class="font-bold text-base text-gray-900 dark:text-white">{{ $service->author_name ?? 'Utilizator' }}</h4>
+                                </div>
+                            </div>
                         @endif
+
+                        {{-- ACTION BUTTONS DESKTOP --}}
+                        <div class="mt-4 space-y-3 hidden md:block">
+                            @if($isDeleted)
+                                <button disabled class="w-full bg-gray-200 text-gray-500 py-3.5 rounded-xl font-bold">Anunț Dezactivat</button>
+                            @else
+                                <button onclick="revealPhone('desktop', '{{ $rawPhone }}', '{{ $formattedPhone }}')" id="btn-phone-desktop" class="w-full bg-[#E03E2D] hover:bg-[#c92a1b] text-white font-bold py-3.5 rounded-xl shadow-lg shadow-red-500/20 transition transform active:scale-95 flex items-center justify-center gap-2 group">
+                                    <svg class="w-5 h-5 group-hover:animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                    <span id="txt-phone-desktop">Arată Numărul</span>
+                                </button>
+                                <button class="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3.5 rounded-xl transition">
+                                    Trimite Mesaj
+                                </button>
+                            @endif
+                        </div>
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-[#1E1E1E] border border-blue-100 dark:border-blue-900 rounded-xl p-5 shadow-sm">
-                    <h5 class="text-xs font-bold text-blue-800 dark:text-blue-300 flex items-center gap-2 mb-3 uppercase tracking-wide">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                        Siguranță
-                    </h5>
-                    <ul class="text-[11px] text-gray-600 dark:text-gray-400 space-y-2">
-                        <li>• Nu trimiteți bani înainte de a vedea mașina.</li>
-                        <li>• Verificați istoricul mașinii (VIN).</li>
-                        <li>• Întâlniți-vă în locuri publice populate.</li>
-                    </ul>
+                {{-- CARD SIGURANTA --}}
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800 flex gap-3 items-start">
+                    <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    <div>
+                        <h5 class="font-bold text-blue-800 dark:text-blue-300 text-sm">Siguranță</h5>
+                        <p class="text-xs text-blue-700 dark:text-blue-400 mt-1 leading-snug">Verificați istoricul mașinii înainte de achiziție. Nu plătiți în avans.</p>
+                    </div>
                 </div>
 
             </div>
         </div>
-
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-
-        @if(!$isDeleted && count($images) > 1)
-        var thumbsSwiper = new Swiper(".thumbs-swiper", {
-            spaceBetween: 8,
-            slidesPerView: 4.5,
-            freeMode: true,
-            watchSlidesProgress: true,
-            breakpoints: {
-                640: { slidesPerView: 5.5 },
-                1024: { slidesPerView: 5.5 }
-            }
-        });
+{{-- MOBILE BOTTOM BAR (Glassmorphism) --}}
+<div class="fixed bottom-0 left-0 right-0 z-40 lg:hidden glass border-t border-gray-200 px-4 py-3 safe-area-pb">
+    <div class="flex gap-3">
+        @if($isDeleted)
+            <button class="w-full bg-gray-200 py-3 rounded-lg font-bold text-gray-500" disabled>Indisponibil</button>
+        @else
+            <button class="flex-1 bg-white border border-gray-300 text-gray-800 font-bold py-3 rounded-xl">Mesaj</button>
+            <button onclick="revealPhone('mobile', '{{ $rawPhone }}', '{{ $formattedPhone }}')" id="btn-phone-mobile" class="flex-[2] bg-[#E03E2D] active:bg-[#c92a1b] text-white font-bold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                <span id="txt-phone-mobile">Sună</span>
+            </button>
         @endif
+    </div>
+</div>
 
-        var mainSwiper = new Swiper(".main-swiper", {
-            spaceBetween: 10,
-            navigation: {
-                nextEl: ".swiper-button-next",
-                prevEl: ".swiper-button-prev",
-            },
-            @if(!$isDeleted && count($images) > 1)
-            thumbs: {
-                swiper: thumbsSwiper,
-            },
-            @endif
-            on: {
-                slideChange: function () {
-                    const current = this.activeIndex + 1;
-                    const total   = this.slides.length;
-                    const counter = document.querySelector('.fraction-pagination');
-                    if (counter) counter.innerText = `${current} / ${total}`;
-                }
-            }
+{{-- SCRIPTS --}}
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    function copyLink() {
+        navigator.clipboard.writeText(window.location.href).then(function() {
+            let txt = document.getElementById('copy-text');
+            let original = txt.innerText;
+            txt.innerText = 'Copiat!';
+            setTimeout(() => { txt.innerText = original; }, 2000);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        // 1. Mobile Inline Slider
+        const mobileSwiper = new Swiper('.mobile-hero-swiper', {
+            loop: true,
+            pagination: false
         });
 
-        window.revealPhone = function(type, raw, formatted) {
-            const btnId = type === 'mobile' ? 'btn-phone-mobile' : 'btn-phone-desktop';
-            const txtId = type === 'mobile' ? 'txt-phone-mobile' : 'txt-phone-desktop';
-            const btn   = document.getElementById(btnId);
-            const txt   = document.getElementById(txtId);
+        // 2. Lightbox & Zoom Logic
+        const lightbox = document.getElementById('gallery-lightbox');
+        let lightboxSwiperInstance = null;
 
-            if (btn && txt) {
-                if (txt.innerText.includes('Arată') || txt.innerText.includes('Sună')) {
-                    txt.innerText = formatted;
-                    if (type === 'mobile') {
-                        window.location.href = 'tel:' + raw;
-                    } else {
-                        btn.onclick = function() { window.location.href = 'tel:' + raw; };
-                        btn.classList.remove('bg-[#E03E2D]', 'text-white');
-                        btn.classList.add('bg-white', 'border-2', 'border-green-600', 'text-green-700');
+        window.openGallery = function(index) {
+            lightbox.classList.remove('hidden');
+            lightbox.classList.add('flex');
+            
+            // Fade In
+            setTimeout(() => {
+                lightbox.classList.remove('opacity-0');
+            }, 10);
+
+            // Disable scroll
+            document.body.style.overflow = 'hidden';
+
+            if (!lightboxSwiperInstance) {
+                lightboxSwiperInstance = new Swiper('.lightbox-swiper', {
+                    initialSlide: index,
+                    spaceBetween: 30,
+                    // Activeaza modulul ZOOM
+                    zoom: {
+                        maxRatio: 3,
+                        minRatio: 1
+                    },
+                    keyboard: { enabled: true },
+                    navigation: { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" },
+                    on: {
+                        slideChange: function () {
+                            document.getElementById('lb-current').innerText = this.activeIndex + 1;
+                        }
                     }
-                } else {
-                    window.location.href = 'tel:' + raw;
-                }
+                });
+            } else {
+                lightboxSwiperInstance.slideTo(index, 0);
             }
-        }
+        };
+
+        window.closeGallery = function() {
+            lightbox.classList.add('opacity-0');
+            setTimeout(() => {
+                lightbox.classList.add('hidden');
+                lightbox.classList.remove('flex');
+                document.body.style.overflow = '';
+                // Reset zoom cand inchizi
+                if(lightboxSwiperInstance) lightboxSwiperInstance.zoom.out();
+            }, 300);
+        };
+
+        // Close on ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !lightbox.classList.contains('hidden')) closeGallery();
+        });
+
+        // 3. Phone Reveal Logic
+        window.revealPhone = function(type, raw, formatted) {
+            const txtId = type === 'mobile' ? 'txt-phone-mobile' : 'txt-phone-desktop';
+            const btnId = type === 'mobile' ? 'btn-phone-mobile' : 'btn-phone-desktop';
+            const txtEl = document.getElementById(txtId);
+            const btnEl = document.getElementById(btnId);
+
+            if(txtEl.innerText.includes('Arată') || txtEl.innerText.includes('Sună')) {
+                txtEl.innerText = formatted;
+                if(type === 'mobile') window.location.href = 'tel:' + raw;
+                else {
+                    btnEl.classList.remove('bg-[#E03E2D]', 'text-white');
+                    btnEl.classList.add('bg-white', 'border-2', 'border-green-600', 'text-green-700');
+                    btnEl.onclick = function() { window.location.href = 'tel:' + raw; };
+                }
+            } else {
+                window.location.href = 'tel:' + raw;
+            }
+        };
     });
 </script>
-
 @endsection

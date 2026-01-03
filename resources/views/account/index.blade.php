@@ -268,6 +268,100 @@
                             </div>
                         </div>
                     </div>
+{{-- TIP CONT + DATE PARC AUTO --}}
+<div class="bg-gray-50 dark:bg-[#252525] rounded-2xl border border-gray-200 dark:border-[#333333] p-5">
+    <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+        <span class="text-base">🏷️</span> Tip cont
+    </h3>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label class="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Selectează tipul
+            </label>
+
+            @php $ut = auth()->user()->user_type ?? 'individual'; @endphp
+
+            <select id="editUserType"
+                class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
+                       bg-white dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
+                       focus:ring-2 focus:ring-[#CC2E2E]/20 focus:border-[#CC2E2E] outline-none transition shadow-sm">
+                <option value="individual" {{ $ut === 'individual' ? 'selected' : '' }}>Persoană fizică</option>
+                <option value="dealer" {{ $ut === 'dealer' ? 'selected' : '' }}>Parc auto</option>
+            </select>
+
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                Dacă alegi „Parc auto”, îți apar câmpuri suplimentare.
+            </p>
+        </div>
+    </div>
+
+    <div id="dealerFieldsProfile" class="mt-5 space-y-4 hidden">
+	<p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+        🔒 Datele firmei sunt afișate public pe anunțuri și cresc încrederea cumpărătorilor.
+    </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="md:col-span-2">
+                <label class="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Nume parc auto / firmă
+                </label>
+                <input id="editCompanyName" type="text" value="{{ auth()->user()->company_name }}"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
+                           bg-white dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
+                           focus:ring-2 focus:ring-[#CC2E2E]/20 focus:border-[#CC2E2E] outline-none transition shadow-sm"
+                    placeholder="Ex: AutoBest SRL">
+            </div>
+			<div class="mt-2 min-h-[20px] text-sm font-medium" id="companyCheckMsg"></div>
+<div class="mt-1 text-sm" id="companySuggestions"></div>
+
+
+            <div>
+                <label class="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">CUI</label>
+                <input id="editCui" type="text" value="{{ auth()->user()->cui }}"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
+                           bg-white dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
+                           focus:ring-2 focus:ring-[#CC2E2E]/20 focus:border-[#CC2E2E] outline-none transition shadow-sm"
+                    placeholder="RO12345678">
+            </div>
+
+            <div>
+                <label class="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Telefon parc auto</label>
+                <input id="editDealerPhone" type="text" value="{{ auth()->user()->phone }}"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
+                           bg-white dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
+                           focus:ring-2 focus:ring-[#CC2E2E]/20 focus:border-[#CC2E2E] outline-none transition shadow-sm"
+                    placeholder="07xx xxx xxx">
+            </div>
+
+            <div>
+                <label class="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Județ</label>
+                <input id="editCounty" type="text" value="{{ auth()->user()->county }}"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
+                           bg-white dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
+                           focus:ring-2 focus:ring-[#CC2E2E]/20 focus:border-[#CC2E2E] outline-none transition shadow-sm"
+                    placeholder="Ex: Cluj">
+            </div>
+
+            <div>
+                <label class="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Oraș</label>
+                <input id="editCity" type="text" value="{{ auth()->user()->city }}"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
+                           bg-white dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
+                           focus:ring-2 focus:ring-[#CC2E2E]/20 focus:border-[#CC2E2E] outline-none transition shadow-sm"
+                    placeholder="Ex: Cluj-Napoca">
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Adresă</label>
+                <input id="editAddress" type="text" value="{{ auth()->user()->address }}"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
+                           bg-white dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
+                           focus:ring-2 focus:ring-[#CC2E2E]/20 focus:border-[#CC2E2E] outline-none transition shadow-sm"
+                    placeholder="Stradă, număr">
+            </div>
+        </div>
+    </div>
+</div>
 
                     <hr class="border-gray-100 dark:border-[#333333]">
 
@@ -381,9 +475,35 @@ function deleteService(btn) {
 }
 
 function updateProfile() {
-    let name     = document.getElementById("editName").value;
-    let email    = document.getElementById("editEmail").value;
-    let password = document.getElementById("editPassword").value;
+    let name     = document.getElementById("editName")?.value || "";
+    let email    = document.getElementById("editEmail")?.value || "";
+    let password = document.getElementById("editPassword")?.value || "";
+
+    const userType = document.getElementById("editUserType")?.value || "individual";
+
+    const payload = {
+        name,
+        email,
+        password,
+        user_type: userType,
+
+        company_name: document.getElementById("editCompanyName")?.value || null,
+        cui:          document.getElementById("editCui")?.value || null,
+        phone:        document.getElementById("editDealerPhone")?.value || null,
+        county:       document.getElementById("editCounty")?.value || null,
+        city:         document.getElementById("editCity")?.value || null,
+        address:      document.getElementById("editAddress")?.value || null,
+    };
+
+    // dacă nu e dealer, trimitem null (controller oricum golește)
+    if (userType !== "dealer") {
+        payload.company_name = null;
+        payload.cui = null;
+        payload.phone = null;
+        payload.county = null;
+        payload.city = null;
+        payload.address = null;
+    }
 
     fetch("{{ route('profile.ajaxUpdate') }}", {
         method: "POST",
@@ -392,7 +512,7 @@ function updateProfile() {
             "Content-Type": "application/json",
             "Accept": "application/json"
         },
-        body: JSON.stringify({ name, email, password })
+        body: JSON.stringify(payload)
     })
     .then(async res => {
         let data;
@@ -413,6 +533,12 @@ function updateProfile() {
                 msg.innerText = "✖ Emailul este utilizat de altcineva.";
             } else if (data.errors.name) {
                 msg.innerText = "✖ Numele este utilizat de altcineva.";
+            } else if (data.errors.user_type) {
+                msg.innerText = "✖ Tip cont invalid.";
+            } else if (data.errors.company_name) {
+                msg.innerText = "✖ Completează numele parcului auto.";
+            } else if (data.errors.phone) {
+                msg.innerText = "✖ Completează telefonul parcului auto.";
             } else {
                 msg.innerText = "✖ Date invalide.";
             }
@@ -425,7 +551,7 @@ function updateProfile() {
                 setTimeout(() => msg.classList.add("hidden"), 400);
             }, 3000);
 
-            return; 
+            return;
         }
 
         if (data.success) {
@@ -435,7 +561,8 @@ function updateProfile() {
             msg.innerText = "Modificările au fost salvate cu succes!";
             msg.style.opacity = 1;
 
-            document.getElementById("editPassword").value = "";
+            const passEl = document.getElementById("editPassword");
+            if (passEl) passEl.value = "";
         }
 
         setTimeout(() => {
@@ -447,8 +574,24 @@ function updateProfile() {
     .catch(err => console.error(err));
 }
 
-// Live Check
+// Live Check + Dealer toggle
 document.addEventListener("DOMContentLoaded", function () {
+
+    // ===== Dealer fields toggle =====
+    const userTypeSel = document.getElementById("editUserType");
+    const dealerBox   = document.getElementById("dealerFieldsProfile");
+
+    function refreshDealerBox() {
+        if (!userTypeSel || !dealerBox) return;
+        dealerBox.classList.toggle("hidden", userTypeSel.value !== "dealer");
+    }
+
+    if (userTypeSel && dealerBox) {
+        userTypeSel.addEventListener("change", refreshDealerBox);
+        refreshDealerBox(); // init
+    }
+
+    // ===== Live check name =====
     const nameInput = document.getElementById("editName");
     const msgEl = document.getElementById("nameCheckMsg");
     const sugEl = document.getElementById("nameSuggestions");
@@ -479,7 +622,7 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(res => res.json())
             .then(data => {
                 if (data.available) {
-                    msgEl.innerHTML = 
+                    msgEl.innerHTML =
                         `<span class='text-green-600 dark:text-green-400 flex items-center gap-1'>
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                             Numele este disponibil
@@ -496,10 +639,10 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Încearcă una din sugestii:</p>
                                     <div class="flex flex-wrap gap-2">`;
 
-                    data.suggestions.forEach(function (s) {
-                        html += `<button type="button" 
+                    (data.suggestions || []).forEach(function (s) {
+                        html += `<button type="button"
                                          class="px-2 py-1 text-xs font-medium bg-white dark:bg-[#2C2C2C] border border-gray-200 dark:border-[#404040] rounded hover:border-[#CC2E2E] dark:hover:border-[#CC2E2E] transition text-gray-700 dark:text-gray-300"
-                                         onclick="useSuggestion('${s.replace(/'/g, "\\'")}')">
+                                         onclick="useSuggestion('${String(s).replace(/'/g, "\\'")}')">
                                     ${s}
                                  </button>`;
                     });
@@ -510,17 +653,92 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         }, 300);
     });
+
+    // ===== ADAUGAT: Live check pentru Nume Parc Auto (company_name) =====
+    // (rulează doar dacă există inputul + e selectat dealer)
+    const companyInput = document.getElementById("editCompanyName");
+    const companyMsgEl = document.getElementById("companyCheckMsg");
+    const companySugEl = document.getElementById("companySuggestions");
+
+    let timerCompany = null;
+
+    if (companyInput) {
+        companyInput.addEventListener("input", function () {
+            clearTimeout(timerCompany);
+
+            // doar când e dealer
+            if (userTypeSel && userTypeSel.value !== "dealer") {
+                if (companyMsgEl) companyMsgEl.innerHTML = "";
+                if (companySugEl) companySugEl.innerHTML = "";
+                return;
+            }
+
+            const company_name = this.value.trim();
+            if (company_name.length < 3) {
+                if (companyMsgEl) companyMsgEl.innerHTML = "";
+                if (companySugEl) companySugEl.innerHTML = "";
+                return;
+            }
+
+            timerCompany = setTimeout(() => {
+                fetch("{{ route('profile.checkCompanyName') }}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ company_name })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (!companyMsgEl || !companySugEl) return;
+
+                    if (data.available) {
+                        companyMsgEl.innerHTML =
+                            `<span class='text-green-600 dark:text-green-400 flex items-center gap-1'>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                Numele parcului este disponibil
+                            </span>`;
+                        companySugEl.innerHTML = "";
+                    } else {
+                        companyMsgEl.innerHTML =
+                            `<span class='text-red-600 dark:text-red-400 flex items-center gap-1'>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                Numele parcului este deja folosit
+                            </span>`;
+
+                        let html = `<div class="mt-2 p-3 bg-gray-50 dark:bg-[#252525] rounded-lg border border-gray-100 dark:border-[#333333]">
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Încearcă una din sugestii:</p>
+                                        <div class="flex flex-wrap gap-2">`;
+
+                        (data.suggestions || []).forEach(function (s) {
+                            html += `<button type="button"
+                                             class="px-2 py-1 text-xs font-medium bg-white dark:bg-[#2C2C2C] border border-gray-200 dark:border-[#404040] rounded hover:border-[#CC2E2E] dark:hover:border-[#CC2E2E] transition text-gray-700 dark:text-gray-300"
+                                             onclick="useCompanySuggestion('${String(s).replace(/'/g, "\\'")}')">
+                                        ${s}
+                                     </button>`;
+                        });
+
+                        html += `</div></div>`;
+                        companySugEl.innerHTML = html;
+                    }
+                });
+            }, 300);
+        });
+    }
+
 });
 
+// (păstrată exact cum ai avut-o)
 function useSuggestion(name) {
     const input = document.getElementById("editName");
     const msgEl = document.getElementById("nameCheckMsg");
     const sugEl = document.getElementById("nameSuggestions");
 
     if (input) input.value = name;
-    
+
     if (msgEl) {
-        msgEl.innerHTML = 
+        msgEl.innerHTML =
             `<span class='text-green-600 dark:text-green-400 flex items-center gap-1'>
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                 Numele este disponibil
@@ -528,6 +746,25 @@ function useSuggestion(name) {
     }
     if (sugEl) sugEl.innerHTML = "";
 }
+
+// ===== ADAUGAT: sugestie pentru nume parc auto =====
+function useCompanySuggestion(val) {
+    const input = document.getElementById("editCompanyName");
+    const msgEl = document.getElementById("companyCheckMsg");
+    const sugEl = document.getElementById("companySuggestions");
+
+    if (input) input.value = val;
+
+    if (msgEl) {
+        msgEl.innerHTML =
+            `<span class='text-green-600 dark:text-green-400 flex items-center gap-1'>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                Numele parcului este disponibil
+            </span>`;
+    }
+    if (sugEl) sugEl.innerHTML = "";
+}
 </script>
+
 
 @endsection

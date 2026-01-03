@@ -24,6 +24,107 @@
             
             <form class="space-y-6" action="{{ route('register') }}" method="POST">
                 @csrf
+				{{-- Tip utilizator --}}
+<div>
+    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        Tip cont
+    </label>
+
+    <div class="grid grid-cols-2 gap-3">
+        <label class="cursor-pointer">
+            <input type="radio" name="user_type" value="individual"
+                   class="sr-only peer"
+                   {{ old('user_type', 'individual') === 'individual' ? 'checked' : '' }}>
+            <div class="p-3 rounded-xl border border-gray-300 dark:border-[#404040]
+                        bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white
+                        peer-checked:ring-2 peer-checked:ring-[#CC2E2E]">
+                Persoană fizică
+            </div>
+        </label>
+
+        <label class="cursor-pointer">
+            <input type="radio" name="user_type" value="dealer"
+                   class="sr-only peer"
+                   {{ old('user_type') === 'dealer' ? 'checked' : '' }}>
+            <div class="p-3 rounded-xl border border-gray-300 dark:border-[#404040]
+                        bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white
+                        peer-checked:ring-2 peer-checked:ring-[#CC2E2E]">
+                Parc auto
+            </div>
+        </label>
+    </div>
+
+    <x-input-error :messages="$errors->get('user_type')" class="mt-1 text-xs text-red-500" />
+</div>
+
+{{-- Câmpuri parc auto (se afișează doar când e selectat "dealer") --}}
+<div id="dealerFields" class="space-y-4 hidden">
+    <div>
+        <label for="company_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Nume parc auto / firmă
+        </label>
+        <input id="company_name" name="company_name" type="text"
+               class="appearance-none block w-full pr-3 py-3 border border-gray-300 dark:border-[#404040] rounded-xl
+                      placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#CC2E2E] focus:border-transparent
+                      bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white sm:text-sm transition shadow-sm"
+               value="{{ old('company_name') }}" placeholder="Ex: AutoBest SRL">
+        <x-input-error :messages="$errors->get('company_name')" class="mt-1 text-xs text-red-500" />
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+            <label for="cui" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">CUI</label>
+            <input id="cui" name="cui" type="text"
+                   class="appearance-none block w-full pr-3 py-3 border border-gray-300 dark:border-[#404040] rounded-xl
+                          placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#CC2E2E] focus:border-transparent
+                          bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white sm:text-sm transition shadow-sm"
+                   value="{{ old('cui') }}" placeholder="Ex: RO12345678">
+            <x-input-error :messages="$errors->get('cui')" class="mt-1 text-xs text-red-500" />
+        </div>
+
+        <div>
+            <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Telefon</label>
+            <input id="phone" name="phone" type="text"
+                   class="appearance-none block w-full pr-3 py-3 border border-gray-300 dark:border-[#404040] rounded-xl
+                          placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#CC2E2E] focus:border-transparent
+                          bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white sm:text-sm transition shadow-sm"
+                   value="{{ old('phone') }}" placeholder="07xx xxx xxx">
+            <x-input-error :messages="$errors->get('phone')" class="mt-1 text-xs text-red-500" />
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+            <label for="county" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Județ</label>
+            <input id="county" name="county" type="text"
+                   class="appearance-none block w-full pr-3 py-3 border border-gray-300 dark:border-[#404040] rounded-xl
+                          placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#CC2E2E] focus:border-transparent
+                          bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white sm:text-sm transition shadow-sm"
+                   value="{{ old('county') }}" placeholder="Ex: Cluj">
+            <x-input-error :messages="$errors->get('county')" class="mt-1 text-xs text-red-500" />
+        </div>
+
+        <div>
+            <label for="city" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Oraș</label>
+            <input id="city" name="city" type="text"
+                   class="appearance-none block w-full pr-3 py-3 border border-gray-300 dark:border-[#404040] rounded-xl
+                          placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#CC2E2E] focus:border-transparent
+                          bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white sm:text-sm transition shadow-sm"
+                   value="{{ old('city') }}" placeholder="Ex: Cluj-Napoca">
+            <x-input-error :messages="$errors->get('city')" class="mt-1 text-xs text-red-500" />
+        </div>
+    </div>
+
+    <div>
+        <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Adresă</label>
+        <input id="address" name="address" type="text"
+               class="appearance-none block w-full pr-3 py-3 border border-gray-300 dark:border-[#404040] rounded-xl
+                      placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#CC2E2E] focus:border-transparent
+                      bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white sm:text-sm transition shadow-sm"
+               value="{{ old('address') }}" placeholder="Stradă, număr">
+        <x-input-error :messages="$errors->get('address')" class="mt-1 text-xs text-red-500" />
+    </div>
+</div>
 
                 <div>
                     <label for="regName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -130,6 +231,19 @@
 {{-- SCRIPTS: Verificare Live --}}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+
+    // TOGGLE dealer fields
+    const dealerFields = document.getElementById('dealerFields');
+    const userTypeRadios = document.querySelectorAll('input[name="user_type"]');
+
+    function refreshDealerFields() {
+        const selected = document.querySelector('input[name="user_type"]:checked')?.value || 'individual';
+        dealerFields.classList.toggle('hidden', selected !== 'dealer');
+    }
+
+    userTypeRadios.forEach(r => r.addEventListener('change', refreshDealerFields));
+    refreshDealerFields();
+
 
     // 1. LIVE CHECK USERNAME
     const nameInput = document.getElementById('regName');

@@ -66,6 +66,12 @@ Route::get('/ajax/models-by-brand', [ServiceController::class, 'getModelsByBrand
 Route::post('/profile/check-name', [ProfileController::class, 'checkName'])
     ->name('profile.checkName');
 
+Route::post('/profile/check-company-name', [ProfileController::class, 'checkCompanyName'])
+    ->middleware('auth')
+    ->name('profile.checkCompanyName');
+
+
+
 // CHECK EMAIL
 Route::post('/profile/check-email', [ProfileController::class, 'checkEmail'])
     ->name('profile.checkEmail');

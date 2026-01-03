@@ -278,6 +278,7 @@
                             <p class="opacity-90">Completează datele de mai jos și îți creăm automat un cont.</p>
                         </div>
                     </div>
+					<input type="hidden" name="user_type" value="individual">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div class="md:col-span-2">
                              <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nume</label>
