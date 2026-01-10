@@ -80,9 +80,15 @@ class ServiceController extends Controller
             if ($request->filled('radius_km')) {
                 $radius = (float) $request->radius_km;
                 if ($radius > 0) {
-                    $haversine = '(6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude))))';
-                    $query->whereNotNull('latitude')
-                        ->whereNotNull('longitude')
+                    $query->leftJoin('localities as filter_localities', 'services.locality_id', '=', 'filter_localities.id')
+                        ->select('services.*');
+
+                    $latExpr = 'COALESCE(services.latitude, filter_localities.latitude)';
+                    $lngExpr = 'COALESCE(services.longitude, filter_localities.longitude)';
+                    $haversine = '(6371 * acos(cos(radians(?)) * cos(radians(' . $latExpr . ')) * cos(radians(' . $lngExpr . ') - radians(?)) + sin(radians(?)) * sin(radians(' . $latExpr . '))))';
+
+                    $query->whereRaw($latExpr . ' is not null')
+                        ->whereRaw($lngExpr . ' is not null')
                         ->whereRaw($haversine . ' <= ?', [
                             $selectedLocality->latitude,
                             $selectedLocality->longitude,

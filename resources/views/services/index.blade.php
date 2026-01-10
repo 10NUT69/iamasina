@@ -257,6 +257,45 @@
     };
 
     // --- FUNCȚII AJUTĂTOARE ---
+    function normalizeText(value) {
+        return value
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase();
+    }
+
+    function attachDiacriticsSearch(selectEl) {
+        if (!selectEl) return;
+        let buffer = '';
+        let timer = null;
+
+        selectEl.addEventListener('keydown', (event) => {
+            if (!event.key || event.key.length !== 1) return;
+            buffer += event.key;
+            const normalizedBuffer = normalizeText(buffer);
+
+            const options = Array.from(selectEl.options);
+            const match = options.find(option =>
+                normalizeText(option.textContent || '').startsWith(normalizedBuffer)
+            );
+
+            if (match) {
+                const prevValue = selectEl.value;
+                selectEl.value = match.value;
+                if (selectEl.value !== prevValue) {
+                    selectEl.dispatchEvent(new Event('change'));
+                }
+            }
+
+            if (timer) {
+                clearTimeout(timer);
+            }
+            timer = setTimeout(() => {
+                buffer = '';
+            }, 600);
+        });
+    }
+
     function resetSelect(el, placeholder) {
         if (!el) return;
         el.innerHTML = `<option value="">${placeholder}</option>`;
@@ -457,6 +496,9 @@
     // --- INITIALIZARE ---
     document.addEventListener('DOMContentLoaded', () => {
         window.checkResetVisibility();
+
+        attachDiacriticsSearch(domElements.county);
+        attachDiacriticsSearch(domElements.locality);
 
         if (domElements.county) {
             domElements.county.addEventListener('change', () => {

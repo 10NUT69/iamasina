@@ -570,6 +570,45 @@ document.addEventListener('DOMContentLoaded', function() {
     const localityBaseUrl = "{{ url('/api/localities') }}";
     const presetLocalityId = "{{ $savedLocalityId }}";
 
+    function normalizeText(value) {
+        return value
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase();
+    }
+
+    function attachDiacriticsSearch(selectEl) {
+        if (!selectEl) return;
+        let buffer = '';
+        let timer = null;
+
+        selectEl.addEventListener('keydown', (event) => {
+            if (!event.key || event.key.length !== 1) return;
+            buffer += event.key;
+            const normalizedBuffer = normalizeText(buffer);
+
+            const options = Array.from(selectEl.options);
+            const match = options.find(option =>
+                normalizeText(option.textContent || '').startsWith(normalizedBuffer)
+            );
+
+            if (match) {
+                const prevValue = selectEl.value;
+                selectEl.value = match.value;
+                if (selectEl.value !== prevValue) {
+                    selectEl.dispatchEvent(new Event('change'));
+                }
+            }
+
+            if (timer) {
+                clearTimeout(timer);
+            }
+            timer = setTimeout(() => {
+                buffer = '';
+            }, 600);
+        });
+    }
+
     function updateStep() {
         steps.forEach(s => {
             if (parseInt(s.dataset.step) === currentStep) {
@@ -699,6 +738,8 @@ document.addEventListener('DOMContentLoaded', function() {
             loadLocalities(countySelect.value);
         });
     }
+    attachDiacriticsSearch(countySelect);
+    attachDiacriticsSearch(localitySelect);
 
     if (countySelect && countySelect.value) {
         loadLocalities(countySelect.value, presetLocalityId);
