@@ -118,7 +118,7 @@ class ServiceController extends Controller
     }
 
     if ($distanceLat !== null && $distanceLng !== null && $distanceRadius !== null && $distanceRadius > 0) {
-        $haversine = '(6371 * acos(cos(radians(?)) * cos(radians(COALESCE(services.latitude, loc.latitude, county_centers.latitude))) * cos(radians(COALESCE(services.longitude, loc.longitude, county_centers.longitude)) - radians(?)) + sin(radians(?)) * sin(radians(COALESCE(services.latitude, loc.latitude, county_centers.latitude)))))';
+        $haversine = '(6371 * acos(cos(radians(?)) * cos(radians(COALESCE(NULLIF(services.latitude, 0), loc.latitude, county_centers.latitude))) * cos(radians(COALESCE(NULLIF(services.longitude, 0), loc.longitude, county_centers.longitude)) - radians(?)) + sin(radians(?)) * sin(radians(COALESCE(NULLIF(services.latitude, 0), loc.latitude, county_centers.latitude)))))';
         $query->leftJoin('localities as loc', 'services.locality_id', '=', 'loc.id')
             ->leftJoinSub($countyCenters, 'county_centers', function ($join) {
                 $join->on('services.county_id', '=', 'county_centers.county_id');

@@ -21,7 +21,7 @@
     <div class="relative z-10 max-w-7xl mx-auto px-4 pt-20 md:pt-28 pb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
 
         {{-- CARD FILTRE (STÂNGA) --}}
-        <div class="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-2xl overflow-hidden w-full md:w-auto border border-gray-100 dark:border-[#333] relative z-20">
+        <div class="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-2xl overflow-visible w-full md:w-auto border border-gray-100 dark:border-[#333] relative z-20">
 
             {{-- TABURI (De unde cumperi) --}}
             <div class="flex border-b border-gray-200 dark:border-[#333] bg-gray-50 dark:bg-[#252525]">
@@ -139,7 +139,7 @@
                                    class="autovit-select">
                             <input type="hidden" id="locality-input" name="locality_id" value="{{ request('locality_id') }}">
                             <input type="hidden" id="county-input" name="county_id" value="{{ request('county_id') }}">
-                            <ul id="locality-results" class="absolute z-20 mt-2 w-full bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-[#333] rounded-lg shadow-lg max-h-96 overflow-auto hidden"></ul>
+                            <ul id="locality-results" class="absolute z-50 mt-2 w-full bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-[#333] rounded-lg shadow-lg max-h-[60vh] overflow-auto hidden"></ul>
                         </div>
 
                         <div class="col-span-2 md:col-span-1">
@@ -296,6 +296,8 @@
             domElements.radius.disabled = false;
             if (!domElements.radius.value) domElements.radius.value = '50';
         }
+        debounceLoad();
+        window.checkResetVisibility();
     }
 
     async function searchLocalities(query) {
