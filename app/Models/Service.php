@@ -135,14 +135,11 @@ class Service extends Model
     }
 
     // PUBLIC URL
-      // PUBLIC URL – AUTOTURISME/{brand}/{model}/{year}/{county}/{id}
+    // PUBLIC URL – /auto/{brand}/{model}/{county}/{locality}/{id}
    public function getPublicUrlAttribute()
 {
     $county = $this->county;
     $countySlug = $county ? $county->slug : 'romania';
-
-    // Anul – ce ai în anunț (sau anul curent dacă lipsește)
-    $year = (int) ($this->an_fabricatie ?? date('Y'));
 
     $brandSlug = null;
     $modelSlug = null;
@@ -182,13 +179,21 @@ if (!$brandSlug || !$modelSlug) {
 }
 
 
+    $localitySlug = null;
+    if ($this->locality) {
+        $localitySlug = $this->locality->slug ?: Str::slug($this->locality->name);
+    } elseif (!empty($this->city)) {
+        $localitySlug = Str::slug($this->city);
+    }
+    $localitySlug = $localitySlug ?: 'romania';
+
     // 3. Dacă tot avem brand + model + județ → construim URL-ul frumos
     if ($brandSlug && $modelSlug && $countySlug) {
         return route('service.show.car', [
             'brandSlug'  => $brandSlug,
             'modelSlug'  => $modelSlug,
-            'year'       => $year,
             'countySlug' => $countySlug,
+            'localitySlug' => $localitySlug,
             'id'         => $this->id,
         ]);
     }

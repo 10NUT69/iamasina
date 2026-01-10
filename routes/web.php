@@ -29,14 +29,22 @@ Route::get('/autoturisme/{brandSlug}', [ServiceController::class, 'indexBrand'])
     ->name('brand.index');
 
 // Pagina de detaliu anunț auto:
-// /autoturisme/{brandSlug}/{modelSlug}/{year}/{countySlug}/{id}
+// /auto/{brandSlug}/{modelSlug}/{countySlug}/{localitySlug}/{id}
+Route::get(
+    '/auto/{brandSlug}/{modelSlug}/{countySlug}/{localitySlug}/{id}',
+    [ServiceController::class, 'showCar']
+)->where([
+    'id' => '[0-9]+',
+])->name('service.show.car');
+
+// Legacy URL (cu year) -> redirect către noul format
 Route::get(
     '/autoturisme/{brandSlug}/{modelSlug}/{year}/{countySlug}/{id}',
-    [ServiceController::class, 'showCar']
+    [ServiceController::class, 'showCarLegacy']
 )->where([
     'year' => '[0-9]{4}',
     'id'   => '[0-9]+',
-])->name('service.show.car');
+])->name('service.show.car.legacy');
 
 
 // FORMULAR ADĂUGARE
@@ -58,6 +66,7 @@ Route::get('/contul-meu', function () {
 Route::get('/api/models/{brandId}', [CarController::class, 'getModels'])->name('api.cars.models');
 Route::get('/api/generations/{modelId}', [CarController::class, 'getGenerations'])->name('api.cars.generations');
 Route::get('/api/localities/{countyId}', [ServiceController::class, 'getLocalitiesByCounty'])->name('api.localities.by.county');
+Route::get('/api/localities-search', [ServiceController::class, 'searchLocalities'])->name('api.localities.search');
 
 // VECHIUL helper (dacă îl mai folosești)
 Route::get('/ajax/models-by-brand', [ServiceController::class, 'getModelsByBrand'])

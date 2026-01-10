@@ -504,20 +504,21 @@
                                    class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm"
                                    required>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Județ</label>
-                            <select id="county-select" name="county_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm" required>
-                                <option value="">Alege județ</option>
-                                @foreach ($counties as $county)
-                                    <option value="{{ $county->id }}" @selected((string)$savedCountyId === (string)$county->id)>{{ $county->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                        <input type="hidden" id="county-id" name="county_id" value="{{ $savedCountyId }}">
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Localitate</label>
-                            <select id="locality-select" name="locality_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm" disabled>
-                                <option value="">Selectează localitatea</option>
-                            </select>
+                            <input
+                                id="locality-input"
+                                type="text"
+                                list="locality-list"
+                                class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm"
+                                placeholder="Începe să scrii localitatea"
+                                autocomplete="off"
+                                required
+                                value="{{ $service->locality ? trim($service->locality->name . ', ' . ($service->county->name ?? '')) : '' }}"
+                            >
+                            <datalist id="locality-list"></datalist>
+                            <input type="hidden" id="locality-id" name="locality_id" value="{{ $savedLocalityId }}">
                         </div>
                     </div>
                 </div>
@@ -565,10 +566,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     const submitBtn = document.getElementById('submitBtn');
-    const countySelect = document.getElementById('county-select');
-    const localitySelect = document.getElementById('locality-select');
-    const localityBaseUrl = "{{ url('/api/localities') }}";
-    const presetLocalityId = "{{ $savedLocalityId }}";
+    const countyIdInput = document.getElementById('county-id');
+    const localityInput = document.getElementById('locality-input');
+    const localityIdInput = document.getElementById('locality-id');
+    const localityList = document.getElementById('locality-list');
+    const localitySearchUrl = "{{ route('api.localities.search') }}";
 
     function updateStep() {
         steps.forEach(s => {
@@ -603,40 +605,42 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function resetLocalities() {
-        if (!localitySelect) return;
-        localitySelect.innerHTML = '<option value="">Selectează localitatea</option>';
-        localitySelect.disabled = true;
+    function clearLocalitySelection() {
+        if (localityIdInput) localityIdInput.value = '';
     }
 
-    function populateLocalities(localities, selectedId) {
-        if (!localitySelect) return;
-        localitySelect.innerHTML = '<option value="">Selectează localitatea</option>';
+    function setLocalitySelection(option) {
+        if (!option || !localityIdInput) return;
+        localityIdInput.value = option.dataset.id || '';
+        const countyId = option.dataset.countyId;
+        if (countyId && countyIdInput) {
+            countyIdInput.value = countyId;
+        }
+    }
+
+    function populateLocalitySuggestions(localities) {
+        if (!localityList) return;
+        localityList.innerHTML = '';
         localities.forEach(locality => {
             const option = document.createElement('option');
-            option.value = locality.id;
-            option.textContent = locality.name;
-            if (String(selectedId) === String(locality.id)) {
-                option.selected = true;
-            }
-            localitySelect.appendChild(option);
+            option.value = `${locality.name}, ${locality.county_name}`;
+            option.dataset.id = locality.id;
+            option.dataset.countyId = locality.county_id;
+            localityList.appendChild(option);
         });
-        localitySelect.disabled = false;
     }
 
-    async function loadLocalities(countyId, selectedId = null) {
-        if (!countyId) {
-            resetLocalities();
+    async function fetchLocalities(term) {
+        if (!term || term.length < 2) {
+            if (localityList) localityList.innerHTML = '';
             return;
         }
-
         try {
-            const response = await fetch(`${localityBaseUrl}/${countyId}`);
+            const response = await fetch(`${localitySearchUrl}?q=${encodeURIComponent(term)}`);
             const data = await response.json();
-            populateLocalities(data, selectedId);
+            populateLocalitySuggestions(data);
         } catch (error) {
             console.error(error);
-            resetLocalities();
         }
     }
 
@@ -694,16 +698,28 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     prevBtn.addEventListener('click', () => { currentStep--; updateStep(); });
 
-    if (countySelect) {
-        countySelect.addEventListener('change', () => {
-            loadLocalities(countySelect.value);
+    if (localityInput) {
+        localityInput.addEventListener('input', () => {
+            fetchLocalities(localityInput.value.trim());
+            const matchingOption = Array.from(localityList?.options || [])
+                .find(option => option.value === localityInput.value);
+            if (matchingOption) {
+                setLocalitySelection(matchingOption);
+            } else {
+                clearLocalitySelection();
+                if (countyIdInput) countyIdInput.value = '';
+            }
         });
-    }
-
-    if (countySelect && countySelect.value) {
-        loadLocalities(countySelect.value, presetLocalityId);
-    } else {
-        resetLocalities();
+        localityInput.addEventListener('change', () => {
+            const matchingOption = Array.from(localityList?.options || [])
+                .find(option => option.value === localityInput.value);
+            if (matchingOption) {
+                setLocalitySelection(matchingOption);
+            } else {
+                clearLocalitySelection();
+                if (countyIdInput) countyIdInput.value = '';
+            }
+        });
     }
 
     // ================== 4) CASCADING SELECTS (ID-uri) ==================
