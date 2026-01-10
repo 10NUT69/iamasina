@@ -77,18 +77,22 @@ class ServiceController extends Controller
             ->find($request->locality_id);
 
         if ($selectedLocality) {
-            $radius = $request->filled('radius_km') ? (float) $request->radius_km : 50.0;
-            if ($radius > 0) {
-                $haversine = '(6371 * acos(cos(radians(?)) * cos(radians(COALESCE(services.latitude, loc.latitude))) * cos(radians(COALESCE(services.longitude, loc.longitude)) - radians(?)) + sin(radians(?)) * sin(radians(COALESCE(services.latitude, loc.latitude)))))';
-                $query->leftJoin('localities as loc', 'services.locality_id', '=', 'loc.id')
-                    ->select('services.*')
-                    ->distinct()
-                    ->whereRaw($haversine . ' <= ?', [
-                        $selectedLocality->latitude,
-                        $selectedLocality->longitude,
-                        $selectedLocality->latitude,
-                        $radius,
-                    ]);
+            if ($request->filled('radius_km')) {
+                $radius = (float) $request->radius_km;
+                if ($radius > 0) {
+                    $haversine = '(6371 * acos(cos(radians(?)) * cos(radians(COALESCE(services.latitude, loc.latitude))) * cos(radians(COALESCE(services.longitude, loc.longitude)) - radians(?)) + sin(radians(?)) * sin(radians(COALESCE(services.latitude, loc.latitude)))))';
+                    $query->leftJoin('localities as loc', 'services.locality_id', '=', 'loc.id')
+                        ->select('services.*')
+                        ->distinct()
+                        ->whereRaw($haversine . ' <= ?', [
+                            $selectedLocality->latitude,
+                            $selectedLocality->longitude,
+                            $selectedLocality->latitude,
+                            $radius,
+                        ]);
+                } else {
+                    $query->where('locality_id', $selectedLocality->id);
+                }
             } else {
                 $query->where('locality_id', $selectedLocality->id);
             }
