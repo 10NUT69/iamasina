@@ -31,6 +31,7 @@ use Intervention\Image\Drivers\Gd\Driver;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
 class ServiceController extends Controller
@@ -493,16 +494,7 @@ public function indexBrand(Request $request, string $brandSlug)
     $service->price_type  = $validated['price_type'];
     $service->currency    = $validated['currency'];
 
-    $locality = null;
-    if ($request->filled('locality_id')) {
-        $locality = Locality::select('id', 'name', 'latitude', 'longitude', 'county_id')
-            ->where('county_id', $service->county_id)
-            ->find($request->locality_id);
-    }
-    $service->locality_id = $locality?->id;
-    $service->latitude    = $locality?->latitude;
-    $service->longitude   = $locality?->longitude;
-    $service->city        = $locality?->name;
+    $this->applyLocality($service, $request);
 
     if ($request->filled('email')) {
         $service->email = $request->email;
@@ -719,16 +711,7 @@ public function edit($id)
     $service->price_type  = $request->input('price_type');
     $service->currency    = $request->input('currency');
 
-    $locality = null;
-    if ($request->filled('locality_id')) {
-        $locality = Locality::select('id', 'name', 'latitude', 'longitude', 'county_id')
-            ->where('county_id', $service->county_id)
-            ->find($request->locality_id);
-    }
-    $service->locality_id = $locality?->id;
-    $service->latitude    = $locality?->latitude;
-    $service->longitude   = $locality?->longitude;
-    $service->city        = $locality?->name;
+    $this->applyLocality($service, $request);
 
     // FK-uri
     $service->brand_id          = $request->input('brand_id');
@@ -972,5 +955,28 @@ public function edit($id)
             ->get(['id', 'name']);
 
         return response()->json($localities);
+    }
+
+    private function applyLocality(Service $service, Request $request): void
+    {
+        $locality = null;
+        if ($request->filled('locality_id')) {
+            $locality = Locality::select('id', 'name', 'latitude', 'longitude', 'county_id')
+                ->where('county_id', $service->county_id)
+                ->find($request->locality_id);
+        }
+
+        if (Schema::hasColumn('services', 'locality_id')) {
+            $service->locality_id = $locality?->id;
+        }
+        if (Schema::hasColumn('services', 'latitude')) {
+            $service->latitude = $locality?->latitude;
+        }
+        if (Schema::hasColumn('services', 'longitude')) {
+            $service->longitude = $locality?->longitude;
+        }
+        if ($locality) {
+            $service->city = $locality->name;
+        }
     }
 }
