@@ -89,11 +89,22 @@ class ServiceController extends Controller
     }
 
     if (!$selectedLocality && $countyFilter) {
+        $countyName = County::whereKey($countyFilter)->value('name');
         $countyCenter = Locality::where('county_id', $countyFilter)
+            ->when($countyName, function ($q) use ($countyName) {
+                $q->where('name', $countyName);
+            })
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
-            ->selectRaw('AVG(latitude) as latitude, AVG(longitude) as longitude')
-            ->first();
+            ->first(['latitude', 'longitude']);
+
+        if (!$countyCenter) {
+            $countyCenter = Locality::where('county_id', $countyFilter)
+                ->whereNotNull('latitude')
+                ->whereNotNull('longitude')
+                ->selectRaw('AVG(latitude) as latitude, AVG(longitude) as longitude')
+                ->first();
+        }
 
         if ($countyCenter && $countyCenter->latitude && $countyCenter->longitude) {
             $distanceLat = (float) $countyCenter->latitude;
