@@ -45,27 +45,35 @@
                             <label class="text-xs font-bold text-gray-500 uppercase mb-3 block">Identificare</label>
                             
                             <div class="space-y-4">
-                                {{-- Brand --}}
+                                {{-- Brand (FK) + fallback text --}}
                                 <div class="relative group">
                                     <span class="absolute left-3 top-2.5 text-gray-400">🏢</span>
-                                    <select name="brand" id="brandSelect" class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none cursor-pointer" required>
+
+                                    {{-- fallback pentru compatibilitate veche --}}
+                                    <input type="hidden" name="brand" id="brandText" value="">
+
+                                    <select name="brand_id" id="brandSelect" class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none cursor-pointer" required>
                                         <option value="">Marca</option>
                                         @foreach($brands as $brand)
-                                            <option value="{{ $brand->name }}">{{ $brand->name }}</option>
+                                            <option value="{{ $brand->id }}" data-name="{{ $brand->name }}">{{ $brand->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
 
-                                {{-- Model --}}
+                                {{-- Model (FK) + fallback text --}}
                                 <div class="relative group">
                                     <span class="absolute left-3 top-2.5 text-gray-400">🚘</span>
-                                    <select name="model" id="modelSelect" disabled class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-[#222] disabled:cursor-not-allowed focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none" >
+
+                                    {{-- fallback pentru compatibilitate veche --}}
+                                    <input type="hidden" name="model" id="modelText" value="">
+
+                                    <select name="model_id" id="modelSelect" disabled class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-[#222] disabled:cursor-not-allowed focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none">
                                         <option value="">Model</option>
                                     </select>
                                 </div>
 
                                 <div class="grid grid-cols-2 gap-3">
-                                    {{-- Generation (CRITIC: Trimite car_generation_id) --}}
+                                    {{-- Generation (Trimite car_generation_id) --}}
                                     <div class="relative group">
                                          <select name="car_generation_id" id="generationSelect" disabled class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-[#222] disabled:cursor-not-allowed outline-none transition-all">
                                             <option value="">Gen</option>
@@ -82,30 +90,50 @@
                             </div>
                         </div>
 
-                        {{-- Categorie --}}
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">Categorie</label>
-                            <select name="category_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500">
-                                @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}">{{ $category->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                        {{-- Categorie (ascunsă - Autoturisme) --}}
+<input type="hidden" name="category_id" value="{{ $autoCategoryId }}">
                     </div>
 
                     {{-- DREAPTA: PILLS (DINAMICE DIN DB) --}}
                     <div class="lg:col-span-7 space-y-6">
                         
-                        {{-- CULOARE (NOU) --}}
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Culoare</label>
-                            <select name="culoare_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500" required>
-                                <option value="">Alege Culoarea</option>
-                                @foreach($colors as $color)
-                                    <option value="{{ $color->id }}">{{ $color->nume }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                        {{-- CULOARE + FINISAJ (PILLS) --}}
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+    {{-- SELECT CULOARE --}}
+    <div>
+        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Culoare</label>
+        <select name="culoare_id"
+            class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500"
+            required>
+            <option value="">Alege Culoarea</option>
+            @foreach($colors as $color)
+                <option value="{{ $color->id }}">{{ $color->nume }}</option>
+            @endforeach
+        </select>
+    </div>
+
+    {{-- BUTOANE FINISAJ --}}
+    <div>
+        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Finisaj</label>
+
+        <input type="hidden" name="culoare_opt_id" id="inputColorOpt" value="">
+
+<div class="flex flex-wrap gap-2">
+    @foreach($colorOpts as $opt)
+        <button type="button"
+            onclick="selectPill('inputColorOpt', '{{ $opt->id }}', this)"
+            class="pill-btn px-4 py-2 rounded-lg border border-gray-200 dark:border-[#333]
+                   text-xs font-medium text-gray-600 dark:text-gray-300
+                   hover:border-blue-500 hover:text-blue-500 transition-all
+                   bg-white dark:bg-[#252525]">
+            {{ $opt->nume }}
+        </button>
+    @endforeach
+</div>
+
+    </div>
+</div>
+
 
                         {{-- CAROSERIE --}}
                         <div>
@@ -150,6 +178,24 @@
                             </div>
                             <p id="err-trans" class="text-red-500 text-xs mt-1 hidden">Alege transmisia.</p>
                         </div>
+						{{-- TRACTIUNE --}}
+<div>
+    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Tracțiune</label>
+    <input type="hidden" name="tractiune_id" id="inputTractiune">
+
+    <div class="flex flex-wrap gap-2">
+        @foreach($tractiuni as $tr)
+            <button type="button"
+                onclick="selectPill('inputTractiune', '{{ $tr->id }}', this)"
+                class="pill-btn px-4 py-2 rounded-lg border border-gray-200 dark:border-[#333] text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-blue-500 hover:text-blue-500 transition-all bg-white dark:bg-[#252525]">
+                {{ $tr->nume }}
+            </button>
+        @endforeach
+    </div>
+
+    <p id="err-tractiune" class="text-red-500 text-xs mt-1 hidden">Alege tracțiunea.</p>
+</div>
+
                     </div>
                 </div>
             </div>
@@ -170,7 +216,6 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div>
                         <label class="text-xs font-bold text-gray-500 uppercase mb-1">Rulaj (km)</label>
-                        {{-- Name schimbat in 'km' --}}
                         <div class="relative">
                             <input type="number" name="km" placeholder="150000" class="w-full pl-3 pr-8 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono" required>
                             <span class="absolute right-3 top-2.5 text-xs font-bold text-gray-400">km</span>
@@ -178,7 +223,6 @@
                     </div>
                     <div>
                         <label class="text-xs font-bold text-gray-500 uppercase mb-1">Putere</label>
-                        {{-- Name schimbat in 'putere' --}}
                         <div class="relative">
                             <input type="number" name="putere" placeholder="190" class="w-full pl-3 pr-8 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono" required>
                             <span class="absolute right-3 top-2.5 text-xs font-bold text-gray-400">CP</span>
@@ -191,6 +235,56 @@
                             <span class="absolute right-3 top-2.5 text-xs font-bold text-gray-400">cm³</span>
                         </div>
                     </div>
+					{{-- NORMA POLUARE --}}
+<div class="mb-6">
+    <label class="text-xs font-bold text-gray-500 uppercase mb-1">Normă poluare</label>
+    <select name="norma_poluare_id"
+        class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm">
+        <option value="">Alege norma</option>
+        @foreach($normePoluare as $norma)
+            <option value="{{ $norma->id }}">{{ $norma->nume }}</option>
+        @endforeach
+    </select>
+</div>
+
+{{-- USI + LOCURI --}}
+<div class="grid grid-cols-2 gap-6 mb-6">
+    <div>
+        <label class="text-xs font-bold text-gray-500 uppercase mb-1">Număr uși</label>
+        <select name="numar_usi" class="w-full px-4 py-2.5 rounded-lg border bg-white dark:bg-[#252525]">
+            <option value="">—</option>
+            @foreach([2,3,4,5] as $usi)
+                <option value="{{ $usi }}">{{ $usi }}</option>
+            @endforeach
+        </select>
+    </div>
+
+    <div>
+        <label class="text-xs font-bold text-gray-500 uppercase mb-1">Număr locuri</label>
+        <select name="numar_locuri" class="w-full px-4 py-2.5 rounded-lg border bg-white dark:bg-[#252525]">
+            <option value="">—</option>
+            @foreach(range(2,9) as $locuri)
+                <option value="{{ $locuri }}">{{ $locuri }}</option>
+            @endforeach
+        </select>
+    </div>
+</div>
+
+{{-- CHECKBOX-URI --}}
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    @foreach([
+        'importata' => 'Importată',
+        'avariata' => 'Avariată',
+        'filtru_particule' => 'Filtru particule'
+    ] as $name => $label)
+        <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+            <input type="checkbox" name="{{ $name }}" value="1"
+                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+            {{ $label }}
+        </label>
+    @endforeach
+</div>
+
                 </div>
 
                 <div class="space-y-4">
@@ -383,6 +477,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if(inputId === 'inputBodyType') document.getElementById('err-body').classList.add('hidden');
         if(inputId === 'inputFuel') document.getElementById('err-fuel').classList.add('hidden');
         if(inputId === 'inputTrans') document.getElementById('err-trans').classList.add('hidden');
+		if(inputId === 'inputTractiune') document.getElementById('err-tractiune')?.classList.add('hidden');
+
     }
 
     // === 3. VALIDATION ===
@@ -400,7 +496,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         if(currentStep === 1) {
-             // Validare Generatie doar daca e activa
              const genSel = document.getElementById('generationSelect');
              if (!genSel.disabled && !genSel.value) {
                 valid = false;
@@ -411,6 +506,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if(!document.getElementById('inputBodyType').value) { document.getElementById('err-body').classList.remove('hidden'); valid = false; }
             if(!document.getElementById('inputFuel').value) { document.getElementById('err-fuel').classList.remove('hidden'); valid = false; }
             if(!document.getElementById('inputTrans').value) { document.getElementById('err-trans').classList.remove('hidden'); valid = false; }
+			if(!document.getElementById('inputTractiune').value) {
+    document.getElementById('err-tractiune').classList.remove('hidden');
+    valid = false;
+}
+
         }
         return valid;
     }
@@ -424,7 +524,9 @@ document.addEventListener('DOMContentLoaded', function() {
     prevBtn.addEventListener('click', () => { currentStep--; updateStep(); });
 
     // === 4. CASCADING SELECTS (Brand -> Model -> Generation -> Year) ===
-    const carData = @json($carData ?? []); 
+    // IMPORTANT: $carData trebuie sa fie pe ID-uri:
+    // carData[brand_id] = [{id, name, generations:[{id,name,start,end}]}]
+    const carData = @json($carData ?? []);
     const brandSel = document.getElementById('brandSelect');
     const modelSel = document.getElementById('modelSelect');
     const genSel = document.getElementById('generationSelect');
@@ -444,37 +546,46 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     brandSel.addEventListener('change', function() {
-        const brand = this.value;
+        const brandId = this.value;
+
+        // fallback text (compatibilitate veche)
+        const brandName = this.options[this.selectedIndex]?.dataset?.name || '';
+        document.getElementById('brandText').value = brandName;
+
         resetSelect(modelSel, 'Model');
         resetSelect(genSel, 'Gen');
         resetSelect(yearSel, 'An');
-        
-        genSel.classList.add('disabled:opacity-50');
-        genSel.classList.remove('bg-gray-100', 'cursor-not-allowed', 'text-gray-400');
 
-        if(brand && carData[brand]) {
+        if(brandId && carData[brandId]) {
             modelSel.disabled = false;
-            Object.keys(carData[brand]).forEach(m => {
-                modelSel.innerHTML += `<option value="${m}">${m}</option>`;
+            carData[brandId].forEach(m => {
+                modelSel.innerHTML += `<option value="${m.id}" data-name="${m.name}">${m.name}</option>`;
             });
         }
     });
 
     modelSel.addEventListener('change', function() {
-        const brand = brandSel.value;
-        const model = this.value;
+        const brandId = brandSel.value;
+        const modelId = this.value;
+
+        // fallback text (compatibilitate veche)
+        const modelName = this.options[this.selectedIndex]?.dataset?.name || '';
+        document.getElementById('modelText').value = modelName;
+
         resetSelect(genSel, 'Gen');
         resetSelect(yearSel, 'An');
 
-        if(brand && model && carData[brand][model]) {
-            const generations = carData[brand][model];
+        if(brandId && modelId && carData[brandId]) {
+            const modelObj = carData[brandId].find(x => String(x.id) === String(modelId));
+            const generations = modelObj?.generations || [];
+
             if (generations.length > 0) {
                 genSel.disabled = false;
                 genSel.classList.remove('bg-gray-100', 'cursor-not-allowed', 'text-gray-400');
+
                 generations.forEach(g => {
                     const option = document.createElement('option');
-                    // !!! IMPORTANT: Folosim ID-ul generatiei pentru DB !!!
-                    option.value = g.id; 
+                    option.value = g.id;
                     option.text = `${g.name} (${g.start} - ${g.end || 'Prezent'})`;
                     option.dataset.start = g.start;
                     option.dataset.end = g.end || new Date().getFullYear();
@@ -483,7 +594,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 genSel.disabled = true;
                 genSel.innerHTML = '<option value="">N/A</option>';
-                genSel.classList.add('bg-gray-100', 'cursor-not-allowed', 'text-gray-400'); 
+                genSel.classList.add('bg-gray-100', 'cursor-not-allowed', 'text-gray-400');
                 populateYears(1990, new Date().getFullYear());
             }
         }
@@ -500,7 +611,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const imageInput = document.getElementById('imageInput');
     const previewContainer = document.getElementById('previewContainer');
     if (imageInput && previewContainer) {
-        imageInput.addEventListener('change', function(e) {
+        imageInput.addEventListener('change', function() {
             previewContainer.innerHTML = '';
             if (this.files) {
                 Array.from(this.files).slice(0, 10).forEach(file => {

@@ -1,11 +1,14 @@
 <?php
 
 namespace App\Models;
+use App\Models\CarBrand;
+use App\Models\CarModel;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+
 
 class Service extends Model
 {
@@ -43,6 +46,19 @@ class Service extends Model
         'cutie_viteze_id',
         'caroserie_id',
         'culoare_id',
+		'tractiune_id',
+		'norma_poluare_id',
+'numar_usi',
+'numar_locuri',
+'importata',
+'avariata',
+'filtru_particule',
+'culoare_opt_id',
+'brand_id',
+'model_id',
+
+
+
     ];
 
     protected $casts = [
@@ -57,6 +73,11 @@ class Service extends Model
         'km' => 'integer',
         'capacitate_cilindrica' => 'integer',
         'putere' => 'integer',
+		'importata'        => 'boolean',
+'avariata'         => 'boolean',
+'filtru_particule' => 'boolean',
+'numar_usi'        => 'integer',
+'numar_locuri'     => 'integer',
     ];
 
     public function category() { return $this->belongsTo(Category::class); }
@@ -131,16 +152,29 @@ class Service extends Model
             $modelSlug = $model->slug;
         }
     }
+	
 
-    // 2. FALLBACK: dacă nu avem generație → folosim câmpurile text din DB
-    if (!$brandSlug || !$modelSlug) {
-        if (!empty($this->brand)) {
-            $brandSlug = Str::slug($this->brand);
-        }
-        if (!empty($this->model)) {
-            $modelSlug = Str::slug($this->model);
-        }
+// 2. FALLBACK: dacă nu avem generație → folosim brand_id + model_id
+if ((!$brandSlug || !$modelSlug) && $this->brand_id && $this->model_id) {
+    $brand = CarBrand::select('slug', 'name')->find($this->brand_id);
+    $model = CarModel::select('slug', 'name')->find($this->model_id);
+
+    if ($brand && $model) {
+        $brandSlug = $brand->slug ?: Str::slug($brand->name);
+        $modelSlug = $model->slug ?: Str::slug($model->name);
     }
+}
+
+// 2.1 fallback EXTRA (opțional): dacă ai și text
+if (!$brandSlug || !$modelSlug) {
+    if (!empty($this->brand)) {
+        $brandSlug = Str::slug($this->brand);
+    }
+    if (!empty($this->model)) {
+        $modelSlug = Str::slug($this->model);
+    }
+}
+
 
     // 3. Dacă tot avem brand + model + județ → construim URL-ul frumos
     if ($brandSlug && $modelSlug && $countySlug) {
@@ -204,4 +238,32 @@ public function culoare()
     return $this->belongsTo(Culoare::class, 'culoare_id');
 }
 
+// ✅ NOI: Tracțiune
+public function tractiune()
+{
+    return $this->belongsTo(Tractiune::class, 'tractiune_id');
+}
+
+// ✅ NOI: Normă poluare
+public function normaPoluare()
+{
+    return $this->belongsTo(NormaPoluare::class, 'norma_poluare_id');
+}
+
+// ✅ NOI: Finisaj culoare (mat/metalizat/perlat)
+public function culoareOpt()
+{
+    return $this->belongsTo(CuloareOpt::class, 'culoare_opt_id');
+}
+
+// ✅ NOI: Brand/Model pe FK (fără generație)
+public function brandRel()
+{
+    return $this->belongsTo(CarBrand::class, 'brand_id');
+}
+
+public function modelRel()
+{
+    return $this->belongsTo(CarModel::class, 'model_id');
+}
 }

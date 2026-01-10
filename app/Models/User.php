@@ -14,12 +14,28 @@ class User extends Authenticatable
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'is_admin',
-        'is_active',
-    ];
+    'name',
+    'email',
+    'password',
+
+    // flags
+    'is_admin',
+    'is_active',
+
+    // tip cont
+    'user_type',
+
+    // date firmă (dealer)
+    'company_name',
+    'cui',
+    'phone',
+    'county',
+    'county_id',
+    'city',
+    'locality_id',
+    'address',
+];
+
 
     /**
      * Hidden attributes

@@ -6,12 +6,12 @@
 
 @section('hero')
 <div class="relative w-full group font-sans">
-    
+
     {{-- FUNDAL --}}
     <div class="absolute inset-0 h-[460px] md:h-[340px] w-full overflow-hidden z-0">
-        <img src="{{ asset('images/hero-desktop.webp') }}" alt="Fundal auto" 
+        <img src="{{ asset('images/hero-desktop.webp') }}" alt="Fundal auto"
              class="hidden md:block w-full h-full object-cover object-center opacity-90">
-        <img src="{{ asset('images/hero-mobile.webp') }}" alt="Fundal auto" 
+        <img src="{{ asset('images/hero-mobile.webp') }}" alt="Fundal auto"
              class="block md:hidden w-full h-full object-cover object-center opacity-80">
         {{-- Gradient --}}
         <div class="absolute inset-0 bg-gradient-to-b from-gray-900/80 via-gray-900/50 to-transparent"></div>
@@ -19,17 +19,25 @@
 
     {{-- CONTAINER CONȚINUT --}}
     <div class="relative z-10 max-w-7xl mx-auto px-4 pt-20 md:pt-28 pb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-        
+
         {{-- CARD FILTRE (STÂNGA) --}}
         <div class="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-2xl overflow-hidden w-full md:w-auto border border-gray-100 dark:border-[#333] relative z-20">
-            
-            {{-- TABURI --}}
+
+            {{-- TABURI (De unde cumperi) --}}
             <div class="flex border-b border-gray-200 dark:border-[#333] bg-gray-50 dark:bg-[#252525]">
-                <button type="button" class="px-6 py-3 text-sm font-bold text-[#CC2E2E] border-b-2 border-[#CC2E2E] bg-white dark:bg-[#1E1E1E] flex items-center gap-2">
-                    <span>🚗</span> Autoturisme
+                <button type="button" data-seller="all"
+                    class="seller-tab px-6 py-3 text-sm font-bold text-[#CC2E2E] border-b-2 border-[#CC2E2E] bg-white dark:bg-[#1E1E1E] flex items-center gap-2">
+                    Parcuri + Proprietari
                 </button>
-                <button type="button" class="px-6 py-3 text-sm font-bold text-gray-400 flex items-center gap-2 cursor-not-allowed">
-                    <span>⚙️</span> Piese
+
+                <button type="button" data-seller="individual"
+                    class="seller-tab px-6 py-3 text-sm font-bold text-gray-500 dark:text-gray-300 flex items-center gap-2">
+                    Proprietari
+                </button>
+
+                <button type="button" data-seller="dealer"
+                    class="seller-tab px-6 py-3 text-sm font-bold text-gray-500 dark:text-gray-300 flex items-center gap-2">
+                    Parcuri
                 </button>
             </div>
 
@@ -37,28 +45,31 @@
             <div class="p-4 md:p-5">
                 <form id="search-form" onsubmit="event.preventDefault(); loadServices(1);">
                     <input type="hidden" name="vehicle_type" id="vehicle-type" value="autoturisme">
+                    <input type="hidden" name="seller_type" id="seller-type" value="all">
 
                     {{-- GRID --}}
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        
+
                         {{-- RÂNDUL 1 --}}
                         <div class="col-span-1">
                             @php
                                 $populareNume = ['Audi', 'BMW', 'Dacia', 'Ford', 'Opel', 'Renault', 'Volkswagen', 'Mercedes-Benz', 'Skoda'];
                                 $brandsPopulare = $brands->whereIn('name', $populareNume)->sortBy('name');
                                 $toateMarcile = $brands->sortBy('name');
-                                $currentBrandName = isset($currentBrand) ? $currentBrand->name : null;
+                                $currentBrandId = isset($currentBrand) ? $currentBrand->id : null;
                             @endphp
-                            <select id="brand-filter" name="brand" class="autovit-select">
+
+                            {{-- IMPORTANT: value = brand_id (nu name) --}}
+                            <select id="brand-filter" name="brand_id" class="autovit-select">
                                 <option value="">Marcă</option>
 
                                 @if($brandsPopulare->isNotEmpty())
                                     <optgroup label="Mărci Populare">
                                         @foreach($brandsPopulare as $brand)
                                             <option
-                                                value="{{ $brand->name }}"
+                                                value="{{ $brand->id }}"
                                                 data-slug="{{ $brand->slug }}"
-                                                @selected($currentBrandName === $brand->name)
+                                                @selected($currentBrandId === $brand->id)
                                             >
                                                 {{ $brand->name }}
                                             </option>
@@ -69,9 +80,9 @@
                                 <optgroup label="Toate Mărcile">
                                     @foreach($toateMarcile as $brand)
                                         <option
-                                            value="{{ $brand->name }}"
+                                            value="{{ $brand->id }}"
                                             data-slug="{{ $brand->slug }}"
-                                            @selected($currentBrandName === $brand->name)
+                                            @selected($currentBrandId === $brand->id)
                                         >
                                             {{ $brand->name }}
                                         </option>
@@ -80,8 +91,9 @@
                             </select>
                         </div>
 
+                        {{-- IMPORTANT: value = model_id --}}
                         <div class="col-span-1">
-                            <select id="model-filter" name="model" class="autovit-select bg-gray-50 text-gray-400 cursor-not-allowed" disabled>
+                            <select id="model-filter" name="model_id" class="autovit-select bg-gray-50 text-gray-400 cursor-not-allowed" disabled>
                                 <option value="">Model</option>
                             </select>
                         </div>
@@ -120,8 +132,9 @@
                             </select>
                         </div>
 
+                        {{-- IMPORTANT: county_id (nu county) --}}
                         <div class="col-span-2 md:col-span-1">
-                            <select id="county-input" name="county" class="autovit-select">
+                            <select id="county-input" name="county_id" class="autovit-select">
                                 <option value="">Toată țara</option>
                                 @foreach($counties as $county)
                                     <option value="{{ $county->id }}">{{ $county->name }}</option>
@@ -171,7 +184,7 @@
 @section('content')
 
 <div class="mt-4 md:mt-6 mb-6 flex items-center gap-3 max-w-7xl mx-auto px-4">
-    <span class="w-1.5 h-8 bg-[#CC2E2E] rounded-full shadow-sm"></span>      
+    <span class="w-1.5 h-8 bg-[#CC2E2E] rounded-full shadow-sm"></span>
     <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-[#F2F2F2]">
         Anunțuri recente
     </h2>
@@ -192,17 +205,18 @@
 <div id="load-more-trigger" data-next-page="2" data-has-more="{{ $hasMore ? 'true' : 'false' }}" style="height: 1px;"></div>
 
 <script>
-    // Flag-uri de context: suntem pe o pagină de brand? (ex: /autoturisme/audi)
+    // Suntem pe o pagină SEO de brand? (ex: /autoturisme/audi)
     const isBrandPage = @json(isset($currentBrand));
-    const homeUrl = "{{ route('services.index') }}"; // '/'
+    const homeUrl = "{{ route('services.index') }}";
 
     // Variabile globale
     let isLoading = false;
-    let currentPage = 2; 
+    let currentPage = 2;
     let hasMore = document.getElementById('load-more-trigger')?.dataset.hasMore === 'true';
     let debounceTimer;
 
-    // Datele mașinilor (Blade le injectează aici)
+    // IMPORTANT: carData pe ID-uri, ca în create.blade:
+    // carData[brand_id] = [{id, name, generations:[{id,name,start,end}]}]
     const carData = @json($carData ?? []);
 
     // Elemente DOM principale
@@ -218,11 +232,11 @@
         container: document.getElementById('services-container'),
         loader: document.getElementById('loading-indicator'),
         trigger: document.getElementById('load-more-trigger'),
-        vehicleType: document.getElementById('vehicle-type')
+        vehicleType: document.getElementById('vehicle-type'),
+        sellerType: document.getElementById('seller-type'),
     };
 
     // --- FUNCȚII AJUTĂTOARE ---
-
     function resetSelect(el, placeholder) {
         if (!el) return;
         el.innerHTML = `<option value="">${placeholder}</option>`;
@@ -238,7 +252,6 @@
     }
 
     // --- LOGICA DE RESETARE ---
-
     window.checkResetVisibility = function() {
         const btn = domElements.resetBtn;
         if (!btn) return;
@@ -268,9 +281,9 @@
             return;
         }
 
-        // 1. Resetăm valorile inputurilor
+        // Reset valori
         if (domElements.brand) domElements.brand.value = '';
-        
+
         resetSelect(domElements.model, 'Model');
         resetSelect(domElements.gen, 'Generație');
 
@@ -279,15 +292,11 @@
         if (domElements.gear) domElements.gear.value = '';
         if (domElements.county) domElements.county.value = '';
 
-        // 2. Actualizăm starea vizuală a butonului de reset
         window.checkResetVisibility();
-
-        // 3. Reîncărcăm lista de anunțuri (pagina 1, fără filtre)
         window.loadServices(1);
     };
 
     // --- LOGICA DE ÎNCĂRCARE (AJAX) ---
-
     window.loadServices = function(page) {
         const isNewFilter = page === 1;
         if (isLoading) return;
@@ -296,26 +305,30 @@
         if (isNewFilter) {
             currentPage = 2;
             hasMore = true;
-            if(domElements.container) domElements.container.style.opacity = '0.5'; 
-            if(domElements.trigger) domElements.trigger.dataset.hasMore = 'true';
+            if (domElements.container) domElements.container.style.opacity = '0.5';
+            if (domElements.trigger) domElements.trigger.dataset.hasMore = 'true';
             window.checkResetVisibility();
         } else {
-            if(domElements.loader) domElements.loader.classList.remove('hidden');
+            if (domElements.loader) domElements.loader.classList.remove('hidden');
         }
 
         isLoading = true;
 
+        // IMPORTANT: trimitem ID-uri (brand_id, model_id, county_id)
         const params = new URLSearchParams({
             page: page,
             ajax: 1,
             vehicle_type: domElements.vehicleType?.value || '',
-            brand: domElements.brand?.value || '',
-            model: domElements.model?.value || '',
+            seller_type: domElements.sellerType?.value || 'all',
+
+            brand_id: domElements.brand?.value || '',
+            model_id: domElements.model?.value || '',
             car_generation_id: domElements.gen?.value || '',
+
             caroserie_id: domElements.body?.value || '',
             combustibil_id: domElements.fuel?.value || '',
             cutie_viteze_id: domElements.gear?.value || '',
-            county: domElements.county?.value || '',
+            county_id: domElements.county?.value || '',
         });
 
         fetch(`{{ route('services.index') }}?${params.toString()}`, {
@@ -324,7 +337,7 @@
         .then(res => res.json())
         .then(data => {
             if (isNewFilter) {
-                if(domElements.container) {
+                if (domElements.container) {
                     domElements.container.innerHTML = data.html;
                     domElements.container.style.opacity = '1';
                 }
@@ -335,7 +348,7 @@
                             <div class="text-4xl mb-4">😕</div>
                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Nu am găsit anunțuri</h3>
                             <p class="text-gray-500 mb-6 text-sm">Încearcă să modifici criteriile sau șterge toate filtrele.</p>
-                            
+
                             <button type="button" onclick="window.resetFilters()" class="px-6 py-3 bg-[#CC2E2E] hover:bg-[#B72626] text-white font-bold rounded-lg shadow-md transition-colors text-sm uppercase tracking-wide">
                                 Șterge toate filtrele
                             </button>
@@ -343,22 +356,23 @@
                     `;
                 }
             } else {
-                if(domElements.container) domElements.container.insertAdjacentHTML('beforeend', data.html);
+                if (domElements.container) domElements.container.insertAdjacentHTML('beforeend', data.html);
             }
-            
-            hasMore = data.hasMore;
-            if(domElements.trigger) domElements.trigger.dataset.hasMore = hasMore;
-            
+
+            hasMore = !!data.hasMore;
+            if (domElements.trigger) domElements.trigger.dataset.hasMore = hasMore ? 'true' : 'false';
+
             if (hasMore) currentPage++;
-            
+
             if (hasMore && domElements.trigger) {
                 observer.unobserve(domElements.trigger);
                 observer.observe(domElements.trigger);
             }
         })
+        .catch(err => console.error(err))
         .finally(() => {
             isLoading = false;
-            if(domElements.loader) domElements.loader.classList.add('hidden');
+            if (domElements.loader) domElements.loader.classList.add('hidden');
         });
     };
 
@@ -367,41 +381,57 @@
         debounceTimer = setTimeout(() => window.loadServices(1), 400);
     }
 
-    // --- INITIALIZARE (DOMContentLoaded) ---
-
+    // --- INITIALIZARE ---
     document.addEventListener('DOMContentLoaded', () => {
         window.checkResetVisibility();
 
-        // Populăm modele la load dacă avem deja un brand selectat (de ex. pe /autoturisme/audi)
+        // --- TABURI "De unde cumperi" ---
+        document.querySelectorAll('.seller-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const val = btn.dataset.seller; // all / individual / dealer
+                if (domElements.sellerType) domElements.sellerType.value = val;
+
+                // Stil activ/inactiv
+                document.querySelectorAll('.seller-tab').forEach(b => {
+                    b.classList.remove('text-[#CC2E2E]', 'border-b-2', 'border-[#CC2E2E]', 'bg-white', 'dark:bg-[#1E1E1E]');
+                    b.classList.add('text-gray-500', 'dark:text-gray-300');
+                });
+
+                btn.classList.add('text-[#CC2E2E]', 'border-b-2', 'border-[#CC2E2E]', 'bg-white', 'dark:bg-[#1E1E1E]');
+                btn.classList.remove('text-gray-500', 'dark:text-gray-300');
+
+                window.loadServices(1);
+            });
+        });
+
+        // Dacă avem deja brand selectat (ex: pagină SEO /autoturisme/{slug}), populăm MODELELE
         if (domElements.brand && domElements.brand.value) {
-            const initialBrand = domElements.brand.value;
-            if (carData[initialBrand]) {
+            const brandId = domElements.brand.value;
+
+            resetSelect(domElements.model, 'Model');
+            resetSelect(domElements.gen, 'Generație');
+
+            if (carData[brandId]) {
                 enableSelect(domElements.model);
-                Object.keys(carData[initialBrand]).sort().forEach(modelName => {
-                    const opt = document.createElement('option');
-                    opt.value = modelName;
-                    opt.textContent = modelName;
-                    domElements.model.appendChild(opt);
+                carData[brandId].forEach(m => {
+                    domElements.model.innerHTML += `<option value="${m.id}">${m.name}</option>`;
                 });
             }
         }
 
-        // 1. Logică Brand -> Redirect SEO
+        // 1) Brand -> redirect SEO / reset + ajax
         if (domElements.brand) {
             domElements.brand.addEventListener('change', function () {
-                const brandName = this.value;
+                const brandId = this.value;
                 const selectedOption = this.options[this.selectedIndex];
                 const slug = selectedOption ? selectedOption.getAttribute('data-slug') : null;
 
-                // Dacă nu e selectat niciun brand
-                if (!brandName || !slug) {
+                // Ștergere brand
+                if (!brandId) {
                     if (isBrandPage) {
-                        // Pe pagina de brand, „ștergerea” mărcii = întoarcere acasă
                         window.location.href = homeUrl;
                         return;
                     }
-
-                    // Pe homepage rămânem în modul AJAX
                     resetSelect(domElements.model, 'Model');
                     resetSelect(domElements.gen, 'Generație');
                     debounceLoad();
@@ -409,38 +439,55 @@
                     return;
                 }
 
-                // Când alege o marcă: redirect la pagina SEO de brand
-                const baseUrl = "{{ url('/') }}";
-                const url = `${baseUrl}/autoturisme/${slug}`;
-                window.location.href = url;
-            });
-        }
+                // Dacă există slug -> redirect SEO
+                if (slug) {
+                    const baseUrl = "{{ url('/') }}";
+                    window.location.href = `${baseUrl}/autoturisme/${slug}`;
+                    return;
+                }
 
-        // 2. Logică Model -> Generație
-        if (domElements.model) {
-            domElements.model.addEventListener('change', function () {
-                const brand = domElements.brand.value;
-                const model = this.value;
+                // fallback (dacă nu ai slug)
+                resetSelect(domElements.model, 'Model');
                 resetSelect(domElements.gen, 'Generație');
 
-                if (brand && model && carData[brand] && carData[brand][model]) {
-                    const generations = carData[brand][model];
-                    if (generations.length) {
-                        enableSelect(domElements.gen);
-                        generations.forEach(g => {
-                            const opt = document.createElement('option');
-                            opt.value = g.id;
-                            opt.textContent = `${g.name} (${g.start} - ${g.end || 'Prezent'})`;
-                            domElements.gen.appendChild(opt);
-                        });
-                    }
+                if (carData[brandId]) {
+                    enableSelect(domElements.model);
+                    carData[brandId].forEach(m => {
+                        domElements.model.innerHTML += `<option value="${m.id}">${m.name}</option>`;
+                    });
                 }
+
                 debounceLoad();
                 window.checkResetVisibility();
             });
         }
 
-        // 3. Listeneri generici pentru restul filtrelor
+        // 2) Model -> Generație (ID-uri)
+        if (domElements.model) {
+            domElements.model.addEventListener('change', function () {
+                const brandId = domElements.brand.value;
+                const modelId = this.value;
+
+                resetSelect(domElements.gen, 'Generație');
+
+                if (brandId && modelId && carData[brandId]) {
+                    const modelObj = carData[brandId].find(x => String(x.id) === String(modelId));
+                    const generations = modelObj?.generations || [];
+
+                    if (generations.length) {
+                        enableSelect(domElements.gen);
+                        generations.forEach(g => {
+                            domElements.gen.innerHTML += `<option value="${g.id}">${g.name} (${g.start} - ${g.end || 'Prezent'})</option>`;
+                        });
+                    }
+                }
+
+                debounceLoad();
+                window.checkResetVisibility();
+            });
+        }
+
+        // 3) Listeneri pentru restul filtrelor
         [domElements.gen, domElements.body, domElements.fuel, domElements.gear, domElements.county].forEach(el => {
             if (el) {
                 el.addEventListener('change', () => {
@@ -450,10 +497,8 @@
             }
         });
 
-        // 4. Observer pentru Infinite Scroll
-        if(domElements.trigger) {
-            observer.observe(domElements.trigger);
-        }
+        // 4) Observer pentru Infinite Scroll
+        if (domElements.trigger) observer.observe(domElements.trigger);
     });
 
     const observer = new IntersectionObserver((entries) => {
@@ -462,15 +507,16 @@
         }
     }, { rootMargin: '0px 0px 400px 0px' });
 
-    // Funcția pentru "Inimioară" (Favorite)
+    // Favorite (inimioară)
     window.toggleHeart = function(btn, serviceId) {
         @if(!auth()->check())
-            window.location.href = "{{ route('login') }}"; 
+            window.location.href = "{{ route('login') }}";
             return;
         @endif
+
         const icon = btn.querySelector('svg');
         const isLiked = icon.classList.contains('text-[#CC2E2E]');
-        
+
         if (isLiked) {
             icon.classList.remove('text-[#CC2E2E]', 'fill-[#CC2E2E]', 'scale-110');
             icon.classList.add('text-gray-600', 'dark:text-gray-300', 'fill-none');
@@ -497,9 +543,9 @@
         display: block;
         width: 100%;
         @media (min-width: 768px) {
-            width: 10rem; 
+            width: 10rem;
         }
-        height: 46px; 
+        height: 46px;
         padding: 0 2rem 0 1rem;
         font-size: 0.9rem;
         font-weight: 500;
@@ -530,7 +576,7 @@
         color: #e5e7eb;
         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
     }
-    
+
     .dark .autovit-select:disabled {
         background-color: #1a1a1a;
         color: #555;

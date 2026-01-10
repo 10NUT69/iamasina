@@ -5,9 +5,9 @@
 
     $siteBrand = 'MeseriasBun.ro';
     $isDeleted = $service->trashed();
-    
+
     // --- DEALER DETECT ---
-    $sellerUser = $service->user; 
+    $sellerUser = $service->user;
     $isDealer   = $sellerUser && ($sellerUser->user_type === 'dealer');
 
     // --- PHONE LOGIC ---
@@ -23,18 +23,40 @@
     $formattedPrice = number_format($service->price_value ?? 0, 0, '.', ' ');
     $currency       = $service->currency ?? 'EUR';
 
-    // --- DATE AUTO ---
-    $brandName      = optional(optional(optional($service->generation)->model)->brand)->name ?: $service->brand;
-    $modelName      = optional(optional($service->generation)->model)->name ?: $service->model;
+    // --- DATE AUTO (cu suport: generation -> brandRel/modelRel -> text fallback) ---
+    $brandName =
+        optional(optional(optional($service->generation)->model)->brand)->name
+        ?: optional($service->brandRel ?? null)->name
+        ?: ($service->brand ?? null);
+
+    $modelName =
+        optional(optional($service->generation)->model)->name
+        ?: optional($service->modelRel ?? null)->name
+        ?: ($service->model ?? null);
+
     $generationName = optional($service->generation)->name;
-    $year = $service->an_fabricatie ?? $service->year;
-    $km   = $service->km ?? $service->mileage;
+
+    $year   = $service->an_fabricatie ?? $service->year;
+    $km     = $service->km ?? $service->mileage;
     $engine = $service->capacitate_cilindrica ?? $service->engine_capacity ?? $service->engine_size;
-    $power = $service->putere ?? $service->power;
-    $fuelName  = optional($service->combustibil)->nume ?? $service->fuel_type;
-    $transName = optional($service->cutieViteze)->nume ?? $service->transmission;
-    $bodyName  = optional($service->caroserie)->nume ?? $service->body_type;
-    $colorName = optional($service->culoare)->nume ?? $service->color;
+    $power  = $service->putere ?? $service->power;
+
+    $fuelName   = optional($service->combustibil)->nume ?? $service->fuel_type;
+    $transName  = optional($service->cutieViteze)->nume ?? $service->transmission;
+    $bodyName   = optional($service->caroserie)->nume ?? $service->body_type;
+    $colorName  = optional($service->culoare)->nume ?? $service->color;
+
+    // --- NOI ---
+    $colorOptName = optional($service->culoareOpt ?? null)->nume;
+    $tractionName = optional($service->tractiune ?? null)->nume;
+    $euroName     = optional($service->normaPoluare ?? null)->nume;
+
+    $doors = $service->numar_usi;
+    $seats = $service->numar_locuri;
+
+    $isImported = (bool) $service->importata;
+    $isDamaged  = (bool) $service->avariata;
+    $hasDpf     = (bool) $service->filtru_particule;
 
     // --- IMAGINI ---
     $images = [];
@@ -46,14 +68,23 @@
             $images = array_values(array_unique($images));
         }
     }
+
     // URL-uri complete
     $fullImageUrls = array_map(function($img) {
-         return Str::startsWith($img, ['http://', 'https://']) ? $img : asset('storage/services/'.$img);
+        return Str::startsWith($img, ['http://', 'https://']) ? $img : asset('storage/services/'.$img);
     }, $images);
 
-    $seoLocation = $service->county->name ?? 'România';
+    // fallback dacă nu sunt imagini (nu crăpăm swiper/mozaic)
+    if (empty($fullImageUrls) && $service->main_image_url) {
+        $fullImageUrls = [$service->main_image_url];
+    }
+    if (empty($fullImageUrls)) {
+        $fullImageUrls = [asset('images/defaults/placeholder.png')];
+    }
+
+    $seoLocation  = $service->county->name ?? 'România';
     $fullSeoTitle = ($isDeleted ? 'INDISPONIBIL - ' : '') . $service->title;
-    $currentUrl = url()->current();
+    $currentUrl   = url()->current();
 @endphp
 
 @section('title', $fullSeoTitle)
@@ -65,12 +96,12 @@
     /* Swiper Zoom Container Styling */
     .swiper-slide { display: flex; align-items: center; justify-content: center; overflow: hidden; }
     .swiper-zoom-container { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
-    
+
     /* Navigation Arrows */
-    .swiper-button-next, .swiper-button-prev { 
-        color: white !important; 
-        background: rgba(0,0,0,0.5); 
-        width: 50px; height: 50px; 
+    .swiper-button-next, .swiper-button-prev {
+        color: white !important;
+        background: rgba(0,0,0,0.5);
+        width: 50px; height: 50px;
         border-radius: 50%;
         backdrop-filter: blur(4px);
     }
@@ -84,18 +115,17 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 
-{{-- ===================== 1. LIGHTBOX MODAL (Updated Position) ===================== --}}
+{{-- ===================== 1. LIGHTBOX MODAL ===================== --}}
 <div id="gallery-lightbox" class="fixed inset-0 bg-black hidden flex-col transition-opacity duration-300 opacity-0" style="z-index: 2147483640;" role="dialog" aria-modal="true">
-    
-    {{-- Counter (Top Left - Coborât pentru siguranță) --}}
+
+    {{-- Counter (Top Left) --}}
     <div class="absolute top-28 left-6 pointer-events-none" style="z-index: 2147483647;">
         <span class="text-white font-medium text-sm tracking-wide bg-black/60 px-4 py-1.5 rounded-full backdrop-blur-md border border-white/10 shadow-lg">
-            <span id="lb-current">1</span> / {{ count($images) }}
+            <span id="lb-current">1</span> / {{ count($fullImageUrls) }}
         </span>
     </div>
 
-    {{-- Close Button (Fixed Top Right - COBORÂT MULT) --}}
-    {{-- Top-28 inseamna aprox 112px de sus. Right-6 inseamna aprox 24px dreapta --}}
+    {{-- Close Button (Top Right) --}}
     <button onclick="closeGallery()" class="fixed top-28 right-6 md:right-12 p-3 rounded-full bg-white/10 text-white hover:bg-[#E03E2D] hover:border-[#E03E2D] active:scale-95 transition-all focus:outline-none backdrop-blur-md border border-white/30 shadow-2xl cursor-pointer" style="z-index: 2147483647;">
         <svg class="w-8 h-8 drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -114,14 +144,13 @@
                     </div>
                 @endforeach
             </div>
-            
+
             {{-- Navigare (Doar Desktop) --}}
             <div class="swiper-button-next hidden md:flex hover:bg-black/70 transition"></div>
             <div class="swiper-button-prev hidden md:flex hover:bg-black/70 transition"></div>
         </div>
     </div>
 </div>
-
 
 {{-- ===================== 2. PAGINA PROPRIU-ZISĂ ===================== --}}
 <div class="bg-[#F8F9FA] dark:bg-[#121212] min-h-screen font-sans text-gray-800 dark:text-gray-200 pb-32 lg:pb-12 pt-6">
@@ -139,25 +168,23 @@
 
         {{-- === STÂNGA (Galerie, Info, Descriere) === --}}
         <div class="lg:col-span-8 space-y-6">
-            
+
             {{-- NAVIGATION TOP BAR (Back + Breadcrumbs) --}}
             <div class="flex flex-col md:flex-row md:items-center gap-4 mb-2">
-                {{-- Buton Inapoi --}}
                 <button onclick="history.back()" class="self-start inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#1E1E1E] text-gray-700 dark:text-gray-200 rounded-full shadow-sm hover:shadow-md border border-gray-200 dark:border-[#333] transition-all text-sm font-bold">
                     <svg class="w-4 h-4 text-[#E03E2D]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                     Înapoi
                 </button>
 
-                {{-- Breadcrumbs Colorate --}}
                 <div class="flex items-center text-sm overflow-x-auto no-scrollbar whitespace-nowrap gap-2">
                     <a href="/" class="font-bold text-gray-400 hover:text-[#E03E2D] transition">Acasă</a>
                     <span class="text-gray-300">/</span>
                     @if($brandName)
-                        <a href="#" class="font-bold text-blue-600 dark:text-blue-400 hover:underline">{{ $brandName }}</a>
+                        <span class="font-bold text-blue-600 dark:text-blue-400">{{ $brandName }}</span>
                     @endif
                     @if($modelName)
                         <span class="text-gray-300">/</span>
-                        <a href="#" class="font-bold text-blue-600 dark:text-blue-400 hover:underline">{{ $modelName }}</a>
+                        <span class="font-bold text-blue-600 dark:text-blue-400">{{ $modelName }}</span>
                     @endif
                     <span class="text-gray-300">/</span>
                     <span class="text-gray-800 dark:text-gray-200 truncate max-w-[150px]">{{ Str::limit($service->title, 20) }}</span>
@@ -166,7 +193,7 @@
 
             {{-- GALERIE MOZAIC (Desktop) / SLIDER (Mobil) --}}
             <div class="rounded-2xl overflow-hidden shadow-sm bg-white dark:bg-[#1E1E1E] relative select-none border border-gray-100 dark:border-[#333]">
-                
+
                 {{-- Mobile: Slider Simplu --}}
                 <div class="block md:hidden">
                     <div class="swiper mobile-hero-swiper aspect-[4/3] bg-gray-100 dark:bg-black">
@@ -178,7 +205,7 @@
                             @endforeach
                         </div>
                         <div class="absolute bottom-3 right-3 bg-black/60 text-white text-xs font-bold px-2.5 py-1 rounded-md z-10 backdrop-blur-sm">
-                            📷 1 / {{ count($images) }}
+                            📷 1 / {{ count($fullImageUrls) }}
                         </div>
                     </div>
                 </div>
@@ -186,30 +213,30 @@
                 {{-- Desktop: Mozaic 1+2 --}}
                 <div class="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-[480px] cursor-pointer">
                     @if(isset($fullImageUrls[0]))
-                    <div class="col-span-3 row-span-2 relative overflow-hidden group" onclick="openGallery(0)">
-                        <img src="{{ $fullImageUrls[0] }}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
-                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition"></div>
-                    </div>
+                        <div class="col-span-3 row-span-2 relative overflow-hidden group" onclick="openGallery(0)">
+                            <img src="{{ $fullImageUrls[0] }}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition"></div>
+                        </div>
                     @endif
 
                     @if(isset($fullImageUrls[1]))
-                    <div class="col-span-1 row-span-1 relative overflow-hidden group" onclick="openGallery(1)">
-                        <img src="{{ $fullImageUrls[1] }}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
-                    </div>
+                        <div class="col-span-1 row-span-1 relative overflow-hidden group" onclick="openGallery(1)">
+                            <img src="{{ $fullImageUrls[1] }}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                        </div>
                     @endif
 
                     @if(isset($fullImageUrls[2]))
-                    <div class="col-span-1 row-span-1 relative overflow-hidden group" onclick="openGallery(2)">
-                        <img src="{{ $fullImageUrls[2] }}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
-                        @if(count($images) > 3)
-                            <div class="absolute inset-0 bg-black/60 flex items-center justify-center group-hover:bg-black/50 transition">
-                                <span class="text-white font-bold text-lg tracking-wide flex flex-col items-center">
-                                    <span>+{{ count($images) - 3 }}</span>
-                                    <span class="text-xs font-normal opacity-80">poze</span>
-                                </span>
-                            </div>
-                        @endif
-                    </div>
+                        <div class="col-span-1 row-span-1 relative overflow-hidden group" onclick="openGallery(2)">
+                            <img src="{{ $fullImageUrls[2] }}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                            @if(count($fullImageUrls) > 3)
+                                <div class="absolute inset-0 bg-black/60 flex items-center justify-center group-hover:bg-black/50 transition">
+                                    <span class="text-white font-bold text-lg tracking-wide flex flex-col items-center">
+                                        <span>+{{ count($fullImageUrls) - 3 }}</span>
+                                        <span class="text-xs font-normal opacity-80">poze</span>
+                                    </span>
+                                </div>
+                            @endif
+                        </div>
                     @endif
                 </div>
             </div>
@@ -242,14 +269,14 @@
                 </div>
             </div>
 
-            {{-- CHIPS: Specificatii Cheie --}}
+            {{-- CHIPS: Specificatii Cheie (incl. Tracțiune/Euro) --}}
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
                 @php
                     $mainSpecs = [
                         ['label' => 'An', 'val' => $year, 'icon' => 'calendar'],
                         ['label' => 'Rulaj', 'val' => $km ? number_format($km, 0, '.', ' ').' km' : '-', 'icon' => 'road'],
-                        ['label' => 'Combustibil', 'val' => $fuelName, 'icon' => 'fuel'],
-                        ['label' => 'Putere', 'val' => $power ? $power.' CP' : '-', 'icon' => 'power'],
+                        ['label' => 'Tracțiune', 'val' => $tractionName ?: '-', 'icon' => 'drive'],
+                        ['label' => 'Euro', 'val' => $euroName ?: '-', 'icon' => 'euro'],
                     ];
                 @endphp
                 @foreach($mainSpecs as $spec)
@@ -278,30 +305,81 @@
                 <div class="p-6 border-b border-gray-100 dark:border-[#333]">
                     <h3 class="text-xl font-bold text-gray-900 dark:text-white">Specificații Tehnice</h3>
                 </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100 dark:divide-[#333]">
                     <div class="p-0">
-                        @php $specs1 = ['Marcă' => $brandName, 'Model' => $modelName, 'Generație' => $generationName, 'An fabricație' => $year, 'Kilometraj' => $km ? $km.' km' : null]; @endphp
+                        @php
+                            $specs1 = [
+                                'Marcă' => $brandName,
+                                'Model' => $modelName,
+                                'Generație' => $generationName,
+                                'An fabricație' => $year,
+                                'Kilometraj' => $km ? number_format($km, 0, '.', ' ') . ' km' : null,
+
+                                // ✅ NOI
+                                'Număr uși' => $doors ?: null,
+                                'Număr locuri' => $seats ?: null,
+                            ];
+                        @endphp
                         @foreach($specs1 as $k => $v)
-                            @if($v)
-                            <div class="flex justify-between px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#252525] transition">
-                                <span class="text-gray-500">{{ $k }}</span>
-                                <span class="font-semibold text-gray-900 dark:text-white">{{ $v }}</span>
-                            </div>
+                            @if(!is_null($v) && $v !== '')
+                                <div class="flex justify-between px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#252525] transition">
+                                    <span class="text-gray-500">{{ $k }}</span>
+                                    <span class="font-semibold text-gray-900 dark:text-white">{{ $v }}</span>
+                                </div>
                             @endif
                         @endforeach
                     </div>
+
                     <div class="p-0">
-                        @php $specs2 = ['Motorizare' => $engine ? $engine.' cm³' : null, 'Putere' => $power ? $power.' CP' : null, 'Transmisie' => $transName, 'Culoare' => $colorName, 'Caroserie' => $bodyName]; @endphp
+                        @php
+                            $specs2 = [
+                                'Motorizare' => $engine ? $engine.' cm³' : null,
+                                'Putere' => $power ? $power.' CP' : null,
+                                'Combustibil' => $fuelName ?: null,
+                                'Transmisie' => $transName ?: null,
+
+                                // ✅ NOI
+                                'Tracțiune' => $tractionName ?: null,
+                                'Normă poluare' => $euroName ?: null,
+
+                                'Caroserie' => $bodyName ?: null,
+                                'Culoare' => $colorName ?: null,
+                                'Finisaj culoare' => $colorOptName ?: null,
+                            ];
+                        @endphp
                         @foreach($specs2 as $k => $v)
-                            @if($v)
-                            <div class="flex justify-between px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#252525] transition">
-                                <span class="text-gray-500">{{ $k }}</span>
-                                <span class="font-semibold text-gray-900 dark:text-white">{{ $v }}</span>
-                            </div>
+                            @if(!is_null($v) && $v !== '')
+                                <div class="flex justify-between px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#252525] transition">
+                                    <span class="text-gray-500">{{ $k }}</span>
+                                    <span class="font-semibold text-gray-900 dark:text-white">{{ $v }}</span>
+                                </div>
                             @endif
                         @endforeach
                     </div>
                 </div>
+
+                {{-- BADGES: Importată / Avariată / DPF --}}
+                @if($isImported || $isDamaged || $hasDpf)
+                    <div class="px-6 py-4 border-t border-gray-100 dark:border-[#333] flex flex-wrap gap-2 bg-white dark:bg-[#1E1E1E]">
+                        @if($isImported)
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
+                                Importată
+                            </span>
+                        @endif
+                        @if($isDamaged)
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-100">
+                                Avariată
+                            </span>
+                        @endif
+                        @if($hasDpf)
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-100">
+                                Filtru particule (DPF)
+                            </span>
+                        @endif
+                    </div>
+                @endif
+
                 @if($service->vin)
                     <div class="bg-gray-50 dark:bg-[#252525] px-6 py-4 border-t border-gray-100 dark:border-[#333] flex items-center justify-between">
                         <span class="font-bold text-gray-500">VIN</span>
@@ -333,11 +411,11 @@
                     @endif
                 </div>
 
-                {{-- CARD VANZATOR (Complet) --}}
+                {{-- CARD VANZATOR --}}
                 <div class="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-gray-100 dark:border-[#333] overflow-hidden">
                     <div class="p-6">
                         @if($isDealer)
-                            {{-- === DEALER MODE (Toate detaliile) === --}}
+                            {{-- === DEALER MODE === --}}
                             <div class="flex items-center justify-between mb-4">
                                 <span class="bg-[#E03E2D] text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">Dealer Autorizat</span>
                                 <div class="flex items-center text-green-600 text-xs font-bold gap-1">
@@ -345,67 +423,66 @@
                                     Verificat
                                 </div>
                             </div>
-                            
+
                             <div class="flex items-center gap-4 mb-5">
                                 <div class="w-14 h-14 shrink-0 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-xl font-black text-[#E03E2D]">
-                                    {{ substr(($sellerUser->company_name ?? 'D'), 0, 1) }}
+                                    {{ strtoupper(substr(($sellerUser->company_name ?? 'D'), 0, 1)) }}
                                 </div>
                                 <div class="overflow-hidden">
                                     <h4 class="font-bold text-lg text-gray-900 dark:text-white leading-tight truncate">
                                         {{ $sellerUser->company_name ?? 'Parc Auto' }}
                                     </h4>
-                                    <p class="text-xs text-gray-500 mt-0.5 truncate">Dealer Auto • Înregistrat {{ $sellerUser->created_at->format('Y') }}</p>
+                                    <p class="text-xs text-gray-500 mt-0.5 truncate">Dealer Auto • Înregistrat {{ optional($sellerUser->created_at)->format('Y') }}</p>
                                 </div>
                             </div>
 
-                            {{-- LISTA DATE DEALER --}}
                             <div class="space-y-3 mb-6">
                                 @if(!empty($sellerUser->cui))
-                                <div class="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#252525]">
-                                    <div class="w-6 h-6 flex items-center justify-center rounded-full bg-white dark:bg-[#333] text-gray-400 shrink-0 border border-gray-100 dark:border-[#444]">
-                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5l5 5v11a2 2 0 01-2 2z" /></svg>
+                                    <div class="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#252525]">
+                                        <div class="w-6 h-6 flex items-center justify-center rounded-full bg-white dark:bg-[#333] text-gray-400 shrink-0 border border-gray-100 dark:border-[#444]">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5l5 5v11a2 2 0 01-2 2z" /></svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-[10px] text-gray-400 font-bold uppercase">CUI / CIF</p>
+                                            <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $sellerUser->cui }}</p>
+                                        </div>
                                     </div>
-                                    <div class="flex-1">
-                                        <p class="text-[10px] text-gray-400 font-bold uppercase">CUI / CIF</p>
-                                        <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $sellerUser->cui }}</p>
-                                    </div>
-                                </div>
                                 @endif
 
                                 @if(!empty($sellerUser->county) || !empty($sellerUser->city))
-                                <div class="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#252525]">
-                                    <div class="w-6 h-6 flex items-center justify-center rounded-full bg-white dark:bg-[#333] text-gray-400 shrink-0 border border-gray-100 dark:border-[#444]">
-                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 111.314 0z" /></svg>
+                                    <div class="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#252525]">
+                                        <div class="w-6 h-6 flex items-center justify-center rounded-full bg-white dark:bg-[#333] text-gray-400 shrink-0 border border-gray-100 dark:border-[#444]">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 111.314 0z" /></svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-[10px] text-gray-400 font-bold uppercase">Locație</p>
+                                            <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                                                {{ trim(($sellerUser->city ? $sellerUser->city.', ' : '') . ($sellerUser->county ?? '')) }}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div class="flex-1">
-                                        <p class="text-[10px] text-gray-400 font-bold uppercase">Locație</p>
-                                        <p class="text-sm font-semibold text-gray-900 dark:text-white">
-                                            {{ trim(($sellerUser->city ? $sellerUser->city.', ' : '') . ($sellerUser->county ?? '')) }}
-                                        </p>
-                                    </div>
-                                </div>
                                 @endif
 
-                                @if(!empty($sellerUser->address) || !empty($sellerUser->adresa))
-                                <div class="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#252525]">
-                                    <div class="w-6 h-6 flex items-center justify-center rounded-full bg-white dark:bg-[#333] text-gray-400 shrink-0 border border-gray-100 dark:border-[#444]">
-                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                                @if(!empty($sellerUser->address))
+                                    <div class="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#252525]">
+                                        <div class="w-6 h-6 flex items-center justify-center rounded-full bg-white dark:bg-[#333] text-gray-400 shrink-0 border border-gray-100 dark:border-[#444]">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-[10px] text-gray-400 font-bold uppercase">Adresă Parc</p>
+                                            <p class="text-xs font-semibold text-gray-900 dark:text-white leading-relaxed">
+                                                {{ $sellerUser->address }}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div class="flex-1">
-                                        <p class="text-[10px] text-gray-400 font-bold uppercase">Adresă Parc</p>
-                                        <p class="text-xs font-semibold text-gray-900 dark:text-white leading-relaxed">
-                                            {{ $sellerUser->address ?? $sellerUser->adresa }}
-                                        </p>
-                                    </div>
-                                </div>
                                 @endif
                             </div>
 
                         @else
-                            {{-- === PRIVATE SELLER (Simplu) === --}}
+                            {{-- === PRIVATE SELLER === --}}
                             <div class="flex items-center gap-4 mb-4">
                                 <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg">
-                                    {{ substr($service->author_name ?? 'U', 0, 1) }}
+                                    {{ $service->author_initial ?? 'U' }}
                                 </div>
                                 <div>
                                     <p class="text-xs text-gray-400 font-bold uppercase">Vânzător Privat</p>
@@ -445,7 +522,7 @@
     </div>
 </div>
 
-{{-- MOBILE BOTTOM BAR (Glassmorphism) --}}
+{{-- MOBILE BOTTOM BAR --}}
 <div class="fixed bottom-0 left-0 right-0 z-40 lg:hidden glass border-t border-gray-200 px-4 py-3 safe-area-pb">
     <div class="flex gap-3">
         @if($isDeleted)
@@ -473,7 +550,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        
+
         // 1. Mobile Inline Slider
         const mobileSwiper = new Swiper('.mobile-hero-swiper', {
             loop: true,
@@ -487,24 +564,18 @@
         window.openGallery = function(index) {
             lightbox.classList.remove('hidden');
             lightbox.classList.add('flex');
-            
-            // Fade In
+
             setTimeout(() => {
                 lightbox.classList.remove('opacity-0');
             }, 10);
 
-            // Disable scroll
             document.body.style.overflow = 'hidden';
 
             if (!lightboxSwiperInstance) {
                 lightboxSwiperInstance = new Swiper('.lightbox-swiper', {
                     initialSlide: index,
                     spaceBetween: 30,
-                    // Activeaza modulul ZOOM
-                    zoom: {
-                        maxRatio: 3,
-                        minRatio: 1
-                    },
+                    zoom: { maxRatio: 3, minRatio: 1 },
                     keyboard: { enabled: true },
                     navigation: { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" },
                     on: {
@@ -516,6 +587,8 @@
             } else {
                 lightboxSwiperInstance.slideTo(index, 0);
             }
+
+            document.getElementById('lb-current').innerText = index + 1;
         };
 
         window.closeGallery = function() {
@@ -524,12 +597,10 @@
                 lightbox.classList.add('hidden');
                 lightbox.classList.remove('flex');
                 document.body.style.overflow = '';
-                // Reset zoom cand inchizi
                 if(lightboxSwiperInstance) lightboxSwiperInstance.zoom.out();
             }, 300);
         };
 
-        // Close on ESC
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && !lightbox.classList.contains('hidden')) closeGallery();
         });
@@ -540,6 +611,8 @@
             const btnId = type === 'mobile' ? 'btn-phone-mobile' : 'btn-phone-desktop';
             const txtEl = document.getElementById(txtId);
             const btnEl = document.getElementById(btnId);
+
+            if(!txtEl || !btnEl) return;
 
             if(txtEl.innerText.includes('Arată') || txtEl.innerText.includes('Sună')) {
                 txtEl.innerText = formatted;
