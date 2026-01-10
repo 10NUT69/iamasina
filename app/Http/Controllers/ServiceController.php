@@ -426,11 +426,8 @@ public function indexBrand(Request $request, string $brandSlug)
         'title'       => 'required|max:255',
         'description' => 'required',
         'category_id' => 'required|exists:categories,id',
-        'county_id'   => 'required|exists:counties,id',
-        'locality_id' => [
-            'nullable',
-            Rule::exists('localities', 'id')->where('county_id', $request->input('county_id')),
-        ],
+        'county_id'   => 'nullable|required_without:locality_id|exists:counties,id',
+        'locality_id' => 'nullable|exists:localities,id',
         'phone'       => 'required|string|max:30',
         'price_value' => 'nullable|numeric',
         'price_type'  => 'required|in:fixed,negotiable',
@@ -715,11 +712,8 @@ public function edit($id)
         // categoria NU vine din UI (hidden sau deloc). O forțăm mai jos.
         // 'category_id' => ... (NU mai validăm din request)
 
-        'county_id'   => 'required|exists:counties,id',
-        'locality_id' => [
-            'nullable',
-            Rule::exists('localities', 'id')->where('county_id', $request->input('county_id')),
-        ],
+        'county_id'   => 'nullable|required_without:locality_id|exists:counties,id',
+        'locality_id' => 'nullable|exists:localities,id',
         'phone'       => 'required|string|max:30',
         'email'       => 'nullable|email|max:120',
         'price_value' => 'nullable|numeric',
@@ -1023,7 +1017,6 @@ public function edit($id)
         $locality = null;
         if ($request->filled('locality_id')) {
             $locality = Locality::select('id', 'name', 'latitude', 'longitude', 'county_id')
-                ->where('county_id', $service->county_id)
                 ->find($request->locality_id);
         }
 
@@ -1037,7 +1030,33 @@ public function edit($id)
             $service->longitude = $locality?->longitude;
         }
         if ($locality) {
+            if (!$service->county_id) {
+                $service->county_id = $locality->county_id;
+            }
             $service->city = $locality->name;
         }
+    }
+
+    public function searchLocalities(Request $request)
+    {
+        $query = trim((string) $request->get('q', ''));
+        if ($query === '') {
+            return response()->json([]);
+        }
+
+        $slugQuery = Str::slug($query);
+
+        $results = Locality::query()
+            ->select('localities.id', 'localities.name', 'localities.slug', 'localities.county_id', 'counties.name as county_name')
+            ->join('counties', 'counties.id', '=', 'localities.county_id')
+            ->where(function ($q) use ($query, $slugQuery) {
+                $q->where('localities.name', 'like', $query . '%')
+                    ->orWhere('localities.slug', 'like', $slugQuery . '%');
+            })
+            ->orderBy('localities.name')
+            ->limit(20)
+            ->get();
+
+        return response()->json($results);
     }
 }

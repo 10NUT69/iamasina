@@ -350,20 +350,15 @@
                             <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Telefon</label>
                             <input type="text" name="phone" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm" placeholder="07xx xxx xxx" required>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Județ</label>
-                            <select id="county-select" name="county_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm" required>
-                                <option value="">Alege județ</option>
-                                @foreach ($counties as $county)
-                                    <option value="{{ $county->id }}" @selected((string)old('county_id') === (string)$county->id)>{{ $county->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Localitate</label>
-                            <select id="locality-select" name="locality_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm" disabled>
-                                <option value="">Selectează localitatea</option>
-                            </select>
+                        <div class="relative">
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Localizare</label>
+                            <input id="locality-search" type="text" autocomplete="off"
+                                   value="{{ old('locality_name') }}"
+                                   placeholder="Începe să scrii localitatea"
+                                   class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm" required>
+                            <input type="hidden" name="locality_id" id="locality-id" value="{{ old('locality_id') }}">
+                            <input type="hidden" name="county_id" id="county-id" value="{{ old('county_id') }}">
+                            <ul id="locality-results" class="absolute z-20 mt-2 w-full bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-[#333] rounded-lg shadow-lg max-h-60 overflow-auto hidden"></ul>
                         </div>
                     </div>
                 </div>
@@ -440,10 +435,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     const submitBtn = document.getElementById('submitBtn');
-    const countySelect = document.getElementById('county-select');
-    const localitySelect = document.getElementById('locality-select');
-    const localityBaseUrl = "{{ url('/api/localities') }}";
-    const presetLocalityId = "{{ old('locality_id') }}";
+    const localitySearch = document.getElementById('locality-search');
+    const localityResults = document.getElementById('locality-results');
+    const localityIdInput = document.getElementById('locality-id');
+    const countyIdInput = document.getElementById('county-id');
+    const localitySearchUrl = "{{ url('/api/localities-search') }}";
 
     function updateStep() {
         steps.forEach(s => {
@@ -474,40 +470,55 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function resetLocalities() {
-        if (!localitySelect) return;
-        localitySelect.innerHTML = '<option value=\"\">Selectează localitatea</option>';
-        localitySelect.disabled = true;
+    let localityAbortController = null;
+
+    function clearLocalityResults() {
+        if (!localityResults) return;
+        localityResults.innerHTML = '';
+        localityResults.classList.add('hidden');
     }
 
-    function populateLocalities(localities, selectedId) {
-        if (!localitySelect) return;
-        localitySelect.innerHTML = '<option value=\"\">Selectează localitatea</option>';
-        localities.forEach(locality => {
-            const option = document.createElement('option');
-            option.value = locality.id;
-            option.textContent = locality.name;
-            if (String(selectedId) === String(locality.id)) {
-                option.selected = true;
-            }
-            localitySelect.appendChild(option);
-        });
-        localitySelect.disabled = false;
+    function setLocalitySelection(item) {
+        if (!item) return;
+        localitySearch.value = item.name;
+        localityIdInput.value = item.id;
+        countyIdInput.value = item.county_id;
+        clearLocalityResults();
     }
 
-    async function loadLocalities(countyId, selectedId = null) {
-        if (!countyId) {
-            resetLocalities();
+    async function searchLocalities(query) {
+        if (!query) {
+            clearLocalityResults();
             return;
         }
 
+        if (localityAbortController) {
+            localityAbortController.abort();
+        }
+        localityAbortController = new AbortController();
+
         try {
-            const response = await fetch(`${localityBaseUrl}/${countyId}`);
+            const response = await fetch(`${localitySearchUrl}?q=${encodeURIComponent(query)}`, {
+                signal: localityAbortController.signal,
+            });
             const data = await response.json();
-            populateLocalities(data, selectedId);
+            localityResults.innerHTML = '';
+            if (!data.length) {
+                clearLocalityResults();
+                return;
+            }
+
+            data.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#252525] cursor-pointer';
+                li.innerHTML = `<div class=\"font-medium\">${item.name}</div><div class=\"text-xs text-gray-500\">${item.county_name}</div>`;
+                li.addEventListener('click', () => setLocalitySelection(item));
+                localityResults.appendChild(li);
+            });
+
+            localityResults.classList.remove('hidden');
         } catch (error) {
-            console.error(error);
-            resetLocalities();
+            if (error.name !== 'AbortError') console.error(error);
         }
     }
 
@@ -570,17 +581,19 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     prevBtn.addEventListener('click', () => { currentStep--; updateStep(); });
 
-    if (countySelect) {
-        countySelect.addEventListener('change', () => {
-            loadLocalities(countySelect.value);
+    if (localitySearch) {
+        localitySearch.addEventListener('input', (event) => {
+            localityIdInput.value = '';
+            countyIdInput.value = '';
+            searchLocalities(event.target.value.trim());
         });
     }
 
-    if (countySelect && countySelect.value) {
-        loadLocalities(countySelect.value, presetLocalityId);
-    } else {
-        resetLocalities();
-    }
+    document.addEventListener('click', (event) => {
+        if (!localityResults?.contains(event.target) && event.target !== localitySearch) {
+            clearLocalityResults();
+        }
+    });
 
     // === 4. CASCADING SELECTS (Brand -> Model -> Generation -> Year) ===
     // IMPORTANT: $carData trebuie sa fie pe ID-uri:

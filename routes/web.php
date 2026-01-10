@@ -58,6 +58,7 @@ Route::get('/contul-meu', function () {
 Route::get('/api/models/{brandId}', [CarController::class, 'getModels'])->name('api.cars.models');
 Route::get('/api/generations/{modelId}', [CarController::class, 'getGenerations'])->name('api.cars.generations');
 Route::get('/api/localities/{countyId}', [ServiceController::class, 'getLocalitiesByCounty'])->name('api.localities.by.county');
+Route::get('/api/localities-search', [ServiceController::class, 'searchLocalities'])->name('api.localities.search');
 
 // VECHIUL helper (dacă îl mai folosești)
 Route::get('/ajax/models-by-brand', [ServiceController::class, 'getModelsByBrand'])
