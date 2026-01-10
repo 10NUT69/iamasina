@@ -480,10 +480,13 @@ document.addEventListener('DOMContentLoaded', function() {
         localitySelect.disabled = true;
     }
 
-    function populateLocalities(localities, selectedId) {
+    function populateLocalities(localities, selectedId, countyId) {
         if (!localitySelect) return;
         localitySelect.innerHTML = '<option value=\"\">Selectează localitatea</option>';
         localities.forEach(locality => {
+            if (countyId && locality.county_id && String(locality.county_id) !== String(countyId)) {
+                return;
+            }
             const option = document.createElement('option');
             option.value = locality.id;
             option.textContent = locality.name;
@@ -504,7 +507,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await fetch(`${localityBaseUrl}/${countyId}`);
             const data = await response.json();
-            populateLocalities(data, selectedId);
+            populateLocalities(data, selectedId, countyId);
         } catch (error) {
             console.error(error);
             resetLocalities();

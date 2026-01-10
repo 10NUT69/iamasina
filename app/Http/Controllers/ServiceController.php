@@ -950,9 +950,13 @@ public function edit($id)
 
     public function getLocalitiesByCounty(int $countyId)
     {
+        if (!County::whereKey($countyId)->exists()) {
+            return response()->json([]);
+        }
+
         $localities = Locality::where('county_id', $countyId)
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'county_id']);
 
         return response()->json($localities);
     }
