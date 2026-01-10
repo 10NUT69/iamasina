@@ -504,15 +504,7 @@
                                    class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm"
                                    required>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Județ</label>
-                            <select id="county-select" name="county_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm" required>
-                                <option value="">Alege județ</option>
-                                @foreach ($counties as $county)
-                                    <option value="{{ $county->id }}" @selected((string)$savedCountyId === (string)$county->id)>{{ $county->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                        <input type="hidden" id="county-id" name="county_id" value="{{ $savedCountyId }}">
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Localitate</label>
                             <input
@@ -522,6 +514,7 @@
                                 class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm"
                                 placeholder="Începe să scrii localitatea"
                                 autocomplete="off"
+                                required
                                 value="{{ $service->locality ? trim($service->locality->name . ', ' . ($service->county->name ?? '')) : '' }}"
                             >
                             <datalist id="locality-list"></datalist>
@@ -573,7 +566,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     const submitBtn = document.getElementById('submitBtn');
-    const countySelect = document.getElementById('county-select');
+    const countyIdInput = document.getElementById('county-id');
     const localityInput = document.getElementById('locality-input');
     const localityIdInput = document.getElementById('locality-id');
     const localityList = document.getElementById('locality-list');
@@ -620,8 +613,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!option || !localityIdInput) return;
         localityIdInput.value = option.dataset.id || '';
         const countyId = option.dataset.countyId;
-        if (countyId && countySelect) {
-            countySelect.value = countyId;
+        if (countyId && countyIdInput) {
+            countyIdInput.value = countyId;
         }
     }
 
@@ -705,13 +698,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     prevBtn.addEventListener('click', () => { currentStep--; updateStep(); });
 
-    if (countySelect) {
-        countySelect.addEventListener('change', () => {
-            if (localityInput) localityInput.value = '';
-            clearLocalitySelection();
-        });
-    }
-
     if (localityInput) {
         localityInput.addEventListener('input', () => {
             fetchLocalities(localityInput.value.trim());
@@ -721,6 +707,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 setLocalitySelection(matchingOption);
             } else {
                 clearLocalitySelection();
+                if (countyIdInput) countyIdInput.value = '';
             }
         });
         localityInput.addEventListener('change', () => {
@@ -730,6 +717,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 setLocalitySelection(matchingOption);
             } else {
                 clearLocalitySelection();
+                if (countyIdInput) countyIdInput.value = '';
             }
         });
     }

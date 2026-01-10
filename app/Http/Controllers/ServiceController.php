@@ -387,7 +387,7 @@ public function indexBrand(Request $request, string $brandSlug)
         'category_id' => 'required|exists:categories,id',
         'county_id'   => 'required|exists:counties,id',
         'locality_id' => [
-            'nullable',
+            'required',
             Rule::exists('localities', 'id')->where('county_id', $request->input('county_id')),
         ],
         'phone'       => 'required|string|max:30',
@@ -676,7 +676,7 @@ public function edit($id)
 
         'county_id'   => 'required|exists:counties,id',
         'locality_id' => [
-            'nullable',
+            'required',
             Rule::exists('localities', 'id')->where('county_id', $request->input('county_id')),
         ],
         'phone'       => 'required|string|max:30',

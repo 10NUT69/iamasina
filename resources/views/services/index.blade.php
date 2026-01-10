@@ -132,16 +132,6 @@
                             </select>
                         </div>
 
-                        {{-- IMPORTANT: county_id (nu county) --}}
-                        <div class="col-span-2 md:col-span-1">
-                            <select id="county-input" name="county_id" class="autovit-select">
-                                <option value="">Toată țara</option>
-                                @foreach($counties as $county)
-                                    <option value="{{ $county->id }}" @selected((string)request('county_id') === (string)$county->id)>{{ $county->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
                         <div class="col-span-2 md:col-span-1">
                             <input
                                 id="locality-input"
@@ -155,6 +145,7 @@
                             <datalist id="locality-list"></datalist>
                             <input type="hidden" id="locality-id" name="locality_id" value="{{ optional($currentLocality)->id }}">
                         </div>
+                        <input type="hidden" id="county-id" name="county_id" value="{{ optional($currentLocality?->county)->id }}">
 
                         <div class="col-span-2 md:col-span-1">
                             <select id="radius-input" name="radius_km" class="autovit-select" disabled>
@@ -253,7 +244,7 @@
         body: document.getElementById('body-filter'),
         fuel: document.getElementById('fuel-filter'),
         gear: document.getElementById('gearbox-filter'),
-        county: document.getElementById('county-input'),
+        countyId: document.getElementById('county-id'),
         localityInput: document.getElementById('locality-input'),
         localityId: document.getElementById('locality-id'),
         localityList: document.getElementById('locality-list'),
@@ -296,8 +287,8 @@
         if (!option || !domElements.localityId) return;
         domElements.localityId.value = option.dataset.id || '';
         const countyId = option.dataset.countyId;
-        if (countyId && domElements.county) {
-            domElements.county.value = countyId;
+        if (countyId && domElements.countyId) {
+            domElements.countyId.value = countyId;
         }
         if (domElements.radius) {
             domElements.radius.disabled = false;
@@ -340,7 +331,7 @@
 
         const filters = [
             domElements.brand, domElements.model, domElements.gen,
-            domElements.body, domElements.fuel, domElements.gear, domElements.county,
+            domElements.body, domElements.fuel, domElements.gear,
             domElements.localityInput, domElements.localityId, domElements.radius
         ];
 
@@ -373,7 +364,7 @@
         if (domElements.body) domElements.body.value = '';
         if (domElements.fuel) domElements.fuel.value = '';
         if (domElements.gear) domElements.gear.value = '';
-        if (domElements.county) domElements.county.value = '';
+        if (domElements.countyId) domElements.countyId.value = '';
         if (domElements.localityInput) domElements.localityInput.value = '';
         clearLocalitySelection();
         if (domElements.radius) resetRadius();
@@ -414,7 +405,7 @@
             caroserie_id: domElements.body?.value || '',
             combustibil_id: domElements.fuel?.value || '',
             cutie_viteze_id: domElements.gear?.value || '',
-            county_id: domElements.county?.value || '',
+            county_id: domElements.countyId?.value || '',
             locality_id: domElements.localityId?.value || '',
             radius_km: domElements.radius?.value || '',
         });
@@ -473,17 +464,6 @@
     document.addEventListener('DOMContentLoaded', () => {
         window.checkResetVisibility();
 
-        if (domElements.county) {
-            domElements.county.addEventListener('change', () => {
-                if (domElements.localityInput) {
-                    domElements.localityInput.value = '';
-                }
-                clearLocalitySelection();
-                debounceLoad();
-                window.checkResetVisibility();
-            });
-        }
-
         if (domElements.localityInput) {
             domElements.localityInput.addEventListener('input', () => {
                 fetchLocalities(domElements.localityInput.value.trim());
@@ -494,6 +474,7 @@
                     setLocalitySelection(matchingOption);
                 } else {
                     clearLocalitySelection();
+                    if (domElements.countyId) domElements.countyId.value = '';
                 }
                 debounceLoad();
                 window.checkResetVisibility();
@@ -506,6 +487,7 @@
                     setLocalitySelection(matchingOption);
                 } else {
                     clearLocalitySelection();
+                    if (domElements.countyId) domElements.countyId.value = '';
                 }
                 debounceLoad();
                 window.checkResetVisibility();
