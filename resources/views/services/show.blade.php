@@ -82,7 +82,9 @@
         $fullImageUrls = [asset('images/defaults/placeholder.png')];
     }
 
-    $seoLocation  = $service->county->name ?? 'România';
+    $seoLocation  = $service->locality
+        ? trim($service->locality->name . ', ' . ($service->county->name ?? ''))
+        : ($service->county->name ?? 'România');
     $fullSeoTitle = ($isDeleted ? 'INDISPONIBIL - ' : '') . $service->title;
     $currentUrl   = url()->current();
 @endphp

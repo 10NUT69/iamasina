@@ -351,12 +351,18 @@
                             <input type="text" name="phone" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm" placeholder="07xx xxx xxx" required>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Locație</label>
-                            <select name="county_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm" required>
-                                <option value="">Județ</option>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Județ</label>
+                            <select id="county-select" name="county_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm" required>
+                                <option value="">Alege județ</option>
                                 @foreach ($counties as $county)
-                                    <option value="{{ $county->id }}">{{ $county->name }}</option>
+                                    <option value="{{ $county->id }}" @selected((string)old('county_id') === (string)$county->id)>{{ $county->name }}</option>
                                 @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Localitate</label>
+                            <select id="locality-select" name="locality_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm" disabled>
+                                <option value="">Selectează localitatea</option>
                             </select>
                         </div>
                     </div>
@@ -434,6 +440,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     const submitBtn = document.getElementById('submitBtn');
+    const countySelect = document.getElementById('county-select');
+    const localitySelect = document.getElementById('locality-select');
+    const localityBaseUrl = "{{ url('/api/localities') }}";
+    const presetLocalityId = "{{ old('locality_id') }}";
 
     function updateStep() {
         steps.forEach(s => {
@@ -461,6 +471,43 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             nextBtn.classList.remove('hidden');
             submitBtn.classList.add('hidden');
+        }
+    }
+
+    function resetLocalities() {
+        if (!localitySelect) return;
+        localitySelect.innerHTML = '<option value=\"\">Selectează localitatea</option>';
+        localitySelect.disabled = true;
+    }
+
+    function populateLocalities(localities, selectedId) {
+        if (!localitySelect) return;
+        localitySelect.innerHTML = '<option value=\"\">Selectează localitatea</option>';
+        localities.forEach(locality => {
+            const option = document.createElement('option');
+            option.value = locality.id;
+            option.textContent = locality.name;
+            if (String(selectedId) === String(locality.id)) {
+                option.selected = true;
+            }
+            localitySelect.appendChild(option);
+        });
+        localitySelect.disabled = false;
+    }
+
+    async function loadLocalities(countyId, selectedId = null) {
+        if (!countyId) {
+            resetLocalities();
+            return;
+        }
+
+        try {
+            const response = await fetch(`${localityBaseUrl}/${countyId}`);
+            const data = await response.json();
+            populateLocalities(data, selectedId);
+        } catch (error) {
+            console.error(error);
+            resetLocalities();
         }
     }
 
@@ -522,6 +569,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     prevBtn.addEventListener('click', () => { currentStep--; updateStep(); });
+
+    if (countySelect) {
+        countySelect.addEventListener('change', () => {
+            loadLocalities(countySelect.value);
+        });
+    }
+
+    if (countySelect && countySelect.value) {
+        loadLocalities(countySelect.value, presetLocalityId);
+    } else {
+        resetLocalities();
+    }
 
     // === 4. CASCADING SELECTS (Brand -> Model -> Generation -> Year) ===
     // IMPORTANT: $carData trebuie sa fie pe ID-uri:
