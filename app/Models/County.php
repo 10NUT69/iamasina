@@ -19,4 +19,9 @@ class County extends Model
     {
         return $this->hasMany(Service::class);
     }
+
+    public function localities()
+    {
+        return $this->hasMany(Locality::class);
+    }
 }

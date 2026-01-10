@@ -18,6 +18,9 @@ class Service extends Model
         'user_id',
         'category_id',
         'county_id',
+        'locality_id',
+        'latitude',
+        'longitude',
         'title',
         'slug',
         'description',
@@ -66,6 +69,8 @@ class Service extends Model
         'published_at' => 'datetime',
         'expires_at' => 'datetime',
         'price_value' => 'float',
+        'latitude' => 'float',
+        'longitude' => 'float',
 
         // cast pentru câmpurile numerice auto
         
@@ -82,6 +87,7 @@ class Service extends Model
 
     public function category() { return $this->belongsTo(Category::class); }
     public function county() { return $this->belongsTo(County::class); }
+    public function locality() { return $this->belongsTo(Locality::class); }
     public function user() { return $this->belongsTo(User::class); }
     public function favorites() { return $this->hasMany(Favorite::class); }
 

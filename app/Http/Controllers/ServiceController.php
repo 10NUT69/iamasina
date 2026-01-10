@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Service;
 use App\Models\Category;
 use App\Models\County;
+use App\Models\Locality;
 use App\Models\User;
 
 // 🔹 MODELE AUTO
@@ -30,6 +31,8 @@ use Intervention\Image\Drivers\Gd\Driver;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 
 class ServiceController extends Controller
 {
@@ -50,7 +53,7 @@ class ServiceController extends Controller
         $offset = $perPageFirst + (($page - 2) * $perPageNext);
     }
 
-    $query = Service::where('status', 'active');
+    $query = Service::with(['county', 'locality'])->where('status', 'active');
 
     // Search
     if ($request->filled('search')) {
@@ -61,11 +64,39 @@ class ServiceController extends Controller
         });
     }
 
-    // County: nou = county_id, vechi = county
+    $countyFilter = null;
     if ($request->filled('county_id')) {
-        $query->where('county_id', $request->county_id);
+        $countyFilter = $request->county_id;
     } elseif ($request->filled('county')) {
-        $query->where('county_id', $request->county);
+        $countyFilter = $request->county;
+    }
+
+    $selectedLocality = null;
+    if ($request->filled('locality_id')) {
+        $selectedLocality = Locality::select('id', 'latitude', 'longitude', 'county_id')
+            ->find($request->locality_id);
+
+        if ($selectedLocality) {
+            $radius = $request->filled('radius_km') ? (float) $request->radius_km : 50.0;
+            if ($radius > 0) {
+                $haversine = '(6371 * acos(cos(radians(?)) * cos(radians(COALESCE(services.latitude, loc.latitude))) * cos(radians(COALESCE(services.longitude, loc.longitude)) - radians(?)) + sin(radians(?)) * sin(radians(COALESCE(services.latitude, loc.latitude)))))';
+                $query->leftJoin('localities as loc', 'services.locality_id', '=', 'loc.id')
+                    ->select('services.*')
+                    ->distinct()
+                    ->whereRaw($haversine . ' <= ?', [
+                        $selectedLocality->latitude,
+                        $selectedLocality->longitude,
+                        $selectedLocality->latitude,
+                        $radius,
+                    ]);
+            } else {
+                $query->where('locality_id', $selectedLocality->id);
+            }
+        }
+    }
+
+    if ($countyFilter && (!$selectedLocality || !$request->filled('radius_km'))) {
+        $query->where('county_id', $countyFilter);
     }
 
     // Category: nou = category_id, vechi = category
@@ -165,6 +196,8 @@ class ServiceController extends Controller
         'categories'      => $categories,
         'currentCategory' => $request->attributes->get('currentCategory'),
         'currentCounty'   => $request->attributes->get('currentCounty'),
+        'currentLocality' => $selectedLocality,
+        'currentRadius'   => $request->radius_km,
 
         'brands'          => $brands,
         'bodies'          => $bodies,
@@ -231,9 +264,10 @@ public function indexBrand(Request $request, string $brandSlug)
     ) {
         $service = Service::withTrashed()
             ->with([
-    'category',
-    'county',
-    'user',
+            'category',
+            'county',
+            'locality',
+            'user',
 
     // auto
     'generation.model.brand',
@@ -331,6 +365,10 @@ public function indexBrand(Request $request, string $brandSlug)
         'description' => 'required',
         'category_id' => 'required|exists:categories,id',
         'county_id'   => 'required|exists:counties,id',
+        'locality_id' => [
+            'nullable',
+            Rule::exists('localities', 'id')->where('county_id', $request->input('county_id')),
+        ],
         'phone'       => 'required|string|max:30',
         'price_value' => 'nullable|numeric',
         'price_type'  => 'required|in:fixed,negotiable',
@@ -454,6 +492,8 @@ public function indexBrand(Request $request, string $brandSlug)
     $service->price_value = $request->price_value;
     $service->price_type  = $validated['price_type'];
     $service->currency    = $validated['currency'];
+
+    $this->applyLocality($service, $request);
 
     if ($request->filled('email')) {
         $service->email = $request->email;
@@ -614,6 +654,10 @@ public function edit($id)
         // 'category_id' => ... (NU mai validăm din request)
 
         'county_id'   => 'required|exists:counties,id',
+        'locality_id' => [
+            'nullable',
+            Rule::exists('localities', 'id')->where('county_id', $request->input('county_id')),
+        ],
         'phone'       => 'required|string|max:30',
         'email'       => 'nullable|email|max:120',
         'price_value' => 'nullable|numeric',
@@ -665,6 +709,8 @@ public function edit($id)
     $service->price_value = $request->input('price_value');
     $service->price_type  = $request->input('price_type');
     $service->currency    = $request->input('currency');
+
+    $this->applyLocality($service, $request);
 
     // FK-uri
     $service->brand_id          = $request->input('brand_id');
@@ -899,5 +945,37 @@ public function edit($id)
         }
 
         return $carData;
+    }
+
+    public function getLocalitiesByCounty(int $countyId)
+    {
+        $localities = Locality::where('county_id', $countyId)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return response()->json($localities);
+    }
+
+    private function applyLocality(Service $service, Request $request): void
+    {
+        $locality = null;
+        if ($request->filled('locality_id')) {
+            $locality = Locality::select('id', 'name', 'latitude', 'longitude', 'county_id')
+                ->where('county_id', $service->county_id)
+                ->find($request->locality_id);
+        }
+
+        if (Schema::hasColumn('services', 'locality_id')) {
+            $service->locality_id = $locality?->id;
+        }
+        if (Schema::hasColumn('services', 'latitude')) {
+            $service->latitude = $locality?->latitude;
+        }
+        if (Schema::hasColumn('services', 'longitude')) {
+            $service->longitude = $locality?->longitude;
+        }
+        if ($locality) {
+            $service->city = $locality->name;
+        }
     }
 }
