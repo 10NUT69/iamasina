@@ -73,7 +73,8 @@ class ServiceController extends Controller
 
     $selectedLocality = null;
     if ($request->filled('locality_id')) {
-        $selectedLocality = Locality::select('id', 'latitude', 'longitude', 'county_id')
+        $selectedLocality = Locality::select('id', 'name', 'latitude', 'longitude', 'county_id')
+            ->with('county:id,name')
             ->find($request->locality_id);
 
         if ($selectedLocality) {
@@ -265,8 +266,8 @@ public function indexBrand(Request $request, string $brandSlug)
     public function showCar(
         string $brandSlug,
         string $modelSlug,
-        int $year,
         string $countySlug,
+        string $localitySlug,
         int $id
     ) {
         $service = Service::withTrashed()
@@ -297,18 +298,20 @@ public function indexBrand(Request $request, string $brandSlug)
         $model      = $generation ? $generation->model : null;
         $brand      = $model ? $model->brand : null;
         $county     = $service->county;
+        $locality   = $service->locality;
 
         $canonicalUrl = $service->public_url;
 
-        if ($brand && $model && $county && $service->an_fabricatie) {
-            if (
-                $brand->slug !== $brandSlug
-                || $model->slug !== $modelSlug
-                || (int)$service->an_fabricatie !== (int)$year
-                || $county->slug !== $countySlug
-            ) {
-                return redirect()->to($canonicalUrl, 301);
-            }
+        $expectedLocalitySlug = $locality?->slug
+            ?: ($service->city ? Str::slug($service->city) : 'romania');
+
+        if (
+            ($brand && $brand->slug !== $brandSlug)
+            || ($model && $model->slug !== $modelSlug)
+            || ($county && $county->slug !== $countySlug)
+            || ($expectedLocalitySlug !== $localitySlug)
+        ) {
+            return redirect()->to($canonicalUrl, 301);
         }
 
         if (!$service->trashed()) {
@@ -316,6 +319,17 @@ public function indexBrand(Request $request, string $brandSlug)
         }
 
         return view('services.show', compact('service'));
+    }
+
+    public function showCarLegacy(
+        string $brandSlug,
+        string $modelSlug,
+        int $year,
+        string $countySlug,
+        int $id
+    ) {
+        $service = Service::withTrashed()->findOrFail($id);
+        return redirect()->to($service->public_url, 301);
     }
 
     // ==========================================
@@ -959,6 +973,29 @@ public function edit($id)
         $localities = Locality::where('county_id', $countyId)
             ->orderBy('name')
             ->get(['id', 'name']);
+
+        return response()->json($localities);
+    }
+
+    public function searchLocalities(Request $request)
+    {
+        $term = trim((string) $request->query('q', ''));
+        if (mb_strlen($term) < 2) {
+            return response()->json([]);
+        }
+
+        $slugTerm = Str::slug($term);
+
+        $localities = Locality::query()
+            ->select('localities.id', 'localities.name', 'localities.slug', 'localities.county_id', 'counties.name as county_name')
+            ->join('counties', 'counties.id', '=', 'localities.county_id')
+            ->where(function ($query) use ($term, $slugTerm) {
+                $query->where('localities.name', 'like', '%' . $term . '%')
+                    ->orWhere('localities.slug', 'like', '%' . $slugTerm . '%');
+            })
+            ->orderBy('localities.name')
+            ->limit(20)
+            ->get();
 
         return response()->json($localities);
     }

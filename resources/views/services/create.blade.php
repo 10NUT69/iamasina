@@ -359,11 +359,24 @@
                                 @endforeach
                             </select>
                         </div>
+                        @php
+                            $presetLocality = old('locality_id')
+                                ? \App\Models\Locality::with('county:id,name')->find(old('locality_id'))
+                                : null;
+                        @endphp
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Localitate</label>
-                            <select id="locality-select" name="locality_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm" disabled>
-                                <option value="">Selectează localitatea</option>
-                            </select>
+                            <input
+                                id="locality-input"
+                                type="text"
+                                list="locality-list"
+                                class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm"
+                                placeholder="Începe să scrii localitatea"
+                                autocomplete="off"
+                                value="{{ $presetLocality ? trim($presetLocality->name . ', ' . ($presetLocality->county->name ?? '')) : '' }}"
+                            >
+                            <datalist id="locality-list"></datalist>
+                            <input type="hidden" id="locality-id" name="locality_id" value="{{ old('locality_id') }}">
                         </div>
                     </div>
                 </div>
@@ -441,48 +454,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const nextBtn = document.getElementById('nextBtn');
     const submitBtn = document.getElementById('submitBtn');
     const countySelect = document.getElementById('county-select');
-    const localitySelect = document.getElementById('locality-select');
-    const localityBaseUrl = "{{ url('/api/localities') }}";
-    const presetLocalityId = "{{ old('locality_id') }}";
-
-    function normalizeText(value) {
-        return value
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLowerCase();
-    }
-
-    function attachDiacriticsSearch(selectEl) {
-        if (!selectEl) return;
-        let buffer = '';
-        let timer = null;
-
-        selectEl.addEventListener('keydown', (event) => {
-            if (!event.key || event.key.length !== 1) return;
-            buffer += event.key;
-            const normalizedBuffer = normalizeText(buffer);
-
-            const options = Array.from(selectEl.options);
-            const match = options.find(option =>
-                normalizeText(option.textContent || '').startsWith(normalizedBuffer)
-            );
-
-            if (match) {
-                const prevValue = selectEl.value;
-                selectEl.value = match.value;
-                if (selectEl.value !== prevValue) {
-                    selectEl.dispatchEvent(new Event('change'));
-                }
-            }
-
-            if (timer) {
-                clearTimeout(timer);
-            }
-            timer = setTimeout(() => {
-                buffer = '';
-            }, 600);
-        });
-    }
+    const localityInput = document.getElementById('locality-input');
+    const localityIdInput = document.getElementById('locality-id');
+    const localityList = document.getElementById('locality-list');
+    const localitySearchUrl = "{{ route('api.localities.search') }}";
 
     function updateStep() {
         steps.forEach(s => {
@@ -513,40 +488,42 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function resetLocalities() {
-        if (!localitySelect) return;
-        localitySelect.innerHTML = '<option value=\"\">Selectează localitatea</option>';
-        localitySelect.disabled = true;
+    function clearLocalitySelection() {
+        if (localityIdInput) localityIdInput.value = '';
     }
 
-    function populateLocalities(localities, selectedId) {
-        if (!localitySelect) return;
-        localitySelect.innerHTML = '<option value=\"\">Selectează localitatea</option>';
+    function setLocalitySelection(option) {
+        if (!option || !localityIdInput) return;
+        localityIdInput.value = option.dataset.id || '';
+        const countyId = option.dataset.countyId;
+        if (countyId && countySelect) {
+            countySelect.value = countyId;
+        }
+    }
+
+    function populateLocalitySuggestions(localities) {
+        if (!localityList) return;
+        localityList.innerHTML = '';
         localities.forEach(locality => {
             const option = document.createElement('option');
-            option.value = locality.id;
-            option.textContent = locality.name;
-            if (String(selectedId) === String(locality.id)) {
-                option.selected = true;
-            }
-            localitySelect.appendChild(option);
+            option.value = `${locality.name}, ${locality.county_name}`;
+            option.dataset.id = locality.id;
+            option.dataset.countyId = locality.county_id;
+            localityList.appendChild(option);
         });
-        localitySelect.disabled = false;
     }
 
-    async function loadLocalities(countyId, selectedId = null) {
-        if (!countyId) {
-            resetLocalities();
+    async function fetchLocalities(term) {
+        if (!term || term.length < 2) {
+            if (localityList) localityList.innerHTML = '';
             return;
         }
-
         try {
-            const response = await fetch(`${localityBaseUrl}/${countyId}`);
+            const response = await fetch(`${localitySearchUrl}?q=${encodeURIComponent(term)}`);
             const data = await response.json();
-            populateLocalities(data, selectedId);
+            populateLocalitySuggestions(data);
         } catch (error) {
             console.error(error);
-            resetLocalities();
         }
     }
 
@@ -611,16 +588,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (countySelect) {
         countySelect.addEventListener('change', () => {
-            loadLocalities(countySelect.value);
+            if (localityInput) localityInput.value = '';
+            clearLocalitySelection();
         });
     }
-    attachDiacriticsSearch(countySelect);
-    attachDiacriticsSearch(localitySelect);
 
-    if (countySelect && countySelect.value) {
-        loadLocalities(countySelect.value, presetLocalityId);
-    } else {
-        resetLocalities();
+    if (localityInput) {
+        localityInput.addEventListener('input', () => {
+            fetchLocalities(localityInput.value.trim());
+            const matchingOption = Array.from(localityList?.options || [])
+                .find(option => option.value === localityInput.value);
+            if (matchingOption) {
+                setLocalitySelection(matchingOption);
+            } else {
+                clearLocalitySelection();
+            }
+        });
+        localityInput.addEventListener('change', () => {
+            const matchingOption = Array.from(localityList?.options || [])
+                .find(option => option.value === localityInput.value);
+            if (matchingOption) {
+                setLocalitySelection(matchingOption);
+            } else {
+                clearLocalitySelection();
+            }
+        });
     }
 
     // === 4. CASCADING SELECTS (Brand -> Model -> Generation -> Year) ===

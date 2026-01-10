@@ -143,16 +143,24 @@
                         </div>
 
                         <div class="col-span-2 md:col-span-1">
-                            <select id="locality-input" name="locality_id" class="autovit-select" disabled>
-                                <option value="">Localitate</option>
-                            </select>
+                            <input
+                                id="locality-input"
+                                type="text"
+                                list="locality-list"
+                                class="autovit-input"
+                                placeholder="Localitate"
+                                autocomplete="off"
+                                value="{{ optional($currentLocality)->name ? trim($currentLocality->name . ', ' . ($currentLocality->county->name ?? '')) : '' }}"
+                            >
+                            <datalist id="locality-list"></datalist>
+                            <input type="hidden" id="locality-id" name="locality_id" value="{{ optional($currentLocality)->id }}">
                         </div>
 
                         <div class="col-span-2 md:col-span-1">
                             <select id="radius-input" name="radius_km" class="autovit-select" disabled>
                                 <option value="">Rază (km)</option>
-                                @foreach ([5, 10, 25, 50, 100] as $radius)
-                                    <option value="{{ $radius }}" @selected((string)request('radius_km') === (string)$radius)>{{ $radius }} km</option>
+                                @foreach ([50, 100, 150, 200, 250, 300] as $radius)
+                                    <option value="{{ $radius }}" @selected((string)request('radius_km') === (string)$radius || (!request('radius_km') && $radius === 50))>{{ $radius }} km</option>
                                 @endforeach
                             </select>
                         </div>
@@ -233,7 +241,7 @@
     // IMPORTANT: carData pe ID-uri, ca în create.blade:
     // carData[brand_id] = [{id, name, generations:[{id,name,start,end}]}]
     const carData = @json($carData ?? []);
-    const localityBaseUrl = "{{ url('/api/localities') }}";
+    const localitySearchUrl = "{{ route('api.localities.search') }}";
     const initialLocalityId = @json(optional($currentLocality)->id);
     const initialRadius = @json($currentRadius);
 
@@ -246,7 +254,9 @@
         fuel: document.getElementById('fuel-filter'),
         gear: document.getElementById('gearbox-filter'),
         county: document.getElementById('county-input'),
-        locality: document.getElementById('locality-input'),
+        localityInput: document.getElementById('locality-input'),
+        localityId: document.getElementById('locality-id'),
+        localityList: document.getElementById('locality-list'),
         radius: document.getElementById('radius-input'),
         resetBtn: document.getElementById('reset-btn'),
         container: document.getElementById('services-container'),
@@ -257,45 +267,6 @@
     };
 
     // --- FUNCȚII AJUTĂTOARE ---
-    function normalizeText(value) {
-        return value
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLowerCase();
-    }
-
-    function attachDiacriticsSearch(selectEl) {
-        if (!selectEl) return;
-        let buffer = '';
-        let timer = null;
-
-        selectEl.addEventListener('keydown', (event) => {
-            if (!event.key || event.key.length !== 1) return;
-            buffer += event.key;
-            const normalizedBuffer = normalizeText(buffer);
-
-            const options = Array.from(selectEl.options);
-            const match = options.find(option =>
-                normalizeText(option.textContent || '').startsWith(normalizedBuffer)
-            );
-
-            if (match) {
-                const prevValue = selectEl.value;
-                selectEl.value = match.value;
-                if (selectEl.value !== prevValue) {
-                    selectEl.dispatchEvent(new Event('change'));
-                }
-            }
-
-            if (timer) {
-                clearTimeout(timer);
-            }
-            timer = setTimeout(() => {
-                buffer = '';
-            }, 600);
-        });
-    }
-
     function resetSelect(el, placeholder) {
         if (!el) return;
         el.innerHTML = `<option value="">${placeholder}</option>`;
@@ -310,51 +281,55 @@
         el.classList.remove('bg-gray-50', 'text-gray-400', 'cursor-not-allowed');
     }
 
-    function resetLocalities() {
-        if (!domElements.locality) return;
-        domElements.locality.innerHTML = '<option value="">Localitate</option>';
-        domElements.locality.disabled = true;
-    }
-
     function resetRadius() {
         if (!domElements.radius) return;
         domElements.radius.value = '';
         domElements.radius.disabled = true;
     }
 
-    function populateLocalities(localities, selectedId) {
-        if (!domElements.locality) return;
-        domElements.locality.innerHTML = '<option value="">Localitate</option>';
-        localities.forEach(locality => {
-            const option = document.createElement('option');
-            option.value = locality.id;
-            option.textContent = locality.name;
-            if (String(selectedId) === String(locality.id)) {
-                option.selected = true;
-            }
-            domElements.locality.appendChild(option);
-        });
-        domElements.locality.disabled = false;
+    function clearLocalitySelection() {
+        if (domElements.localityId) domElements.localityId.value = '';
+        resetRadius();
     }
 
-    async function loadLocalities(countyId, selectedId = null) {
-        if (!countyId) {
-            resetLocalities();
-            resetRadius();
+    function setLocalitySelection(option) {
+        if (!option || !domElements.localityId) return;
+        domElements.localityId.value = option.dataset.id || '';
+        const countyId = option.dataset.countyId;
+        if (countyId && domElements.county) {
+            domElements.county.value = countyId;
+        }
+        if (domElements.radius) {
+            domElements.radius.disabled = false;
+            if (!domElements.radius.value) {
+                domElements.radius.value = '50';
+            }
+        }
+    }
+
+    function populateLocalitySuggestions(localities) {
+        if (!domElements.localityList) return;
+        domElements.localityList.innerHTML = '';
+        localities.forEach(locality => {
+            const option = document.createElement('option');
+            option.value = `${locality.name}, ${locality.county_name}`;
+            option.dataset.id = locality.id;
+            option.dataset.countyId = locality.county_id;
+            domElements.localityList.appendChild(option);
+        });
+    }
+
+    async function fetchLocalities(term) {
+        if (!term || term.length < 2) {
+            if (domElements.localityList) domElements.localityList.innerHTML = '';
             return;
         }
-
         try {
-            const response = await fetch(`${localityBaseUrl}/${countyId}`);
+            const response = await fetch(`${localitySearchUrl}?q=${encodeURIComponent(term)}`);
             const data = await response.json();
-            populateLocalities(data, selectedId);
-            if (domElements.radius && domElements.locality.value) {
-                domElements.radius.disabled = false;
-            }
+            populateLocalitySuggestions(data);
         } catch (error) {
             console.error(error);
-            resetLocalities();
-            resetRadius();
         }
     }
 
@@ -366,7 +341,7 @@
         const filters = [
             domElements.brand, domElements.model, domElements.gen,
             domElements.body, domElements.fuel, domElements.gear, domElements.county,
-            domElements.locality, domElements.radius
+            domElements.localityInput, domElements.localityId, domElements.radius
         ];
 
         const hasAnyFilter = filters.some(el => el && el.value !== '');
@@ -399,7 +374,8 @@
         if (domElements.fuel) domElements.fuel.value = '';
         if (domElements.gear) domElements.gear.value = '';
         if (domElements.county) domElements.county.value = '';
-        if (domElements.locality) resetLocalities();
+        if (domElements.localityInput) domElements.localityInput.value = '';
+        clearLocalitySelection();
         if (domElements.radius) resetRadius();
 
         window.checkResetVisibility();
@@ -439,7 +415,7 @@
             combustibil_id: domElements.fuel?.value || '',
             cutie_viteze_id: domElements.gear?.value || '',
             county_id: domElements.county?.value || '',
-            locality_id: domElements.locality?.value || '',
+            locality_id: domElements.localityId?.value || '',
             radius_km: domElements.radius?.value || '',
         });
 
@@ -497,23 +473,39 @@
     document.addEventListener('DOMContentLoaded', () => {
         window.checkResetVisibility();
 
-        attachDiacriticsSearch(domElements.county);
-        attachDiacriticsSearch(domElements.locality);
-
         if (domElements.county) {
             domElements.county.addEventListener('change', () => {
-                loadLocalities(domElements.county.value);
+                if (domElements.localityInput) {
+                    domElements.localityInput.value = '';
+                }
+                clearLocalitySelection();
                 debounceLoad();
                 window.checkResetVisibility();
             });
         }
 
-        if (domElements.locality) {
-            domElements.locality.addEventListener('change', () => {
-                if (!domElements.locality.value) {
-                    resetRadius();
-                } else if (domElements.radius) {
-                    domElements.radius.disabled = false;
+        if (domElements.localityInput) {
+            domElements.localityInput.addEventListener('input', () => {
+                fetchLocalities(domElements.localityInput.value.trim());
+                const matchingOption = Array.from(domElements.localityList?.options || [])
+                    .find(option => option.value === domElements.localityInput.value);
+
+                if (matchingOption) {
+                    setLocalitySelection(matchingOption);
+                } else {
+                    clearLocalitySelection();
+                }
+                debounceLoad();
+                window.checkResetVisibility();
+            });
+
+            domElements.localityInput.addEventListener('change', () => {
+                const matchingOption = Array.from(domElements.localityList?.options || [])
+                    .find(option => option.value === domElements.localityInput.value);
+                if (matchingOption) {
+                    setLocalitySelection(matchingOption);
+                } else {
+                    clearLocalitySelection();
                 }
                 debounceLoad();
                 window.checkResetVisibility();
@@ -629,15 +621,12 @@
             });
         }
 
-        if (domElements.county && domElements.county.value) {
-            loadLocalities(domElements.county.value, initialLocalityId).then(() => {
-                if (domElements.radius) {
-                    domElements.radius.value = initialRadius || '';
-                    domElements.radius.disabled = !domElements.locality?.value;
-                }
-            });
+        if (domElements.localityInput && initialLocalityId) {
+            if (domElements.radius) {
+                domElements.radius.value = initialRadius || '50';
+                domElements.radius.disabled = false;
+            }
         } else {
-            resetLocalities();
             resetRadius();
         }
 
@@ -716,6 +705,36 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
+    }
+
+    .autovit-input {
+        display: block;
+        width: 100%;
+        @media (min-width: 768px) {
+            width: 10rem;
+        }
+        height: 46px;
+        padding: 0 1rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #1f2937;
+        background-color: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+        text-overflow: ellipsis;
+    }
+
+    .autovit-input:focus {
+        outline: none;
+        border-color: #CC2E2E;
+        box-shadow: 0 0 0 3px rgba(204, 46, 46, 0.1);
+    }
+
+    .dark .autovit-input {
+        background-color: #2d2d2d;
+        border-color: #404040;
+        color: #e5e7eb;
     }
 
     .autovit-select:focus {
