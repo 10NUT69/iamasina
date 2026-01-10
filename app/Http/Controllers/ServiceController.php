@@ -72,34 +72,65 @@ class ServiceController extends Controller
     }
 
     $selectedLocality = null;
+    $hasDistanceFilter = false;
+    $distanceLat = null;
+    $distanceLng = null;
+    $distanceRadius = null;
     if ($request->filled('locality_id')) {
         $selectedLocality = Locality::select('id', 'latitude', 'longitude', 'county_id')
             ->find($request->locality_id);
 
         if ($selectedLocality) {
-            if ($request->filled('radius_km')) {
-                $radius = (float) $request->radius_km;
-                if ($radius > 0) {
-                    $haversine = '(6371 * acos(cos(radians(?)) * cos(radians(COALESCE(services.latitude, loc.latitude))) * cos(radians(COALESCE(services.longitude, loc.longitude)) - radians(?)) + sin(radians(?)) * sin(radians(COALESCE(services.latitude, loc.latitude)))))';
-                    $query->leftJoin('localities as loc', 'services.locality_id', '=', 'loc.id')
-                        ->select('services.*')
-                        ->distinct()
-                        ->whereRaw($haversine . ' <= ?', [
-                            $selectedLocality->latitude,
-                            $selectedLocality->longitude,
-                            $selectedLocality->latitude,
-                            $radius,
-                        ]);
-                } else {
-                    $query->where('locality_id', $selectedLocality->id);
-                }
-            } else {
-                $query->where('locality_id', $selectedLocality->id);
-            }
+            $distanceLat = $selectedLocality->latitude;
+            $distanceLng = $selectedLocality->longitude;
+            $distanceRadius = $request->filled('radius_km') ? (float) $request->radius_km : 50.0;
         }
     }
 
-    if ($countyFilter && (!$selectedLocality || !$request->filled('radius_km'))) {
+    if (!$selectedLocality && $countyFilter) {
+        $countyCenter = Locality::where('county_id', $countyFilter)
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->selectRaw('AVG(latitude) as latitude, AVG(longitude) as longitude')
+            ->first();
+
+        if ($countyCenter && $countyCenter->latitude && $countyCenter->longitude) {
+            $distanceLat = (float) $countyCenter->latitude;
+            $distanceLng = (float) $countyCenter->longitude;
+            $distanceRadius = $request->filled('radius_km') ? (float) $request->radius_km : 50.0;
+        }
+    }
+
+    if ($distanceLat !== null && $distanceLng !== null && $distanceRadius !== null && $distanceRadius > 0) {
+        $haversine = '(6371 * acos(cos(radians(?)) * cos(radians(COALESCE(services.latitude, loc.latitude))) * cos(radians(COALESCE(services.longitude, loc.longitude)) - radians(?)) + sin(radians(?)) * sin(radians(COALESCE(services.latitude, loc.latitude)))))';
+        $query->leftJoin('localities as loc', 'services.locality_id', '=', 'loc.id')
+            ->select('services.*')
+            ->selectRaw($haversine . ' as distance_km', [
+                $distanceLat,
+                $distanceLng,
+                $distanceLat,
+            ])
+            ->distinct()
+            ->where(function ($q) use ($haversine, $distanceLat, $distanceLng, $distanceRadius, $countyFilter) {
+                if ($countyFilter) {
+                    $q->where('services.county_id', $countyFilter)
+                        ->orWhereRaw($haversine . ' <= ?', [
+                            $distanceLat,
+                            $distanceLng,
+                            $distanceLat,
+                            $distanceRadius,
+                        ]);
+                } else {
+                    $q->whereRaw($haversine . ' <= ?', [
+                        $distanceLat,
+                        $distanceLng,
+                        $distanceLat,
+                        $distanceRadius,
+                    ]);
+                }
+            });
+        $hasDistanceFilter = true;
+    } elseif ($countyFilter) {
         $query->where('county_id', $countyFilter);
     }
 
@@ -164,8 +195,14 @@ class ServiceController extends Controller
 
     $totalCount = $query->count();
 
+    if ($countyFilter && $hasDistanceFilter) {
+        $query->orderByRaw('services.county_id = ? desc', [$countyFilter])
+            ->orderByRaw('distance_km is null, distance_km asc');
+    } else {
+        $query->orderBy('created_at', 'desc');
+    }
+
     $services = $query
-        ->orderBy('created_at', 'desc')
         ->offset($offset)
         ->limit($limit)
         ->get();
