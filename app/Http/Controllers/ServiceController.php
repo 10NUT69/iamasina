@@ -89,10 +89,10 @@ class ServiceController extends Controller
     }
 
     if (!$selectedLocality && $countyFilter) {
-        $countyName = County::whereKey($countyFilter)->value('name');
+        $countySlug = County::whereKey($countyFilter)->value('slug');
         $countyCenter = Locality::where('county_id', $countyFilter)
-            ->when($countyName, function ($q) use ($countyName) {
-                $q->where('name', $countyName);
+            ->when($countySlug, function ($q) use ($countySlug) {
+                $q->where('slug', $countySlug);
             })
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
