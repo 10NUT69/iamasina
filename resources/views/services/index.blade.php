@@ -139,7 +139,7 @@
                                    class="autovit-select">
                             <input type="hidden" id="locality-input" name="locality_id" value="{{ request('locality_id') }}">
                             <input type="hidden" id="county-input" name="county_id" value="{{ request('county_id') }}">
-                            <ul id="locality-results" class="absolute z-20 mt-2 w-full bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-[#333] rounded-lg shadow-lg max-h-60 overflow-auto hidden"></ul>
+                            <ul id="locality-results" class="absolute z-20 mt-2 w-full bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-[#333] rounded-lg shadow-lg max-h-96 overflow-auto hidden"></ul>
                         </div>
 
                         <div class="col-span-2 md:col-span-1">

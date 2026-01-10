@@ -358,7 +358,7 @@
                                    class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm" required>
                             <input type="hidden" name="locality_id" id="locality-id" value="{{ old('locality_id') }}">
                             <input type="hidden" name="county_id" id="county-id" value="{{ old('county_id') }}">
-                            <ul id="locality-results" class="absolute z-20 mt-2 w-full bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-[#333] rounded-lg shadow-lg max-h-60 overflow-auto hidden"></ul>
+                            <ul id="locality-results" class="absolute z-20 mt-2 w-full bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-[#333] rounded-lg shadow-lg max-h-96 overflow-auto hidden"></ul>
                         </div>
                     </div>
                 </div>

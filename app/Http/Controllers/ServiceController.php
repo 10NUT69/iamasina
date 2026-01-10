@@ -88,23 +88,27 @@ class ServiceController extends Controller
         }
     }
 
-    if (!$selectedLocality && $countyFilter) {
-        $countySlug = County::whereKey($countyFilter)->value('slug');
-        $countyCenter = Locality::where('county_id', $countyFilter)
-            ->when($countySlug, function ($q) use ($countySlug) {
-                $q->where('slug', $countySlug);
-            })
-            ->whereNotNull('latitude')
-            ->whereNotNull('longitude')
-            ->first(['latitude', 'longitude']);
+    $avgCenters = Locality::query()
+        ->whereNotNull('latitude')
+        ->whereNotNull('longitude')
+        ->selectRaw('county_id, AVG(latitude) as latitude, AVG(longitude) as longitude')
+        ->groupBy('county_id');
 
-        if (!$countyCenter) {
-            $countyCenter = Locality::where('county_id', $countyFilter)
-                ->whereNotNull('latitude')
-                ->whereNotNull('longitude')
-                ->selectRaw('AVG(latitude) as latitude, AVG(longitude) as longitude')
-                ->first();
-        }
+    $capitalCenters = Locality::query()
+        ->join('counties', 'counties.id', '=', 'localities.county_id')
+        ->whereColumn('localities.slug', 'counties.slug')
+        ->select('localities.county_id', 'localities.latitude', 'localities.longitude');
+
+    $countyCenters = DB::table('counties')
+        ->leftJoinSub($capitalCenters, 'cap', 'cap.county_id', '=', 'counties.id')
+        ->leftJoinSub($avgCenters, 'avg', 'avg.county_id', '=', 'counties.id')
+        ->selectRaw('counties.id as county_id, COALESCE(cap.latitude, avg.latitude) as latitude, COALESCE(cap.longitude, avg.longitude) as longitude');
+
+    if (!$selectedLocality && $countyFilter) {
+        $countyCenter = DB::query()
+            ->fromSub($countyCenters, 'county_centers')
+            ->where('county_id', $countyFilter)
+            ->first();
 
         if ($countyCenter && $countyCenter->latitude && $countyCenter->longitude) {
             $distanceLat = (float) $countyCenter->latitude;
@@ -114,12 +118,6 @@ class ServiceController extends Controller
     }
 
     if ($distanceLat !== null && $distanceLng !== null && $distanceRadius !== null && $distanceRadius > 0) {
-        $countyCenters = Locality::query()
-            ->whereNotNull('latitude')
-            ->whereNotNull('longitude')
-            ->selectRaw('county_id, AVG(latitude) as latitude, AVG(longitude) as longitude')
-            ->groupBy('county_id');
-
         $haversine = '(6371 * acos(cos(radians(?)) * cos(radians(COALESCE(services.latitude, loc.latitude, county_centers.latitude))) * cos(radians(COALESCE(services.longitude, loc.longitude, county_centers.longitude)) - radians(?)) + sin(radians(?)) * sin(radians(COALESCE(services.latitude, loc.latitude, county_centers.latitude)))))';
         $query->leftJoin('localities as loc', 'services.locality_id', '=', 'loc.id')
             ->leftJoinSub($countyCenters, 'county_centers', function ($join) {
