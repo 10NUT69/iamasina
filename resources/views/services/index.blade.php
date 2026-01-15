@@ -283,10 +283,13 @@
         domElements.radius.disabled = true;
     }
 
-    function populateLocalities(localities, selectedId) {
+    function populateLocalities(localities, selectedId, countyId) {
         if (!domElements.locality) return;
         domElements.locality.innerHTML = '<option value="">Localitate</option>';
         localities.forEach(locality => {
+            if (countyId && locality.county_id && String(locality.county_id) !== String(countyId)) {
+                return;
+            }
             const option = document.createElement('option');
             option.value = locality.id;
             option.textContent = locality.name;
@@ -308,7 +311,7 @@
         try {
             const response = await fetch(`${localityBaseUrl}/${countyId}`);
             const data = await response.json();
-            populateLocalities(data, selectedId);
+            populateLocalities(data, selectedId, countyId);
             if (domElements.radius && domElements.locality.value) {
                 domElements.radius.disabled = false;
             }
