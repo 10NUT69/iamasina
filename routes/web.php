@@ -28,6 +28,14 @@ Route::get('/autoturisme', [ServiceController::class, 'index'])->name('cars.inde
 Route::get('/autoturisme/{brandSlug}', [ServiceController::class, 'indexBrand'])
     ->name('brand.index');
 
+// Listare după marcă + model: /autoturisme/volkswagen/golf
+Route::get('/autoturisme/{brandSlug}/{modelSlug}', [ServiceController::class, 'indexBrandModel'])
+    ->name('brand.model.index');
+
+// Listare după marcă + model + județ: /autoturisme/volkswagen/golf/cluj
+Route::get('/autoturisme/{brandSlug}/{modelSlug}/{countySlug}', [ServiceController::class, 'indexBrandModelCounty'])
+    ->name('brand.model.county.index');
+
 // Pagina de detaliu anunț auto:
 // /autoturisme/{brandSlug}/{modelSlug}/{year}/{countySlug}/{id}
 Route::get(

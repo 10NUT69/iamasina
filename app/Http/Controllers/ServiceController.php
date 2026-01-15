@@ -171,7 +171,10 @@ class ServiceController extends Controller
     $hasMore     = $loadedSoFar < $totalCount;
 
     if ($request->ajax()) {
-        $html = view('services.partials.service_cards', ['services' => $services])->render();
+        $cardsView = $request->routeIs('services.index')
+            ? 'services.partials.service_cards'
+            : 'services.partials.service_cards_horizontal';
+        $html = view($cardsView, ['services' => $services])->render();
 
         return response()->json([
             'html'        => $html,
@@ -190,9 +193,12 @@ class ServiceController extends Controller
     $categories    = Category::orderBy('sort_order', 'asc')->get();
     $carData       = $this->buildCarData();
 
-    return view('services.index', [
+    $view = $request->routeIs('services.index') ? 'services.index' : 'services.listing';
+
+    return view($view, [
         'services'        => $services,
         'hasMore'         => $hasMore,
+        'totalCount'      => $totalCount,
         'counties'        => $counties,
         'categories'      => $categories,
         'currentCategory' => $request->attributes->get('currentCategory'),
@@ -207,6 +213,7 @@ class ServiceController extends Controller
         'carData'         => $carData,
 
         'currentBrand'    => $request->attributes->get('currentBrand'),
+        'currentModel'    => $request->attributes->get('currentModel'),
     ]);
 }
 
@@ -249,6 +256,51 @@ public function indexBrand(Request $request, string $brandSlug)
     ]);
 
     $request->attributes->set('currentBrand', $brand);
+
+    return $this->index($request);
+}
+
+// ==========================================
+// INDEX BRAND + MODEL (aliniat pe ID-uri)
+// ==========================================
+public function indexBrandModel(Request $request, string $brandSlug, string $modelSlug)
+{
+    $brand = CarBrand::where('slug', $brandSlug)->firstOrFail();
+    $model = CarModel::where('slug', $modelSlug)
+        ->where('car_brand_id', $brand->id)
+        ->firstOrFail();
+
+    $request->merge([
+        'brand_id' => $brand->id,
+        'model_id' => $model->id,
+    ]);
+
+    $request->attributes->set('currentBrand', $brand);
+    $request->attributes->set('currentModel', $model);
+
+    return $this->index($request);
+}
+
+// ==========================================
+// INDEX BRAND + MODEL + COUNTY (aliniat pe ID-uri)
+// ==========================================
+public function indexBrandModelCounty(Request $request, string $brandSlug, string $modelSlug, string $countySlug)
+{
+    $brand = CarBrand::where('slug', $brandSlug)->firstOrFail();
+    $model = CarModel::where('slug', $modelSlug)
+        ->where('car_brand_id', $brand->id)
+        ->firstOrFail();
+    $county = County::where('slug', $countySlug)->firstOrFail();
+
+    $request->merge([
+        'brand_id'  => $brand->id,
+        'model_id'  => $model->id,
+        'county_id' => $county->id,
+    ]);
+
+    $request->attributes->set('currentBrand', $brand);
+    $request->attributes->set('currentModel', $model);
+    $request->attributes->set('currentCounty', $county);
 
     return $this->index($request);
 }
@@ -941,6 +993,7 @@ public function edit($id)
             $carData[$brandId][] = [
                 'id'          => $model->id,
                 'name'        => $model->name,
+                'slug'        => $model->slug,
                 'generations' => $generations,
             ];
         }
