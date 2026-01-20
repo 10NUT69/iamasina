@@ -2,6 +2,8 @@
     @php
         $isFav = auth()->check() && $service->isFavoritedBy(auth()->user());
         $locationLabel = $service->locality->name ?? $service->city ?? $service->county->name;
+        $imageUrl = $service->main_image_url ?: asset('images/no-image.jpg');
+        $fallbackImageUrl = asset('images/no-image.jpg');
     @endphp
 
     {{-- CARD INDIVIDUAL --}}
@@ -30,11 +32,12 @@
 
             {{-- Image Area --}}
             <div class="relative w-full aspect-[4/3] bg-gray-100 dark:bg-[#121212] overflow-hidden">
-                <img src="{{ $service->main_image_url }}"
-                    class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                <img src="{{ $imageUrl }}"
+                    class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
                     alt="{{ $service->title }}"
                     @if($loop->index < 2) loading="eager" fetchpriority="high" @else loading="lazy" @endif
-                    width="400" height="300">
+                    width="400" height="300"
+                    onerror="this.onerror=null;this.src='{{ $fallbackImageUrl }}';">
 
                 {{-- Badge Categorie --}}
                 <span class="absolute bottom-2 left-2 md:bottom-3 md:left-3 bg-black/70 text-white text-[9px] md:text-xs px-2 py-0.5 md:px-2.5 md:py-1 rounded-md font-bold uppercase backdrop-blur-md border border-white/10 shadow-lg">
