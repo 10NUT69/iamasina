@@ -53,7 +53,15 @@ class ServiceController extends Controller
         $offset = $perPageFirst + (($page - 2) * $perPageNext);
     }
 
-    $query = Service::with(['county', 'locality'])->where('status', 'active');
+    $query = Service::with([
+        'county',
+        'locality',
+        'combustibil',
+        'cutieViteze',
+        'caroserie',
+        'generation.model.brand',
+        'user',
+    ])->where('status', 'active');
 
     // Search
     if ($request->filled('search')) {
@@ -171,7 +179,7 @@ class ServiceController extends Controller
     $hasMore     = $loadedSoFar < $totalCount;
 
     if ($request->ajax()) {
-        $html = view('services.partials.service_cards', ['services' => $services])->render();
+        $html = view('services.partials.service_cards_horizontal', ['services' => $services])->render();
 
         return response()->json([
             'html'        => $html,
