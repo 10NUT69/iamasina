@@ -53,7 +53,18 @@ class ServiceController extends Controller
         $offset = $perPageFirst + (($page - 2) * $perPageNext);
     }
 
-    $query = Service::with(['county', 'locality'])->where('status', 'active');
+    $query = Service::with([
+        'county',
+        'locality',
+        'category',
+        'combustibil',
+        'cutieViteze',
+        'caroserie',
+        'user',
+        'generation.model.brand',
+        'brandRel',
+        'modelRel',
+    ])->where('status', 'active');
 
     // Search
     if ($request->filled('search')) {
@@ -151,6 +162,22 @@ class ServiceController extends Controller
         $query->where('cutie_viteze_id', $request->cutie_viteze_id);
     }
 
+    // Preț
+    if ($request->filled('price_min')) {
+        $query->where('price_value', '>=', (float) $request->price_min);
+    }
+    if ($request->filled('price_max')) {
+        $query->where('price_value', '<=', (float) $request->price_max);
+    }
+
+    // An fabricație
+    if ($request->filled('year_min')) {
+        $query->where('an_fabricatie', '>=', (int) $request->year_min);
+    }
+    if ($request->filled('year_max')) {
+        $query->where('an_fabricatie', '<=', (int) $request->year_max);
+    }
+
     // ================= FILTRU "DE UNDE CUMPERI" (TABURI) =================
     if ($request->filled('seller_type') && in_array($request->seller_type, ['individual', 'dealer'], true)) {
         $sellerType = $request->seller_type;
@@ -171,7 +198,7 @@ class ServiceController extends Controller
     $hasMore     = $loadedSoFar < $totalCount;
 
     if ($request->ajax()) {
-        $html = view('services.partials.service_cards', ['services' => $services])->render();
+        $html = view('services.partials.service_cards_horizontal', ['services' => $services])->render();
 
         return response()->json([
             'html'        => $html,

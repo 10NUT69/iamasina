@@ -132,6 +132,30 @@
                             </select>
                         </div>
 
+                        <div class="col-span-1">
+                            <input id="price-min" name="price_min" type="number" min="0" step="100"
+                                   value="{{ request('price_min') }}"
+                                   class="autovit-input" placeholder="Preț de la" inputmode="numeric">
+                        </div>
+
+                        <div class="col-span-1">
+                            <input id="price-max" name="price_max" type="number" min="0" step="100"
+                                   value="{{ request('price_max') }}"
+                                   class="autovit-input" placeholder="Preț până la" inputmode="numeric">
+                        </div>
+
+                        <div class="col-span-1">
+                            <input id="year-min" name="year_min" type="number" min="1900" max="{{ date('Y') }}"
+                                   value="{{ request('year_min') }}"
+                                   class="autovit-input" placeholder="Anul de la" inputmode="numeric">
+                        </div>
+
+                        <div class="col-span-1">
+                            <input id="year-max" name="year_max" type="number" min="1900" max="{{ date('Y') }}"
+                                   value="{{ request('year_max') }}"
+                                   class="autovit-input" placeholder="Anul până la" inputmode="numeric">
+                        </div>
+
                         {{-- IMPORTANT: county_id (nu county) --}}
                         <div class="col-span-2 md:col-span-1">
                             <select id="county-input" name="county_id" class="autovit-select">
@@ -205,8 +229,8 @@
     </h2>
 </div>
 
-<div id="services-container" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 pb-10 relative z-0 max-w-7xl mx-auto px-4">
-    @include('services.partials.service_cards', ['services' => $services])
+<div id="services-container" class="grid grid-cols-1 gap-4 pb-10 relative z-0 max-w-7xl mx-auto px-4">
+    @include('services.partials.service_cards_horizontal', ['services' => $services])
 </div>
 
 <div id="loading-indicator" class="text-center py-8 {{ $services->isEmpty() || !$hasMore ? 'hidden' : '' }}">
@@ -248,6 +272,10 @@
         county: document.getElementById('county-input'),
         locality: document.getElementById('locality-input'),
         radius: document.getElementById('radius-input'),
+        priceMin: document.getElementById('price-min'),
+        priceMax: document.getElementById('price-max'),
+        yearMin: document.getElementById('year-min'),
+        yearMax: document.getElementById('year-max'),
         resetBtn: document.getElementById('reset-btn'),
         container: document.getElementById('services-container'),
         loader: document.getElementById('loading-indicator'),
@@ -327,7 +355,8 @@
         const filters = [
             domElements.brand, domElements.model, domElements.gen,
             domElements.body, domElements.fuel, domElements.gear, domElements.county,
-            domElements.locality, domElements.radius
+            domElements.locality, domElements.radius,
+            domElements.priceMin, domElements.priceMax, domElements.yearMin, domElements.yearMax
         ];
 
         const hasAnyFilter = filters.some(el => el && el.value !== '');
@@ -362,6 +391,10 @@
         if (domElements.county) domElements.county.value = '';
         if (domElements.locality) resetLocalities();
         if (domElements.radius) resetRadius();
+        if (domElements.priceMin) domElements.priceMin.value = '';
+        if (domElements.priceMax) domElements.priceMax.value = '';
+        if (domElements.yearMin) domElements.yearMin.value = '';
+        if (domElements.yearMax) domElements.yearMax.value = '';
 
         window.checkResetVisibility();
         window.loadServices(1);
@@ -402,6 +435,10 @@
             county_id: domElements.county?.value || '',
             locality_id: domElements.locality?.value || '',
             radius_km: domElements.radius?.value || '',
+            price_min: domElements.priceMin?.value || '',
+            price_max: domElements.priceMax?.value || '',
+            year_min: domElements.yearMin?.value || '',
+            year_max: domElements.yearMax?.value || '',
         });
 
         fetch(`{{ route('services.index') }}?${params.toString()}`, {
@@ -609,6 +646,19 @@
             }
         });
 
+        [domElements.priceMin, domElements.priceMax, domElements.yearMin, domElements.yearMax].forEach(el => {
+            if (el) {
+                el.addEventListener('input', () => {
+                    debounceLoad();
+                    window.checkResetVisibility();
+                });
+                el.addEventListener('change', () => {
+                    debounceLoad();
+                    window.checkResetVisibility();
+                });
+            }
+        });
+
         // 4) Observer pentru Infinite Scroll
         if (domElements.trigger) observer.observe(domElements.trigger);
     });
@@ -693,6 +743,35 @@
         background-color: #1a1a1a;
         color: #555;
         cursor: not-allowed;
+    }
+
+    .autovit-input {
+        display: block;
+        width: 100%;
+        @media (min-width: 768px) {
+            width: 10rem;
+        }
+        height: 46px;
+        padding: 0 1rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #1f2937;
+        background-color: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .autovit-input:focus {
+        outline: none;
+        border-color: #CC2E2E;
+        box-shadow: 0 0 0 3px rgba(204, 46, 46, 0.1);
+    }
+
+    .dark .autovit-input {
+        background-color: #2d2d2d;
+        border-color: #404040;
+        color: #e5e7eb;
     }
 
     optgroup {
