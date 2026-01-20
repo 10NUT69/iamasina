@@ -14,6 +14,7 @@
         $an = $service->an_fabricatie ?? '-';
         $km = number_format($service->km ?? 0, 0, ',', '.') . ' km';
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         $fuel = $service->combustibil->nume ?? '-'; 
         $transmisie = $service->transmission->nume ?? $service->cutieViteze->nume ?? '-';
 
@@ -29,10 +30,15 @@
         $fuel = $service->combustibil->nume ?? '-'; // sau $service->fuel->name
         $transmisie = $service->transmission->nume ?? $service->cutieViteze->nume ?? '-'; // verifică numele relației
 >>>>>>> Stashed changes
+=======
+        $fuel = $service->combustibil->nume ?? '-'; // sau $service->fuel->name
+        $transmisie = $service->transmission->nume ?? $service->cutieViteze->nume ?? '-'; // verifică numele relației
+>>>>>>> Stashed changes
     @endphp
 
     <div class="group relative bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-[#333333] shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col md:flex-row overflow-hidden mb-4">
         
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
         {{-- 1. GALERIE FOTO (Cu Alpine.js) --}}
         <div class="relative w-full md:w-[320px] lg:w-[350px] shrink-0 h-64 md:h-auto bg-gray-100 dark:bg-[#121212]"
@@ -40,11 +46,16 @@
                 activeSlide: 0, 
                 slides: {{ $imgCount > 0 ? $imgCount : 1 }},
 =======
+=======
+>>>>>>> Stashed changes
         {{-- 1. GALERIE FOTO (Cu Alpine.js pentru Săgeți și Swipe) --}}
         <div class="relative w-full md:w-[320px] lg:w-[350px] shrink-0 h-64 md:h-auto bg-gray-100 dark:bg-[#121212]"
              x-data="{ 
                 activeSlide: 0, 
                 slides: {{ $service->images->count() > 0 ? $service->images->count() : 1 }},
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
                 next() { this.activeSlide = (this.activeSlide === this.slides - 1) ? 0 : this.activeSlide + 1 },
                 prev() { this.activeSlide = (this.activeSlide === 0) ? this.slides - 1 : this.activeSlide - 1 }
@@ -52,6 +63,7 @@
             
             {{-- Container Imagini --}}
             <div class="relative w-full h-full overflow-hidden">
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
                 @if($imgCount > 0)
                     @foreach($imagesList as $index => $img)
@@ -72,6 +84,10 @@
                 @if($service->images->count() > 0)
                     @foreach($service->images as $index => $img)
 >>>>>>> Stashed changes
+=======
+                @if($service->images->count() > 0)
+                    @foreach($service->images as $index => $img)
+>>>>>>> Stashed changes
                         <div class="absolute inset-0 transition-transform duration-300 ease-out w-full h-full"
                              x-show="activeSlide === {{ $index }}"
                              x-transition:enter="transition transform ease-out duration-300"
@@ -83,7 +99,11 @@
                              
                             <a href="{{ $service->public_url }}" class="block w-full h-full">
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                                 <img src="{{ asset('storage/' . $path) }}" 
+=======
+                                <img src="{{ asset('storage/' . $img->path) }}" 
+>>>>>>> Stashed changes
 =======
                                 <img src="{{ asset('storage/' . $img->path) }}" 
 >>>>>>> Stashed changes
@@ -102,7 +122,11 @@
 
             {{-- Săgeți Navigare (Doar dacă sunt mai multe poze) --}}
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             @if($imgCount > 1)
+=======
+            @if($service->images->count() > 1)
+>>>>>>> Stashed changes
 =======
             @if($service->images->count() > 1)
 >>>>>>> Stashed changes
@@ -127,8 +151,13 @@
             @endif
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             {{-- Badge Categorie --}}
             <div class="absolute bottom-3 left-3 z-10 pointer-events-none">
+=======
+            {{-- Badge Categorie (Stânga Jos) --}}
+            <div class="absolute bottom-3 left-3 z-10">
+>>>>>>> Stashed changes
 =======
             {{-- Badge Categorie (Stânga Jos) --}}
             <div class="absolute bottom-3 left-3 z-10">
@@ -144,9 +173,15 @@
             
             {{-- Centru: Informații --}}
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             <div class="flex-1 flex flex-col min-w-0"> 
                 <div class="mb-auto">
                     {{-- Titlu --}}
+=======
+            <div class="flex-1 flex flex-col min-w-0"> {{-- min-w-0 previne overflow la text --}}
+                <div class="mb-auto">
+                    {{-- Titlu (Marca + Model) --}}
+>>>>>>> Stashed changes
 =======
             <div class="flex-1 flex flex-col min-w-0"> {{-- min-w-0 previne overflow la text --}}
                 <div class="mb-auto">
@@ -159,7 +194,11 @@
                     </a>
                     
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                     {{-- Descriere --}}
+=======
+                    {{-- Descriere (1 singur rând, trunchiată) --}}
+>>>>>>> Stashed changes
 =======
                     {{-- Descriere (1 singur rând, trunchiată) --}}
 >>>>>>> Stashed changes
@@ -168,8 +207,14 @@
                     </p>
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                     {{-- Specificații Grid --}}
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-4 mt-4 text-sm text-gray-700 dark:text-gray-300">
+=======
+                    {{-- Specificații Grid (An, Km, Combustibil, Transmisie) --}}
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-4 mt-4 text-sm text-gray-700 dark:text-gray-300">
+                        {{-- An --}}
+>>>>>>> Stashed changes
 =======
                     {{-- Specificații Grid (An, Km, Combustibil, Transmisie) --}}
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-4 mt-4 text-sm text-gray-700 dark:text-gray-300">
@@ -180,6 +225,10 @@
                             <span class="font-medium">{{ $an }}</span>
                         </div>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+                        {{-- Km --}}
+>>>>>>> Stashed changes
 =======
                         {{-- Km --}}
 >>>>>>> Stashed changes
@@ -188,6 +237,10 @@
                             <span class="font-medium">{{ $km }}</span>
                         </div>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+                        {{-- Combustibil --}}
+>>>>>>> Stashed changes
 =======
                         {{-- Combustibil --}}
 >>>>>>> Stashed changes
@@ -196,6 +249,10 @@
                             <span class="font-medium">{{ $fuel }}</span>
                         </div>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+                        {{-- Transmisie --}}
+>>>>>>> Stashed changes
 =======
                         {{-- Transmisie --}}
 >>>>>>> Stashed changes
@@ -207,7 +264,11 @@
                 </div>
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 {{-- Locație --}}
+=======
+                {{-- Locație (Jos) --}}
+>>>>>>> Stashed changes
 =======
                 {{-- Locație (Jos) --}}
 >>>>>>> Stashed changes
@@ -224,7 +285,11 @@
             <div class="md:w-48 flex flex-row md:flex-col justify-between items-center md:items-end border-t md:border-t-0 md:border-l border-gray-100 dark:border-[#2C2C2C] pt-3 md:pt-0 md:pl-4 mt-1 md:mt-0">
                 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 {{-- Preț --}}
+=======
+                {{-- Zona Preț --}}
+>>>>>>> Stashed changes
 =======
                 {{-- Zona Preț --}}
 >>>>>>> Stashed changes
@@ -262,12 +327,17 @@
     </div>
 @empty
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
    <div class="col-span-full py-20 text-center">
         <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-50 dark:bg-[#252525] mb-4">
             <svg class="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
         </div>
         <h3 class="text-xl font-bold text-gray-900 dark:text-white">Nu am găsit anunțuri</h3>
    </div>
+=======
+   {{-- Aici pui codul tău de empty state --}}
+   <div class="p-10 text-center">Nu există anunțuri.</div>
+>>>>>>> Stashed changes
 =======
    {{-- Aici pui codul tău de empty state --}}
    <div class="p-10 text-center">Nu există anunțuri.</div>
