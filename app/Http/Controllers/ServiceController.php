@@ -171,7 +171,7 @@ class ServiceController extends Controller
     $hasMore     = $loadedSoFar < $totalCount;
 
     if ($request->ajax()) {
-        $html = view('services.partials.service_cards', ['services' => $services])->render();
+        $html = view('services.partials.service_cards_horizontal', ['services' => $services])->render();
 
         return response()->json([
             'html'        => $html,
