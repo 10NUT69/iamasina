@@ -205,8 +205,8 @@
     </h2>
 </div>
 
-<div id="services-container" class="grid grid-cols-1 gap-4 pb-10 relative z-0 max-w-7xl mx-auto px-4">
-    @include('services.partials.service_cards_horizontal', ['services' => $services])
+<div id="services-container" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 pb-10 relative z-0 max-w-7xl mx-auto px-4">
+    @include('services.partials.service_cards', ['services' => $services])
 </div>
 
 <div id="loading-indicator" class="text-center py-8 {{ $services->isEmpty() || !$hasMore ? 'hidden' : '' }}">
