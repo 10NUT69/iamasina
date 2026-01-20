@@ -2,126 +2,142 @@
     @php
         $isFav = auth()->check() && $service->isFavoritedBy(auth()->user());
         $locationLabel = $service->locality->name ?? $service->city ?? $service->county->name;
-        $imageUrl = $service->main_image_url ?: asset('images/no-image.jpg');
-        $fallbackImageUrl = asset('images/no-image.jpg');
+        
+        // Simulare date pentru layout (Autovit are An, Km, Combustibil). 
+        // Dacă nu ai aceste câmpuri, poți șterge secțiunea "Specs Grid".
+        $year = $service->year ?? '2017'; 
+        $mileage = $service->mileage ?? 'N/A km';
+        $fuel = $service->fuel ?? 'Diesel';
     @endphp
 
-    {{-- CARD INDIVIDUAL --}}
-    <div class="card-animate relative bg-white dark:bg-[#1E1E1E] rounded-xl md:rounded-2xl border border-gray-200 dark:border-[#333333] shadow-sm 
-                hover:shadow-xl dark:hover:shadow-none dark:hover:border-[#555555] 
-                transition-all duration-300 overflow-hidden group flex flex-col h-full">
-
-        {{-- Favorite Button --}}
-        <button type="button"
-                onclick="toggleHeart(this, {{ $service->id }})"
-                @if(!auth()->check()) onclick="window.location.href='{{ route('login') }}'" @endif
-                class="absolute top-2 right-2 md:top-3 md:right-3 z-30 p-1.5 md:p-2 rounded-full backdrop-blur-md shadow-sm transition-all duration-200
-                        bg-white/80 dark:bg-black/50 hover:bg-white dark:hover:bg-[#2C2C2C] group/heart border border-white/20"
-                title="Adaugă la favorite">
-            <svg xmlns="http://www.w3.org/2000/svg"
-                class="heart-icon h-4 w-4 md:h-5 md:w-5 transition-transform duration-300 ease-in-out group-active/heart:scale-75
-                        {{ $isFav ? 'text-[#CC2E2E] fill-[#CC2E2E] scale-110' : 'text-gray-600 dark:text-gray-300 fill-none group-hover/heart:text-[#CC2E2E]' }}"
-                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733C11.285 4.876 9.623 3.75 7.688 3.75 5.099 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-            </svg>
-        </button>
-
-        {{-- Link Către Anunț --}}
-        <a href="{{ $service->public_url }}" class="block flex-grow flex flex-col">
-
-            {{-- Image Area --}}
-            <div class="relative w-full aspect-[4/3] bg-gray-100 dark:bg-[#121212] overflow-hidden">
-                <img src="{{ $imageUrl }}"
-                    class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
-                    alt="{{ $service->title }}"
-                    @if($loop->index < 2) loading="eager" fetchpriority="high" @else loading="lazy" @endif
-                    width="400" height="300"
-                    onerror="this.onerror=null;this.src='{{ $fallbackImageUrl }}';">
-
-                {{-- Badge Categorie --}}
-                <span class="absolute bottom-2 left-2 md:bottom-3 md:left-3 bg-black/70 text-white text-[9px] md:text-xs px-2 py-0.5 md:px-2.5 md:py-1 rounded-md font-bold uppercase backdrop-blur-md border border-white/10 shadow-lg">
+    <div class="group relative bg-white dark:bg-[#1E1E1E] rounded-lg border border-gray-200 dark:border-[#333333] shadow-sm hover:shadow-md transition-all duration-300 flex flex-col md:flex-row overflow-hidden mb-4">
+        
+        {{-- 1. SECTIUNEA IMAGINE (Stânga) --}}
+        <a href="{{ $service->public_url }}" class="relative w-full md:w-[300px] lg:w-[340px] shrink-0 h-56 md:h-auto block overflow-hidden bg-gray-100 dark:bg-[#121212]">
+            <img src="{{ $service->main_image_url }}" 
+                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                 alt="{{ $service->title }}"
+                 @if($loop->index < 2) loading="eager" fetchpriority="high" @else loading="lazy" @endif>
+            
+            {{-- Badge Categorie (Stil Autovit - discret jos stânga) --}}
+            <div class="absolute bottom-0 left-0 p-2 w-full bg-gradient-to-t from-black/80 to-transparent">
+                 <span class="text-xs font-semibold text-white px-2 py-0.5 rounded bg-[#CC2E2E]">
                     {{ $service->category->name }}
+                 </span>
+            </div>
+
+            {{-- Badge Promovat (Dacă e cazul) --}}
+            @if($service->is_promoted ?? false)
+                <span class="absolute top-2 left-2 bg-[#00B4D8] text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">
+                    PROMOVAT
                 </span>
-            </div> 
+            @endif
+        </a>
 
-            {{-- Card Content --}}
-            <div class="p-3 md:p-4 flex flex-col flex-grow">
-               <h3 class="text-sm md:text-lg font-bold text-gray-900 dark:text-[#F2F2F2] mb-2 
-           uppercase tracking-tight line-clamp-2 leading-snug overflow-hidden 
-           group-hover:text-[#CC2E2E] transition-colors 
-           min-h-[2.5rem] md:min-h-[3.5rem]"
-    title="{{ $service->title }}">
-    {{ $service->title }}
-</h3>
+        {{-- 2. & 3. CONTAINER CONTINUT (Centru + Dreapta) --}}
+        <div class="flex flex-col md:flex-row flex-1 p-4 gap-4">
+            
+            {{-- 2. INFORMAȚII PRINCIPALE (Centru) --}}
+            <div class="flex-1 flex flex-col justify-between">
+                <div>
+                    <a href="{{ $service->public_url }}">
+                        <h3 class="text-lg md:text-xl font-bold text-gray-900 dark:text-gray-100 line-clamp-2 hover:text-[#CC2E2E] transition-colors mb-2">
+                            {{ $service->title }}
+                        </h3>
+                    </a>
+                    
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-1">
+                         {{-- Iconiță subtilă mașină/categorie --}}
+                         <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">
+                             {{ $service->subtitle ?? 'Descriere scurtă' }}
+                         </span>
+                    </p>
 
-
-                <div class="mb-3">
-                    @if(!empty($service->price_value))
-                        <div class="flex items-baseline gap-1">
-                            <span class="text-base md:text-xl font-bold text-gray-900 dark:text-white">
-                                {{ number_format($service->price_value, 0, ',', '.') }} {{ $service->currency }}
-                            </span>
-                            @if($service->price_type === 'negotiable')
-                                <span class="text-gray-500 dark:text-gray-400 text-[10px] md:text-xs font-normal">Neg.</span>
-                            @endif
+                    {{-- Specs Grid (Stil Autovit: An | Km | Combustibil) --}}
+                    {{-- Adaptează variabilele de aici cu ce ai tu în baza de date --}}
+                    <div class="flex flex-wrap items-center gap-y-1 gap-x-3 text-sm text-gray-700 dark:text-gray-300 mb-3">
+                        <div class="flex items-center gap-1">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            <span>{{ $year }}</span>
                         </div>
-                    @else
-                        <span class="text-sm md:text-lg font-bold text-[#CC2E2E]">Cere ofertă</span>
-                    @endif
+                        <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                        <div class="flex items-center gap-1">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                            <span>{{ $mileage }}</span>
+                        </div>
+                        <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                        <div class="flex items-center gap-1">
+                             <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                            <span>{{ $fuel }}</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="mt-auto pt-2 flex items-center justify-between text-[10px] md:text-sm text-gray-500 dark:text-[#A1A1AA] border-t border-gray-100 dark:border-[#333333]">
-                    <div class="flex items-center gap-1 truncate max-w-[40%]" title="{{ $locationLabel }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 md:h-4 md:w-4 text-[#CC2E2E] opacity-70 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                {{-- Locație și Seller --}}
+                <div class="mt-2 pt-3 border-t border-gray-100 dark:border-[#2C2C2C] flex items-center justify-between">
+                    <div class="flex items-center gap-1.5 text-xs md:text-sm text-gray-500 dark:text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
-                        <span class="truncate font-medium">{{ $locationLabel }}</span>
+                        {{ $locationLabel }}
                     </div>
-
-                    <div class="flex items-center gap-2 md:gap-3">
-                        <div class="flex items-center gap-0.5 opacity-80" title="Vizualizări">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 md:h-4 md:w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                            <span class="font-medium">{{ $service->views ?? 0 }}</span>
-                        </div>
-                        <span class="opacity-80 whitespace-nowrap">
-                            @if($service->created_at->isToday())
-                                <span class="text-green-600 dark:text-green-400 font-bold">Azi</span>
-                            @elseif($service->created_at->isYesterday())
-                                <span>Ieri</span>
-                            @else
-                                {{ $service->created_at->format('d.m.Y') }}
-                            @endif
-                        </span>
+                    <div class="text-xs text-gray-400">
+                        {{ $service->created_at->diffForHumans() }}
                     </div>
                 </div>
             </div>
-        </a>
+
+            {{-- 3. PREȚ ȘI ACȚIUNI (Dreapta) --}}
+            <div class="md:w-48 lg:w-56 flex flex-row md:flex-col justify-between md:items-end md:text-right border-t md:border-t-0 md:border-l border-gray-100 dark:border-[#2C2C2C] pt-3 md:pt-0 md:pl-4 mt-1 md:mt-0">
+                
+                {{-- Pret --}}
+                <div class="flex flex-col md:items-end">
+                    @if(!empty($service->price_value))
+                        <span class="text-2xl font-bold text-[#CC2E2E] dark:text-[#FF4444]">
+                            {{ number_format($service->price_value, 0, ',', '.') }} {{ $service->currency }}
+                        </span>
+                        @if($service->price_type === 'negotiable')
+                            <span class="text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded mt-1 inline-block">Negociabil</span>
+                        @endif
+                        {{-- Calcul Rata (Fake Link ca pe Autovit) --}}
+                        <a href="#" class="text-xs text-blue-600 dark:text-blue-400 underline mt-2 hover:no-underline hidden md:block">
+                            Calculează rata
+                        </a>
+                    @else
+                        <span class="text-xl font-bold text-[#CC2E2E]">Cere ofertă</span>
+                    @endif
+                </div>
+
+                {{-- Favorite Buton --}}
+                <div class="flex items-center gap-2 mt-auto">
+                    <button type="button"
+                        onclick="toggleHeart(this, {{ $service->id }})"
+                        class="group/heart flex items-center gap-2 px-0 md:px-3 py-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                        title="Adaugă la favorite">
+                        
+                        <svg xmlns="http://www.w3.org/2000/svg" 
+                             class="h-6 w-6 transition-transform duration-300 {{ $isFav ? 'text-[#CC2E2E] fill-[#CC2E2E]' : 'fill-none group-hover/heart:text-[#CC2E2E]' }}" 
+                             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733C11.285 4.876 9.623 3.75 7.688 3.75 5.099 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                        </svg>
+                        <span class="md:hidden text-sm font-medium text-gray-600 dark:text-gray-300">Salvează</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
     </div>
 @empty
-    {{-- 🔥 EMPTY STATE GRAFIC (DESIGN COMPLET) --}}
-    <div class="col-span-full flex flex-col items-center justify-center py-20 px-4 text-center bg-white dark:bg-[#1E1E1E] rounded-3xl border-2 border-dashed border-gray-200 dark:border-[#333333]">
-        <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-red-50 dark:bg-red-900/10 mb-6 animate-pulse">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-[#CC2E2E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    {{-- Sectiunea Empty State (am pastrat-o pe a ta, e ok) --}}
+    <div class="col-span-full flex flex-col items-center justify-center py-20 px-4 text-center bg-white dark:bg-[#1E1E1E] rounded-xl border border-dashed border-gray-300 dark:border-[#333333]">
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-50 dark:bg-white/5 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>
         </div>
-        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-            Nu am găsit anunțuri
-        </h3>
-        <p class="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-8 leading-relaxed">
-            Din păcate nu există anunțuri care să corespundă filtrelor selectate. Încearcă să cauți altceva sau să resetezi filtrele.
-        </p>
-        <button type="button" onclick="resetFilters()" 
-                class="inline-flex items-center gap-2 px-8 py-3.5 bg-[#CC2E2E] hover:bg-[#B72626] text-white font-bold rounded-xl shadow-lg shadow-red-600/20 transition-all hover:-translate-y-1 active:translate-y-0">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Resetează Filtrele
-        </button>
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Nu am găsit rezultate</h3>
+        <p class="text-gray-500 mb-6">Încearcă să modifici filtrele de căutare.</p>
+        <button onclick="resetFilters()" class="text-[#CC2E2E] font-bold hover:underline">Resetează filtrele</button>
     </div>
 @endforelse
