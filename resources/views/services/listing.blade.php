@@ -19,6 +19,24 @@
                 <p class="text-sm text-gray-500 mt-1">Număr de anunțuri: {{ number_format($totalCount, 0, ',', '.') }}</p>
             </div>
 
+            <div class="hidden lg:block mb-4">
+                <p class="text-sm font-semibold text-gray-700 mb-2">De unde vrei să cumperi?</p>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" data-seller="all"
+                        class="seller-tab px-3 py-2 text-sm font-bold rounded-lg border border-gray-200 transition-colors {{ request('seller_type', 'all') === 'all' ? 'bg-[#CC2E2E] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100' }}">
+                        Parcuri + Proprietari
+                    </button>
+                    <button type="button" data-seller="individual"
+                        class="seller-tab px-3 py-2 text-sm font-bold rounded-lg border border-gray-200 transition-colors {{ request('seller_type') === 'individual' ? 'bg-[#CC2E2E] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100' }}">
+                        Proprietari
+                    </button>
+                    <button type="button" data-seller="dealer"
+                        class="seller-tab px-3 py-2 text-sm font-bold rounded-lg border border-gray-200 transition-colors {{ request('seller_type') === 'dealer' ? 'bg-[#CC2E2E] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100' }}">
+                        Parcuri
+                    </button>
+                </div>
+            </div>
+
             <div id="filters-overlay" class="fixed inset-0 bg-black/40 z-40 hidden lg:hidden"></div>
             <div id="filters-panel"
                  class="fixed inset-0 z-50 hidden lg:static lg:block lg:z-auto">
@@ -141,24 +159,6 @@
         </aside>
 
         <div class="flex-1">
-            <div class="mb-4">
-                <p class="text-sm font-semibold text-gray-700 mb-2">De unde vrei să cumperi?</p>
-                <div class="flex flex-wrap gap-2">
-                    <button type="button" data-seller="all"
-                        class="seller-tab px-3 py-2 text-sm font-bold rounded-lg border border-gray-200 transition-colors {{ request('seller_type', 'all') === 'all' ? 'bg-[#CC2E2E] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100' }}">
-                        Parcuri + Proprietari
-                    </button>
-                    <button type="button" data-seller="individual"
-                        class="seller-tab px-3 py-2 text-sm font-bold rounded-lg border border-gray-200 transition-colors {{ request('seller_type') === 'individual' ? 'bg-[#CC2E2E] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100' }}">
-                        Proprietari
-                    </button>
-                    <button type="button" data-seller="dealer"
-                        class="seller-tab px-3 py-2 text-sm font-bold rounded-lg border border-gray-200 transition-colors {{ request('seller_type') === 'dealer' ? 'bg-[#CC2E2E] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100' }}">
-                        Parcuri
-                    </button>
-                </div>
-            </div>
-
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                 <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 w-full sm:w-auto">
                     <button type="button" id="open-filters"
