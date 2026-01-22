@@ -5,22 +5,9 @@
 @section('meta_image', asset('images/social-share.webp'))
 
 @section('hero')
-<div class="relative w-full group font-sans">
-
-    {{-- FUNDAL --}}
-    <div class="absolute inset-0 h-[460px] md:h-[340px] w-full overflow-hidden z-0">
-        <img src="{{ asset('images/hero-desktop.webp') }}" alt="Fundal auto"
-             class="hidden md:block w-full h-full object-cover object-center opacity-90">
-        <img src="{{ asset('images/hero-mobile.webp') }}" alt="Fundal auto"
-             class="block md:hidden w-full h-full object-cover object-center opacity-80">
-        {{-- Gradient --}}
-        <div class="absolute inset-0 bg-gradient-to-b from-gray-900/80 via-gray-900/50 to-transparent"></div>
-    </div>
-
-    {{-- CONTAINER CONȚINUT --}}
-    <div class="relative z-10 max-w-7xl mx-auto px-4 pt-20 md:pt-28 pb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-
-        {{-- CARD FILTRE (STÂNGA) --}}
+<div class="w-full bg-[#CFE8FF]">
+    <div class="max-w-7xl mx-auto px-4 py-8 md:py-10">
+        {{-- CARD FILTRE --}}
         <div class="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-2xl overflow-hidden w-full md:w-auto border border-gray-100 dark:border-[#333] relative z-20">
 
             {{-- TABURI (De unde cumperi) --}}
@@ -45,7 +32,7 @@
             <div class="p-4 md:p-5">
                 <form id="search-form">
                     <input type="hidden" name="vehicle_type" id="vehicle-type" value="autoturisme">
-                    <input type="hidden" name="seller_type" id="seller-type" value="all">
+                    <input type="hidden" name="seller_type" id="seller-type" value="{{ request('seller_type', 'all') }}">
 
                     {{-- GRID --}}
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -179,18 +166,6 @@
                 </form>
             </div>
         </div>
-
-        {{-- TITLU (DREAPTA - ASCUNS PE MOBIL) --}}
-        <div class="hidden md:block md:text-right mb-6 max-w-lg">
-            <h1 class="text-white font-extrabold tracking-tight text-4xl lg:text-5xl drop-shadow-2xl leading-tight">
-                Vindeți mașina<br>
-                <span class="text-[#CC2E2E]">rapid și sigur.</span>
-            </h1>
-            <p class="text-gray-200 mt-2 text-lg font-medium drop-shadow-md">
-                Publică anunțul tău în câteva minute.
-            </p>
-        </div>
-
     </div>
 </div>
 @endsection
@@ -209,26 +184,8 @@
     @include('services.partials.service_cards', ['services' => $services])
 </div>
 
-<div id="loading-indicator" class="text-center py-8 {{ $services->isEmpty() || !$hasMore ? 'hidden' : '' }}">
-    <svg class="animate-spin h-8 w-8 text-[#CC2E2E] mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3.003 7.91l2.997-2.619z"></path>
-    </svg>
-    <p class="text-sm text-gray-500 mt-2">Se încarcă...</p>
-</div>
-
-<div id="load-more-trigger" data-next-page="2" data-has-more="{{ $hasMore ? 'true' : 'false' }}" style="height: 1px;"></div>
-
 <script>
-    const isHomepage = true;
-    const homeUrl = "{{ route('services.index') }}";
-    const listUrl = "{{ url()->current() }}";
     const baseUrl = "{{ url('/') }}";
-
-    // Variabile globale
-    let isLoading = false;
-    let currentPage = 2;
-    let hasMore = document.getElementById('load-more-trigger')?.dataset.hasMore === 'true';
 
     // IMPORTANT: carData pe ID-uri, ca în create.blade:
     // carData[brand_id] = [{id, name, generations:[{id,name,start,end}]}]
@@ -249,9 +206,6 @@
         locality: document.getElementById('locality-input'),
         radius: document.getElementById('radius-input'),
         resetBtn: document.getElementById('reset-btn'),
-        container: document.getElementById('services-container'),
-        loader: document.getElementById('loading-indicator'),
-        trigger: document.getElementById('load-more-trigger'),
         vehicleType: document.getElementById('vehicle-type'),
         sellerType: document.getElementById('seller-type'),
     };
@@ -357,7 +311,6 @@
         if (domElements.radius) resetRadius();
 
         window.checkResetVisibility();
-        window.loadServices(1);
     };
 
     function buildSearchUrl() {
@@ -404,91 +357,35 @@
         return `${baseUrl}${path}${queryString ? `?${queryString}` : ''}`;
     }
 
-    // --- LOGICA DE ÎNCĂRCARE (AJAX) ---
-    window.loadServices = function(page) {
-        const isNewFilter = page === 1;
-        if (isLoading) return;
-        if (!hasMore && !isNewFilter) return;
-
-        if (isNewFilter) {
-            currentPage = 2;
-            hasMore = true;
-            if (domElements.container) domElements.container.style.opacity = '0.5';
-            if (domElements.trigger) domElements.trigger.dataset.hasMore = 'true';
-            window.checkResetVisibility();
-        } else {
-            if (domElements.loader) domElements.loader.classList.remove('hidden');
-        }
-
-        isLoading = true;
-
-        // IMPORTANT: trimitem ID-uri (brand_id, model_id, county_id)
-        const params = new URLSearchParams({
-            page: page,
-            ajax: 1,
-            vehicle_type: domElements.vehicleType?.value || '',
-            seller_type: domElements.sellerType?.value || 'all',
-
-            brand_id: domElements.brand?.value || '',
-            model_id: domElements.model?.value || '',
-            car_generation_id: domElements.gen?.value || '',
-
-            caroserie_id: domElements.body?.value || '',
-            combustibil_id: domElements.fuel?.value || '',
-            cutie_viteze_id: domElements.gear?.value || '',
-            county_id: domElements.county?.value || '',
-            locality_id: domElements.locality?.value || '',
-            radius_km: domElements.radius?.value || '',
-        });
-
-        fetch(`${listUrl}?${params.toString()}`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (isNewFilter) {
-                if (domElements.container) {
-                    domElements.container.innerHTML = data.html;
-                    domElements.container.style.opacity = '1';
-                }
-
-                if (data.loadedCount === 0) {
-                    domElements.container.innerHTML = `
-                        <div class="col-span-full flex flex-col items-center justify-center py-16 px-4 text-center bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-[#333]">
-                            <div class="text-4xl mb-4">😕</div>
-                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Nu am găsit anunțuri</h3>
-                            <p class="text-gray-500 mb-6 text-sm">Încearcă să modifici criteriile sau șterge toate filtrele.</p>
-
-                            <button type="button" onclick="window.resetFilters()" class="px-6 py-3 bg-[#CC2E2E] hover:bg-[#B72626] text-white font-bold rounded-lg shadow-md transition-colors text-sm uppercase tracking-wide">
-                                Șterge toate filtrele
-                            </button>
-                        </div>
-                    `;
-                }
-            } else {
-                if (domElements.container) domElements.container.insertAdjacentHTML('beforeend', data.html);
-            }
-
-            hasMore = !!data.hasMore;
-            if (domElements.trigger) domElements.trigger.dataset.hasMore = hasMore ? 'true' : 'false';
-
-            if (hasMore) currentPage++;
-
-            if (hasMore && domElements.trigger) {
-                observer.unobserve(domElements.trigger);
-                observer.observe(domElements.trigger);
-            }
-        })
-        .catch(err => console.error(err))
-        .finally(() => {
-            isLoading = false;
-            if (domElements.loader) domElements.loader.classList.add('hidden');
-        });
-    };
-
     // --- INITIALIZARE ---
     document.addEventListener('DOMContentLoaded', () => {
         window.checkResetVisibility();
+        const sellerTabs = document.querySelectorAll('.seller-tab');
+        const sellerInput = domElements.sellerType;
+
+        const setActiveSellerTab = (selectedValue) => {
+            sellerTabs.forEach(tab => {
+                const isActive = tab.dataset.seller === selectedValue;
+                tab.classList.toggle('text-[#CC2E2E]', isActive);
+                tab.classList.toggle('border-b-2', isActive);
+                tab.classList.toggle('border-[#CC2E2E]', isActive);
+                tab.classList.toggle('bg-white', isActive);
+                tab.classList.toggle('dark:bg-[#1E1E1E]', isActive);
+                tab.classList.toggle('text-gray-500', !isActive);
+                tab.classList.toggle('dark:text-gray-300', !isActive);
+            });
+        };
+
+        if (sellerTabs.length && sellerInput) {
+            setActiveSellerTab(sellerInput.value || 'all');
+            sellerTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const sellerValue = tab.dataset.seller || 'all';
+                    sellerInput.value = sellerValue;
+                    setActiveSellerTab(sellerValue);
+                });
+            });
+        }
 
         if (domElements.county) {
             domElements.county.addEventListener('change', () => {
@@ -607,16 +504,7 @@
                 });
             }
         });
-
-        // 4) Observer pentru Infinite Scroll
-        if (domElements.trigger) observer.observe(domElements.trigger);
     });
-
-    const observer = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && !isLoading && hasMore) {
-            window.loadServices(currentPage);
-        }
-    }, { rootMargin: '0px 0px 400px 0px' });
 
     // Favorite (inimioară)
     window.toggleHeart = function(btn, serviceId) {

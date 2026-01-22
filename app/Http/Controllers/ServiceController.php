@@ -41,11 +41,15 @@ class ServiceController extends Controller
     // ==========================================
     public function index(Request $request)
 {
+    $isHomepage = $request->routeIs('services.index');
     $page = (int) $request->get('page', 1);
     $perPageFirst = 10;
     $perPageNext  = 8;
 
-    if ($page === 1) {
+    if ($isHomepage) {
+        $limit = 4;
+        $offset = 0;
+    } elseif ($page === 1) {
         $limit  = $perPageFirst;
         $offset = 0;
     } else {
@@ -53,7 +57,17 @@ class ServiceController extends Controller
         $offset = $perPageFirst + (($page - 2) * $perPageNext);
     }
 
-    $query = Service::with(['county', 'locality'])->where('status', 'active');
+    $query = Service::with([
+        'county',
+        'locality',
+        'category',
+        'user',
+        'combustibil',
+        'cutieViteze',
+        'brandRel',
+        'modelRel',
+        'generation.model.brand',
+    ])->where('status', 'active');
 
     // Search
     if ($request->filled('search')) {
@@ -168,7 +182,7 @@ class ServiceController extends Controller
         ->get();
 
     $loadedSoFar = $offset + $services->count();
-    $hasMore     = $loadedSoFar < $totalCount;
+    $hasMore     = $isHomepage ? false : $loadedSoFar < $totalCount;
 
     if ($request->ajax()) {
         $cardsView = $request->routeIs('services.index')

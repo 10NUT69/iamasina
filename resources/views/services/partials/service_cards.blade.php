@@ -1,7 +1,17 @@
 @forelse($services as $service)
     @php
         $isFav = auth()->check() && $service->isFavoritedBy(auth()->user());
-        $locationLabel = $service->locality->name ?? $service->city ?? $service->county->name;
+        $brandName = optional(optional(optional($service->generation)->model)->brand)->name
+            ?: optional($service->brandRel)->name
+            ?: ($service->brand ?? null);
+        $modelName = optional(optional($service->generation)->model)->name
+            ?: optional($service->modelRel)->name
+            ?: ($service->model ?? null);
+        $brandModel = trim(implode(' ', array_filter([$brandName, $modelName])));
+        $sellerName = $service->author_name;
+        $km = $service->km ? number_format($service->km, 0, ',', '.') . ' km' : '-';
+        $fuel = optional($service->combustibil)->nume ?? '-';
+        $transmission = optional($service->cutieViteze)->nume ?? '-';
     @endphp
 
     {{-- CARD INDIVIDUAL --}}
@@ -36,65 +46,63 @@
                     @if($loop->index < 2) loading="eager" fetchpriority="high" @else loading="lazy" @endif
                     width="400" height="300">
 
-                {{-- Badge Categorie --}}
+                {{-- Badge Marcă + Model --}}
                 <span class="absolute bottom-2 left-2 md:bottom-3 md:left-3 bg-black/70 text-white text-[9px] md:text-xs px-2 py-0.5 md:px-2.5 md:py-1 rounded-md font-bold uppercase backdrop-blur-md border border-white/10 shadow-lg">
-                    {{ $service->category->name }}
+                    {{ $brandModel ?: 'Anunț auto' }}
                 </span>
             </div> 
 
             {{-- Card Content --}}
             <div class="p-3 md:p-4 flex flex-col flex-grow">
-               <h3 class="text-sm md:text-lg font-bold text-gray-900 dark:text-[#F2F2F2] mb-2 
-           uppercase tracking-tight line-clamp-2 leading-snug overflow-hidden 
-           group-hover:text-[#CC2E2E] transition-colors 
-           min-h-[2.5rem] md:min-h-[3.5rem]"
-    title="{{ $service->title }}">
-    {{ $service->title }}
-</h3>
+                <h3 class="text-sm md:text-lg font-bold text-gray-900 dark:text-[#F2F2F2] mb-1 uppercase tracking-tight line-clamp-2 leading-snug overflow-hidden group-hover:text-[#CC2E2E] transition-colors min-h-[2.5rem] md:min-h-[3.5rem]"
+                    title="{{ $brandModel ?: $service->title }}">
+                    {{ $brandModel ?: $service->title }}
+                </h3>
 
+                <p class="text-xs md:text-sm text-gray-500 dark:text-gray-400 mb-3 truncate">
+                    {{ $sellerName }}
+                </p>
 
-                <div class="mb-3">
-                    @if(!empty($service->price_value))
-                        <div class="flex items-baseline gap-1">
-                            <span class="text-base md:text-xl font-bold text-gray-900 dark:text-white">
+                <div class="flex items-center justify-between text-[10px] md:text-xs text-gray-500 dark:text-[#A1A1AA] border-t border-gray-100 dark:border-[#333333] pt-3">
+                    <div class="flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        <span class="font-medium">{{ $km }}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                        </svg>
+                        <span class="font-medium">{{ $fuel }}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                        </svg>
+                        <span class="font-medium">{{ $transmission }}</span>
+                    </div>
+                </div>
+
+                <div class="mt-auto pt-3 flex items-center justify-between border-t border-gray-100 dark:border-[#333333] text-xs md:text-sm">
+                    <div class="flex items-baseline gap-1">
+                        @if(!empty($service->price_value))
+                            <span class="text-base md:text-lg font-bold text-gray-900 dark:text-white">
                                 {{ number_format($service->price_value, 0, ',', '.') }} {{ $service->currency }}
                             </span>
                             @if($service->price_type === 'negotiable')
                                 <span class="text-gray-500 dark:text-gray-400 text-[10px] md:text-xs font-normal">Neg.</span>
                             @endif
-                        </div>
-                    @else
-                        <span class="text-sm md:text-lg font-bold text-[#CC2E2E]">Cere ofertă</span>
-                    @endif
-                </div>
-
-                <div class="mt-auto pt-2 flex items-center justify-between text-[10px] md:text-sm text-gray-500 dark:text-[#A1A1AA] border-t border-gray-100 dark:border-[#333333]">
-                    <div class="flex items-center gap-1 truncate max-w-[40%]" title="{{ $locationLabel }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 md:h-4 md:w-4 text-[#CC2E2E] opacity-70 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        @else
+                            <span class="text-sm md:text-base font-bold text-[#CC2E2E]">Cere ofertă</span>
+                        @endif
+                    </div>
+                    <span class="text-[#CC2E2E] font-semibold flex items-center gap-1">
+                        Vezi detalii
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
-                        <span class="truncate font-medium">{{ $locationLabel }}</span>
-                    </div>
-
-                    <div class="flex items-center gap-2 md:gap-3">
-                        <div class="flex items-center gap-0.5 opacity-80" title="Vizualizări">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 md:h-4 md:w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                            <span class="font-medium">{{ $service->views ?? 0 }}</span>
-                        </div>
-                        <span class="opacity-80 whitespace-nowrap">
-                            @if($service->created_at->isToday())
-                                <span class="text-green-600 dark:text-green-400 font-bold">Azi</span>
-                            @elseif($service->created_at->isYesterday())
-                                <span>Ieri</span>
-                            @else
-                                {{ $service->created_at->format('d.m.Y') }}
-                            @endif
-                        </span>
-                    </div>
+                    </span>
                 </div>
             </div>
         </a>
