@@ -34,10 +34,10 @@
         $imgCount = count($imagesList);
     @endphp
 
-    <div class="group relative bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-[#333333] shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col md:flex-row overflow-hidden mb-4 md:min-h-[320px]">
+    <div class="group relative bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-[#333333] shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col md:flex-row overflow-hidden mb-4 md:min-h-[400px]">
 
         {{-- 1. GALERIE FOTO (Cu Alpine.js pentru Săgeți și Swipe) --}}
-        <div class="relative w-full md:w-[320px] lg:w-[350px] shrink-0 h-80 md:h-full bg-gray-100 dark:bg-[#121212]"
+        <div class="relative w-full md:basis-1/2 md:shrink-0 h-80 md:h-[400px] bg-gray-100 dark:bg-[#121212]"
              x-data="{ 
                 activeSlide: 0, 
                 slides: {{ $imgCount > 0 ? $imgCount : 1 }},
@@ -95,12 +95,12 @@
             @if($imgCount > 1)
                 {{-- Stânga --}}
                 <button @click.prevent="prev()" 
-                        class="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity z-10 md:hidden md:group-hover:block">
+                        class="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity z-10">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
                 </button>
                 {{-- Dreapta --}}
                 <button @click.prevent="next()" 
-                        class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity z-10 md:hidden md:group-hover:block">
+                        class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity z-10">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                 </button>
 
@@ -125,7 +125,7 @@
         <div class="flex flex-col md:flex-row flex-1 p-4 gap-4">
 
             {{-- Centru: Informații --}}
-            <div class="flex-1 flex flex-col min-w-0">
+            <div class="flex-1 md:basis-[35%] flex flex-col min-w-0">
                 <div class="mb-auto">
                     {{-- Titlu (Marca + Model) --}}
                     <a href="{{ $service->public_url }}">
@@ -175,7 +175,7 @@
             </div>
 
             {{-- Dreapta: Preț și Favorite --}}
-            <div class="md:w-48 flex flex-row md:flex-col justify-between items-center md:items-end border-t md:border-t-0 md:border-l border-gray-100 dark:border-[#2C2C2C] pt-3 md:pt-0 md:pl-4 mt-1 md:mt-0">
+            <div class="md:basis-[15%] md:max-w-[15%] flex flex-row md:flex-col justify-between items-center md:items-end border-t md:border-t-0 md:border-l border-gray-100 dark:border-[#2C2C2C] pt-3 md:pt-0 md:pl-4 mt-1 md:mt-0">
 
                 {{-- Zona Preț --}}
                 <div class="text-left md:text-right">
