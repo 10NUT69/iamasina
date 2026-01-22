@@ -5,37 +5,37 @@
 @section('meta_image', asset('images/social-share.webp'))
 
 @section('hero')
-<div class="w-full bg-[#CFE8FF]">
-    <div class="max-w-7xl mx-auto px-4 py-8 md:py-10">
+<div class="w-full bg-[#CFE8FF] mt-4 md:mt-10">
+    <div class="max-w-7xl mx-auto px-4 py-8 md:py-6">
         {{-- CARD FILTRE --}}
         <div class="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-2xl overflow-hidden w-full md:w-auto border border-gray-100 dark:border-[#333] relative z-20">
 
             {{-- TABURI (De unde cumperi) --}}
             <div class="flex border-b border-gray-200 dark:border-[#333] bg-gray-50 dark:bg-[#252525]">
                 <button type="button" data-seller="all"
-                    class="seller-tab px-6 py-3 text-sm font-bold text-[#CC2E2E] border-b-2 border-[#CC2E2E] bg-white dark:bg-[#1E1E1E] flex items-center gap-2">
+                    class="seller-tab px-5 py-3 md:px-4 md:py-2 text-sm font-bold text-[#CC2E2E] border-b-2 border-[#CC2E2E] bg-white dark:bg-[#1E1E1E] flex items-center gap-2">
                     Parcuri + Proprietari
                 </button>
 
                 <button type="button" data-seller="individual"
-                    class="seller-tab px-6 py-3 text-sm font-bold text-gray-500 dark:text-gray-300 flex items-center gap-2">
+                    class="seller-tab px-5 py-3 md:px-4 md:py-2 text-sm font-bold text-gray-500 dark:text-gray-300 flex items-center gap-2">
                     Proprietari
                 </button>
 
                 <button type="button" data-seller="dealer"
-                    class="seller-tab px-6 py-3 text-sm font-bold text-gray-500 dark:text-gray-300 flex items-center gap-2">
+                    class="seller-tab px-5 py-3 md:px-4 md:py-2 text-sm font-bold text-gray-500 dark:text-gray-300 flex items-center gap-2">
                     Parcuri
                 </button>
             </div>
 
             {{-- ZONA FILTRE --}}
-            <div class="p-4 md:p-5">
+            <div class="p-4 md:p-4">
                 <form id="search-form">
                     <input type="hidden" name="vehicle_type" id="vehicle-type" value="autoturisme">
                     <input type="hidden" name="seller_type" id="seller-type" value="{{ request('seller_type', 'all') }}">
 
                     {{-- GRID --}}
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-2">
 
                         {{-- RÂNDUL 1 --}}
                         <div class="col-span-1">
