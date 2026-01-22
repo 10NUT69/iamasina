@@ -183,6 +183,7 @@
     const localityBaseUrl = "{{ url('/api/localities') }}";
     const initialLocalityId = @json(optional($currentLocality)->id);
     const initialRadius = @json($currentRadius);
+    const mobileQuery = window.matchMedia('(max-width: 1023px)');
 
     const domElements = {
         brand: document.getElementById('brand-filter'),
@@ -201,6 +202,10 @@
         vehicleType: document.getElementById('vehicle-type'),
         sellerType: document.getElementById('seller-type'),
     };
+
+    function isMobileView() {
+        return mobileQuery.matches;
+    }
 
     function resetSelect(el, placeholder) {
         if (!el) return;
@@ -400,6 +405,7 @@
     };
 
     function debounceLoad() {
+        if (isMobileView()) return;
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => window.loadServices(1), 400);
     }
@@ -432,6 +438,10 @@
         if (searchForm) {
             searchForm.addEventListener('submit', (event) => {
                 event.preventDefault();
+                if (isMobileView()) {
+                    filterOverlay?.classList.add('hidden');
+                    filterPanel?.classList.add('hidden');
+                }
                 window.location.href = buildSearchUrl();
             });
         }
@@ -440,7 +450,7 @@
             domElements.county.addEventListener('change', () => {
                 const countyOption = domElements.county.selectedOptions?.[0];
                 const countySlug = countyOption?.dataset?.slug;
-                if (domElements.brand?.value && domElements.model?.value && countySlug) {
+                if (!isMobileView() && domElements.brand?.value && domElements.model?.value && countySlug) {
                     window.location.href = buildSearchUrl();
                     return;
                 }
@@ -473,7 +483,11 @@
             btn.addEventListener('click', () => {
                 const val = btn.dataset.seller;
                 if (domElements.sellerType) domElements.sellerType.value = val;
-                window.location.href = buildSearchUrl();
+                if (!isMobileView()) {
+                    window.location.href = buildSearchUrl();
+                } else {
+                    window.checkResetVisibility();
+                }
             });
         });
 
@@ -505,11 +519,14 @@
                 if (!brandId) {
                     resetSelect(domElements.model, 'Model');
                     resetSelect(domElements.gen, 'Generație');
-                    window.location.href = homeUrl;
+                    if (!isMobileView()) {
+                        window.location.href = homeUrl;
+                        return;
+                    }
                     return;
                 }
 
-                if (slug) {
+                if (slug && !isMobileView()) {
                     window.location.href = `${baseUrl}/autoturisme/${slug}`;
                     return;
                 }
@@ -553,8 +570,10 @@
                 }
 
                 if (brandSlug && modelSlug) {
-                    window.location.href = `${baseUrl}/autoturisme/${brandSlug}/${modelSlug}`;
-                    return;
+                    if (!isMobileView()) {
+                        window.location.href = `${baseUrl}/autoturisme/${brandSlug}/${modelSlug}`;
+                        return;
+                    }
                 }
 
                 window.checkResetVisibility();
