@@ -20,6 +20,12 @@
                 </button>
             </div>
 
+            <div class="hidden lg:block mb-4">
+                <p class="text-sm text-gray-500">Prima pagină · Autoturisme</p>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">Autoturisme</h1>
+                <p class="text-sm text-gray-500 mt-1">Număr de anunțuri: {{ number_format($totalCount, 0, ',', '.') }}</p>
+            </div>
+
             <div id="filters-overlay" class="fixed inset-0 bg-black/40 z-40 hidden lg:hidden"></div>
             <div id="filters-panel"
                  class="fixed inset-0 z-50 hidden lg:static lg:block lg:z-auto">
@@ -142,11 +148,26 @@
         </aside>
 
         <div class="flex-1">
-            <div class="hidden lg:flex items-center justify-between mb-6">
-                <div>
-                    <p class="text-sm text-gray-500">Prima pagină · Autoturisme</p>
-                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Autoturisme</h1>
-                    <p class="text-sm text-gray-500 mt-1">Număr de anunțuri: {{ number_format($totalCount, 0, ',', '.') }}</p>
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="button"
+                        class="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-[#0F5CC0] border border-[#0F5CC0] rounded-lg bg-white hover:bg-blue-50 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0h6z"/>
+                        </svg>
+                        Salvează căutarea
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <label for="sort-select" class="text-sm font-semibold text-gray-600">Sortare</label>
+                    <select id="sort-select" class="autovit-select listing-filter w-56">
+                        <option value="newest" @selected(request('sort', 'newest') === 'newest')>Anunțuri noi</option>
+                        <option value="price_asc" @selected(request('sort') === 'price_asc')>Ieftine</option>
+                        <option value="price_desc" @selected(request('sort') === 'price_desc')>Scumpe</option>
+                        <option value="km_asc" @selected(request('sort') === 'km_asc')>Km crescător</option>
+                        <option value="power_asc" @selected(request('sort') === 'power_asc')>Putere crescător</option>
+                    </select>
                 </div>
             </div>
 
@@ -195,6 +216,7 @@
         county: document.getElementById('county-input'),
         locality: document.getElementById('locality-input'),
         radius: document.getElementById('radius-input'),
+        sort: document.getElementById('sort-select'),
         resetBtn: document.getElementById('reset-btn'),
         container: document.getElementById('services-container'),
         loader: document.getElementById('loading-indicator'),
@@ -301,10 +323,11 @@
             county_id: domElements.county?.value || '',
             locality_id: domElements.locality?.value || '',
             radius_km: domElements.radius?.value || '',
+            sort: domElements.sort?.value || '',
         });
 
         [...params.keys()].forEach((key) => {
-            if (!params.get(key)) {
+            if (!params.get(key) || (key === 'sort' && params.get(key) === 'newest')) {
                 params.delete(key);
             }
         });
@@ -371,6 +394,7 @@
             county_id: domElements.county?.value || '',
             locality_id: domElements.locality?.value || '',
             radius_km: domElements.radius?.value || '',
+            sort: domElements.sort?.value || '',
         });
 
         fetch(`${listUrl}?${params.toString()}`, {
@@ -476,6 +500,12 @@
             domElements.radius.addEventListener('change', () => {
                 debounceLoad();
                 window.checkResetVisibility();
+            });
+        }
+
+        if (domElements.sort) {
+            domElements.sort.addEventListener('change', () => {
+                window.location.href = buildSearchUrl();
             });
         }
 

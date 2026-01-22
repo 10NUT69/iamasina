@@ -173,10 +173,27 @@ class ServiceController extends Controller
         });
     }
 
+    $sort = $request->get('sort', 'newest');
     $totalCount = $query->count();
 
+    switch ($sort) {
+        case 'price_asc':
+            $query->orderBy('price_value', 'asc')->orderBy('created_at', 'desc');
+            break;
+        case 'price_desc':
+            $query->orderBy('price_value', 'desc')->orderBy('created_at', 'desc');
+            break;
+        case 'km_asc':
+            $query->orderBy('km', 'asc')->orderBy('created_at', 'desc');
+            break;
+        case 'power_asc':
+            $query->orderBy('putere', 'asc')->orderBy('created_at', 'desc');
+            break;
+        default:
+            $query->orderBy('created_at', 'desc');
+    }
+
     $services = $query
-        ->orderBy('created_at', 'desc')
         ->offset($offset)
         ->limit($limit)
         ->get();

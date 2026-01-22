@@ -34,10 +34,10 @@
         $imgCount = count($imagesList);
     @endphp
 
-    <div class="group relative bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-[#333333] shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col md:flex-row overflow-hidden mb-4">
+    <div class="group relative bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-[#333333] shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col md:flex-row overflow-hidden mb-4 md:min-h-[320px]">
 
         {{-- 1. GALERIE FOTO (Cu Alpine.js pentru Săgeți și Swipe) --}}
-        <div class="relative w-full md:w-[320px] lg:w-[350px] shrink-0 h-64 md:h-auto bg-gray-100 dark:bg-[#121212]"
+        <div class="relative w-full md:w-[320px] lg:w-[350px] shrink-0 h-80 md:h-full bg-gray-100 dark:bg-[#121212]"
              x-data="{ 
                 activeSlide: 0, 
                 slides: {{ $imgCount > 0 ? $imgCount : 1 }},
