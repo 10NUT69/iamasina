@@ -141,6 +141,24 @@
         </aside>
 
         <div class="flex-1">
+            <div class="mb-4">
+                <p class="text-sm font-semibold text-gray-700 mb-2">De unde vrei să cumperi?</p>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" data-seller="all"
+                        class="seller-tab px-3 py-2 text-sm font-bold rounded-lg border border-gray-200 transition-colors {{ request('seller_type', 'all') === 'all' ? 'bg-[#CC2E2E] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100' }}">
+                        Parcuri + Proprietari
+                    </button>
+                    <button type="button" data-seller="individual"
+                        class="seller-tab px-3 py-2 text-sm font-bold rounded-lg border border-gray-200 transition-colors {{ request('seller_type') === 'individual' ? 'bg-[#CC2E2E] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100' }}">
+                        Proprietari
+                    </button>
+                    <button type="button" data-seller="dealer"
+                        class="seller-tab px-3 py-2 text-sm font-bold rounded-lg border border-gray-200 transition-colors {{ request('seller_type') === 'dealer' ? 'bg-[#CC2E2E] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100' }}">
+                        Parcuri
+                    </button>
+                </div>
+            </div>
+
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                 <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 w-full sm:w-auto">
                     <button type="button" id="open-filters"
@@ -441,6 +459,7 @@
         const filterPanel = document.getElementById('filters-panel');
         const openFilters = document.getElementById('open-filters');
         const closeFilters = document.getElementById('close-filters');
+        const sellerTabs = document.querySelectorAll('.seller-tab');
 
         if (openFilters && filterOverlay && filterPanel) {
             openFilters.addEventListener('click', () => {
@@ -509,10 +528,26 @@
             });
         }
 
-        document.querySelectorAll('.seller-tab').forEach(btn => {
+        const setActiveSellerTab = (selectedValue) => {
+            sellerTabs.forEach(tab => {
+                const isActive = tab.dataset.seller === selectedValue;
+                tab.classList.toggle('bg-[#CC2E2E]', isActive);
+                tab.classList.toggle('text-white', isActive);
+                tab.classList.toggle('shadow-sm', isActive);
+                tab.classList.toggle('text-gray-600', !isActive);
+                tab.classList.toggle('hover:bg-gray-100', !isActive);
+            });
+        };
+
+        if (sellerTabs.length && domElements.sellerType) {
+            setActiveSellerTab(domElements.sellerType.value || 'all');
+        }
+
+        sellerTabs.forEach(btn => {
             btn.addEventListener('click', () => {
                 const val = btn.dataset.seller;
                 if (domElements.sellerType) domElements.sellerType.value = val;
+                setActiveSellerTab(val);
                 if (!isMobileView()) {
                     window.location.href = buildSearchUrl();
                 } else {
