@@ -39,10 +39,10 @@
         $imgCount = count($imagesList);
     @endphp
 
-    <div class="group relative bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-[#333333] shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col md:flex-row overflow-hidden mb-4 md:min-h-[400px]">
+    <div class="group relative bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-[#333333] shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col md:flex-row overflow-hidden mb-4 md:min-h-[300px]">
 
         {{-- 1. GALERIE FOTO (Cu Alpine.js pentru Săgeți și Swipe) --}}
-        <div class="relative w-full md:basis-1/2 md:shrink-0 h-80 md:h-[400px] bg-gray-100 dark:bg-[#121212]"
+        <div class="relative w-full md:basis-1/2 md:shrink-0 h-80 md:h-[300px] bg-gray-100 dark:bg-[#121212]"
              x-data="{ 
                 activeSlide: 0, 
                 slides: {{ $imgCount > 0 ? $imgCount : 1 }},
@@ -131,7 +131,7 @@
 
             {{-- Centru: Informații --}}
             <div class="flex-1 md:basis-[35%] flex flex-col min-w-0">
-                <div class="mb-auto">
+                <div class="flex flex-col gap-3">
                     {{-- Titlu (Anunț) --}}
                     <a href="{{ $service->public_url }}">
                         <h3 class="text-xl font-extrabold text-gray-900 dark:text-white hover:text-[#CC2E2E] transition-colors truncate">
@@ -140,16 +140,14 @@
                     </a>
 
                     {{-- Linie: capacitate cilindrică + CP --}}
-                    <div class="mt-1 text-sm text-gray-600 dark:text-gray-300 flex flex-wrap items-center gap-3">
+                    <div class="text-sm text-gray-600 dark:text-gray-300 flex flex-wrap items-center gap-2">
                         <span class="font-medium">{{ $engineSize }}</span>
                         <span class="text-gray-400">•</span>
                         <span class="font-medium">{{ $power }}</span>
                     </div>
 
-                    <div class="mt-3"></div>
-
                     {{-- Linie: an fabricație, combustibil, km --}}
-                    <div class="mt-1 flex flex-wrap items-center gap-4 text-sm text-gray-700 dark:text-gray-300">
+                    <div class="flex flex-wrap items-center gap-4 text-sm text-gray-700 dark:text-gray-300">
                         <span class="inline-flex items-center gap-1.5">
                             <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                             <span class="font-medium">{{ $an }}</span>
@@ -165,7 +163,7 @@
                     </div>
 
                     {{-- Linie: capacitate cilindrică, CP, normă poluare --}}
-                    <div class="mt-2 text-sm text-gray-600 dark:text-gray-300 flex flex-wrap items-center gap-3">
+                    <div class="text-sm text-gray-600 dark:text-gray-300 flex flex-wrap items-center gap-2">
                         <span class="font-medium">{{ $engineSize }}</span>
                         <span class="text-gray-400">•</span>
                         <span class="font-medium">{{ $power }}</span>
@@ -175,7 +173,7 @@
                 </div>
 
                 {{-- Locație (Jos) --}}
-                <div class="mt-4 pt-4 border-t border-gray-100 dark:border-[#2C2C2C] flex items-center text-sm text-gray-500 dark:text-gray-400">
+                <div class="mt-4 pt-3 border-t border-gray-100 dark:border-[#2C2C2C] flex items-center text-sm text-gray-500 dark:text-gray-400">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-[#CC2E2E]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
