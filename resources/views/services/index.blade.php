@@ -5,37 +5,40 @@
 @section('meta_image', asset('images/social-share.webp'))
 
 @section('hero')
-<div class="w-full bg-[#CFE8FF] mt-4 md:mt-10">
-    <div class="max-w-7xl mx-auto px-4 py-8 md:py-6">
+<div class="w-full bg-[#CFE8FF] mt-6 md:mt-14">
+    <div class="max-w-7xl mx-auto px-4 py-8 md:py-8">
         {{-- CARD FILTRE --}}
-        <div class="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-2xl overflow-hidden w-full md:w-auto border border-gray-100 dark:border-[#333] relative z-20">
+        <div class="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-2xl overflow-hidden w-full md:max-w-3xl md:mx-auto border border-gray-100 dark:border-[#333] relative z-20">
 
             {{-- TABURI (De unde cumperi) --}}
-            <div class="flex border-b border-gray-200 dark:border-[#333] bg-gray-50 dark:bg-[#252525]">
+            <div class="px-4 pt-4 md:pt-3 text-sm font-semibold text-gray-700 dark:text-gray-200">
+                De unde vrei să cumperi?
+            </div>
+            <div class="flex border-b border-gray-200 dark:border-[#333] bg-gray-50 dark:bg-[#252525] mt-3 md:mt-2">
                 <button type="button" data-seller="all"
-                    class="seller-tab px-5 py-3 md:px-4 md:py-2 text-sm font-bold text-[#CC2E2E] border-b-2 border-[#CC2E2E] bg-white dark:bg-[#1E1E1E] flex items-center gap-2">
+                    class="seller-tab px-4 py-2 text-sm font-bold text-gray-600 dark:text-gray-300 flex items-center gap-2 transition-colors">
                     Parcuri + Proprietari
                 </button>
 
                 <button type="button" data-seller="individual"
-                    class="seller-tab px-5 py-3 md:px-4 md:py-2 text-sm font-bold text-gray-500 dark:text-gray-300 flex items-center gap-2">
+                    class="seller-tab px-4 py-2 text-sm font-bold text-gray-600 dark:text-gray-300 flex items-center gap-2 transition-colors">
                     Proprietari
                 </button>
 
                 <button type="button" data-seller="dealer"
-                    class="seller-tab px-5 py-3 md:px-4 md:py-2 text-sm font-bold text-gray-500 dark:text-gray-300 flex items-center gap-2">
+                    class="seller-tab px-4 py-2 text-sm font-bold text-gray-600 dark:text-gray-300 flex items-center gap-2 transition-colors">
                     Parcuri
                 </button>
             </div>
 
             {{-- ZONA FILTRE --}}
-            <div class="p-4 md:p-4">
+            <div class="p-4 md:p-3">
                 <form id="search-form">
                     <input type="hidden" name="vehicle_type" id="vehicle-type" value="autoturisme">
                     <input type="hidden" name="seller_type" id="seller-type" value="{{ request('seller_type', 'all') }}">
 
                     {{-- GRID --}}
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-2">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-2.5">
 
                         {{-- RÂNDUL 1 --}}
                         <div class="col-span-1">
@@ -147,14 +150,14 @@
                         {{-- BUTOANE --}}
                         <div class="col-span-2 md:col-span-1 flex gap-2">
                             <button type="button" id="reset-btn" onclick="resetFilters()" disabled
-                                    class="h-[46px] w-[46px] flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-300 transition-all duration-200 cursor-not-allowed"
+                                    class="h-[46px] w-[46px] md:h-[40px] md:w-[40px] flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-300 transition-all duration-200 cursor-not-allowed"
                                     title="Șterge toate filtrele">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                             </button>
 
-                            <button type="submit" class="h-[46px] flex-1 bg-[#CC2E2E] hover:bg-[#b02222] text-white font-bold text-base rounded-lg shadow-md transition-all flex items-center justify-center gap-2 uppercase tracking-wide">
+                            <button type="submit" class="h-[46px] md:h-[40px] flex-1 bg-[#CC2E2E] hover:bg-[#b02222] text-white font-bold text-base md:text-sm rounded-lg shadow-md transition-all flex items-center justify-center gap-2 uppercase tracking-wide">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
@@ -366,12 +369,10 @@
         const setActiveSellerTab = (selectedValue) => {
             sellerTabs.forEach(tab => {
                 const isActive = tab.dataset.seller === selectedValue;
-                tab.classList.toggle('text-[#CC2E2E]', isActive);
-                tab.classList.toggle('border-b-2', isActive);
-                tab.classList.toggle('border-[#CC2E2E]', isActive);
-                tab.classList.toggle('bg-white', isActive);
-                tab.classList.toggle('dark:bg-[#1E1E1E]', isActive);
-                tab.classList.toggle('text-gray-500', !isActive);
+                tab.classList.toggle('bg-[#CC2E2E]', isActive);
+                tab.classList.toggle('text-white', isActive);
+                tab.classList.toggle('shadow-sm', isActive);
+                tab.classList.toggle('text-gray-600', !isActive);
                 tab.classList.toggle('dark:text-gray-300', !isActive);
             });
         };
@@ -542,7 +543,7 @@
         display: block;
         width: 100%;
         @media (min-width: 768px) {
-            width: 10rem;
+            width: 8rem;
         }
         height: 46px;
         padding: 0 2rem 0 1rem;
@@ -561,6 +562,12 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
+    }
+    @media (min-width: 768px) {
+        .autovit-select {
+            height: 40px;
+            font-size: 0.8rem;
+        }
     }
 
     .autovit-select:focus {
