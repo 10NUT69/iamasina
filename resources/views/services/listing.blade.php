@@ -11,13 +11,12 @@
         <aside class="lg:w-[300px]">
             <div class="lg:hidden flex items-center justify-between mb-4">
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Autoturisme</h1>
-                <button type="button" id="open-filters"
-                        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M2 4a1 1 0 011-1h14a1 1 0 01.8 1.6L12 12.333V16a1 1 0 01-1.447.894l-2-1A1 1 0 018 15V12.333L2.2 4.6A1 1 0 012 4z" />
-                    </svg>
-                    Filtrează
-                </button>
+            </div>
+
+            <div class="hidden lg:block mb-4">
+                <p class="text-sm text-gray-500">Prima pagină · Autoturisme</p>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">Autoturisme</h1>
+                <p class="text-sm text-gray-500 mt-1">Număr de anunțuri: {{ number_format($totalCount, 0, ',', '.') }}</p>
             </div>
 
             <div id="filters-overlay" class="fixed inset-0 bg-black/40 z-40 hidden lg:hidden"></div>
@@ -36,6 +35,24 @@
                     <form id="search-form" class="p-4 space-y-4">
                         <input type="hidden" name="vehicle_type" id="vehicle-type" value="autoturisme">
                         <input type="hidden" name="seller_type" id="seller-type" value="all">
+
+                        <div>
+                            <p class="text-sm font-semibold text-gray-700 mb-2">De unde vrei să cumperi?</p>
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" data-seller="all"
+                                    class="seller-tab px-3 py-2 text-sm font-bold rounded-lg border border-gray-200 transition-colors {{ request('seller_type', 'all') === 'all' ? 'bg-[#CC2E2E] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100' }}">
+                                    Parcuri + Proprietari
+                                </button>
+                                <button type="button" data-seller="individual"
+                                    class="seller-tab px-3 py-2 text-sm font-bold rounded-lg border border-gray-200 transition-colors {{ request('seller_type') === 'individual' ? 'bg-[#CC2E2E] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100' }}">
+                                    Proprietari
+                                </button>
+                                <button type="button" data-seller="dealer"
+                                    class="seller-tab px-3 py-2 text-sm font-bold rounded-lg border border-gray-200 transition-colors {{ request('seller_type') === 'dealer' ? 'bg-[#CC2E2E] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100' }}">
+                                    Parcuri
+                                </button>
+                            </div>
+                        </div>
 
                         <select id="brand-filter" name="brand_id" class="autovit-select listing-filter">
                             <option value="">Marcă</option>
@@ -142,11 +159,33 @@
         </aside>
 
         <div class="flex-1">
-            <div class="hidden lg:flex items-center justify-between mb-6">
-                <div>
-                    <p class="text-sm text-gray-500">Prima pagină · Autoturisme</p>
-                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Autoturisme</h1>
-                    <p class="text-sm text-gray-500 mt-1">Număr de anunțuri: {{ number_format($totalCount, 0, ',', '.') }}</p>
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 w-full sm:w-auto">
+                    <button type="button" id="open-filters"
+                        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 shadow-sm lg:hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M2 4a1 1 0 011-1h14a1 1 0 01.8 1.6L12 12.333V16a1 1 0 01-1.447.894l-2-1A1 1 0 018 15V12.333L2.2 4.6A1 1 0 012 4z" />
+                        </svg>
+                        Filtrează
+                    </button>
+                    <button type="button"
+                        class="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-[#0F5CC0] border border-[#0F5CC0] rounded-lg bg-white hover:bg-blue-50 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0h6z"/>
+                        </svg>
+                        Salvează căutarea
+                    </button>
+                </div>
+
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
+                    <label for="sort-select" class="text-sm font-semibold text-gray-600">Sortare</label>
+                    <select id="sort-select" class="autovit-select listing-filter w-full sm:w-56">
+                        <option value="newest" @selected(request('sort', 'newest') === 'newest')>Anunțuri noi</option>
+                        <option value="price_asc" @selected(request('sort') === 'price_asc')>Ieftine</option>
+                        <option value="price_desc" @selected(request('sort') === 'price_desc')>Scumpe</option>
+                        <option value="km_asc" @selected(request('sort') === 'km_asc')>Km crescător</option>
+                        <option value="power_asc" @selected(request('sort') === 'power_asc')>Putere crescător</option>
+                    </select>
                 </div>
             </div>
 
@@ -183,6 +222,7 @@
     const localityBaseUrl = "{{ url('/api/localities') }}";
     const initialLocalityId = @json(optional($currentLocality)->id);
     const initialRadius = @json($currentRadius);
+    const mobileQuery = window.matchMedia('(max-width: 1023px)');
 
     const domElements = {
         brand: document.getElementById('brand-filter'),
@@ -194,6 +234,7 @@
         county: document.getElementById('county-input'),
         locality: document.getElementById('locality-input'),
         radius: document.getElementById('radius-input'),
+        sort: document.getElementById('sort-select'),
         resetBtn: document.getElementById('reset-btn'),
         container: document.getElementById('services-container'),
         loader: document.getElementById('loading-indicator'),
@@ -201,6 +242,10 @@
         vehicleType: document.getElementById('vehicle-type'),
         sellerType: document.getElementById('seller-type'),
     };
+
+    function isMobileView() {
+        return mobileQuery.matches;
+    }
 
     function resetSelect(el, placeholder) {
         if (!el) return;
@@ -296,10 +341,11 @@
             county_id: domElements.county?.value || '',
             locality_id: domElements.locality?.value || '',
             radius_km: domElements.radius?.value || '',
+            sort: domElements.sort?.value || '',
         });
 
         [...params.keys()].forEach((key) => {
-            if (!params.get(key)) {
+            if (!params.get(key) || (key === 'sort' && params.get(key) === 'newest')) {
                 params.delete(key);
             }
         });
@@ -366,6 +412,7 @@
             county_id: domElements.county?.value || '',
             locality_id: domElements.locality?.value || '',
             radius_km: domElements.radius?.value || '',
+            sort: domElements.sort?.value || '',
         });
 
         fetch(`${listUrl}?${params.toString()}`, {
@@ -400,6 +447,7 @@
     };
 
     function debounceLoad() {
+        if (isMobileView()) return;
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => window.loadServices(1), 400);
     }
@@ -411,6 +459,7 @@
         const filterPanel = document.getElementById('filters-panel');
         const openFilters = document.getElementById('open-filters');
         const closeFilters = document.getElementById('close-filters');
+        const sellerTabs = document.querySelectorAll('.seller-tab');
 
         if (openFilters && filterOverlay && filterPanel) {
             openFilters.addEventListener('click', () => {
@@ -432,6 +481,10 @@
         if (searchForm) {
             searchForm.addEventListener('submit', (event) => {
                 event.preventDefault();
+                if (isMobileView()) {
+                    filterOverlay?.classList.add('hidden');
+                    filterPanel?.classList.add('hidden');
+                }
                 window.location.href = buildSearchUrl();
             });
         }
@@ -440,7 +493,7 @@
             domElements.county.addEventListener('change', () => {
                 const countyOption = domElements.county.selectedOptions?.[0];
                 const countySlug = countyOption?.dataset?.slug;
-                if (domElements.brand?.value && domElements.model?.value && countySlug) {
+                if (!isMobileView() && domElements.brand?.value && domElements.model?.value && countySlug) {
                     window.location.href = buildSearchUrl();
                     return;
                 }
@@ -469,11 +522,37 @@
             });
         }
 
-        document.querySelectorAll('.seller-tab').forEach(btn => {
+        if (domElements.sort) {
+            domElements.sort.addEventListener('change', () => {
+                window.location.href = buildSearchUrl();
+            });
+        }
+
+        const setActiveSellerTab = (selectedValue) => {
+            sellerTabs.forEach(tab => {
+                const isActive = tab.dataset.seller === selectedValue;
+                tab.classList.toggle('bg-[#CC2E2E]', isActive);
+                tab.classList.toggle('text-white', isActive);
+                tab.classList.toggle('shadow-sm', isActive);
+                tab.classList.toggle('text-gray-600', !isActive);
+                tab.classList.toggle('hover:bg-gray-100', !isActive);
+            });
+        };
+
+        if (sellerTabs.length && domElements.sellerType) {
+            setActiveSellerTab(domElements.sellerType.value || 'all');
+        }
+
+        sellerTabs.forEach(btn => {
             btn.addEventListener('click', () => {
                 const val = btn.dataset.seller;
                 if (domElements.sellerType) domElements.sellerType.value = val;
-                window.location.href = buildSearchUrl();
+                setActiveSellerTab(val);
+                if (!isMobileView()) {
+                    window.location.href = buildSearchUrl();
+                } else {
+                    window.checkResetVisibility();
+                }
             });
         });
 
@@ -505,11 +584,14 @@
                 if (!brandId) {
                     resetSelect(domElements.model, 'Model');
                     resetSelect(domElements.gen, 'Generație');
-                    window.location.href = homeUrl;
+                    if (!isMobileView()) {
+                        window.location.href = homeUrl;
+                        return;
+                    }
                     return;
                 }
 
-                if (slug) {
+                if (slug && !isMobileView()) {
                     window.location.href = `${baseUrl}/autoturisme/${slug}`;
                     return;
                 }
@@ -553,8 +635,10 @@
                 }
 
                 if (brandSlug && modelSlug) {
-                    window.location.href = `${baseUrl}/autoturisme/${brandSlug}/${modelSlug}`;
-                    return;
+                    if (!isMobileView()) {
+                        window.location.href = `${baseUrl}/autoturisme/${brandSlug}/${modelSlug}`;
+                        return;
+                    }
                 }
 
                 window.checkResetVisibility();
