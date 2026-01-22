@@ -8,7 +8,7 @@
 <div class="w-full bg-[#CFE8FF] mt-6 md:mt-14">
     <div class="max-w-7xl mx-auto px-4 py-8 md:py-8">
         {{-- CARD FILTRE --}}
-        <div class="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-2xl overflow-hidden w-full md:max-w-3xl md:mx-auto border border-gray-100 dark:border-[#333] relative z-20">
+        <div class="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-2xl overflow-hidden w-full md:max-w-2xl border border-gray-100 dark:border-[#333] relative z-20">
 
             {{-- TABURI (De unde cumperi) --}}
             <div class="px-4 pt-4 md:pt-3 text-sm font-semibold text-gray-700 dark:text-gray-200">
@@ -32,13 +32,13 @@
             </div>
 
             {{-- ZONA FILTRE --}}
-            <div class="p-4 md:p-3">
+            <div class="p-4 md:p-2.5">
                 <form id="search-form">
                     <input type="hidden" name="vehicle_type" id="vehicle-type" value="autoturisme">
                     <input type="hidden" name="seller_type" id="seller-type" value="{{ request('seller_type', 'all') }}">
 
                     {{-- GRID --}}
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-2.5">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-1.5">
 
                         {{-- RÂNDUL 1 --}}
                         <div class="col-span-1">
