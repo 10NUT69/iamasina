@@ -15,12 +15,17 @@
             ?: optional($service->modelRel)->name
             ?: ($service->model ?? 'Model');
         $titlu = trim("{$brandName} {$modelName}");
+        $listingTitle = $service->title ?: $titlu;
+        $badgeLabel = $titlu ?: 'Auto';
 
         // Detalii tehnice
         $an = $service->an_fabricatie ?? '-';
-        $km = number_format($service->km ?? 0, 0, ',', '.') . ' km';
+        $km = $service->km ? number_format($service->km, 0, ',', '.') . ' km' : '-';
         $fuel = $service->combustibil->nume ?? '-';
         $transmisie = $service->transmission->nume ?? $service->cutieViteze->nume ?? '-';
+        $engineSize = $service->capacitate_cilindrica ? number_format($service->capacitate_cilindrica, 0, ',', '.') . ' cm³' : '-';
+        $power = $service->putere ? $service->putere . ' CP' : '-';
+        $normaPoluare = $service->normaPoluare->nume ?? '-';
 
         // Imagini
         $imagesList = $service->images ?? [];
@@ -116,7 +121,7 @@
             {{-- Badge Categorie (Stânga Jos) --}}
             <div class="absolute bottom-3 left-3 z-10">
                  <span class="text-[10px] font-bold text-white px-2 py-0.5 rounded bg-[#CC2E2E] shadow-sm uppercase tracking-wide">
-                    {{ $service->category->name ?? 'Auto' }}
+                    {{ $badgeLabel }}
                  </span>
             </div>
         </div>
@@ -127,40 +132,45 @@
             {{-- Centru: Informații --}}
             <div class="flex-1 md:basis-[35%] flex flex-col min-w-0">
                 <div class="mb-auto">
-                    {{-- Titlu (Marca + Model) --}}
+                    {{-- Titlu (Anunț) --}}
                     <a href="{{ $service->public_url }}">
                         <h3 class="text-xl font-extrabold text-gray-900 dark:text-white hover:text-[#CC2E2E] transition-colors truncate">
-                            {{ $titlu }}
+                            {{ $listingTitle }}
                         </h3>
                     </a>
 
-                    {{-- Descriere (1 singur rând, trunchiată) --}}
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 truncate pr-4">
-                        {{ $service->description ?? 'Fără descriere disponibilă.' }}
-                    </p>
+                    {{-- Linie: capacitate cilindrică + CP --}}
+                    <div class="mt-1 text-sm text-gray-600 dark:text-gray-300 flex flex-wrap items-center gap-3">
+                        <span class="font-medium">{{ $engineSize }}</span>
+                        <span class="text-gray-400">•</span>
+                        <span class="font-medium">{{ $power }}</span>
+                    </div>
 
-                    {{-- Specificații Grid (An, Km, Combustibil, Transmisie) --}}
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-4 mt-4 text-sm text-gray-700 dark:text-gray-300">
-                        {{-- An --}}
-                        <div class="flex items-center gap-1.5">
+                    <div class="mt-3"></div>
+
+                    {{-- Linie: an fabricație, combustibil, km --}}
+                    <div class="mt-1 flex flex-wrap items-center gap-4 text-sm text-gray-700 dark:text-gray-300">
+                        <span class="inline-flex items-center gap-1.5">
                             <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                             <span class="font-medium">{{ $an }}</span>
-                        </div>
-                        {{-- Km --}}
-                        <div class="flex items-center gap-1.5">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                            <span class="font-medium">{{ $km }}</span>
-                        </div>
-                        {{-- Combustibil --}}
-                        <div class="flex items-center gap-1.5">
+                        </span>
+                        <span class="inline-flex items-center gap-1.5">
                             <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
                             <span class="font-medium">{{ $fuel }}</span>
-                        </div>
-                        {{-- Transmisie --}}
-                        <div class="flex items-center gap-1.5">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-                            <span class="font-medium">{{ $transmisie }}</span>
-                        </div>
+                        </span>
+                        <span class="inline-flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                            <span class="font-medium">{{ $km }}</span>
+                        </span>
+                    </div>
+
+                    {{-- Linie: capacitate cilindrică, CP, normă poluare --}}
+                    <div class="mt-2 text-sm text-gray-600 dark:text-gray-300 flex flex-wrap items-center gap-3">
+                        <span class="font-medium">{{ $engineSize }}</span>
+                        <span class="text-gray-400">•</span>
+                        <span class="font-medium">{{ $power }}</span>
+                        <span class="text-gray-400">•</span>
+                        <span class="font-medium">{{ $normaPoluare }}</span>
                     </div>
                 </div>
 

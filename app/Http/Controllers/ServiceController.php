@@ -67,6 +67,7 @@ class ServiceController extends Controller
         'brandRel',
         'modelRel',
         'generation.model.brand',
+        'normaPoluare',
     ])->where('status', 'active');
 
     // Search
