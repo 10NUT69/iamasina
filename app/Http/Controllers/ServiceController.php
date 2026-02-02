@@ -41,11 +41,15 @@ class ServiceController extends Controller
     // ==========================================
     public function index(Request $request)
 {
+    $isHomepage = $request->routeIs('services.index');
     $page = (int) $request->get('page', 1);
     $perPageFirst = 10;
     $perPageNext  = 8;
 
-    if ($page === 1) {
+    if ($isHomepage) {
+        $limit = 4;
+        $offset = 0;
+    } elseif ($page === 1) {
         $limit  = $perPageFirst;
         $offset = 0;
     } else {
@@ -53,7 +57,18 @@ class ServiceController extends Controller
         $offset = $perPageFirst + (($page - 2) * $perPageNext);
     }
 
-    $query = Service::with(['county', 'locality'])->where('status', 'active');
+    $query = Service::with([
+        'county',
+        'locality',
+        'category',
+        'user',
+        'combustibil',
+        'cutieViteze',
+        'brandRel',
+        'modelRel',
+        'generation.model.brand',
+        'normaPoluare',
+    ])->where('status', 'active');
 
     // Search
     if ($request->filled('search')) {
@@ -159,16 +174,33 @@ class ServiceController extends Controller
         });
     }
 
+    $sort = $request->get('sort', 'newest');
     $totalCount = $query->count();
 
+    switch ($sort) {
+        case 'price_asc':
+            $query->orderBy('price_value', 'asc')->orderBy('created_at', 'desc');
+            break;
+        case 'price_desc':
+            $query->orderBy('price_value', 'desc')->orderBy('created_at', 'desc');
+            break;
+        case 'km_asc':
+            $query->orderBy('km', 'asc')->orderBy('created_at', 'desc');
+            break;
+        case 'power_asc':
+            $query->orderBy('putere', 'asc')->orderBy('created_at', 'desc');
+            break;
+        default:
+            $query->orderBy('created_at', 'desc');
+    }
+
     $services = $query
-        ->orderBy('created_at', 'desc')
         ->offset($offset)
         ->limit($limit)
         ->get();
 
     $loadedSoFar = $offset + $services->count();
-    $hasMore     = $loadedSoFar < $totalCount;
+    $hasMore     = $isHomepage ? false : $loadedSoFar < $totalCount;
 
     if ($request->ajax()) {
         $cardsView = $request->routeIs('services.index')

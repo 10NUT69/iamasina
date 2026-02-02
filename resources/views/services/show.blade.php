@@ -99,13 +99,14 @@
     .swiper-slide { display: flex; align-items: center; justify-content: center; overflow: hidden; }
     .swiper-zoom-container { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 
-    /* Navigation Arrows */
+    /* Navigation Arrows Generale (Lightbox + Desktop) */
     .swiper-button-next, .swiper-button-prev {
         color: white !important;
         background: rgba(0,0,0,0.5);
         width: 50px; height: 50px;
         border-radius: 50%;
         backdrop-filter: blur(4px);
+        z-index: 20;
     }
     .swiper-button-next:after, .swiper-button-prev:after { font-size: 20px !important; font-weight: bold; }
 
@@ -141,15 +142,21 @@
                 @foreach($fullImageUrls as $url)
                     <div class="swiper-slide">
                         <div class="swiper-zoom-container">
-                            <img src="{{ $url }}" class="max-h-full max-w-full object-contain" alt="Gallery Image">
+                            <img 
+                                src="{{ $url }}" 
+                                class="max-h-full max-w-full object-contain select-none" 
+                                alt="Gallery Image"
+                                style="-webkit-user-drag: none; -webkit-touch-callout: none;" 
+                                draggable="false"
+                            >
                         </div>
                     </div>
                 @endforeach
             </div>
 
-            {{-- Navigare (Doar Desktop) --}}
-            <div class="swiper-button-next hidden md:flex hover:bg-black/70 transition"></div>
-            <div class="swiper-button-prev hidden md:flex hover:bg-black/70 transition"></div>
+            {{-- Navigare (Doar Desktop Lightbox) --}}
+            <div class="swiper-button-next hover:bg-black/70 transition"></div>
+            <div class="swiper-button-prev hover:bg-black/70 transition"></div>
         </div>
     </div>
 </div>
@@ -197,7 +204,7 @@
             <div class="rounded-2xl overflow-hidden shadow-sm bg-white dark:bg-[#1E1E1E] relative select-none border border-gray-100 dark:border-[#333]">
 
                 {{-- Mobile: Slider Simplu --}}
-                <div class="block md:hidden">
+                <div class="block md:hidden relative group">
                     <div class="swiper mobile-hero-swiper aspect-[4/3] bg-gray-100 dark:bg-black">
                         <div class="swiper-wrapper">
                             @foreach($fullImageUrls as $index => $url)
@@ -206,9 +213,15 @@
                                 </div>
                             @endforeach
                         </div>
-                        <div class="absolute bottom-3 right-3 bg-black/60 text-white text-xs font-bold px-2.5 py-1 rounded-md z-10 backdrop-blur-sm">
-                            📷 1 / {{ count($fullImageUrls) }}
+                        
+                        {{-- Counter --}}
+                        <div class="absolute bottom-3 right-3 bg-black/60 text-white text-xs font-bold px-2.5 py-1 rounded-md z-10 backdrop-blur-sm pointer-events-none">
+                            📷 <span class="mobile-counter">1</span> / {{ count($fullImageUrls) }}
                         </div>
+
+                        {{-- Săgeți Mobile (Adăugate aici, stilizate mai mici cu Tailwind) --}}
+                        <div class="swiper-button-next mobile-arrow-next !w-10 !h-10 !after:text-lg"></div>
+                        <div class="swiper-button-prev mobile-arrow-prev !w-10 !h-10 !after:text-lg"></div>
                     </div>
                 </div>
 
@@ -290,6 +303,21 @@
                     </div>
                 @endforeach
             </div>
+
+            {{-- === MODIFICARE: VIN BOX AICI (Mutat sus) === --}}
+            @if($service->vin)
+                <div class="mt-4 bg-white dark:bg-[#1E1E1E] p-4 rounded-xl border border-gray-100 dark:border-[#333] shadow-sm flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 flex items-center justify-center bg-gray-50 dark:bg-[#333] rounded-lg text-gray-500">
+                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5l5 5v11a2 2 0 01-2 2z"/></svg>
+                        </div>
+                        <span class="font-bold text-gray-500 text-sm uppercase tracking-wide">Serie Șasiu (VIN)</span>
+                    </div>
+                    <span class="font-mono font-bold text-lg text-gray-900 dark:text-white select-all break-all text-right">
+                        {{ $service->vin }}
+                    </span>
+                </div>
+            @endif
 
             {{-- DESCRIERE --}}
             <div class="bg-white dark:bg-[#1E1E1E] p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-[#333]">
@@ -381,13 +409,8 @@
                         @endif
                     </div>
                 @endif
-
-                @if($service->vin)
-                    <div class="bg-gray-50 dark:bg-[#252525] px-6 py-4 border-t border-gray-100 dark:border-[#333] flex items-center justify-between">
-                        <span class="font-bold text-gray-500">VIN</span>
-                        <span class="font-mono bg-white dark:bg-black border px-2 py-1 rounded text-sm select-all">{{ $service->vin }}</span>
-                    </div>
-                @endif
+                
+                {{-- VIN Scos de aici --}}
             </div>
 
         </div>
@@ -553,10 +576,22 @@
 
     document.addEventListener('DOMContentLoaded', function () {
 
-        // 1. Mobile Inline Slider
+        // 1. Mobile Inline Slider (Actualizat cu Navigare)
         const mobileSwiper = new Swiper('.mobile-hero-swiper', {
             loop: true,
-            pagination: false
+            pagination: false,
+            navigation: {
+                nextEl: ".mobile-arrow-next",
+                prevEl: ".mobile-arrow-prev",
+            },
+            on: {
+                slideChange: function () {
+                    // Update counter
+                    const index = this.realIndex + 1;
+                    const counters = document.querySelectorAll('.mobile-counter');
+                    counters.forEach(c => c.innerText = index);
+                }
+            }
         });
 
         // 2. Lightbox & Zoom Logic
@@ -577,6 +612,7 @@
                 lightboxSwiperInstance = new Swiper('.lightbox-swiper', {
                     initialSlide: index,
                     spaceBetween: 30,
+                    grabCursor: true,
                     zoom: { maxRatio: 3, minRatio: 1 },
                     keyboard: { enabled: true },
                     navigation: { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" },

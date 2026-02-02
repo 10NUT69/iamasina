@@ -1,345 +1,241 @@
 @forelse($services as $service)
     @php
+        // 1. Logica Favorite
         $isFav = auth()->check() && $service->isFavoritedBy(auth()->user());
-        
-        // Construim locația: Localitate, Județ
+
+        // 2. Logica Locație
         $loc = $service->locality->name ?? '';
         $jud = $service->county->name ?? '';
         $locationLabel = $loc ? "$loc, $jud" : $jud;
 
-        // Construim Titlul: Brand + Model
-        $titlu = ($service->brand->name ?? 'Marca') . ' ' . ($service->model->name ?? 'Model');
+        // 3. Construcție Titlu (Brand + Model dacă nu există titlu custom)
+        $brandName = optional(optional(optional($service->generation)->model)->brand)->name
+            ?: optional($service->brandRel)->name
+            ?: ($service->brand ?? 'Marca');
+        $modelName = optional(optional($service->generation)->model)->name
+            ?: optional($service->modelRel)->name
+            ?: ($service->model ?? 'Model');
+        
+        $titluCalculat = trim("{$brandName} {$modelName}");
+        $listingTitle = $service->title ?: $titluCalculat;
+        
+        // Badge-uri (ex: Promovat)
+        $isPromoted = $service->promoted ?? false; 
 
-        // Detalii tehnice
+        // 4. Formatare Valori Tehnice
         $an = $service->an_fabricatie ?? '-';
-        $km = number_format($service->km ?? 0, 0, ',', '.') . ' km';
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        $fuel = $service->combustibil->nume ?? '-'; 
-        $transmisie = $service->transmission->nume ?? $service->cutieViteze->nume ?? '-';
+        $km = $service->km ? number_format($service->km, 0, ',', '.') : null;
+        $fuel = $service->combustibil->nume ?? '-';
+        $engineSize = $service->capacitate_cilindrica ? number_format($service->capacitate_cilindrica, 0, ',', '.') : null;
+        $power = $service->putere ?? null;
+        $norma = $service->normaPoluare->nume ?? null;
 
-        // --- FIX IMAGINI ---
-        // Ne asigurăm că images este un array valid
+        // 5. Procesare Imagini
         $imagesList = $service->images ?? [];
-        // Transformăm în array dacă este Collection
-        if (is_object($imagesList) && method_exists($imagesList, 'all')) {
-            $imagesList = $imagesList->all();
-        }
+        if (is_string($imagesList)) $imagesList = json_decode($imagesList, true) ?: [];
+        if (is_object($imagesList) && method_exists($imagesList, 'all')) $imagesList = $imagesList->all();
+        $imagesList = is_array($imagesList) ? $imagesList : [];
         $imgCount = count($imagesList);
-=======
-        $fuel = $service->combustibil->nume ?? '-'; // sau $service->fuel->name
-        $transmisie = $service->transmission->nume ?? $service->cutieViteze->nume ?? '-'; // verifică numele relației
->>>>>>> Stashed changes
-=======
-        $fuel = $service->combustibil->nume ?? '-'; // sau $service->fuel->name
-        $transmisie = $service->transmission->nume ?? $service->cutieViteze->nume ?? '-'; // verifică numele relației
->>>>>>> Stashed changes
+
+        // 6. LOGICĂ DATĂ (TimeAgo / Calendaristic)
+        $updated = \Carbon\Carbon::parse($service->updated_at);
+        if ($updated->isToday()) {
+            $dateLabel = 'Azi ' . $updated->format('H:i');
+        } elseif ($updated->isYesterday()) {
+            $dateLabel = 'Ieri ' . $updated->format('H:i');
+        } else {
+            // Data formatată scurt (ex: 22 Ian 2026)
+            $dateLabel = $updated->translatedFormat('d M Y'); 
+        }
     @endphp
 
-    <div class="group relative bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-[#333333] shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col md:flex-row overflow-hidden mb-4">
+    {{-- CARD ANUNȚ (DESIGN 2025-2026) --}}
+    <article class="group relative flex flex-col md:flex-row bg-white dark:bg-[#18181b] rounded-xl border border-gray-200 dark:border-[#27272a] shadow-sm hover:shadow-xl hover:border-blue-500/30 transition-all duration-300 overflow-hidden mb-5">
         
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        {{-- 1. GALERIE FOTO (Cu Alpine.js) --}}
-        <div class="relative w-full md:w-[320px] lg:w-[350px] shrink-0 h-64 md:h-auto bg-gray-100 dark:bg-[#121212]"
+        {{-- A. ZONA FOTO (Slider + Badges) --}}
+        <div class="relative w-full md:w-[320px] lg:w-[340px] shrink-0 aspect-[4/3] md:aspect-auto md:min-h-[240px] overflow-hidden bg-gray-100 dark:bg-[#09090b]"
              x-data="{ 
                 activeSlide: 0, 
                 slides: {{ $imgCount > 0 ? $imgCount : 1 }},
-=======
-=======
->>>>>>> Stashed changes
-        {{-- 1. GALERIE FOTO (Cu Alpine.js pentru Săgeți și Swipe) --}}
-        <div class="relative w-full md:w-[320px] lg:w-[350px] shrink-0 h-64 md:h-auto bg-gray-100 dark:bg-[#121212]"
-             x-data="{ 
-                activeSlide: 0, 
-                slides: {{ $service->images->count() > 0 ? $service->images->count() : 1 }},
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
                 next() { this.activeSlide = (this.activeSlide === this.slides - 1) ? 0 : this.activeSlide + 1 },
                 prev() { this.activeSlide = (this.activeSlide === 0) ? this.slides - 1 : this.activeSlide - 1 }
              }">
-            
-            {{-- Container Imagini --}}
-            <div class="relative w-full h-full overflow-hidden">
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
+
+            {{-- Link principal pe imagine --}}
+            <a href="{{ $service->public_url }}" class="block w-full h-full relative group/img">
                 @if($imgCount > 0)
                     @foreach($imagesList as $index => $img)
                         @php
-                            // LOGICA DE SIGURANȚĂ PENTRU PATH
-                            // Determinăm calea indiferent dacă $img e String, Array sau Obiect
-                            $path = '';
-                            if (is_string($img)) {
-                                $path = $img; // E doar numele fișierului
-                            } elseif (is_array($img)) {
-                                $path = $img['path'] ?? $img['url'] ?? '';
-                            } elseif (is_object($img)) {
-                                $path = $img->path ?? $img->url ?? '';
-                            }
+                            $path = is_string($img) ? $img : ($img['path'] ?? $img['url'] ?? $img->path ?? '');
+                            $imageUrl = $path ? (\Illuminate\Support\Str::startsWith($path, ['http', 'https']) ? $path : asset('storage/services/' . ltrim($path, '/'))) : '';
                         @endphp
-
-=======
-                @if($service->images->count() > 0)
-                    @foreach($service->images as $index => $img)
->>>>>>> Stashed changes
-=======
-                @if($service->images->count() > 0)
-                    @foreach($service->images as $index => $img)
->>>>>>> Stashed changes
-                        <div class="absolute inset-0 transition-transform duration-300 ease-out w-full h-full"
-                             x-show="activeSlide === {{ $index }}"
-                             x-transition:enter="transition transform ease-out duration-300"
-                             x-transition:enter-start="opacity-0 scale-95"
-                             x-transition:enter-end="opacity-100 scale-100"
-                             x-transition:leave="transition transform ease-in duration-300"
-                             x-transition:leave-start="opacity-100 scale-100"
-                             x-transition:leave-end="opacity-0 scale-95">
-                             
-                            <a href="{{ $service->public_url }}" class="block w-full h-full">
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                                <img src="{{ asset('storage/' . $path) }}" 
-=======
-                                <img src="{{ asset('storage/' . $img->path) }}" 
->>>>>>> Stashed changes
-=======
-                                <img src="{{ asset('storage/' . $img->path) }}" 
->>>>>>> Stashed changes
-                                     class="w-full h-full object-cover" 
-                                     alt="{{ $titlu }}" loading="lazy">
-                            </a>
-                        </div>
+                        @if($imageUrl)
+                            <img src="{{ $imageUrl }}" 
+                                 x-show="activeSlide === {{ $index }}"
+                                 x-transition:enter="transition transform duration-500 ease-out"
+                                 x-transition:enter-start="opacity-0 scale-105"
+                                 x-transition:enter-end="opacity-100 scale-100"
+                                 class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105"
+                                 alt="{{ $listingTitle }}" loading="lazy">
+                        @endif
                     @endforeach
                 @else
-                    {{-- Fallback Image --}}
-                    <a href="{{ $service->public_url }}" class="block w-full h-full">
-                        <img src="{{ $service->main_image_url }}" class="w-full h-full object-cover" alt="No image">
-                    </a>
+                    {{-- Placeholder --}}
+                    <div class="absolute inset-0 flex items-center justify-center text-gray-400 bg-gray-100 dark:bg-[#121212]">
+                        <svg class="w-12 h-12 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
                 @endif
-            </div>
+                
+                {{-- Gradient Overlay (pentru contrast text jos) --}}
+                <div class="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-60"></div>
+            </a>
 
-            {{-- Săgeți Navigare (Doar dacă sunt mai multe poze) --}}
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
+            {{-- Navigare Slider (Doar la Hover) --}}
             @if($imgCount > 1)
-=======
-            @if($service->images->count() > 1)
->>>>>>> Stashed changes
-=======
-            @if($service->images->count() > 1)
->>>>>>> Stashed changes
-                {{-- Stânga --}}
-                <button @click.prevent="prev()" 
-                        class="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity z-10 md:hidden md:group-hover:block">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-                </button>
-                {{-- Dreapta --}}
-                <button @click.prevent="next()" 
-                        class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity z-10 md:hidden md:group-hover:block">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                </button>
+                <div class="absolute inset-y-0 left-0 flex items-center pl-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                    <button @click.prevent="prev()" class="pointer-events-auto p-1.5 rounded-full bg-white/90 text-black hover:bg-white shadow-lg transition-transform hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                </div>
+                <div class="absolute inset-y-0 right-0 flex items-center pr-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                    <button @click.prevent="next()" class="pointer-events-auto p-1.5 rounded-full bg-white/90 text-black hover:bg-white shadow-lg transition-transform hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    </button>
+                </div>
 
-                {{-- Dots Indicator (Jos) --}}
-                <div class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">
-                    <template x-for="i in slides">
-                        <div class="w-1.5 h-1.5 rounded-full transition-colors duration-200"
-                             :class="activeSlide === i-1 ? 'bg-white' : 'bg-white/40'"></div>
-                    </template>
+                {{-- Counter (ex: 1/12) --}}
+                <div class="absolute bottom-3 left-3 z-10">
+                    <div class="flex items-center gap-1.5 px-2 py-1 rounded-md bg-black/60 backdrop-blur-md text-white text-[10px] font-bold tracking-wide">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        <span x-text="activeSlide + 1"></span>/{{ $imgCount }}
+                    </div>
                 </div>
             @endif
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-            {{-- Badge Categorie --}}
-            <div class="absolute bottom-3 left-3 z-10 pointer-events-none">
-=======
-            {{-- Badge Categorie (Stânga Jos) --}}
-            <div class="absolute bottom-3 left-3 z-10">
->>>>>>> Stashed changes
-=======
-            {{-- Badge Categorie (Stânga Jos) --}}
-            <div class="absolute bottom-3 left-3 z-10">
->>>>>>> Stashed changes
-                 <span class="text-[10px] font-bold text-white px-2 py-0.5 rounded bg-[#CC2E2E] shadow-sm uppercase tracking-wide">
-                    {{ $service->category->name ?? 'Auto' }}
-                 </span>
-            </div>
+            {{-- Badge Promovat --}}
+            @if($isPromoted)
+                <div class="absolute top-3 left-3 z-10">
+                    <span class="px-2.5 py-1 rounded bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                        Promovat
+                    </span>
+                </div>
+            @endif
+            
+            {{-- Buton Favorite Mobile (Peste poză) --}}
+            <button onclick="toggleHeart(this, {{ $service->id }})" 
+                    class="md:hidden absolute top-3 right-3 z-20 p-2 rounded-full bg-black/30 backdrop-blur-md border border-white/20 text-white hover:bg-red-500 hover:border-red-500 transition-all">
+                <svg class="w-5 h-5 {{ $isFav ? 'text-red-500 fill-red-500' : 'text-white fill-none' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733C11.285 4.876 9.623 3.75 7.688 3.75 5.099 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                </svg>
+            </button>
         </div>
 
-        {{-- 2. ZONA CONȚINUT (Centru + Dreapta) --}}
-        <div class="flex flex-col md:flex-row flex-1 p-4 gap-4">
+        {{-- B. ZONA CONȚINUT --}}
+        <div class="flex-1 flex flex-col p-4 md:p-5 relative justify-between">
             
-            {{-- Centru: Informații --}}
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-            <div class="flex-1 flex flex-col min-w-0"> 
-                <div class="mb-auto">
-                    {{-- Titlu --}}
-=======
-            <div class="flex-1 flex flex-col min-w-0"> {{-- min-w-0 previne overflow la text --}}
-                <div class="mb-auto">
-                    {{-- Titlu (Marca + Model) --}}
->>>>>>> Stashed changes
-=======
-            <div class="flex-1 flex flex-col min-w-0"> {{-- min-w-0 previne overflow la text --}}
-                <div class="mb-auto">
-                    {{-- Titlu (Marca + Model) --}}
->>>>>>> Stashed changes
-                    <a href="{{ $service->public_url }}">
-                        <h3 class="text-xl font-extrabold text-gray-900 dark:text-white hover:text-[#CC2E2E] transition-colors truncate">
-                            {{ $titlu }}
-                        </h3>
-                    </a>
-                    
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                    {{-- Descriere --}}
-=======
-                    {{-- Descriere (1 singur rând, trunchiată) --}}
->>>>>>> Stashed changes
-=======
-                    {{-- Descriere (1 singur rând, trunchiată) --}}
->>>>>>> Stashed changes
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 truncate pr-4">
-                        {{ $service->description ?? 'Fără descriere disponibilă.' }}
-                    </p>
-
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                    {{-- Specificații Grid --}}
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-4 mt-4 text-sm text-gray-700 dark:text-gray-300">
-=======
-                    {{-- Specificații Grid (An, Km, Combustibil, Transmisie) --}}
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-4 mt-4 text-sm text-gray-700 dark:text-gray-300">
-                        {{-- An --}}
->>>>>>> Stashed changes
-=======
-                    {{-- Specificații Grid (An, Km, Combustibil, Transmisie) --}}
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-4 mt-4 text-sm text-gray-700 dark:text-gray-300">
-                        {{-- An --}}
->>>>>>> Stashed changes
-                        <div class="flex items-center gap-1.5">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                            <span class="font-medium">{{ $an }}</span>
-                        </div>
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-                        {{-- Km --}}
->>>>>>> Stashed changes
-=======
-                        {{-- Km --}}
->>>>>>> Stashed changes
-                        <div class="flex items-center gap-1.5">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                            <span class="font-medium">{{ $km }}</span>
-                        </div>
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-                        {{-- Combustibil --}}
->>>>>>> Stashed changes
-=======
-                        {{-- Combustibil --}}
->>>>>>> Stashed changes
-                        <div class="flex items-center gap-1.5">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
-                            <span class="font-medium">{{ $fuel }}</span>
-                        </div>
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-                        {{-- Transmisie --}}
->>>>>>> Stashed changes
-=======
-                        {{-- Transmisie --}}
->>>>>>> Stashed changes
-                        <div class="flex items-center gap-1.5">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-                            <span class="font-medium">{{ $transmisie }}</span>
+            <div>
+                {{-- Header: Titlu & Preț --}}
+                <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-2 mb-2">
+                    <div class="flex-1 min-w-0 pr-2">
+                        <a href="{{ $service->public_url }}" class="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                            <h3 class="text-lg md:text-xl font-bold text-gray-900 dark:text-gray-100 leading-snug truncate">
+                                {{ $listingTitle }}
+                            </h3>
+                        </a>
+                        {{-- Subtitlu Motoare --}}
+                        <div class="text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium flex flex-wrap gap-2 items-center">
+                            @if($engineSize) <span>{{ $engineSize }} cm³</span> <span class="text-gray-300">•</span> @endif
+                            @if($power) <span>{{ $power }} CP</span> <span class="text-gray-300">•</span> @endif
+                            @if($norma) <span class="hidden sm:inline">{{ $norma }}</span> @endif
                         </div>
                     </div>
-                </div>
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                {{-- Locație --}}
-=======
-                {{-- Locație (Jos) --}}
->>>>>>> Stashed changes
-=======
-                {{-- Locație (Jos) --}}
->>>>>>> Stashed changes
-                <div class="mt-4 pt-4 border-t border-gray-100 dark:border-[#2C2C2C] flex items-center text-sm text-gray-500 dark:text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-[#CC2E2E]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                    {{ $locationLabel }}
-                </div>
-            </div>
-
-            {{-- Dreapta: Preț și Favorite --}}
-            <div class="md:w-48 flex flex-row md:flex-col justify-between items-center md:items-end border-t md:border-t-0 md:border-l border-gray-100 dark:border-[#2C2C2C] pt-3 md:pt-0 md:pl-4 mt-1 md:mt-0">
-                
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                {{-- Preț --}}
-=======
-                {{-- Zona Preț --}}
->>>>>>> Stashed changes
-=======
-                {{-- Zona Preț --}}
->>>>>>> Stashed changes
-                <div class="text-left md:text-right">
-                    @if(!empty($service->price_value))
-                        <div class="flex flex-col md:items-end">
-                            <span class="text-2xl font-bold text-[#CC2E2E] dark:text-[#FF4444]">
-                                {{ number_format($service->price_value, 0, ',', '.') }} {{ $service->currency }}
+                    {{-- Preț --}}
+                    <div class="mt-1 md:mt-0 md:text-right shrink-0 flex items-center md:flex-col md:items-end gap-2 md:gap-0">
+                        @if(!empty($service->price_value))
+                            <span class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+                                {{ number_format($service->price_value, 0, ',', '.') }} <span class="text-base font-semibold">{{ $service->currency }}</span>
                             </span>
                             @if($service->price_type === 'negotiable')
-                                <span class="text-[10px] uppercase font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded mt-1">
+                                <span class="text-[10px] uppercase tracking-wide text-green-600 dark:text-green-400 font-bold bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded md:mt-1">
                                     Negociabil
                                 </span>
                             @endif
-                        </div>
-                    @else
-                        <span class="text-lg font-bold text-blue-600">La cerere</span>
-                    @endif
+                        @else
+                            <span class="text-lg font-bold text-blue-600">La cerere</span>
+                        @endif
+                    </div>
                 </div>
 
-                {{-- Buton Favorite --}}
-                <button type="button"
-                    onclick="toggleHeart(this, {{ $service->id }})"
-                    class="group/heart flex items-center justify-center p-2 rounded-full hover:bg-gray-50 dark:hover:bg-[#333] transition-colors"
-                    title="Adaugă la favorite">
-                    <svg xmlns="http://www.w3.org/2000/svg" 
-                         class="h-7 w-7 transition-transform duration-300 {{ $isFav ? 'text-[#CC2E2E] fill-[#CC2E2E]' : 'text-gray-400 fill-none group-hover/heart:text-[#CC2E2E]' }}" 
-                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733C11.285 4.876 9.623 3.75 7.688 3.75 5.099 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-                    </svg>
-                </button>
-
+                {{-- Specificații (Chips / Pastile) --}}
+                <div class="flex flex-wrap gap-2 mt-3 mb-4">
+                    {{-- An --}}
+                    <div class="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-gray-50 dark:bg-[#27272a] text-gray-700 dark:text-gray-300 text-xs font-semibold border border-gray-100 dark:border-gray-700/50">
+                        <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        {{ $an }}
+                    </div>
+                    {{-- KM --}}
+                    @if($km)
+                    <div class="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-gray-50 dark:bg-[#27272a] text-gray-700 dark:text-gray-300 text-xs font-semibold border border-gray-100 dark:border-gray-700/50">
+                        <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        {{ $km }} km
+                    </div>
+                    @endif
+                    {{-- Combustibil --}}
+                    <div class="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-gray-50 dark:bg-[#27272a] text-gray-700 dark:text-gray-300 text-xs font-semibold border border-gray-100 dark:border-gray-700/50">
+                        <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                        {{ $fuel }}
+                    </div>
+                    {{-- Transmisie --}}
+                    <div class="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-gray-50 dark:bg-[#27272a] text-gray-700 dark:text-gray-300 text-xs font-semibold border border-gray-100 dark:border-gray-700/50">
+                        <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                        {{ $service->transmission->nume ?? 'Automată' }}
+                    </div>
+                </div>
             </div>
+
+            {{-- Footer: Locație, Dată & Acțiuni --}}
+            <div class="mt-auto pt-3 flex items-end justify-between border-t border-gray-100 dark:border-[#27272a]">
+                
+                <div class="flex flex-col gap-1.5">
+                    {{-- Locație --}}
+                    <div class="flex items-center text-gray-600 dark:text-gray-400 text-xs font-semibold">
+                        <svg class="w-3.5 h-3.5 mr-1.5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <span class="truncate max-w-[140px] md:max-w-[180px]">{{ $locationLabel }}</span>
+                    </div>
+                    {{-- Dată Publicare (UPDATED) --}}
+                    <div class="flex items-center text-[11px] text-gray-400 dark:text-gray-500 ml-5">
+                        <svg class="w-3 h-3 mr-1 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span>{{ $dateLabel }}</span>
+                    </div>
+                </div>
+
+                {{-- Acțiuni Desktop --}}
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleHeart(this, {{ $service->id }})" 
+                            class="hidden md:flex group/btn items-center justify-center w-8 h-8 rounded-full bg-gray-50 dark:bg-[#27272a] hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-all border border-gray-100 dark:border-gray-700"
+                            title="Salvează anunțul">
+                        <svg class="w-4.5 h-4.5 transition-colors {{ $isFav ? 'text-red-500 fill-red-500' : 'fill-none' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733C11.285 4.876 9.623 3.75 7.688 3.75 5.099 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                        </svg>
+                    </button>
+                    
+                    <a href="{{ $service->public_url }}" class="hidden md:inline-flex items-center justify-center px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-bold uppercase tracking-wide rounded-lg hover:bg-blue-600 dark:hover:bg-gray-200 transition-colors shadow-sm">
+                        Vezi anunț
+                    </a>
+                </div>
+            </div>
+
         </div>
-    </div>
+    </article>
+
 @empty
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-   <div class="col-span-full py-20 text-center">
-        <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-50 dark:bg-[#252525] mb-4">
-            <svg class="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+    {{-- Empty State Modern --}}
+    <div class="col-span-full py-20 text-center">
+        <div class="inline-block p-6 rounded-full bg-gray-50 dark:bg-[#27272a] mb-5 shadow-inner">
+            <svg class="w-12 h-12 text-gray-300 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
         </div>
-        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Nu am găsit anunțuri</h3>
-   </div>
-=======
-   {{-- Aici pui codul tău de empty state --}}
-   <div class="p-10 text-center">Nu există anunțuri.</div>
->>>>>>> Stashed changes
-=======
-   {{-- Aici pui codul tău de empty state --}}
-   <div class="p-10 text-center">Nu există anunțuri.</div>
->>>>>>> Stashed changes
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Nu s-au găsit anunțuri</h3>
+        <p class="text-gray-500 dark:text-gray-400">Încearcă să ștergi filtrele sau să cauți alt model.</p>
+    </div>
 @endforelse
