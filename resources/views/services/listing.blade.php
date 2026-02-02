@@ -102,6 +102,36 @@
                             @endforeach
                         </select>
 
+                        <div class="space-y-2">
+                            <p class="text-xs font-bold text-gray-500 uppercase">An fabricație</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="number" id="year-min" name="an_min" value="{{ request('an_min') }}"
+                                       placeholder="Min" class="autovit-input listing-filter" inputmode="numeric" min="1900" max="{{ date('Y') }}">
+                                <input type="number" id="year-max" name="an_max" value="{{ request('an_max') }}"
+                                       placeholder="Max" class="autovit-input listing-filter" inputmode="numeric" min="1900" max="{{ date('Y') }}">
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <p class="text-xs font-bold text-gray-500 uppercase">Preț</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="number" id="price-min" name="price_min" value="{{ request('price_min') }}"
+                                       placeholder="Min" class="autovit-input listing-filter" inputmode="numeric" min="0" step="1">
+                                <input type="number" id="price-max" name="price_max" value="{{ request('price_max') }}"
+                                       placeholder="Max" class="autovit-input listing-filter" inputmode="numeric" min="0" step="1">
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <p class="text-xs font-bold text-gray-500 uppercase">Kilometraj</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="number" id="km-min" name="km_min" value="{{ request('km_min') }}"
+                                       placeholder="Min" class="autovit-input listing-filter" inputmode="numeric" min="0" step="1000">
+                                <input type="number" id="km-max" name="km_max" value="{{ request('km_max') }}"
+                                       placeholder="Max" class="autovit-input listing-filter" inputmode="numeric" min="0" step="1000">
+                            </div>
+                        </div>
+
                         <select id="county-input" name="county_id" class="autovit-select listing-filter">
                             <option value="">Toată țara</option>
                             @foreach($counties as $county)
@@ -191,6 +221,12 @@
         body: document.getElementById('body-filter'),
         fuel: document.getElementById('fuel-filter'),
         gear: document.getElementById('gearbox-filter'),
+        yearMin: document.getElementById('year-min'),
+        yearMax: document.getElementById('year-max'),
+        priceMin: document.getElementById('price-min'),
+        priceMax: document.getElementById('price-max'),
+        kmMin: document.getElementById('km-min'),
+        kmMax: document.getElementById('km-max'),
         county: document.getElementById('county-input'),
         locality: document.getElementById('locality-input'),
         radius: document.getElementById('radius-input'),
@@ -293,6 +329,12 @@
             caroserie_id: domElements.body?.value || '',
             combustibil_id: domElements.fuel?.value || '',
             cutie_viteze_id: domElements.gear?.value || '',
+            an_min: domElements.yearMin?.value || '',
+            an_max: domElements.yearMax?.value || '',
+            price_min: domElements.priceMin?.value || '',
+            price_max: domElements.priceMax?.value || '',
+            km_min: domElements.kmMin?.value || '',
+            km_max: domElements.kmMax?.value || '',
             county_id: domElements.county?.value || '',
             locality_id: domElements.locality?.value || '',
             radius_km: domElements.radius?.value || '',
@@ -314,8 +356,10 @@
 
         const filters = [
             domElements.brand, domElements.model, domElements.gen,
-            domElements.body, domElements.fuel, domElements.gear, domElements.county,
-            domElements.locality, domElements.radius
+            domElements.body, domElements.fuel, domElements.gear,
+            domElements.yearMin, domElements.yearMax, domElements.priceMin,
+            domElements.priceMax, domElements.kmMin, domElements.kmMax,
+            domElements.county, domElements.locality, domElements.radius
         ];
 
         const hasAnyFilter = filters.some(el => el && el.value !== '');
@@ -363,6 +407,12 @@
             caroserie_id: domElements.body?.value || '',
             combustibil_id: domElements.fuel?.value || '',
             cutie_viteze_id: domElements.gear?.value || '',
+            an_min: domElements.yearMin?.value || '',
+            an_max: domElements.yearMax?.value || '',
+            price_min: domElements.priceMin?.value || '',
+            price_max: domElements.priceMax?.value || '',
+            km_min: domElements.kmMin?.value || '',
+            km_max: domElements.kmMax?.value || '',
             county_id: domElements.county?.value || '',
             locality_id: domElements.locality?.value || '',
             radius_km: domElements.radius?.value || '',
@@ -582,6 +632,22 @@
             }
         });
 
+        [
+            domElements.yearMin,
+            domElements.yearMax,
+            domElements.priceMin,
+            domElements.priceMax,
+            domElements.kmMin,
+            domElements.kmMax,
+        ].forEach(el => {
+            if (el) {
+                el.addEventListener('input', () => {
+                    debounceLoad();
+                    window.checkResetVisibility();
+                });
+            }
+        });
+
         if (domElements.trigger) observer.observe(domElements.trigger);
     });
 
@@ -665,6 +731,32 @@
 
     .autovit-select.listing-filter {
         width: 100%;
+    }
+
+    .autovit-input {
+        display: block;
+        width: 100%;
+        height: 46px;
+        padding: 0 1rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #1f2937;
+        background-color: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .autovit-input:focus {
+        outline: none;
+        border-color: #CC2E2E;
+        box-shadow: 0 0 0 3px rgba(204, 46, 46, 0.1);
+    }
+
+    .dark .autovit-input {
+        background-color: #2d2d2d;
+        border-color: #404040;
+        color: #e5e7eb;
     }
 
     optgroup {

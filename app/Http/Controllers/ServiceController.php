@@ -151,6 +151,30 @@ class ServiceController extends Controller
         $query->where('cutie_viteze_id', $request->cutie_viteze_id);
     }
 
+    // An fabricație
+    if ($request->filled('an_min') && is_numeric($request->an_min)) {
+        $query->where('an_fabricatie', '>=', (int) $request->an_min);
+    }
+    if ($request->filled('an_max') && is_numeric($request->an_max)) {
+        $query->where('an_fabricatie', '<=', (int) $request->an_max);
+    }
+
+    // Preț
+    if ($request->filled('price_min') && is_numeric($request->price_min)) {
+        $query->where('price_value', '>=', (float) $request->price_min);
+    }
+    if ($request->filled('price_max') && is_numeric($request->price_max)) {
+        $query->where('price_value', '<=', (float) $request->price_max);
+    }
+
+    // Kilometraj
+    if ($request->filled('km_min') && is_numeric($request->km_min)) {
+        $query->where('km', '>=', (int) $request->km_min);
+    }
+    if ($request->filled('km_max') && is_numeric($request->km_max)) {
+        $query->where('km', '<=', (int) $request->km_max);
+    }
+
     // ================= FILTRU "DE UNDE CUMPERI" (TABURI) =================
     if ($request->filled('seller_type') && in_array($request->seller_type, ['individual', 'dealer'], true)) {
         $sellerType = $request->seller_type;
