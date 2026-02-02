@@ -128,6 +128,36 @@
                             @endforeach
                         </select>
 
+                        <div>
+                            <p class="text-sm font-semibold text-gray-700 mb-2">Preț (RON)</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="number" id="price-min" name="price_min" placeholder="Min" value="{{ request('price_min') }}"
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                                <input type="number" id="price-max" name="price_max" placeholder="Max" value="{{ request('price_max') }}"
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="text-sm font-semibold text-gray-700 mb-2">Km</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="number" id="km-min" name="km_min" placeholder="Min" value="{{ request('km_min') }}"
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                                <input type="number" id="km-max" name="km_max" placeholder="Max" value="{{ request('km_max') }}"
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="text-sm font-semibold text-gray-700 mb-2">An fabricație</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="number" id="year-min" name="year_min" placeholder="Min" value="{{ request('year_min') }}"
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                                <input type="number" id="year-max" name="year_max" placeholder="Max" value="{{ request('year_max') }}"
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                            </div>
+                        </div>
+
                         <div class="flex gap-2">
                             <button type="button" id="reset-btn" onclick="resetFilters()" disabled
                                     class="h-[46px] w-[46px] flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-300 transition-all duration-200 cursor-not-allowed"
@@ -225,6 +255,12 @@
         county: document.getElementById('county-input'),
         locality: document.getElementById('locality-input'),
         radius: document.getElementById('radius-input'),
+        priceMin: document.getElementById('price-min'),
+        priceMax: document.getElementById('price-max'),
+        kmMin: document.getElementById('km-min'),
+        kmMax: document.getElementById('km-max'),
+        yearMin: document.getElementById('year-min'),
+        yearMax: document.getElementById('year-max'),
         sort: document.getElementById('sort-select'),
         resetBtn: document.getElementById('reset-btn'),
         container: document.getElementById('services-container'),
@@ -332,6 +368,12 @@
             county_id: domElements.county?.value || '',
             locality_id: domElements.locality?.value || '',
             radius_km: domElements.radius?.value || '',
+            price_min: domElements.priceMin?.value || '',
+            price_max: domElements.priceMax?.value || '',
+            km_min: domElements.kmMin?.value || '',
+            km_max: domElements.kmMax?.value || '',
+            year_min: domElements.yearMin?.value || '',
+            year_max: domElements.yearMax?.value || '',
             sort: domElements.sort?.value || '',
         });
 
@@ -352,7 +394,9 @@
         const filters = [
             domElements.brand, domElements.model, domElements.gen,
             domElements.body, domElements.fuel, domElements.gear, domElements.county,
-            domElements.locality, domElements.radius
+            domElements.locality, domElements.radius, domElements.priceMin,
+            domElements.priceMax, domElements.kmMin, domElements.kmMax,
+            domElements.yearMin, domElements.yearMax
         ];
 
         const hasAnyFilter = filters.some(el => el && el.value !== '');
@@ -403,6 +447,12 @@
             county_id: domElements.county?.value || '',
             locality_id: domElements.locality?.value || '',
             radius_km: domElements.radius?.value || '',
+            price_min: domElements.priceMin?.value || '',
+            price_max: domElements.priceMax?.value || '',
+            km_min: domElements.kmMin?.value || '',
+            km_max: domElements.kmMax?.value || '',
+            year_min: domElements.yearMin?.value || '',
+            year_max: domElements.yearMax?.value || '',
             sort: domElements.sort?.value || '',
         });
 
@@ -636,6 +686,15 @@
         [domElements.gen, domElements.body, domElements.fuel, domElements.gear].forEach(el => {
             if (el) {
                 el.addEventListener('change', () => {
+                    debounceLoad();
+                    window.checkResetVisibility();
+                });
+            }
+        });
+
+        [domElements.priceMin, domElements.priceMax, domElements.kmMin, domElements.kmMax, domElements.yearMin, domElements.yearMax].forEach(el => {
+            if (el) {
+                el.addEventListener('input', () => {
                     debounceLoad();
                     window.checkResetVisibility();
                 });
