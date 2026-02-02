@@ -166,6 +166,34 @@ class ServiceController extends Controller
         $query->where('cutie_viteze_id', $request->cutie_viteze_id);
     }
 
+    if ($request->filled('year_min')) {
+        $query->where('an_fabricatie', '>=', (int) $request->year_min);
+    }
+
+    if ($request->filled('year_max')) {
+        $query->where('an_fabricatie', '<=', (int) $request->year_max);
+    }
+
+    if ($request->filled('km_min')) {
+        $query->where('km', '>=', (int) $request->km_min);
+    }
+
+    if ($request->filled('km_max')) {
+        $query->where('km', '<=', (int) $request->km_max);
+    }
+
+    if ($request->filled('price_min') || $request->filled('price_max')) {
+        $query->where('currency', 'EUR');
+    }
+
+    if ($request->filled('price_min')) {
+        $query->where('price_value', '>=', (float) $request->price_min);
+    }
+
+    if ($request->filled('price_max')) {
+        $query->where('price_value', '<=', (float) $request->price_max);
+    }
+
     // ================= FILTRU "DE UNDE CUMPERI" (TABURI) =================
     if ($request->filled('seller_type') && in_array($request->seller_type, ['individual', 'dealer'], true)) {
         $sellerType = $request->seller_type;

@@ -89,6 +89,36 @@
                             <option value="">Generație</option>
                         </select>
 
+                        <div>
+                            <p class="text-sm font-semibold text-gray-700 mb-2">An fabricație</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="number" id="year-min" name="year_min" placeholder="Min" value="{{ request('year_min') }}"
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                                <input type="number" id="year-max" name="year_max" placeholder="Max" value="{{ request('year_max') }}"
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="text-sm font-semibold text-gray-700 mb-2">Km</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="number" id="km-min" name="km_min" placeholder="Min" value="{{ request('km_min') }}"
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                                <input type="number" id="km-max" name="km_max" placeholder="Max" value="{{ request('km_max') }}"
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="text-sm font-semibold text-gray-700 mb-2">Preț (EUR)</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="number" id="price-min" name="price_min" placeholder="Min" value="{{ request('price_min') }}"
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                                <input type="number" id="price-max" name="price_max" placeholder="Max" value="{{ request('price_max') }}"
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                            </div>
+                        </div>
+
                         <select id="body-filter" name="caroserie_id" class="autovit-select listing-filter">
                             <option value="">Caroserie</option>
                             @foreach($bodies as $body)
@@ -127,36 +157,6 @@
                                 <option value="{{ $radius }}" @selected((string)request('radius_km') === (string)$radius)>{{ $radius }} km</option>
                             @endforeach
                         </select>
-
-                        <div>
-                            <p class="text-sm font-semibold text-gray-700 mb-2">Preț (RON)</p>
-                            <div class="grid grid-cols-2 gap-2">
-                                <input type="number" id="price-min" name="price_min" placeholder="Min" value="{{ request('price_min') }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
-                                <input type="number" id="price-max" name="price_max" placeholder="Max" value="{{ request('price_max') }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
-                            </div>
-                        </div>
-
-                        <div>
-                            <p class="text-sm font-semibold text-gray-700 mb-2">Km</p>
-                            <div class="grid grid-cols-2 gap-2">
-                                <input type="number" id="km-min" name="km_min" placeholder="Min" value="{{ request('km_min') }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
-                                <input type="number" id="km-max" name="km_max" placeholder="Max" value="{{ request('km_max') }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
-                            </div>
-                        </div>
-
-                        <div>
-                            <p class="text-sm font-semibold text-gray-700 mb-2">An fabricație</p>
-                            <div class="grid grid-cols-2 gap-2">
-                                <input type="number" id="year-min" name="year_min" placeholder="Min" value="{{ request('year_min') }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
-                                <input type="number" id="year-max" name="year_max" placeholder="Max" value="{{ request('year_max') }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
-                            </div>
-                        </div>
 
                         <div class="flex gap-2">
                             <button type="button" id="reset-btn" onclick="resetFilters()" disabled
