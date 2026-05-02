@@ -88,30 +88,17 @@ class ServiceController extends Controller
 
     $selectedLocality = null;
     if ($request->filled('locality_id')) {
-        $selectedLocality = Locality::select('id', 'latitude', 'longitude', 'county_id')
+        $selectedLocality = Locality::query()
+            ->cities()
+            ->select('id', 'county_id')
             ->find($request->locality_id);
 
         if ($selectedLocality) {
-            if ($request->filled('radius_km')) {
-                $radius = (float) $request->radius_km;
-                if ($radius > 0) {
-                    $haversine = '(6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude))))';
-                    $query->whereNotNull('latitude')
-                        ->whereNotNull('longitude')
-                        ->whereRaw($haversine . ' <= ?', [
-                            $selectedLocality->latitude,
-                            $selectedLocality->longitude,
-                            $selectedLocality->latitude,
-                            $radius,
-                        ]);
-                }
-            } else {
-                $query->where('locality_id', $selectedLocality->id);
-            }
+            $query->where('locality_id', $selectedLocality->id);
         }
     }
 
-    if ($countyFilter && (!$selectedLocality || !$request->filled('radius_km'))) {
+    if ($countyFilter) {
         $query->where('county_id', $countyFilter);
     }
 
@@ -264,7 +251,6 @@ class ServiceController extends Controller
         'currentCategory' => $request->attributes->get('currentCategory'),
         'currentCounty'   => $request->attributes->get('currentCounty'),
         'currentLocality' => $selectedLocality,
-        'currentRadius'   => $request->radius_km,
 
         'brands'          => $brands,
         'bodies'          => $bodies,
@@ -301,6 +287,23 @@ public function indexLocation(Request $request, $categorySlug, $countySlug = nul
     }
 
     return $this->index($request);
+}
+
+public function indexAutoSegment(Request $request, string $brandSlug)
+{
+    $brand = CarBrand::where('slug', $brandSlug)->first();
+    if ($brand) {
+        return $this->indexBrand($request, $brandSlug);
+    }
+
+    $city = $this->findCityBySlug($brandSlug);
+    if ($city) {
+        $this->applyCityRouteFilter($request, $city);
+
+        return $this->index($request);
+    }
+
+    abort(404);
 }
 
 // ==========================================
@@ -342,25 +345,31 @@ public function indexBrandModel(Request $request, string $brandSlug, string $mod
 }
 
 // ==========================================
-// INDEX BRAND + MODEL + COUNTY (aliniat pe ID-uri)
+// INDEX BRAND + MODEL + CITY (aliniat pe ID-uri)
 // ==========================================
-public function indexBrandModelCounty(Request $request, string $brandSlug, string $modelSlug, string $countySlug)
+public function indexBrandModelCity(Request $request, string $brandSlug, string $modelSlug, string $citySlug)
 {
     $brand = CarBrand::where('slug', $brandSlug)->firstOrFail();
     $model = CarModel::where('slug', $modelSlug)
         ->where('car_brand_id', $brand->id)
         ->firstOrFail();
-    $county = County::where('slug', $countySlug)->firstOrFail();
+    $city = $this->findCityBySlug($citySlug);
+
+    if (!$city) {
+        abort(404);
+    }
 
     $request->merge([
-        'brand_id'  => $brand->id,
-        'model_id'  => $model->id,
-        'county_id' => $county->id,
+        'brand_id'    => $brand->id,
+        'model_id'    => $model->id,
+        'county_id'   => $city->county_id,
+        'locality_id' => $city->id,
     ]);
 
     $request->attributes->set('currentBrand', $brand);
     $request->attributes->set('currentModel', $model);
-    $request->attributes->set('currentCounty', $county);
+    $request->attributes->set('currentCounty', $city->county);
+    $request->attributes->set('currentLocality', $city);
 
     return $this->index($request);
 }
@@ -369,10 +378,11 @@ public function indexBrandModelCounty(Request $request, string $brandSlug, strin
     // 3. SHOW (NESCHIMBAT)
     // ==========================================
     public function showCar(
+        Request $request,
         string $brandSlug,
         string $modelSlug,
-        int $year,
-        string $countySlug,
+        string $citySlug,
+        string $slug,
         int $id
     ) {
         $service = Service::withTrashed()
@@ -399,22 +409,11 @@ public function indexBrandModelCounty(Request $request, string $brandSlug, strin
 ])
             ->findOrFail($id);
 
-        $generation = $service->generation;
-        $model      = $generation ? $generation->model : null;
-        $brand      = $model ? $model->brand : null;
-        $county     = $service->county;
-
         $canonicalUrl = $service->public_url;
+        $canonicalPath = ltrim((string) parse_url($canonicalUrl, PHP_URL_PATH), '/');
 
-        if ($brand && $model && $county && $service->an_fabricatie) {
-            if (
-                $brand->slug !== $brandSlug
-                || $model->slug !== $modelSlug
-                || (int)$service->an_fabricatie !== (int)$year
-                || $county->slug !== $countySlug
-            ) {
-                return redirect()->to($canonicalUrl, 301);
-            }
+        if ($canonicalPath && $request->path() !== $canonicalPath) {
+            return redirect()->to($canonicalUrl, 301);
         }
 
         if (!$service->trashed()) {
@@ -422,6 +421,46 @@ public function indexBrandModelCounty(Request $request, string $brandSlug, strin
         }
 
         return view('services.show', compact('service'));
+    }
+
+    public function redirectOldCarShow(
+        string $brandSlug,
+        string $modelSlug,
+        int $year,
+        string $countySlug,
+        int $id
+    ) {
+        $service = Service::withTrashed()->findOrFail($id);
+
+        return redirect()->to($service->public_url, 301);
+    }
+
+    public function redirectOldAutoUrl(Request $request, ?string $path = null)
+    {
+        $segments = collect(explode('/', trim((string) $path, '/')))
+            ->filter()
+            ->values()
+            ->all();
+
+        $query = $request->query();
+
+        if (count($segments) === 3) {
+            $county = County::where('slug', $segments[2])->first();
+            $city = $this->findCityBySlug($segments[2]);
+
+            if ($county && !$city) {
+                $segments = array_slice($segments, 0, 2);
+                $query['county_id'] = $query['county_id'] ?? $county->id;
+            }
+        }
+
+        $target = url('/anunturi-auto' . ($segments ? '/' . implode('/', $segments) : ''));
+
+        if ($query) {
+            $target .= '?' . http_build_query($query);
+        }
+
+        return redirect()->to($target, 301);
     }
 
     // ==========================================
@@ -479,8 +518,10 @@ public function indexBrandModelCounty(Request $request, string $brandSlug, strin
         'category_id' => 'required|exists:categories,id',
         'county_id'   => 'required|exists:counties,id',
         'locality_id' => [
-            'nullable',
-            Rule::exists('localities', 'id')->where('county_id', $request->input('county_id')),
+            'required',
+            Rule::exists('localities', 'id')
+                ->where('county_id', $request->input('county_id'))
+                ->whereIn('type', Locality::CITY_TYPES),
         ],
         'phone'       => 'required|string|max:30',
         'price_value' => 'nullable|numeric',
@@ -688,7 +729,7 @@ public function indexBrandModelCounty(Request $request, string $brandSlug, strin
 
     $redirectUrl = $service->public_url;
     if (!$redirectUrl || !is_string($redirectUrl) || strlen($redirectUrl) < 5) {
-        $redirectUrl = url('/anunt/' . $service->id);
+        $redirectUrl = route('cars.index');
     }
 
     return redirect()->to($redirectUrl)
@@ -768,8 +809,10 @@ public function edit($id)
 
         'county_id'   => 'required|exists:counties,id',
         'locality_id' => [
-            'nullable',
-            Rule::exists('localities', 'id')->where('county_id', $request->input('county_id')),
+            'required',
+            Rule::exists('localities', 'id')
+                ->where('county_id', $request->input('county_id'))
+                ->whereIn('type', Locality::CITY_TYPES),
         ],
         'phone'       => 'required|string|max:30',
         'email'       => 'nullable|email|max:120',
@@ -1063,9 +1106,12 @@ public function edit($id)
 
     public function getLocalitiesByCounty(int $countyId)
     {
-        $localities = Locality::where('county_id', $countyId)
+        $localities = Locality::query()
+            ->cities()
+            ->where('county_id', $countyId)
+            ->orderBy('type')
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'slug']);
 
         return response()->json($localities);
     }
@@ -1074,7 +1120,9 @@ public function edit($id)
     {
         $locality = null;
         if ($request->filled('locality_id')) {
-            $locality = Locality::select('id', 'name', 'latitude', 'longitude', 'county_id')
+            $locality = Locality::query()
+                ->cities()
+                ->select('id', 'name', 'latitude', 'longitude', 'county_id')
                 ->where('county_id', $service->county_id)
                 ->find($request->locality_id);
         }
@@ -1091,5 +1139,28 @@ public function edit($id)
         if ($locality) {
             $service->city = $locality->name;
         }
+    }
+
+    private function findCityBySlug(string $slug): ?Locality
+    {
+        return Locality::query()
+            ->with('county')
+            ->cities()
+            ->where('slug', $slug)
+            ->first();
+    }
+
+    private function applyCityRouteFilter(Request $request, Locality $city): void
+    {
+        $request->merge([
+            'county_id'   => $city->county_id,
+            'locality_id' => $city->id,
+        ]);
+
+        if ($city->county) {
+            $request->attributes->set('currentCounty', $city->county);
+        }
+
+        $request->attributes->set('currentLocality', $city);
     }
 }
