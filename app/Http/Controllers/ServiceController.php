@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ProcessServiceImages;
 use App\Models\Service;
 use App\Models\Category;
 use App\Models\County;
@@ -26,8 +27,6 @@ use App\Models\Tractiune;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -41,6 +40,13 @@ class ServiceController extends Controller
     // ==========================================
     public function index(Request $request)
 {
+    if (!$request->ajax()) {
+        $canonicalRedirect = $this->redirectToCleanAutoListingUrl($request);
+        if ($canonicalRedirect) {
+            return $canonicalRedirect;
+        }
+    }
+
     $isHomepage = $request->routeIs('services.index');
     $page = (int) $request->get('page', 1);
     $perPageFirst = 10;
@@ -153,32 +159,39 @@ class ServiceController extends Controller
         $query->where('cutie_viteze_id', $request->cutie_viteze_id);
     }
 
-    if ($request->filled('year_min')) {
-        $query->where('an_fabricatie', '>=', (int) $request->year_min);
+    $yearMin = $request->input('year_min', $request->input('an_min'));
+    $yearMax = $request->input('year_max', $request->input('an_max'));
+    $priceMin = $request->input('price_min', $request->input('pret_min'));
+    $priceMax = $request->input('price_max', $request->input('pret_max'));
+    $kmMin = $request->input('km_min');
+    $kmMax = $request->input('km_max');
+
+    if ($yearMin !== null && $yearMin !== '') {
+        $query->where('an_fabricatie', '>=', (int) $yearMin);
     }
 
-    if ($request->filled('year_max')) {
-        $query->where('an_fabricatie', '<=', (int) $request->year_max);
+    if ($yearMax !== null && $yearMax !== '') {
+        $query->where('an_fabricatie', '<=', (int) $yearMax);
     }
 
-    if ($request->filled('km_min')) {
-        $query->where('km', '>=', (int) $request->km_min);
+    if ($kmMin !== null && $kmMin !== '') {
+        $query->where('km', '>=', (int) $kmMin);
     }
 
-    if ($request->filled('km_max')) {
-        $query->where('km', '<=', (int) $request->km_max);
+    if ($kmMax !== null && $kmMax !== '') {
+        $query->where('km', '<=', (int) $kmMax);
     }
 
-    if ($request->filled('price_min') || $request->filled('price_max')) {
+    if (($priceMin !== null && $priceMin !== '') || ($priceMax !== null && $priceMax !== '')) {
         $query->where('currency', 'EUR');
     }
 
-    if ($request->filled('price_min')) {
-        $query->where('price_value', '>=', (float) $request->price_min);
+    if ($priceMin !== null && $priceMin !== '') {
+        $query->where('price_value', '>=', (float) $priceMin);
     }
 
-    if ($request->filled('price_max')) {
-        $query->where('price_value', '<=', (float) $request->price_max);
+    if ($priceMax !== null && $priceMax !== '') {
+        $query->where('price_value', '<=', (float) $priceMax);
     }
 
     // ================= FILTRU "DE UNDE CUMPERI" (TABURI) =================
@@ -289,87 +302,89 @@ public function indexLocation(Request $request, $categorySlug, $countySlug = nul
     return $this->index($request);
 }
 
-public function indexAutoSegment(Request $request, string $brandSlug)
-{
-    $brand = CarBrand::where('slug', $brandSlug)->first();
-    if ($brand) {
-        return $this->indexBrand($request, $brandSlug);
-    }
+public function indexAutoPath(
+    Request $request,
+    string $segment1,
+    ?string $segment2 = null,
+    ?string $segment3 = null,
+    ?string $segment4 = null
+) {
+    $request->attributes->set('originalAutoQuery', $request->query());
 
-    $city = $this->findCityBySlug($brandSlug);
-    if ($city) {
-        $this->applyCityRouteFilter($request, $city);
+    $segments = array_values(array_filter([$segment1, $segment2, $segment3, $segment4], fn ($segment) => $segment !== null && $segment !== ''));
+    $segments = array_map(fn ($segment) => Str::slug($segment), $segments);
+
+    $brand = CarBrand::where('slug', $segments[0])->first();
+
+    if ($brand) {
+        $this->applyBrandRouteFilter($request, $brand);
+
+        if (!isset($segments[1])) {
+            return $this->index($request);
+        }
+
+        $model = CarModel::where('slug', $segments[1])
+            ->where('car_brand_id', $brand->id)
+            ->first();
+
+        if ($model) {
+            $this->applyModelRouteFilter($request, $model);
+
+            if (isset($segments[2])) {
+                $county = $this->findCountyBySlug($segments[2]);
+                if (!$county) {
+                    abort(404);
+                }
+
+                $this->applyCountyRouteFilter($request, $county);
+
+                if (isset($segments[3])) {
+                    $city = $this->findCityBySlug($segments[3], $county);
+                    if (!$city) {
+                        abort(404);
+                    }
+
+                    $this->applyCityRouteFilter($request, $city);
+                }
+            }
+
+            return $this->index($request);
+        }
+
+        $county = $this->findCountyBySlug($segments[1]);
+        if (!$county) {
+            abort(404);
+        }
+
+        $this->applyCountyRouteFilter($request, $county);
+
+        if (isset($segments[2])) {
+            $city = $this->findCityBySlug($segments[2], $county);
+            if (!$city || isset($segments[3])) {
+                abort(404);
+            }
+
+            $this->applyCityRouteFilter($request, $city);
+        }
 
         return $this->index($request);
     }
 
-    abort(404);
-}
-
-// ==========================================
-// INDEX BRAND (aliniat pe ID-uri)
-// ==========================================
-public function indexBrand(Request $request, string $brandSlug)
-{
-    $brand = CarBrand::where('slug', $brandSlug)->firstOrFail();
-
-    // Trimitem brand_id (nu nume)
-    $request->merge([
-        'brand_id' => $brand->id,
-    ]);
-
-    $request->attributes->set('currentBrand', $brand);
-
-    return $this->index($request);
-}
-
-// ==========================================
-// INDEX BRAND + MODEL (aliniat pe ID-uri)
-// ==========================================
-public function indexBrandModel(Request $request, string $brandSlug, string $modelSlug)
-{
-    $brand = CarBrand::where('slug', $brandSlug)->firstOrFail();
-    $model = CarModel::where('slug', $modelSlug)
-        ->where('car_brand_id', $brand->id)
-        ->firstOrFail();
-
-    $request->merge([
-        'brand_id' => $brand->id,
-        'model_id' => $model->id,
-    ]);
-
-    $request->attributes->set('currentBrand', $brand);
-    $request->attributes->set('currentModel', $model);
-
-    return $this->index($request);
-}
-
-// ==========================================
-// INDEX BRAND + MODEL + CITY (aliniat pe ID-uri)
-// ==========================================
-public function indexBrandModelCity(Request $request, string $brandSlug, string $modelSlug, string $citySlug)
-{
-    $brand = CarBrand::where('slug', $brandSlug)->firstOrFail();
-    $model = CarModel::where('slug', $modelSlug)
-        ->where('car_brand_id', $brand->id)
-        ->firstOrFail();
-    $city = $this->findCityBySlug($citySlug);
-
-    if (!$city) {
+    $county = $this->findCountyBySlug($segments[0]);
+    if (!$county) {
         abort(404);
     }
 
-    $request->merge([
-        'brand_id'    => $brand->id,
-        'model_id'    => $model->id,
-        'county_id'   => $city->county_id,
-        'locality_id' => $city->id,
-    ]);
+    $this->applyCountyRouteFilter($request, $county);
 
-    $request->attributes->set('currentBrand', $brand);
-    $request->attributes->set('currentModel', $model);
-    $request->attributes->set('currentCounty', $city->county);
-    $request->attributes->set('currentLocality', $city);
+    if (isset($segments[1])) {
+        $city = $this->findCityBySlug($segments[1], $county);
+        if (!$city || isset($segments[2])) {
+            abort(404);
+        }
+
+        $this->applyCityRouteFilter($request, $city);
+    }
 
     return $this->index($request);
 }
@@ -381,6 +396,7 @@ public function indexBrandModelCity(Request $request, string $brandSlug, string 
         Request $request,
         string $brandSlug,
         string $modelSlug,
+        string $countySlug,
         string $citySlug,
         string $slug,
         int $id
@@ -421,46 +437,6 @@ public function indexBrandModelCity(Request $request, string $brandSlug, string 
         }
 
         return view('services.show', compact('service'));
-    }
-
-    public function redirectOldCarShow(
-        string $brandSlug,
-        string $modelSlug,
-        int $year,
-        string $countySlug,
-        int $id
-    ) {
-        $service = Service::withTrashed()->findOrFail($id);
-
-        return redirect()->to($service->public_url, 301);
-    }
-
-    public function redirectOldAutoUrl(Request $request, ?string $path = null)
-    {
-        $segments = collect(explode('/', trim((string) $path, '/')))
-            ->filter()
-            ->values()
-            ->all();
-
-        $query = $request->query();
-
-        if (count($segments) === 3) {
-            $county = County::where('slug', $segments[2])->first();
-            $city = $this->findCityBySlug($segments[2]);
-
-            if ($county && !$city) {
-                $segments = array_slice($segments, 0, 2);
-                $query['county_id'] = $query['county_id'] ?? $county->id;
-            }
-        }
-
-        $target = url('/anunturi-auto' . ($segments ? '/' . implode('/', $segments) : ''));
-
-        if ($query) {
-            $target .= '?' . http_build_query($query);
-        }
-
-        return redirect()->to($target, 301);
     }
 
     // ==========================================
@@ -512,6 +488,8 @@ public function indexBrandModelCity(Request $request, string $brandSlug, string 
     // ==========================================
     public function store(Request $request)
 {
+    $wasAuthenticated = Auth::check();
+
     $rules = [
         'title'       => 'required|max:255',
         'description' => 'required',
@@ -691,49 +669,26 @@ public function indexBrandModelCity(Request $request, string $brandSlug, string 
     }
 
     $service->slug   = $uniqueSlug;
-    $service->status = 'active';
+    $service->status = 'pending';
 
-    // IMAGINI
-    $savedImages = [];
-    if ($request->hasFile('images')) {
-        $manager     = new ImageManager(new Driver());
-        $seoBaseName = $baseSlug;
-
-        foreach ($request->file('images') as $image) {
-            if (count($savedImages) >= 10) break;
-
-            $name = $seoBaseName . '-' . Str::random(6) . '.jpg';
-            $path = storage_path('app/public/services/' . $name);
-
-            if (!file_exists(dirname($path))) {
-                mkdir(dirname($path), 0755, true);
-            }
-
-            $manager->read($image->getRealPath())
-                ->scaleDown(1600)
-                ->toJpeg(75)
-                ->save($path);
-
-            $savedImages[] = $name;
-        }
-    }
-
-    $service->images = $savedImages;
+    $service->images = [];
     $service->save();
 
-    // Redirect ca înainte
-    if (Auth::check()) {
-        return redirect('/contul-meu?tab=anunturi')
-            ->with('success', 'Anunțul a fost publicat!');
+    $pendingImages = $this->storePendingServiceImages($service, $request);
+    if ($pendingImages) {
+        ProcessServiceImages::dispatch($service->id, $pendingImages, true);
+    } else {
+        $service->status = 'active';
+        $service->published_at = $service->published_at ?: now();
+        $service->save();
     }
 
-    $redirectUrl = $service->public_url;
-    if (!$redirectUrl || !is_string($redirectUrl) || strlen($redirectUrl) < 5) {
-        $redirectUrl = route('cars.index');
-    }
+    $redirectUrl = $wasAuthenticated
+        ? url('/contul-meu?tab=anunturi')
+        : route('cars.index');
 
     return redirect()->to($redirectUrl)
-        ->with('success', 'Anunțul a fost publicat!');
+        ->with('success', 'Anunțul a fost trimis către aprobare. Îl procesăm și îl publicăm automat în scurt timp.');
 }
 
    // ==========================================
@@ -905,35 +860,19 @@ public function edit($id)
         $currentImages = [];
     }
 
-    if ($request->hasFile('images')) {
-        $manager     = new ImageManager(new Driver());
-        $countyName  = County::find($request->county_id)->name ?? 'romania';
-        $seoBaseName = Str::slug($request->title . '-' . $countyName);
-
-        foreach ($request->file('images') as $image) {
-            if (count($currentImages) >= 10) break;
-
-            $name = $seoBaseName . '-' . Str::random(6) . '.jpg';
-            $path = storage_path('app/public/services/' . $name);
-
-            if (!file_exists(dirname($path))) {
-                mkdir(dirname($path), 0755, true);
-            }
-
-            $manager->read($image->getRealPath())
-                ->scaleDown(1600)
-                ->toJpeg(75)
-                ->save($path);
-
-            $currentImages[] = $name;
-        }
-    }
-
     $service->images = $currentImages;
     $service->save();
 
+    $pendingImages = $this->storePendingServiceImages($service, $request, max(0, 10 - count($currentImages)));
+    if ($pendingImages) {
+        $service->status = 'pending';
+        $service->save();
+
+        ProcessServiceImages::dispatch($service->id, $pendingImages, false);
+    }
+
     return redirect('/contul-meu?tab=anunturi')
-        ->with('success', 'Anunțul a fost actualizat!');
+        ->with('success', 'Anunțul a fost trimis către aprobare. Îl procesăm și îl publicăm automat în scurt timp.');
 }
 
     // ==========================================
@@ -1141,13 +1080,290 @@ public function edit($id)
         }
     }
 
-    private function findCityBySlug(string $slug): ?Locality
+    private function storePendingServiceImages(Service $service, Request $request, int $limit = 10): array
     {
-        return Locality::query()
+        if ($limit <= 0 || !$request->hasFile('images')) {
+            return [];
+        }
+
+        $storedPaths = [];
+        $directory = 'service-image-queue/' . $service->id;
+
+        foreach (array_slice($request->file('images'), 0, $limit) as $image) {
+            if (!$image->isValid()) {
+                continue;
+            }
+
+            $extension = strtolower($image->getClientOriginalExtension() ?: $image->guessExtension() ?: 'jpg');
+            $extension = preg_replace('/[^a-z0-9]/', '', $extension) ?: 'jpg';
+            $storedPath = $image->storeAs($directory, (string) Str::uuid() . '.' . $extension);
+
+            if ($storedPath) {
+                $storedPaths[] = $storedPath;
+            }
+        }
+
+        return $storedPaths;
+    }
+
+    private function redirectToCleanAutoListingUrl(Request $request)
+    {
+        $isAutoListing = $request->routeIs('cars.index')
+            || $request->routeIs('brand.*')
+            || str_starts_with($request->path(), 'anunturi-auto-de-vanzare');
+
+        $originalQuery = $this->originalAutoQuery($request);
+        $hasFilterQuery = collect($originalQuery)->except(['page'])->filter(fn ($value) => $value !== null && $value !== '')->isNotEmpty();
+        if (!$isAutoListing && !($request->routeIs('services.index') && $hasFilterQuery)) {
+            return null;
+        }
+
+        if ($isAutoListing && !$this->hasDirtyAutoQuery($request, $originalQuery) && $this->pathUsesCanonicalSlugs($request)) {
+            return null;
+        }
+
+        $brand = $request->attributes->get('currentBrand');
+        $model = $request->attributes->get('currentModel');
+        $county = $request->attributes->get('currentCounty');
+        $city = $request->attributes->get('currentLocality');
+
+        if (!$brand && $request->filled('brand_id')) {
+            $brand = CarBrand::find($request->brand_id);
+        }
+
+        if (!$model && $request->filled('model_id')) {
+            $model = CarModel::with('brand')->find($request->model_id);
+            if (!$brand && $model?->brand) {
+                $brand = $model->brand;
+            }
+        }
+
+        if (!$city && $request->filled('locality_id')) {
+            $city = Locality::query()
+                ->with('county')
+                ->cities()
+                ->find($request->locality_id);
+        }
+
+        if (!$county && $city?->county) {
+            $county = $city->county;
+        }
+
+        if (!$county && $request->filled('county_id')) {
+            $county = County::find($request->county_id);
+        }
+
+        $path = $this->buildAutoListingPath(
+            $brand?->slug,
+            $model?->slug,
+            $county?->slug,
+            $city?->slug
+        );
+        $query = $this->cleanAdvancedQuery($request, $originalQuery);
+
+        if (
+            '/' . ltrim($request->path(), '/') === $path
+            && !$this->hasDirtyAutoQuery($request, $originalQuery)
+        ) {
+            return null;
+        }
+
+        $target = $this->buildUrlWithQuery($path, $query);
+
+        return redirect()->to($target, 301);
+    }
+
+    private function buildAutoListingPath(?string $brandSlug = null, ?string $modelSlug = null, ?string $countySlug = null, ?string $citySlug = null): string
+    {
+        $segments = ['anunturi-auto-de-vanzare'];
+
+        if ($brandSlug) {
+            $segments[] = Str::slug($brandSlug);
+
+            if ($modelSlug) {
+                $segments[] = Str::slug($modelSlug);
+            }
+
+            if ($countySlug) {
+                $segments[] = Str::slug($countySlug);
+
+                if ($citySlug) {
+                    $segments[] = Str::slug($citySlug);
+                }
+            }
+        } elseif ($countySlug) {
+            $segments[] = Str::slug($countySlug);
+
+            if ($citySlug) {
+                $segments[] = Str::slug($citySlug);
+            }
+        }
+
+        return '/' . implode('/', $segments);
+    }
+
+    private function cleanAdvancedQuery(Request $request, ?array $originalQuery = null): array
+    {
+        $originalQuery ??= $this->originalAutoQuery($request);
+        $query = [];
+        $queryValue = static function (array $sourceKeys) use ($originalQuery) {
+            foreach ($sourceKeys as $sourceKey) {
+                $value = $originalQuery[$sourceKey] ?? null;
+                if ($value !== null && $value !== '') {
+                    return $value;
+                }
+            }
+
+            return null;
+        };
+
+        $sellerType = $queryValue(['seller_type']);
+        $vehicleType = $queryValue(['vehicle_type']);
+
+        if ($sellerType && $sellerType !== 'all') {
+            $query['seller_type'] = $sellerType;
+        }
+
+        if ($vehicleType && !in_array($vehicleType, ['anunturi-auto-de-vanzare', 'autoturisme'], true)) {
+            $query['vehicle_type'] = $vehicleType;
+        }
+
+        $mapping = [
+            'car_generation_id' => ['car_generation_id'],
+            'caroserie_id'      => ['caroserie_id'],
+            'combustibil_id'    => ['combustibil_id'],
+            'cutie_viteze_id'   => ['cutie_viteze_id'],
+            'pret_min'          => ['pret_min', 'price_min'],
+            'pret_max'          => ['pret_max', 'price_max'],
+            'km_min'            => ['km_min'],
+            'km_max'            => ['km_max'],
+            'an_min'            => ['an_min', 'year_min'],
+            'an_max'            => ['an_max', 'year_max'],
+            'search'            => ['search'],
+        ];
+
+        foreach ($mapping as $targetKey => $sourceKeys) {
+            $value = $queryValue($sourceKeys);
+            if ($value !== null) {
+                $query[$targetKey] = $value;
+            }
+        }
+
+        $sort = $queryValue(['sort']);
+        if ($sort && $sort !== 'newest') {
+            $query['sort'] = $sort;
+        }
+
+        $page = $queryValue(['page']);
+        if ($page && (int) $page > 1) {
+            $query['page'] = $page;
+        }
+
+        return $query;
+    }
+
+    private function hasDirtyAutoQuery(Request $request, ?array $originalQuery = null): bool
+    {
+        $query = collect($originalQuery ?? $this->originalAutoQuery($request))
+            ->filter(fn ($value) => $value !== null && $value !== '');
+
+        if ($query->isEmpty()) {
+            return false;
+        }
+
+        if ($query->has('vehicle_type') && in_array($query->get('vehicle_type'), ['anunturi-auto-de-vanzare', 'autoturisme'], true)) {
+            return true;
+        }
+
+        if ($query->get('seller_type') === 'all') {
+            return true;
+        }
+
+        if ($query->get('sort') === 'newest') {
+            return true;
+        }
+
+        if ($query->has('page') && (int) $query->get('page') <= 1) {
+            return true;
+        }
+
+        return count(array_intersect(
+            array_keys($query->all()),
+            ['brand_id', 'model_id', 'county_id', 'locality_id', 'price_min', 'price_max', 'year_min', 'year_max']
+        )) > 0;
+    }
+
+    private function originalAutoQuery(Request $request): array
+    {
+        $originalQuery = $request->attributes->get('originalAutoQuery');
+
+        if (is_array($originalQuery)) {
+            return $originalQuery;
+        }
+
+        return $request->query();
+    }
+
+    private function pathUsesCanonicalSlugs(Request $request): bool
+    {
+        $segments = explode('/', trim($request->path(), '/'));
+        array_shift($segments);
+
+        foreach ($segments as $segment) {
+            if ($segment !== Str::slug($segment)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function buildUrlWithQuery(string $path, array $query = []): string
+    {
+        $url = url($path);
+
+        if ($query) {
+            $url .= '?' . http_build_query($query);
+        }
+
+        return $url;
+    }
+
+    private function findCountyBySlug(string $slug): ?County
+    {
+        return County::where('slug', $slug)->first();
+    }
+
+    private function findCityBySlug(string $slug, ?County $county = null): ?Locality
+    {
+        $query = Locality::query()
             ->with('county')
             ->cities()
-            ->where('slug', $slug)
-            ->first();
+            ->where('slug', $slug);
+
+        if ($county) {
+            $query->where('county_id', $county->id);
+        }
+
+        return $query->first();
+    }
+
+    private function applyBrandRouteFilter(Request $request, CarBrand $brand): void
+    {
+        $request->merge(['brand_id' => $brand->id]);
+        $request->attributes->set('currentBrand', $brand);
+    }
+
+    private function applyModelRouteFilter(Request $request, CarModel $model): void
+    {
+        $request->merge(['model_id' => $model->id]);
+        $request->attributes->set('currentModel', $model);
+    }
+
+    private function applyCountyRouteFilter(Request $request, County $county): void
+    {
+        $request->merge(['county_id' => $county->id]);
+        $request->attributes->set('currentCounty', $county);
     }
 
     private function applyCityRouteFilter(Request $request, Locality $city): void

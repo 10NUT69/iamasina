@@ -36,7 +36,7 @@
             {{-- ZONA FORMULAR --}}
             <div class="p-6">
                 <form id="search-form">
-                    <input type="hidden" name="vehicle_type" id="vehicle-type" value="anunturi-auto">
+                    <input type="hidden" name="vehicle_type" id="vehicle-type" value="anunturi-auto-de-vanzare">
                     <input type="hidden" name="seller_type" id="seller-type" value="{{ request('seller_type', 'all') }}">
 
                     {{-- GRID FILTRE (2 coloane pe mobile, 4 pe wide) --}}
@@ -533,35 +533,38 @@
     function buildSearchUrl() {
         const brandOption = domElements.brand?.selectedOptions?.[0];
         const modelOption = domElements.model?.selectedOptions?.[0];
+        const countyOption = domElements.county?.selectedOptions?.[0];
         const localityOption = domElements.locality?.selectedOptions?.[0];
         const brandSlug = brandOption?.dataset?.slug;
         const modelSlug = modelOption?.dataset?.slug;
+        const countySlug = countyOption?.dataset?.slug;
         const citySlug = localityOption?.dataset?.slug;
-        const cityInPath = citySlug && (!brandSlug || (brandSlug && modelSlug));
+        const countyInPath = !!countySlug;
+        const cityInPath = !!(countySlug && citySlug);
 
-        let path = '/anunturi-auto';
+        let path = '/anunturi-auto-de-vanzare';
         if (brandSlug) path += `/${brandSlug}`;
         if (brandSlug && modelSlug) path += `/${modelSlug}`;
-        if (brandSlug && modelSlug && citySlug) {
-            path += `/${citySlug}`;
-        } else if (!brandSlug && citySlug) {
+        if (countySlug) path += `/${countySlug}`;
+        if (countySlug && citySlug) {
             path += `/${citySlug}`;
         }
 
-        const params = new URLSearchParams({
-            vehicle_type: domElements.vehicleType?.value || '',
-            seller_type: domElements.sellerType?.value || 'all',
-            brand_id: brandSlug ? '' : (domElements.brand?.value || ''),
-            model_id: modelSlug ? '' : (domElements.model?.value || ''),
-            car_generation_id: domElements.gen?.value || '',
-            caroserie_id: domElements.body?.value || '',
-            combustibil_id: domElements.fuel?.value || '',
-            cutie_viteze_id: domElements.gear?.value || '',
-            county_id: cityInPath ? '' : (domElements.county?.value || ''),
-            locality_id: cityInPath ? '' : (domElements.locality?.value || ''),
-            // Radius eliminat din URL builder
-        });
-        [...params.keys()].forEach(key => !params.get(key) && params.delete(key));
+        const params = new URLSearchParams();
+        const addParam = (key, value, defaultValue = '') => {
+            if (value && value !== defaultValue) params.set(key, value);
+        };
+
+        addParam('seller_type', domElements.sellerType?.value || '', 'all');
+        addParam('brand_id', brandSlug ? '' : (domElements.brand?.value || ''));
+        addParam('model_id', modelSlug ? '' : (domElements.model?.value || ''));
+        addParam('county_id', countyInPath ? '' : (domElements.county?.value || ''));
+        addParam('locality_id', cityInPath ? '' : (domElements.locality?.value || ''));
+        addParam('car_generation_id', domElements.gen?.value || '');
+        addParam('caroserie_id', domElements.body?.value || '');
+        addParam('combustibil_id', domElements.fuel?.value || '');
+        addParam('cutie_viteze_id', domElements.gear?.value || '');
+
         const queryString = params.toString();
         return `${baseUrl}${path}${queryString ? `?${queryString}` : ''}`;
     }

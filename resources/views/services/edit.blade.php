@@ -889,7 +889,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.deleteServerImage = function(imageName, serviceId, containerId) {
         if (!confirm('Ești sigur că vrei să ștergi această imagine?')) return;
 
-        fetch(`/anunturi-auto/${serviceId}/image`, {
+        fetch(`/anunturi-auto-de-vanzare/${serviceId}/image`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

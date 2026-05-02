@@ -126,6 +126,12 @@
     {{-- MAIN CONTENT --}}
     {{-- Condiția care protejează paginile interne să nu intre sub header --}}
     <main class="max-w-7xl mx-auto px-4 py-6 w-full flex-grow relative z-0 {{ !View::hasSection('hero') ? 'pt-20 md:pt-24' : '' }}">
+        @if(session('success'))
+            <div class="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800 shadow-sm dark:border-green-900/50 dark:bg-green-950/40 dark:text-green-200">
+                {{ session('success') }}
+            </div>
+        @endif
+
         @yield('content')
     </main>
 

@@ -18,29 +18,19 @@ use App\Http\Controllers\Admin\AdminCategoryController;
 
 Route::get('/', [ServiceController::class, 'index'])->name('services.index');
 
-// Old auto URLs keep their SEO value and move permanently to /anunturi-auto.
-Route::get(
-    '/autoturisme/{brandSlug}/{modelSlug}/{year}/{countySlug}/{id}',
-    [ServiceController::class, 'redirectOldCarShow']
-)->where([
-    'year' => '[0-9]{4}',
-    'id'   => '[0-9]+',
-]);
+Route::get('/autoturisme/{path?}', fn () => abort(404))->where('path', '.*');
+Route::get('/anunturi-auto/{path?}', fn () => abort(404))->where('path', '.*');
 
-Route::get('/autoturisme/{path?}', [ServiceController::class, 'redirectOldAutoUrl'])
-    ->where('path', '.*');
-
-Route::get('/adauga-anunt', fn () => redirect()->route('services.create', [], 301));
-Route::get('/anunturi-auto/adauga-anunt', [ServiceController::class, 'create'])->name('services.create');
-Route::post('/anunturi-auto/adauga-anunt', [ServiceController::class, 'store'])->name('services.store');
-Route::get('/anunturi-auto/{id}/edit', [ServiceController::class, 'edit'])
+Route::get('/anunturi-auto-de-vanzare/adauga-anunt', [ServiceController::class, 'create'])->name('services.create');
+Route::post('/anunturi-auto-de-vanzare/adauga-anunt', [ServiceController::class, 'store'])->name('services.store');
+Route::get('/anunturi-auto-de-vanzare/{id}/edit', [ServiceController::class, 'edit'])
     ->middleware('auth')
     ->whereNumber('id')
     ->name('services.edit');
 
-// Detail URL: /anunturi-auto/{marca}/{model}/{oras}/{titlu}-{id}
+// Detail URL: /anunturi-auto-de-vanzare/{marca}/{model}/{judet}/{oras}/{titlu}-{id}
 Route::get(
-    '/anunturi-auto/{brandSlug}/{modelSlug}/{citySlug}/{slug}-{id}',
+    '/anunturi-auto-de-vanzare/{brandSlug}/{modelSlug}/{countySlug}/{citySlug}/{slug}-{id}',
     [ServiceController::class, 'showCar']
 )->where([
     'id'   => '[0-9]+',
@@ -48,17 +38,21 @@ Route::get(
 ])->name('service.show.car');
 
 // Listing URLs:
-// /anunturi-auto
-// /anunturi-auto/{oras}
-// /anunturi-auto/{marca}
-// /anunturi-auto/{marca}/{model}
-// /anunturi-auto/{marca}/{model}/{oras}
-Route::get('/anunturi-auto', [ServiceController::class, 'index'])->name('cars.index');
-Route::get('/anunturi-auto/{brandSlug}', [ServiceController::class, 'indexAutoSegment'])
+// /anunturi-auto-de-vanzare
+// /anunturi-auto-de-vanzare/{judet}
+// /anunturi-auto-de-vanzare/{judet}/{oras}
+// /anunturi-auto-de-vanzare/{marca}
+// /anunturi-auto-de-vanzare/{marca}/{model}
+// /anunturi-auto-de-vanzare/{marca}/{model}/{judet}
+// /anunturi-auto-de-vanzare/{marca}/{model}/{judet}/{oras}
+Route::get('/anunturi-auto-de-vanzare', [ServiceController::class, 'index'])->name('cars.index');
+Route::get('/anunturi-auto-de-vanzare/{segment1}', [ServiceController::class, 'indexAutoPath'])
     ->name('brand.index');
-Route::get('/anunturi-auto/{brandSlug}/{modelSlug}', [ServiceController::class, 'indexBrandModel'])
+Route::get('/anunturi-auto-de-vanzare/{segment1}/{segment2}', [ServiceController::class, 'indexAutoPath'])
     ->name('brand.model.index');
-Route::get('/anunturi-auto/{brandSlug}/{modelSlug}/{citySlug}', [ServiceController::class, 'indexBrandModelCity'])
+Route::get('/anunturi-auto-de-vanzare/{segment1}/{segment2}/{segment3}', [ServiceController::class, 'indexAutoPath'])
+    ->name('brand.model.county.index');
+Route::get('/anunturi-auto-de-vanzare/{segment1}/{segment2}/{segment3}/{segment4}', [ServiceController::class, 'indexAutoPath'])
     ->name('brand.model.city.index');
 
 Route::get('/contul-meu', function () {
@@ -99,24 +93,19 @@ Route::post('/profile/ajax-update', [ProfileController::class, 'ajaxUpdate'])
 */
 
 Route::middleware('auth')->group(function () {
-    Route::get('/anunt/{id}/edit', fn ($id) => redirect()->route('services.edit', $id, 301))
-        ->whereNumber('id');
-
-    Route::put('/anunturi-auto/{id}', [ServiceController::class, 'update'])
+    Route::put('/anunturi-auto-de-vanzare/{id}', [ServiceController::class, 'update'])
         ->whereNumber('id')
         ->name('services.update');
-    Route::delete('/anunturi-auto/{id}', [ServiceController::class, 'destroy'])
+    Route::delete('/anunturi-auto-de-vanzare/{id}', [ServiceController::class, 'destroy'])
         ->whereNumber('id')
         ->name('services.destroy');
-    Route::post('/anunturi-auto/{id}', [ServiceController::class, 'renew'])
+    Route::post('/anunturi-auto-de-vanzare/{id}', [ServiceController::class, 'renew'])
         ->whereNumber('id')
         ->name('services.renew');
 
-    Route::delete('/anunturi-auto/{id}/image', [ServiceController::class, 'deleteImage'])
+    Route::delete('/anunturi-auto-de-vanzare/{id}/image', [ServiceController::class, 'deleteImage'])
         ->whereNumber('id')
         ->name('services.deleteImage');
-    Route::delete('/services/{id}/image', [ServiceController::class, 'deleteImage'])
-        ->whereNumber('id');
 
     Route::post('/favorite/toggle', [FavoriteController::class, 'toggle'])->name('favorite.toggle');
 });

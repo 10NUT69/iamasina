@@ -33,7 +33,7 @@
                     </div>
 
                     <form id="search-form" class="p-4 space-y-4">
-                        <input type="hidden" name="vehicle_type" id="vehicle-type" value="anunturi-auto">
+                        <input type="hidden" name="vehicle_type" id="vehicle-type" value="anunturi-auto-de-vanzare">
                         <input type="hidden" name="seller_type" id="seller-type" value="{{ request('seller_type', 'all') }}">
 
                         <div>
@@ -92,9 +92,9 @@
                         <div>
                             <p class="text-sm font-semibold text-gray-700 mb-2">An fabricație</p>
                             <div class="grid grid-cols-2 gap-2">
-                                <input type="number" id="year-min" name="year_min" placeholder="Min" value="{{ request('year_min') }}"
+                                <input type="number" id="year-min" name="year_min" placeholder="Min" value="{{ request('year_min', request('an_min')) }}"
                                     class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
-                                <input type="number" id="year-max" name="year_max" placeholder="Max" value="{{ request('year_max') }}"
+                                <input type="number" id="year-max" name="year_max" placeholder="Max" value="{{ request('year_max', request('an_max')) }}"
                                     class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
                             </div>
                         </div>
@@ -112,9 +112,9 @@
                         <div>
                             <p class="text-sm font-semibold text-gray-700 mb-2">Preț (EUR)</p>
                             <div class="grid grid-cols-2 gap-2">
-                                <input type="number" id="price-min" name="price_min" placeholder="Min" value="{{ request('price_min') }}"
+                                <input type="number" id="price-min" name="price_min" placeholder="Min" value="{{ request('price_min', request('pret_min')) }}"
                                     class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
-                                <input type="number" id="price-max" name="price_max" placeholder="Max" value="{{ request('price_max') }}"
+                                <input type="number" id="price-max" name="price_max" placeholder="Max" value="{{ request('price_max', request('pret_max')) }}"
                                     class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
                             </div>
                         </div>
@@ -481,51 +481,51 @@
     function buildSearchUrl() {
         const brandOption = domElements.brand?.selectedOptions?.[0];
         const modelOption = domElements.model?.selectedOptions?.[0];
+        const countyOption = domElements.county?.selectedOptions?.[0];
         const localityOption = domElements.locality?.selectedOptions?.[0];
 
         const brandSlug = brandOption?.dataset?.slug;
         const modelSlug = modelOption?.dataset?.slug;
+        const countySlug = countyOption?.dataset?.slug;
         const citySlug = localityOption?.dataset?.slug;
-        const cityInPath = citySlug && (!brandSlug || (brandSlug && modelSlug));
+        const countyInPath = !!countySlug;
+        const cityInPath = !!(countySlug && citySlug);
 
-        let path = '/anunturi-auto';
+        let path = '/anunturi-auto-de-vanzare';
         if (brandSlug) {
             path += `/${brandSlug}`;
         }
         if (brandSlug && modelSlug) {
             path += `/${modelSlug}`;
         }
-        if (brandSlug && modelSlug && citySlug) {
-            path += `/${citySlug}`;
-        } else if (!brandSlug && citySlug) {
+        if (countySlug) {
+            path += `/${countySlug}`;
+        }
+        if (countySlug && citySlug) {
             path += `/${citySlug}`;
         }
 
-        const params = new URLSearchParams({
-            vehicle_type: domElements.vehicleType?.value || '',
-            seller_type: domElements.sellerType?.value || 'all',
-            brand_id: brandSlug ? '' : (domElements.brand?.value || ''),
-            model_id: modelSlug ? '' : (domElements.model?.value || ''),
-            car_generation_id: domElements.gen?.value || '',
-            caroserie_id: domElements.body?.value || '',
-            combustibil_id: domElements.fuel?.value || '',
-            cutie_viteze_id: domElements.gear?.value || '',
-            county_id: cityInPath ? '' : (domElements.county?.value || ''),
-            locality_id: cityInPath ? '' : (domElements.locality?.value || ''),
-            price_min: domElements.priceMin?.value || '',
-            price_max: domElements.priceMax?.value || '',
-            km_min: domElements.kmMin?.value || '',
-            km_max: domElements.kmMax?.value || '',
-            year_min: domElements.yearMin?.value || '',
-            year_max: domElements.yearMax?.value || '',
-            sort: domElements.sort?.value || '',
-        });
+        const params = new URLSearchParams();
+        const addParam = (key, value, defaultValue = '') => {
+            if (value && value !== defaultValue) params.set(key, value);
+        };
 
-        [...params.keys()].forEach((key) => {
-            if (!params.get(key) || (key === 'sort' && params.get(key) === 'newest')) {
-                params.delete(key);
-            }
-        });
+        addParam('seller_type', domElements.sellerType?.value || '', 'all');
+        addParam('brand_id', brandSlug ? '' : (domElements.brand?.value || ''));
+        addParam('model_id', modelSlug ? '' : (domElements.model?.value || ''));
+        addParam('county_id', countyInPath ? '' : (domElements.county?.value || ''));
+        addParam('locality_id', cityInPath ? '' : (domElements.locality?.value || ''));
+        addParam('car_generation_id', domElements.gen?.value || '');
+        addParam('caroserie_id', domElements.body?.value || '');
+        addParam('combustibil_id', domElements.fuel?.value || '');
+        addParam('cutie_viteze_id', domElements.gear?.value || '');
+        addParam('pret_min', domElements.priceMin?.value || '');
+        addParam('pret_max', domElements.priceMax?.value || '');
+        addParam('km_min', domElements.kmMin?.value || '');
+        addParam('km_max', domElements.kmMax?.value || '');
+        addParam('an_min', domElements.yearMin?.value || '');
+        addParam('an_max', domElements.yearMax?.value || '');
+        addParam('sort', domElements.sort?.value || '', 'newest');
 
         const queryString = params.toString();
         return `${baseUrl}${path}${queryString ? `?${queryString}` : ''}`;
@@ -713,6 +713,11 @@
 
         if (domElements.county) {
             domElements.county.addEventListener('change', () => {
+                if (!isMobileView()) {
+                    resetLocalities();
+                    window.location.href = buildSearchUrl();
+                    return;
+                }
                 loadLocalities(domElements.county.value);
                 debounceLoad();
                 window.checkResetVisibility();
@@ -784,13 +789,13 @@
                     return;
                 }
 
-                if (slug && !isMobileView()) {
-                    window.location.href = `${baseUrl}/anunturi-auto/${slug}`;
-                    return;
-                }
-
                 resetSelect(domElements.model, 'Model');
                 resetSelect(domElements.gen, 'Generație');
+
+                if (slug && !isMobileView()) {
+                    window.location.href = buildSearchUrl();
+                    return;
+                }
 
                 if (carData[brandId]) {
                     enableSelect(domElements.model);
@@ -829,7 +834,7 @@
 
                 if (brandSlug && modelSlug) {
                     if (!isMobileView()) {
-                        window.location.href = `${baseUrl}/anunturi-auto/${brandSlug}/${modelSlug}`;
+                        window.location.href = buildSearchUrl();
                         return;
                     }
                 }
