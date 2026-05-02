@@ -514,9 +514,9 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Localitate</label>
-                            <select id="locality-select" name="locality_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm" disabled>
-                                <option value="">Selectează localitatea</option>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Oraș</label>
+                            <select id="locality-select" name="locality_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm" disabled required>
+                                <option value="">Selectează orașul</option>
                             </select>
                         </div>
                     </div>
@@ -605,13 +605,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function resetLocalities() {
         if (!localitySelect) return;
-        localitySelect.innerHTML = '<option value="">Selectează localitatea</option>';
+        localitySelect.innerHTML = '<option value="">Selectează orașul</option>';
         localitySelect.disabled = true;
     }
 
     function populateLocalities(localities, selectedId) {
         if (!localitySelect) return;
-        localitySelect.innerHTML = '<option value="">Selectează localitatea</option>';
+        localitySelect.innerHTML = '<option value="">Selectează orașul</option>';
         localities.forEach(locality => {
             const option = document.createElement('option');
             option.value = locality.id;
@@ -889,7 +889,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.deleteServerImage = function(imageName, serviceId, containerId) {
         if (!confirm('Ești sigur că vrei să ștergi această imagine?')) return;
 
-        fetch(`/services/${serviceId}/image`, {
+        fetch(`/anunturi-auto-de-vanzare/${serviceId}/image`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

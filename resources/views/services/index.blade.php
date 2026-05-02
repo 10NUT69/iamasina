@@ -8,7 +8,7 @@
     <div class="max-w-7xl mx-auto px-4 flex flex-col-reverse md:flex-row items-center justify-between gap-6 md:gap-10">
         
         {{-- 1. ZONA FILTRE (STÂNGA - aprox 60% - MAI LATĂ) --}}
-        <div class="w-full md:w-7/12 bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-xl shadow-blue-900/5 dark:shadow-black/50 overflow-hidden border border-gray-100 dark:border-[#333] relative z-20">
+        <div class="w-full md:w-7/12 bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-xl shadow-blue-900/5 dark:shadow-black/50 border border-gray-100 dark:border-[#333] relative z-30">
 
             {{-- HEADER FILTRE: Sursă Anunț --}}
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-[#2C2C2C] bg-white dark:bg-[#1E1E1E]">
@@ -36,7 +36,7 @@
             {{-- ZONA FORMULAR --}}
             <div class="p-6">
                 <form id="search-form">
-                    <input type="hidden" name="vehicle_type" id="vehicle-type" value="autoturisme">
+                    <input type="hidden" name="vehicle_type" id="vehicle-type" value="anunturi-auto-de-vanzare">
                     <input type="hidden" name="seller_type" id="seller-type" value="{{ request('seller_type', 'all') }}">
 
                     {{-- GRID FILTRE (2 coloane pe mobile, 4 pe wide) --}}
@@ -130,9 +130,9 @@
                                     </select>
                                 </div>
                                 <div class="col-span-1">
-                                    <label class="autovit-label">Localitate</label>
+                                    <label class="autovit-label">Oraș</label>
                                     <select id="locality-input" name="locality_id" class="autovit-select" disabled>
-                                        <option value="">Alege</option>
+                                        <option value="">Oraș</option>
                                     </select>
                                 </div>
                             </div>
@@ -304,6 +304,7 @@
         el.classList.add('bg-gray-50', 'text-gray-400', 'cursor-not-allowed');
         el.classList.remove('bg-white', 'text-gray-900');
         el.value = "";
+        syncCustomSelect(el);
     }
 
     function enableSelect(el) {
@@ -311,11 +312,174 @@
         el.disabled = false;
         el.classList.remove('bg-gray-50', 'text-gray-400', 'cursor-not-allowed');
         el.classList.add('bg-white', 'text-gray-900');
+        syncCustomSelect(el);
+    }
+
+    const customSelects = new Map();
+
+    function closeCustomSelects(except = null) {
+        customSelects.forEach(({ root, button }) => {
+            if (root === except) return;
+            root.classList.remove('is-open');
+            button.setAttribute('aria-expanded', 'false');
+        });
+    }
+
+    function getSelectLabel(select) {
+        const option = select.selectedOptions?.[0] || select.options?.[0];
+        return option ? option.textContent.trim() : '';
+    }
+
+    function createCustomOption(select, option) {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'custom-select-option';
+        item.textContent = option.textContent.trim();
+        item.dataset.value = option.value;
+        item.setAttribute('role', 'option');
+        item.setAttribute('aria-selected', option.selected ? 'true' : 'false');
+
+        if (option.selected) item.classList.add('is-selected');
+        if (option.value === '') item.classList.add('is-placeholder');
+        if (option.disabled) item.disabled = true;
+
+        item.addEventListener('click', () => {
+            if (select.disabled || option.disabled) return;
+            select.value = option.value;
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+            syncCustomSelect(select);
+            closeCustomSelects();
+            customSelects.get(select)?.button.focus();
+        });
+
+        item.addEventListener('keydown', (event) => {
+            const options = Array.from(customSelects.get(select)?.menu.querySelectorAll('.custom-select-option:not(:disabled)') || []);
+            const index = options.indexOf(item);
+
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                options[Math.min(index + 1, options.length - 1)]?.focus();
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                options[Math.max(index - 1, 0)]?.focus();
+            } else if (event.key === 'Escape') {
+                event.preventDefault();
+                closeCustomSelects();
+                customSelects.get(select)?.button.focus();
+            } else if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                item.click();
+            }
+        });
+
+        return item;
+    }
+
+    function syncCustomSelect(select) {
+        const state = customSelects.get(select);
+        if (!state) return;
+
+        const { root, button, label, menu } = state;
+        label.textContent = getSelectLabel(select);
+        button.disabled = select.disabled;
+        button.setAttribute('aria-disabled', select.disabled ? 'true' : 'false');
+        root.classList.toggle('is-disabled', select.disabled);
+
+        menu.innerHTML = '';
+        Array.from(select.children).forEach(child => {
+            if (child.tagName === 'OPTGROUP') {
+                const group = document.createElement('div');
+                group.className = 'custom-select-group';
+
+                const groupLabel = document.createElement('div');
+                groupLabel.className = 'custom-select-group-label';
+                groupLabel.textContent = child.label;
+                group.appendChild(groupLabel);
+
+                Array.from(child.children).forEach(option => {
+                    group.appendChild(createCustomOption(select, option));
+                });
+                menu.appendChild(group);
+                return;
+            }
+
+            if (child.tagName === 'OPTION') {
+                menu.appendChild(createCustomOption(select, child));
+            }
+        });
+    }
+
+    function syncAllCustomSelects() {
+        customSelects.forEach((_, select) => syncCustomSelect(select));
+    }
+
+    function enhanceSelect(select) {
+        if (!select || customSelects.has(select)) return;
+
+        const root = document.createElement('div');
+        root.className = 'custom-select';
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'custom-select-trigger';
+        button.setAttribute('aria-haspopup', 'listbox');
+        button.setAttribute('aria-expanded', 'false');
+
+        const label = document.createElement('span');
+        label.className = 'custom-select-label';
+
+        const icon = document.createElement('span');
+        icon.className = 'custom-select-chevron';
+        icon.innerHTML = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 8l4 4 4-4"/></svg>';
+
+        const menu = document.createElement('div');
+        menu.className = 'custom-select-menu';
+        menu.setAttribute('role', 'listbox');
+
+        button.append(label, icon);
+        root.append(button, menu);
+
+        select.classList.add('native-select-hidden');
+        select.setAttribute('tabindex', '-1');
+        select.insertAdjacentElement('afterend', root);
+
+        customSelects.set(select, { root, button, label, menu });
+        syncCustomSelect(select);
+
+        button.addEventListener('click', () => {
+            if (select.disabled) return;
+            const willOpen = !root.classList.contains('is-open');
+            closeCustomSelects(root);
+            root.classList.toggle('is-open', willOpen);
+            button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+
+            if (willOpen) {
+                const selected = menu.querySelector('.custom-select-option.is-selected:not(:disabled)');
+                const first = menu.querySelector('.custom-select-option:not(:disabled)');
+                setTimeout(() => (selected || first)?.focus(), 0);
+            }
+        });
+
+        button.addEventListener('keydown', (event) => {
+            if (event.key !== 'ArrowDown' && event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            button.click();
+        });
+
+        select.addEventListener('change', () => syncCustomSelect(select));
+
+        const observer = new MutationObserver(() => syncCustomSelect(select));
+        observer.observe(select, {
+            attributes: true,
+            childList: true,
+            subtree: true,
+            attributeFilter: ['disabled', 'class'],
+        });
     }
 
     function resetLocalities() { 
         if(domElements.locality) { 
-            domElements.locality.innerHTML = '<option value="">Alege</option>'; 
+            domElements.locality.innerHTML = '<option value="">Oraș</option>'; 
             domElements.locality.disabled = true; 
         } 
     }
@@ -326,10 +490,11 @@
             const response = await fetch(`${localityBaseUrl}/${countyId}`);
             const data = await response.json();
             if(domElements.locality) {
-                domElements.locality.innerHTML = '<option value="">Localitate</option>';
+                domElements.locality.innerHTML = '<option value="">Oraș</option>';
                 data.forEach(l => {
                     const opt = document.createElement('option');
                     opt.value = l.id; opt.textContent = l.name;
+                    opt.dataset.slug = l.slug;
                     if(String(selectedId) === String(l.id)) opt.selected = true;
                     domElements.locality.appendChild(opt);
                 });
@@ -361,6 +526,7 @@
         resetSelect(domElements.gen, 'Generație');
         ['body','fuel','gear','county'].forEach(k => { if(domElements[k]) domElements[k].value = ''; });
         resetLocalities();
+        syncAllCustomSelects();
         window.checkResetVisibility();
     };
 
@@ -368,34 +534,44 @@
         const brandOption = domElements.brand?.selectedOptions?.[0];
         const modelOption = domElements.model?.selectedOptions?.[0];
         const countyOption = domElements.county?.selectedOptions?.[0];
+        const localityOption = domElements.locality?.selectedOptions?.[0];
         const brandSlug = brandOption?.dataset?.slug;
         const modelSlug = modelOption?.dataset?.slug;
         const countySlug = countyOption?.dataset?.slug;
+        const citySlug = localityOption?.dataset?.slug;
+        const countyInPath = !!countySlug;
+        const cityInPath = !!(countySlug && citySlug);
 
-        let path = '/autoturisme';
+        let path = '/anunturi-auto-de-vanzare';
         if (brandSlug) path += `/${brandSlug}`;
         if (brandSlug && modelSlug) path += `/${modelSlug}`;
-        if (brandSlug && modelSlug && countySlug) path += `/${countySlug}`;
+        if (countySlug) path += `/${countySlug}`;
+        if (countySlug && citySlug) {
+            path += `/${citySlug}`;
+        }
 
-        const params = new URLSearchParams({
-            vehicle_type: domElements.vehicleType?.value || '',
-            seller_type: domElements.sellerType?.value || 'all',
-            brand_id: domElements.brand?.value || '',
-            model_id: domElements.model?.value || '',
-            car_generation_id: domElements.gen?.value || '',
-            caroserie_id: domElements.body?.value || '',
-            combustibil_id: domElements.fuel?.value || '',
-            cutie_viteze_id: domElements.gear?.value || '',
-            county_id: domElements.county?.value || '',
-            locality_id: domElements.locality?.value || '',
-            // Radius eliminat din URL builder
-        });
-        [...params.keys()].forEach(key => !params.get(key) && params.delete(key));
+        const params = new URLSearchParams();
+        const addParam = (key, value, defaultValue = '') => {
+            if (value && value !== defaultValue) params.set(key, value);
+        };
+
+        addParam('seller_type', domElements.sellerType?.value || '', 'all');
+        addParam('brand_id', brandSlug ? '' : (domElements.brand?.value || ''));
+        addParam('model_id', modelSlug ? '' : (domElements.model?.value || ''));
+        addParam('county_id', countyInPath ? '' : (domElements.county?.value || ''));
+        addParam('locality_id', cityInPath ? '' : (domElements.locality?.value || ''));
+        addParam('car_generation_id', domElements.gen?.value || '');
+        addParam('caroserie_id', domElements.body?.value || '');
+        addParam('combustibil_id', domElements.fuel?.value || '');
+        addParam('cutie_viteze_id', domElements.gear?.value || '');
+
         const queryString = params.toString();
         return `${baseUrl}${path}${queryString ? `?${queryString}` : ''}`;
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('select.autovit-select').forEach(enhanceSelect);
+
         window.checkResetVisibility();
         
         const sellerTabs = document.querySelectorAll('.seller-tab');
@@ -467,6 +643,12 @@
         }
     });
 
+    document.addEventListener('click', (event) => {
+        if (!event.target.closest('.custom-select')) {
+            closeCustomSelects();
+        }
+    });
+
     window.toggleHeart = function(btn, serviceId) {
         @if(!auth()->check()) window.location.href = "{{ route('login') }}"; return; @endif
         const icon = btn.querySelector('svg');
@@ -510,6 +692,186 @@
     .autovit-select:focus { outline: none; border-color: #CC2E2E; box-shadow: 0 0 0 3px rgba(204, 46, 46, 0.1); }
     .dark .autovit-select { background-color: #2d2d2d; border-color: #404040; color: #e5e7eb; }
     .dark .autovit-select:disabled { background-color: #1a1a1a; color: #555; }
+
+    .native-select-hidden {
+        display: none !important;
+    }
+
+    .custom-select {
+        position: relative;
+        width: 100%;
+    }
+
+    .custom-select-trigger {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        height: 48px;
+        gap: 0.75rem;
+        padding: 0 0.9rem 0 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        background: #ffffff;
+        color: #1f2937;
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-align: left;
+        transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+    }
+
+    .custom-select-label {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .custom-select-chevron {
+        display: inline-flex;
+        flex: 0 0 auto;
+        color: #6b7280;
+        transition: transform 0.18s ease, color 0.18s ease;
+    }
+
+    .custom-select-chevron svg {
+        width: 1.15rem;
+        height: 1.15rem;
+        fill: none;
+        stroke: currentColor;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 1.8;
+    }
+
+    .custom-select.is-open .custom-select-trigger {
+        border-color: #CC2E2E;
+        box-shadow: 0 0 0 3px rgba(204, 46, 46, 0.12);
+    }
+
+    .custom-select.is-open .custom-select-chevron {
+        color: #CC2E2E;
+        transform: rotate(180deg);
+    }
+
+    .custom-select.is-disabled .custom-select-trigger {
+        background: #f9fafb;
+        color: #9ca3af;
+        cursor: not-allowed;
+    }
+
+    .custom-select-menu {
+        position: absolute;
+        top: calc(100% + 0.35rem);
+        left: 0;
+        right: 0;
+        z-index: 90;
+        display: none;
+        max-height: min(20rem, 48vh);
+        overflow-y: auto;
+        padding: 0.35rem;
+        border: 1px solid rgba(204, 46, 46, 0.22);
+        border-radius: 0.75rem;
+        background: #ffffff;
+        box-shadow: 0 18px 36px rgba(15, 23, 42, 0.16);
+    }
+
+    .custom-select.is-open .custom-select-menu {
+        display: block;
+    }
+
+    .custom-select-group + .custom-select-group {
+        margin-top: 0.25rem;
+        padding-top: 0.25rem;
+        border-top: 1px solid #f3f4f6;
+    }
+
+    .custom-select-group-label {
+        padding: 0.45rem 0.65rem 0.3rem;
+        color: #CC2E2E;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0;
+        text-transform: uppercase;
+    }
+
+    .custom-select-option {
+        display: block;
+        width: 100%;
+        min-height: 38px;
+        padding: 0.55rem 0.65rem;
+        border-radius: 0.5rem;
+        color: #111827;
+        background: transparent;
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-align: left;
+        transition: background-color 0.16s ease, color 0.16s ease;
+    }
+
+    .custom-select-option:hover,
+    .custom-select-option:focus-visible {
+        outline: none;
+        background: #fff1f1;
+        color: #b02222;
+    }
+
+    .custom-select-option.is-selected {
+        background: #CC2E2E;
+        color: #ffffff;
+        font-weight: 700;
+    }
+
+    .custom-select-option.is-selected:hover,
+    .custom-select-option.is-selected:focus-visible {
+        background: #b02222;
+        color: #ffffff;
+    }
+
+    .custom-select-option.is-placeholder:not(.is-selected) {
+        color: #6b7280;
+    }
+
+    .custom-select-option:disabled {
+        color: #9ca3af;
+        cursor: not-allowed;
+    }
+
+    .dark .custom-select-trigger {
+        border-color: #404040;
+        background: #2d2d2d;
+        color: #e5e7eb;
+    }
+
+    .dark .custom-select.is-disabled .custom-select-trigger {
+        background: #1a1a1a;
+        color: #555555;
+    }
+
+    .dark .custom-select-menu {
+        border-color: rgba(204, 46, 46, 0.35);
+        background: #252525;
+        box-shadow: 0 18px 36px rgba(0, 0, 0, 0.36);
+    }
+
+    .dark .custom-select-group + .custom-select-group {
+        border-top-color: #333333;
+    }
+
+    .dark .custom-select-option {
+        color: #e5e7eb;
+    }
+
+    .dark .custom-select-option:hover,
+    .dark .custom-select-option:focus-visible {
+        background: rgba(204, 46, 46, 0.16);
+        color: #ffffff;
+    }
+
+    .dark .custom-select-option.is-selected {
+        background: #CC2E2E;
+        color: #ffffff;
+    }
     
     .spec-pill {
         display: flex; align-items: center; gap: 0.375rem;
