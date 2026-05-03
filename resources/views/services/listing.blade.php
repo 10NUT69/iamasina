@@ -25,7 +25,7 @@
                 <div class="filters-panel-sheet pointer-events-auto bg-white dark:bg-[#1E1E1E] h-full lg:h-auto w-full max-w-md lg:max-w-none lg:rounded-2xl lg:shadow-md border border-gray-200 dark:border-[#333333] overflow-y-auto">
                     <div class="sticky top-0 z-20 flex items-center justify-between px-4 py-4 border-b border-gray-200 bg-white dark:bg-[#1E1E1E] dark:border-[#333333] lg:hidden">
                         <h2 class="text-lg font-bold text-gray-900 dark:text-white">Filtrează</h2>
-                        <button type="button" id="close-filters" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:border-[#CC2E2E] hover:text-[#CC2E2E] dark:border-[#333333] dark:bg-[#2d2d2d] dark:text-gray-200">
+                        <button type="button" id="close-filters" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:border-[#C81424] hover:text-[#C81424] dark:border-[#333333] dark:bg-[#2d2d2d] dark:text-gray-200">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
                             </svg>
@@ -93,9 +93,9 @@
                             <p class="text-sm font-semibold text-gray-700 mb-2">An fabricație</p>
                             <div class="grid grid-cols-2 gap-2">
                                 <input type="number" id="year-min" name="year_min" placeholder="Min" value="{{ request('year_min', request('an_min')) }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
                                 <input type="number" id="year-max" name="year_max" placeholder="Max" value="{{ request('year_max', request('an_max')) }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
                             </div>
                         </div>
 
@@ -103,9 +103,9 @@
                             <p class="text-sm font-semibold text-gray-700 mb-2">Km</p>
                             <div class="grid grid-cols-2 gap-2">
                                 <input type="number" id="km-min" name="km_min" placeholder="Min" value="{{ request('km_min') }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
                                 <input type="number" id="km-max" name="km_max" placeholder="Max" value="{{ request('km_max') }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
                             </div>
                         </div>
 
@@ -113,9 +113,9 @@
                             <p class="text-sm font-semibold text-gray-700 mb-2">Preț (EUR)</p>
                             <div class="grid grid-cols-2 gap-2">
                                 <input type="number" id="price-min" name="price_min" placeholder="Min" value="{{ request('price_min', request('pret_min')) }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
                                 <input type="number" id="price-max" name="price_max" placeholder="Max" value="{{ request('price_max', request('pret_max')) }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#CC2E2E] focus:ring-2 focus:ring-[#CC2E2E]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
                             </div>
                         </div>
 
@@ -160,7 +160,7 @@
                                 </svg>
                             </button>
 
-                            <button type="submit" class="h-[46px] flex-1 bg-[#CC2E2E] hover:bg-[#b02222] text-white font-bold text-sm rounded-lg shadow-md transition-all flex items-center justify-center gap-2 uppercase tracking-wide">
+                            <button type="submit" class="h-[46px] flex-1 bg-[#C81424] hover:bg-[#94111B] text-white font-bold text-sm rounded-lg shadow-md transition-all flex items-center justify-center gap-2 uppercase tracking-wide">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
@@ -183,7 +183,7 @@
                         Filtrează
                     </button>
                     <button type="button"
-                        class="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-[#0F5CC0] border border-[#0F5CC0] rounded-lg bg-white hover:bg-blue-50 transition-colors">
+                        class="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-[#0F5CC0] border border-[#0F5CC0] rounded-lg bg-white hover:bg-[#fff4f5] transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0h6z"/>
                         </svg>
@@ -208,7 +208,7 @@
             </div>
 
             <div id="loading-indicator" class="text-center py-8 {{ $services->isEmpty() || !$hasMore ? 'hidden' : '' }}">
-                <svg class="animate-spin h-8 w-8 text-[#CC2E2E] mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg class="animate-spin h-8 w-8 text-[#C81424] mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3.003 7.91l2.997-2.619z"></path>
                 </svg>
@@ -548,10 +548,10 @@
         if (hasAnyFilter) {
             btn.disabled = false;
             btn.classList.remove('bg-gray-50', 'text-gray-300', 'cursor-not-allowed');
-            btn.classList.add('bg-white', 'text-[#CC2E2E]', 'border-[#CC2E2E]', 'hover:bg-red-50', 'cursor-pointer', 'shadow-sm');
+            btn.classList.add('bg-white', 'text-[#C81424]', 'border-[#C81424]', 'hover:bg-red-50', 'cursor-pointer', 'shadow-sm');
         } else {
             btn.disabled = true;
-            btn.classList.remove('bg-white', 'text-[#CC2E2E]', 'border-[#CC2E2E]', 'hover:bg-red-50', 'cursor-pointer', 'shadow-sm');
+            btn.classList.remove('bg-white', 'text-[#C81424]', 'border-[#C81424]', 'hover:bg-red-50', 'cursor-pointer', 'shadow-sm');
             btn.classList.add('bg-gray-50', 'text-gray-300', 'cursor-not-allowed');
         }
     };
@@ -889,14 +889,14 @@
         @endif
 
         const icon = btn.querySelector('svg');
-        const isLiked = icon.classList.contains('text-[#CC2E2E]');
+        const isLiked = icon.classList.contains('text-[#C81424]');
 
         if (isLiked) {
-            icon.classList.remove('text-[#CC2E2E]', 'fill-[#CC2E2E]', 'scale-110');
+            icon.classList.remove('text-[#C81424]', 'fill-[#C81424]', 'scale-110');
             icon.classList.add('text-gray-600', 'dark:text-gray-300', 'fill-none');
         } else {
             icon.classList.remove('text-gray-600', 'dark:text-gray-300', 'fill-none');
-            icon.classList.add('text-[#CC2E2E]', 'fill-[#CC2E2E]', 'scale-125');
+            icon.classList.add('text-[#C81424]', 'fill-[#C81424]', 'scale-125');
             setTimeout(() => { icon.classList.remove('scale-125'); icon.classList.add('scale-110'); }, 200);
         }
 
@@ -957,8 +957,8 @@
 
     .autovit-select:focus {
         outline: none;
-        border-color: #CC2E2E;
-        box-shadow: 0 0 0 3px rgba(204, 46, 46, 0.1);
+        border-color: #C81424;
+        box-shadow: 0 0 0 3px rgba(200, 20, 36, 0.1);
     }
 
     .dark .autovit-select {
@@ -1030,12 +1030,12 @@
     }
 
     .custom-select.is-open .custom-select-trigger {
-        border-color: #CC2E2E;
-        box-shadow: 0 0 0 3px rgba(204, 46, 46, 0.12);
+        border-color: #C81424;
+        box-shadow: 0 0 0 3px rgba(200, 20, 36, 0.12);
     }
 
     .custom-select.is-open .custom-select-chevron {
-        color: #CC2E2E;
+        color: #C81424;
         transform: rotate(180deg);
     }
 
@@ -1055,7 +1055,7 @@
         max-height: min(20rem, 48vh);
         overflow-y: auto;
         padding: 0.35rem;
-        border: 1px solid rgba(204, 46, 46, 0.22);
+        border: 1px solid rgba(200, 20, 36, 0.22);
         border-radius: 0.75rem;
         background: #ffffff;
         box-shadow: 0 18px 36px rgba(15, 23, 42, 0.16);
@@ -1073,7 +1073,7 @@
 
     .custom-select-group-label {
         padding: 0.45rem 0.65rem 0.3rem;
-        color: #CC2E2E;
+        color: #C81424;
         font-size: 0.72rem;
         font-weight: 800;
         letter-spacing: 0;
@@ -1098,18 +1098,18 @@
     .custom-select-option:focus-visible {
         outline: none;
         background: #fff1f1;
-        color: #b02222;
+        color: #94111B;
     }
 
     .custom-select-option.is-selected {
-        background: #CC2E2E;
+        background: #C81424;
         color: #ffffff;
         font-weight: 700;
     }
 
     .custom-select-option.is-selected:hover,
     .custom-select-option.is-selected:focus-visible {
-        background: #b02222;
+        background: #94111B;
         color: #ffffff;
     }
 
@@ -1134,7 +1134,7 @@
     }
 
     .dark .custom-select-menu {
-        border-color: rgba(204, 46, 46, 0.35);
+        border-color: rgba(200, 20, 36, 0.35);
         background: #252525;
         box-shadow: 0 18px 36px rgba(0, 0, 0, 0.36);
     }
@@ -1149,18 +1149,18 @@
 
     .dark .custom-select-option:hover,
     .dark .custom-select-option:focus-visible {
-        background: rgba(204, 46, 46, 0.16);
+        background: rgba(200, 20, 36, 0.16);
         color: #ffffff;
     }
 
     .dark .custom-select-option.is-selected {
-        background: #CC2E2E;
+        background: #C81424;
         color: #ffffff;
     }
 
     optgroup {
         font-weight: 700;
-        color: #CC2E2E;
+        color: #C81424;
         font-style: normal;
         background-color: #f9fafb;
     }

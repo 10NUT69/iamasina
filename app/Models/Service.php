@@ -274,4 +274,11 @@ public function modelRel()
 {
     return $this->belongsTo(CarModel::class, 'model_id');
 }
+
+public function getIsActiveAttribute($value): bool
+{
+    return array_key_exists('is_active', $this->attributes)
+        ? (bool) $value
+        : $this->status === 'active';
+}
 }

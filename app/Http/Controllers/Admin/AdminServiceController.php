@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Service;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 
 class AdminServiceController extends Controller
 {
@@ -15,7 +16,15 @@ class AdminServiceController extends Controller
     public function index(Request $request)
     {
         // withTrashed() este obligatoriu ca să vedem și ce e în "Coș"
-        $query = Service::withTrashed()->with(['user', 'category']);
+        $query = Service::withTrashed()->with([
+            'user',
+            'category',
+            'county',
+            'locality',
+            'brandRel',
+            'modelRel',
+            'generation.model.brand',
+        ]);
 
         // Căutare
         if ($request->filled('search')) {
@@ -46,6 +55,110 @@ class AdminServiceController extends Controller
     }
 
     // ==========================================================
+    // 1B. EDIT FORM (ADMIN)
+    // ==========================================================
+    public function edit($id)
+    {
+        $service = Service::withTrashed()
+            ->with([
+                'category',
+                'county',
+                'locality',
+                'user',
+                'brandRel',
+                'modelRel',
+                'generation.model.brand',
+                'combustibil',
+                'cutieViteze',
+                'caroserie',
+                'culoare',
+                'tractiune',
+                'normaPoluare',
+                'culoareOpt',
+            ])
+            ->findOrFail($id);
+
+        $categories = Category::orderBy('sort_order')->orderBy('name')->get();
+
+        return view('admin.services.edit', compact('service', 'categories'));
+    }
+
+    // ==========================================================
+    // 1C. UPDATE (ADMIN)
+    // ==========================================================
+    public function update(Request $request, $id)
+    {
+        $service = Service::withTrashed()->findOrFail($id);
+
+        $data = $request->validate([
+            'title'       => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string', 'max:10000'],
+            'category_id' => ['required', 'exists:categories,id'],
+            'price_value' => ['nullable', 'numeric'],
+            'price_type'  => ['required', 'in:fixed,negotiable'],
+            'currency'    => ['required', 'in:RON,EUR'],
+            'phone'       => ['nullable', 'string', 'max:30'],
+            'email'       => ['nullable', 'email', 'max:120'],
+            'status'      => ['required', 'in:active,pending,expired,rejected'],
+        ]);
+
+        $service->title       = $data['title'];
+        $service->description = $data['description'];
+        $service->category_id = $data['category_id'];
+        $service->price_value = $data['price_value'];
+        $service->price_type  = $data['price_type'];
+        $service->currency    = $data['currency'];
+        $service->phone       = $data['phone'];
+        $service->email       = $data['email'];
+        $service->status      = $data['status'];
+        if (Schema::hasColumn('services', 'is_active')) {
+            $service->is_active = $data['status'] === 'active';
+        }
+        $service->save();
+
+        return back()->with('success', 'Anuntul a fost actualizat.');
+    }
+
+    // ==========================================================
+    // 1D. DELETE IMAGE (ADMIN)
+    // ==========================================================
+    public function deleteImage(Request $request, $id)
+    {
+        $service = Service::withTrashed()->findOrFail($id);
+
+        $request->validate([
+            'image' => ['required', 'string'],
+        ]);
+
+        $imageName = $request->input('image');
+        $images = $service->images;
+
+        if (is_string($images)) {
+            $images = json_decode($images, true);
+        }
+
+        if (!is_array($images)) {
+            $images = [];
+        }
+
+        if (!in_array($imageName, $images, true)) {
+            return back()->with('error', 'Imaginea nu a fost gasita in acest anunt.');
+        }
+
+        $images = array_values(array_filter($images, fn ($image) => $image !== $imageName));
+
+        $path = storage_path('app/public/services/' . $imageName);
+        if (is_file($path)) {
+            @unlink($path);
+        }
+
+        $service->images = count($images) ? $images : null;
+        $service->save();
+
+        return back()->with('success', 'Imagine stearsa.');
+    }
+
+    // ==========================================================
     // 2. BULK ACTIONS (LOGICA PRINCIPALĂ CERUTĂ)
     // ==========================================================
     public function bulkAction(Request $request)
@@ -69,8 +182,10 @@ class AdminServiceController extends Controller
                 // A. DEZACTIVEAZĂ (Doar status)
                 case 'deactivate':
                     if (!$service->trashed()) {
-                        $service->is_active = 0;
                         $service->status = 'pending';
+                        if (Schema::hasColumn('services', 'is_active')) {
+                            $service->is_active = 0;
+                        }
                         $service->save();
                         $count++;
                     }
@@ -79,8 +194,10 @@ class AdminServiceController extends Controller
                 // B. ACTIVEAZĂ
                 case 'activate':
                     if (!$service->trashed()) {
-                        $service->is_active = 1;
                         $service->status = 'active';
+                        if (Schema::hasColumn('services', 'is_active')) {
+                            $service->is_active = 1;
+                        }
                         $service->save();
                         $count++;
                     }
@@ -141,8 +258,13 @@ class AdminServiceController extends Controller
     public function toggle($id)
     {
         $service = Service::findOrFail($id);
-        $service->is_active = !$service->is_active;
-        $service->status = $service->is_active ? 'active' : 'pending';
+        $isActive = $service->status === 'active';
+        $service->status = $isActive ? 'pending' : 'active';
+
+        if (Schema::hasColumn('services', 'is_active')) {
+            $service->is_active = !$isActive;
+        }
+
         $service->save();
 
         return back()->with('success', 'Status actualizat.');

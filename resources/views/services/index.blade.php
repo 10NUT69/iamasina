@@ -1,40 +1,42 @@
 @extends('layouts.app')
 
-@section('title', 'Anunțuri auto – autoturisme și servicii auto')
+@section('title', 'Anunțuri auto de vânzare')
 
 @section('hero')
-{{-- HERO SECTION: Split Screen (Filtre mai late + Poziționate mai jos) --}}
-<div class="w-full bg-gradient-to-b from-blue-50/50 to-white dark:from-[#1a1a1a] dark:to-[#121212] pt-16 md:pt-32 pb-20">
+{{-- HERO SECTION: Split Screen --}}
+<div class="w-full bg-[radial-gradient(circle_at_top_left,rgba(200,20,36,0.10),transparent_34%),linear-gradient(180deg,#fff7f8_0%,#ffffff_66%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(200,20,36,0.18),transparent_36%),linear-gradient(180deg,#171112_0%,#121212_72%)] pt-16 md:pt-24 pb-8">
     <div class="max-w-7xl mx-auto px-4 flex flex-col-reverse md:flex-row items-center justify-between gap-6 md:gap-10">
-        
+
         {{-- 1. ZONA FILTRE (STÂNGA - aprox 60% - MAI LATĂ) --}}
-        <div class="w-full md:w-7/12 bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-xl shadow-blue-900/5 dark:shadow-black/50 border border-gray-100 dark:border-[#333] relative z-30">
+        <div class="w-full min-w-0 md:w-7/12 bg-white/95 dark:bg-[#181516] rounded-xl shadow-[0_24px_70px_rgba(15,23,42,0.12)] dark:shadow-black/50 border border-red-100/70 dark:border-white/10 relative z-40 backdrop-blur">
 
             {{-- HEADER FILTRE: Sursă Anunț --}}
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-[#2C2C2C] bg-white dark:bg-[#1E1E1E]">
-                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider hidden sm:inline-block">
-                    De unde vrei sa cumperi?
-                </span>
-                
+            <div class="search-panel-header flex flex-col sm:flex-row sm:items-stretch sm:justify-between border-b border-red-100/70 dark:border-white/10">
+                <div class="flex min-h-12 flex-1 items-center px-7 py-3 sm:py-0">
+                    <span class="text-sm font-extrabold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
+                        De unde vrei sa cumperi?
+                    </span>
+                </div>
+
                 {{-- Toggle Tabs --}}
-                <div class="flex p-1 bg-gray-100 dark:bg-[#252525] rounded-lg w-full sm:w-auto">
+                <div class="seller-tabs grid min-w-0 grid-cols-3 bg-white dark:bg-[#151515] border-t border-red-100/80 dark:border-white/10 sm:border-t-0 sm:border-l w-full sm:w-[430px] rounded-t-xl sm:rounded-tl-lg sm:rounded-tr-xl">
                     <button type="button" data-seller="all"
-                        class="seller-tab flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold rounded-md transition-all duration-200 text-gray-900 bg-white shadow-sm dark:text-white dark:bg-[#333]">
+                    class="seller-tab min-w-0 px-2 sm:px-4 py-3 text-[11px] sm:text-xs font-bold transition-all duration-200 text-gray-900 bg-[#fff0f2] dark:text-white dark:bg-[#3a171c] rounded-tl-xl sm:rounded-tl-lg">
                         Toate
                     </button>
                     <button type="button" data-seller="individual"
-                        class="seller-tab flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold rounded-md transition-all duration-200 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                        class="seller-tab min-w-0 px-2 sm:px-4 py-3 text-[11px] sm:text-xs font-bold transition-all duration-200 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
                         Proprietari
                     </button>
                     <button type="button" data-seller="dealer"
-                        class="seller-tab flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold rounded-md transition-all duration-200 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                        class="seller-tab min-w-0 px-2 sm:px-4 py-3 text-[11px] sm:text-xs font-bold transition-all duration-200 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-tr-xl">
                         Parcuri Auto
                     </button>
                 </div>
             </div>
 
             {{-- ZONA FORMULAR --}}
-            <div class="p-6">
+            <div class="px-6 pt-6 pb-4">
                 <form id="search-form">
                     <input type="hidden" name="vehicle_type" id="vehicle-type" value="anunturi-auto-de-vanzare">
                     <input type="hidden" name="seller_type" id="seller-type" value="{{ request('seller_type', 'all') }}">
@@ -139,13 +141,13 @@
                         </div>
 
 {{-- BUTOANE ACȚIUNE --}}
-                        <div class="col-span-2 lg:col-span-2 xl:col-span-4 mt-2 flex items-center justify-between pt-5 border-t border-gray-100 dark:border-[#333]">
-                            
+                        <div class="col-span-2 lg:col-span-2 xl:col-span-4 mt-1 flex items-center justify-between pt-4 border-t border-gray-100 dark:border-[#333]">
+
                             {{-- Buton Reset (Stânga) --}}
                             <button type="button" id="reset-btn" onclick="resetFilters()" disabled
-                                    class="h-[42px] px-4 rounded-lg text-[#CC2E2E] font-bold text-xs 
-                                           transition-all duration-300 flex items-center gap-2 hover:bg-red-50 
-                                           opacity-0 invisible pointer-events-none transform -translate-x-2"> 
+                            class="h-[42px] px-4 rounded-lg text-[#C81424] font-bold text-xs
+                                           transition-all duration-300 flex items-center gap-2 hover:bg-[#fff4f5] dark:hover:bg-[#2a1013]
+                                           opacity-0 invisible pointer-events-none transform -translate-x-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
@@ -153,7 +155,7 @@
                             </button>
 
                             {{-- Buton Submit (Dreapta, mai mic) --}}
-                            <button type="submit" class="h-[42px] px-8 bg-[#CC2E2E] hover:bg-[#b02222] text-white font-bold text-sm rounded-lg shadow-md shadow-red-500/20 transition-all flex items-center gap-2 uppercase tracking-wide transform active:scale-[0.98]">
+                            <button type="submit" class="h-[42px] px-8 bg-[#C81424] hover:bg-[#94111B] text-white font-bold text-sm rounded-lg shadow-md shadow-red-700/20 transition-all flex items-center gap-2 uppercase tracking-wide transform active:scale-[0.98]">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
@@ -170,7 +172,7 @@
         <div class="w-full md:w-5/12 flex flex-col items-center md:items-end justify-center text-center md:text-right">
             <h1 class="text-4xl lg:text-5xl xl:text-6xl font-black text-gray-900 dark:text-white tracking-tight leading-[1.1]">
                 Găsește mașina <br />
-                <span class="text-[#CC2E2E]">perfectă</span> <br />
+                <span class="text-[#C81424]">perfectă</span> <br />
                 pentru tine
             </h1>
             <p class="text-gray-500 dark:text-gray-400 mt-6 text-lg md:text-xl font-medium max-w-md">
@@ -187,10 +189,10 @@
 <div class="max-w-7xl mx-auto px-4 mt-4">
     <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-100 dark:border-[#2C2C2C]">
         <div class="flex items-center gap-3">
-             <div class="w-1.5 h-8 bg-[#CC2E2E] rounded-full shadow-sm"></div>
+             <div class="w-1.5 h-8 bg-[#C81424] rounded-full shadow-sm"></div>
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Anunțuri recente</h2>
         </div>
-        
+
     </div>
 
     {{-- GRID CARDURI VERTICALE --}}
@@ -210,12 +212,12 @@
                 <a href="{{ $service->public_url }}" class="block relative w-full aspect-[4/3] overflow-hidden bg-gray-200 dark:bg-[#121212]">
                     <img src="{{ $img }}" alt="{{ $listingTitle }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-in-out" loading="lazy">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-80"></div>
-                    
+
                     {{-- Preț --}}
                     <div class="absolute bottom-4 left-4 flex flex-col items-start z-10">
                         @if($price)
                             <span class="text-xl font-black text-white drop-shadow-lg tracking-tight">{{ $price }} <span class="text-sm font-bold">{{ $service->currency }}</span></span>
-                            @if($service->price_type === 'negotiable') <span class="text-[9px] uppercase font-bold text-white/90 bg-[#CC2E2E] px-1.5 py-0.5 rounded shadow-sm mt-1">Negociabil</span> @endif
+                            @if($service->price_type === 'negotiable') <span class="text-[9px] uppercase font-bold text-white/90 bg-[#C81424] px-1.5 py-0.5 rounded shadow-sm mt-1">Negociabil</span> @endif
                         @else
                             <span class="text-lg font-bold text-white drop-shadow-md">La cerere</span>
                         @endif
@@ -223,18 +225,18 @@
 
                     {{-- Favorite --}}
                     <button onclick="event.preventDefault(); toggleHeart(this, {{ $service->id }})" class="absolute top-3 right-3 p-2 rounded-full bg-black/20 hover:bg-white backdrop-blur-md transition-all duration-300 group/heart shadow-lg">
-                        <svg class="w-5 h-5 transition-colors {{ $isFav ? 'text-[#CC2E2E] fill-[#CC2E2E]' : 'text-white fill-none group-hover/heart:text-[#CC2E2E]' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg class="w-5 h-5 transition-colors {{ $isFav ? 'text-[#C81424] fill-[#C81424]' : 'text-white fill-none group-hover/heart:text-[#C81424]' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733C11.285 4.876 9.623 3.75 7.688 3.75 5.099 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                         </svg>
                     </button>
                 </a>
-                
+
                 <div class="p-5 flex-1 flex flex-col">
                     <a href="{{ $service->public_url }}" class="block mb-4">
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-tight line-clamp-1 group-hover:text-[#CC2E2E] transition-colors">{{ $listingTitle }}</h3>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-tight line-clamp-1 group-hover:text-[#C81424] transition-colors">{{ $listingTitle }}</h3>
                          <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mt-1 truncate uppercase tracking-wide">{{ $service->putere ?? '-' }} CP • {{ $service->capacitate_cilindrica ? number_format($service->capacitate_cilindrica, 0, '', '.') : '-' }} cm³</p>
                     </a>
-                    
+
                     {{-- Grid Specificații --}}
                     <div class="grid grid-cols-2 gap-2 mb-4">
                         <div class="spec-pill">
@@ -257,7 +259,7 @@
 
                     <div class="mt-auto pt-4 border-t border-gray-100 dark:border-[#333] flex items-center justify-between text-xs text-gray-500">
                         <div class="flex items-center">
-                            <svg class="w-3.5 h-3.5 mr-1.5 text-[#CC2E2E]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <svg class="w-3.5 h-3.5 mr-1.5 text-[#C81424]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             <span class="truncate max-w-[140px]">{{ $locationLabel }}</span>
                         </div>
                         <span class="text-gray-400 font-medium">Vezi detalii &rarr;</span>
@@ -477,11 +479,11 @@
         });
     }
 
-    function resetLocalities() { 
-        if(domElements.locality) { 
-            domElements.locality.innerHTML = '<option value="">Oraș</option>'; 
-            domElements.locality.disabled = true; 
-        } 
+    function resetLocalities() {
+        if(domElements.locality) {
+            domElements.locality.innerHTML = '<option value="">Oraș</option>';
+            domElements.locality.disabled = true;
+        }
     }
 
     async function loadLocalities(countyId, selectedId = null) {
@@ -509,7 +511,7 @@
         // Am scos domElements.radius din lista de verificat
         const filters = [domElements.brand, domElements.model, domElements.gen, domElements.body, domElements.fuel, domElements.gear, domElements.county, domElements.locality];
         const hasAnyFilter = filters.some(el => el && el.value !== '');
-        
+
         btn.disabled = !hasAnyFilter;
         if(hasAnyFilter) {
              btn.classList.remove('opacity-0', 'invisible', 'translate-x-0', 'pointer-events-none');
@@ -573,18 +575,18 @@
         document.querySelectorAll('select.autovit-select').forEach(enhanceSelect);
 
         window.checkResetVisibility();
-        
+
         const sellerTabs = document.querySelectorAll('.seller-tab');
         const sellerInput = domElements.sellerType;
         const setActiveSellerTab = (val) => {
             sellerTabs.forEach(tab => {
                 const isActive = tab.dataset.seller === val;
                 if (isActive) {
-                    tab.classList.remove('text-gray-500', 'hover:text-gray-900', 'bg-transparent');
-                    tab.classList.add('text-gray-900', 'bg-white', 'shadow-sm');
+                    tab.classList.remove('text-gray-500', 'text-gray-900', 'hover:text-gray-900', 'bg-transparent', 'bg-white', 'dark:text-gray-400', 'dark:hover:text-white', 'dark:bg-[#333]');
+                    tab.classList.add('text-[#8f111a]', 'bg-[#fff0f2]', 'dark:text-white', 'dark:bg-[#3a171c]');
                 } else {
-                    tab.classList.add('text-gray-500', 'hover:text-gray-900', 'bg-transparent');
-                    tab.classList.remove('text-gray-900', 'bg-white', 'shadow-sm');
+                    tab.classList.add('text-gray-500', 'hover:text-gray-900', 'bg-transparent', 'dark:text-gray-400', 'dark:hover:text-white');
+                    tab.classList.remove('text-[#8f111a]', 'bg-[#fff0f2]', 'dark:text-white', 'dark:bg-[#3a171c]');
                 }
             });
         };
@@ -600,7 +602,7 @@
         if (domElements.county) domElements.county.addEventListener('change', () => { loadLocalities(domElements.county.value); window.checkResetVisibility(); });
         // Am eliminat listener-ul care activa radius
         if (domElements.locality) domElements.locality.addEventListener('change', () => { window.checkResetVisibility(); });
-        
+
         const searchForm = document.getElementById('search-form');
         if (searchForm) searchForm.addEventListener('submit', (e) => { e.preventDefault(); window.location.href = buildSearchUrl(); });
 
@@ -635,7 +637,7 @@
                 window.checkResetVisibility();
             });
         }
-        
+
         [domElements.gen, domElements.body, domElements.fuel, domElements.gear].forEach(el => el && el.addEventListener('change', window.checkResetVisibility));
 
         if (domElements.county && domElements.county.value) {
@@ -652,13 +654,13 @@
     window.toggleHeart = function(btn, serviceId) {
         @if(!auth()->check()) window.location.href = "{{ route('login') }}"; return; @endif
         const icon = btn.querySelector('svg');
-        const isLiked = icon.classList.contains('text-[#CC2E2E]');
+        const isLiked = icon.classList.contains('text-[#C81424]');
         if (isLiked) {
-            icon.classList.remove('text-[#CC2E2E]', 'fill-[#CC2E2E]');
+            icon.classList.remove('text-[#C81424]', 'fill-[#C81424]');
             icon.classList.add('text-white', 'fill-none');
         } else {
             icon.classList.remove('text-white', 'fill-none');
-            icon.classList.add('text-[#CC2E2E]', 'fill-[#CC2E2E]');
+            icon.classList.add('text-[#C81424]', 'fill-[#C81424]');
         }
         fetch("{{ route('favorite.toggle') }}", {
             method: "POST", headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": "{{ csrf_token() }}" },
@@ -672,10 +674,14 @@
         font-size: 0.65rem;
         font-weight: 800;
         text-transform: uppercase;
-        color: #9ca3af;
+        color: #6b7280;
         margin-bottom: 0.25rem;
         margin-left: 0.25rem;
         letter-spacing: 0.05em;
+    }
+
+    .dark .autovit-label {
+        color: #a3a3a3;
     }
 
     .autovit-select {
@@ -687,9 +693,9 @@
         border: 1px solid #e5e7eb; border-radius: 0.75rem; appearance: none; transition: all 0.2s ease;
         text-overflow: ellipsis; white-space: nowrap; overflow: hidden;
     }
-    
-    .autovit-select:hover { border-color: #CC2E2E; }
-    .autovit-select:focus { outline: none; border-color: #CC2E2E; box-shadow: 0 0 0 3px rgba(204, 46, 46, 0.1); }
+
+    .autovit-select:hover { border-color: #C81424; }
+    .autovit-select:focus { outline: none; border-color: #C81424; box-shadow: 0 0 0 3px rgba(200, 20, 36, 0.12); }
     .dark .autovit-select { background-color: #2d2d2d; border-color: #404040; color: #e5e7eb; }
     .dark .autovit-select:disabled { background-color: #1a1a1a; color: #555; }
 
@@ -700,6 +706,10 @@
     .custom-select {
         position: relative;
         width: 100%;
+    }
+
+    .custom-select.is-open {
+        z-index: 220;
     }
 
     .custom-select-trigger {
@@ -745,12 +755,12 @@
     }
 
     .custom-select.is-open .custom-select-trigger {
-        border-color: #CC2E2E;
-        box-shadow: 0 0 0 3px rgba(204, 46, 46, 0.12);
+        border-color: #C81424;
+        box-shadow: 0 0 0 3px rgba(200, 20, 36, 0.13);
     }
 
     .custom-select.is-open .custom-select-chevron {
-        color: #CC2E2E;
+        color: #C81424;
         transform: rotate(180deg);
     }
 
@@ -765,12 +775,12 @@
         top: calc(100% + 0.35rem);
         left: 0;
         right: 0;
-        z-index: 90;
+        z-index: 230;
         display: none;
         max-height: min(20rem, 48vh);
         overflow-y: auto;
         padding: 0.35rem;
-        border: 1px solid rgba(204, 46, 46, 0.22);
+        border: 1px solid rgba(200, 20, 36, 0.24);
         border-radius: 0.75rem;
         background: #ffffff;
         box-shadow: 0 18px 36px rgba(15, 23, 42, 0.16);
@@ -788,7 +798,7 @@
 
     .custom-select-group-label {
         padding: 0.45rem 0.65rem 0.3rem;
-        color: #CC2E2E;
+        color: #C81424;
         font-size: 0.72rem;
         font-weight: 800;
         letter-spacing: 0;
@@ -812,19 +822,19 @@
     .custom-select-option:hover,
     .custom-select-option:focus-visible {
         outline: none;
-        background: #fff1f1;
-        color: #b02222;
+        background: #fff4f5;
+        color: #94111B;
     }
 
     .custom-select-option.is-selected {
-        background: #CC2E2E;
+        background: #C81424;
         color: #ffffff;
         font-weight: 700;
     }
 
     .custom-select-option.is-selected:hover,
     .custom-select-option.is-selected:focus-visible {
-        background: #b02222;
+        background: #94111B;
         color: #ffffff;
     }
 
@@ -849,7 +859,7 @@
     }
 
     .dark .custom-select-menu {
-        border-color: rgba(204, 46, 46, 0.35);
+        border-color: rgba(200, 20, 36, 0.38);
         background: #252525;
         box-shadow: 0 18px 36px rgba(0, 0, 0, 0.36);
     }
@@ -864,18 +874,18 @@
 
     .dark .custom-select-option:hover,
     .dark .custom-select-option:focus-visible {
-        background: rgba(204, 46, 46, 0.16);
+        background: rgba(200, 20, 36, 0.18);
         color: #ffffff;
     }
 
     .dark .custom-select-option.is-selected {
-        background: #CC2E2E;
+        background: #C81424;
         color: #ffffff;
     }
-    
+
     .spec-pill {
         display: flex; align-items: center; gap: 0.375rem;
-        background-color: #f9fafb; 
+        background-color: #f9fafb;
         padding: 0.375rem 0.5rem;
         border-radius: 0.5rem;
         border: 1px solid #f3f4f6;
@@ -884,6 +894,6 @@
         color: #374151;
     }
     .dark .spec-pill { background-color: #252525; border-color: #333; color: #d1d5db; }
-    optgroup { font-weight: 700; color: #CC2E2E; background-color: #f9fafb; }
+    optgroup { font-weight: 700; color: #C81424; background-color: #f9fafb; }
 </style>
 @endsection

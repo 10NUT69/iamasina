@@ -73,4 +73,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(Service::class);
     }
+
+    public function getIsActiveAttribute($value): bool
+    {
+        return array_key_exists('is_active', $this->attributes)
+            ? (bool) $value
+            : true;
+    }
 }

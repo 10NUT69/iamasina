@@ -8,17 +8,19 @@ return new class extends Migration
 {
     public function up(): void
 {
-    Schema::create('car_brands', function (Blueprint $table) {
-        $table->id();
-        $table->string('name')->unique();
-        $table->string('slug')->index(); // <--- AI NEVOIE DE LINIA ASTA
-        $table->string('country')->nullable();
-        $table->timestamps();
-    });
+    if (!Schema::hasTable('car_brands')) {
+        Schema::create('car_brands', function (Blueprint $table) {
+            $table->id();
+            $table->string('name')->unique();
+            $table->string('slug')->index();
+            $table->string('country')->nullable();
+            $table->timestamps();
+        });
+    }
 }
 
     public function down(): void
     {
-        Schema::dropIfExists('car_brands');
+        // The initial car_brands migration owns this table.
     }
 };

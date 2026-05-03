@@ -17,7 +17,7 @@
         
         {{-- STEPPER --}}
         <div class="flex items-center gap-2 bg-white dark:bg-[#1E1E1E] p-1.5 rounded-full shadow-sm border border-gray-100 dark:border-[#333]">
-            <div id="step-dot-1" class="step-dot w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-blue-600 text-white transition-all">1</div>
+            <div id="step-dot-1" class="step-dot w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-[#C81424] text-white transition-all">1</div>
             <div class="w-8 h-0.5 bg-gray-200 dark:bg-gray-700"></div>
             <div id="step-dot-2" class="step-dot w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-[#333] text-gray-400 transition-all">2</div>
             <div class="w-8 h-0.5 bg-gray-200 dark:bg-gray-700"></div>
@@ -34,7 +34,7 @@
             {{-- ================= PASUL 1: SPECIFICAȚII ================= --}}
             <div class="step-content p-6 md:p-8 animate-fade-in" data-step="1">
                 <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                    <span class="text-blue-500">🚙</span> Detalii Vehicul
+                    <span class="text-[#C81424]">🚙</span> Detalii Vehicul
                 </h2>
                 
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -52,7 +52,7 @@
                                     {{-- fallback pentru compatibilitate veche --}}
                                     <input type="hidden" name="brand" id="brandText" value="">
 
-                                    <select name="brand_id" id="brandSelect" class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none cursor-pointer" required>
+                                    <select name="brand_id" id="brandSelect" class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-[#C81424] outline-none transition-all appearance-none cursor-pointer" required>
                                         <option value="">Marca</option>
                                         @foreach($brands as $brand)
                                             <option value="{{ $brand->id }}" data-name="{{ $brand->name }}">{{ $brand->name }}</option>
@@ -67,7 +67,7 @@
                                     {{-- fallback pentru compatibilitate veche --}}
                                     <input type="hidden" name="model" id="modelText" value="">
 
-                                    <select name="model_id" id="modelSelect" disabled class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-[#222] disabled:cursor-not-allowed focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none">
+                                    <select name="model_id" id="modelSelect" disabled class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-[#222] disabled:cursor-not-allowed focus:ring-2 focus:ring-[#C81424] outline-none transition-all appearance-none">
                                         <option value="">Model</option>
                                     </select>
                                 </div>
@@ -103,7 +103,7 @@
     <div>
         <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Culoare</label>
         <select name="culoare_id"
-            class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500"
+            class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white outline-none focus:border-[#C81424]"
             required>
             <option value="">Alege Culoarea</option>
             @foreach($colors as $color)
@@ -124,7 +124,7 @@
             onclick="selectPill('inputColorOpt', '{{ $opt->id }}', this)"
             class="pill-btn px-4 py-2 rounded-lg border border-gray-200 dark:border-[#333]
                    text-xs font-medium text-gray-600 dark:text-gray-300
-                   hover:border-blue-500 hover:text-blue-500 transition-all
+                   hover:border-[#C81424] hover:text-[#C81424] transition-all
                    bg-white dark:bg-[#252525]">
             {{ $opt->nume }}
         </button>
@@ -142,7 +142,7 @@
                             <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
                                 @foreach($bodies as $body)
                                     <button type="button" onclick="selectPill('inputBodyType', '{{ $body->id }}', this)" 
-                                        class="pill-btn px-2 py-2 rounded-lg border border-gray-200 dark:border-[#333] text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-blue-500 hover:text-blue-500 transition-all bg-white dark:bg-[#252525]">
+                                        class="pill-btn px-2 py-2 rounded-lg border border-gray-200 dark:border-[#333] text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-[#C81424] hover:text-[#C81424] transition-all bg-white dark:bg-[#252525]">
                                         {{ $body->nume }}
                                     </button>
                                 @endforeach
@@ -157,7 +157,7 @@
                             <div class="flex flex-wrap gap-2">
                                 @foreach($fuels as $fuel)
                                     <button type="button" onclick="selectPill('inputFuel', '{{ $fuel->id }}', this)" 
-                                        class="pill-btn px-4 py-2 rounded-lg border border-gray-200 dark:border-[#333] text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-blue-500 hover:text-blue-500 transition-all bg-white dark:bg-[#252525]">
+                                        class="pill-btn px-4 py-2 rounded-lg border border-gray-200 dark:border-[#333] text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-[#C81424] hover:text-[#C81424] transition-all bg-white dark:bg-[#252525]">
                                         {{ $fuel->nume }}
                                     </button>
                                 @endforeach
@@ -171,7 +171,7 @@
                             <input type="hidden" name="cutie_viteze_id" id="inputTrans">
                             <div class="flex gap-3">
                                 @foreach($transmissions as $trans)
-                                    <button type="button" onclick="selectPill('inputTrans', '{{ $trans->id }}', this)" class="pill-btn flex-1 py-2.5 rounded-lg border border-gray-200 dark:border-[#333] text-sm font-medium bg-white dark:bg-[#252525] hover:border-blue-500 transition-all flex items-center justify-center gap-2">
+                                    <button type="button" onclick="selectPill('inputTrans', '{{ $trans->id }}', this)" class="pill-btn flex-1 py-2.5 rounded-lg border border-gray-200 dark:border-[#333] text-sm font-medium bg-white dark:bg-[#252525] hover:border-[#C81424] transition-all flex items-center justify-center gap-2">
                                         {{ $trans->nume }}
                                     </button>
                                 @endforeach
@@ -187,7 +187,7 @@
         @foreach($tractiuni as $tr)
             <button type="button"
                 onclick="selectPill('inputTractiune', '{{ $tr->id }}', this)"
-                class="pill-btn px-4 py-2 rounded-lg border border-gray-200 dark:border-[#333] text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-blue-500 hover:text-blue-500 transition-all bg-white dark:bg-[#252525]">
+                class="pill-btn px-4 py-2 rounded-lg border border-gray-200 dark:border-[#333] text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-[#C81424] hover:text-[#C81424] transition-all bg-white dark:bg-[#252525]">
                 {{ $tr->nume }}
             </button>
         @endforeach
@@ -203,7 +203,7 @@
             {{-- ================= PASUL 2: ISTORIC & DESCRIERE ================= --}}
             <div class="step-content p-6 md:p-8 hidden opacity-0" data-step="2">
                 <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                    <span class="text-blue-500">📝</span> Detalii Tehnice & Istoric
+                    <span class="text-[#C81424]">📝</span> Detalii Tehnice & Istoric
                 </h2>
 
                 {{-- VIN CODE --}}
@@ -217,21 +217,21 @@
                     <div>
                         <label class="text-xs font-bold text-gray-500 uppercase mb-1">Rulaj (km)</label>
                         <div class="relative">
-                            <input type="number" name="km" placeholder="150000" class="w-full pl-3 pr-8 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono" required>
+                            <input type="number" name="km" placeholder="150000" class="w-full pl-3 pr-8 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-gray-900 dark:text-white focus:ring-2 focus:ring-[#C81424] outline-none transition-all font-mono" required>
                             <span class="absolute right-3 top-2.5 text-xs font-bold text-gray-400">km</span>
                         </div>
                     </div>
                     <div>
                         <label class="text-xs font-bold text-gray-500 uppercase mb-1">Putere</label>
                         <div class="relative">
-                            <input type="number" name="putere" placeholder="190" class="w-full pl-3 pr-8 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono" required>
+                            <input type="number" name="putere" placeholder="190" class="w-full pl-3 pr-8 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-gray-900 dark:text-white focus:ring-2 focus:ring-[#C81424] outline-none transition-all font-mono" required>
                             <span class="absolute right-3 top-2.5 text-xs font-bold text-gray-400">CP</span>
                         </div>
                     </div>
                     <div>
                         <label class="text-xs font-bold text-gray-500 uppercase mb-1">Capacitate</label>
                         <div class="relative">
-                            <input type="number" name="capacitate_cilindrica" placeholder="1995" class="w-full pl-3 pr-8 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono">
+                            <input type="number" name="capacitate_cilindrica" placeholder="1995" class="w-full pl-3 pr-8 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-gray-900 dark:text-white focus:ring-2 focus:ring-[#C81424] outline-none transition-all font-mono">
                             <span class="absolute right-3 top-2.5 text-xs font-bold text-gray-400">cm³</span>
                         </div>
                     </div>
@@ -279,7 +279,7 @@
     ] as $name => $label)
         <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
             <input type="checkbox" name="{{ $name }}" value="1"
-                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                class="rounded border-gray-300 text-[#C81424] focus:ring-[#C81424]">
             {{ $label }}
         </label>
     @endforeach
@@ -290,11 +290,11 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Titlu Anunț</label>
-                        <input type="text" name="title" placeholder="Ex: BMW 320d M-Packet 2019, Unic Proprietar" class="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#252525] border border-gray-200 dark:border-[#444] focus:border-blue-500 outline-none text-gray-900 dark:text-white font-medium" required>
+                        <input type="text" name="title" placeholder="Ex: BMW 320d M-Packet 2019, Unic Proprietar" class="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#252525] border border-gray-200 dark:border-[#444] focus:border-[#C81424] outline-none text-gray-900 dark:text-white font-medium" required>
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Descriere</label>
-                        <textarea name="description" rows="8" placeholder="Descrie dotările, istoricul de service, starea tehnică..." class="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#252525] border border-gray-200 dark:border-[#444] focus:border-blue-500 outline-none text-sm text-gray-900 dark:text-white resize-none" required></textarea>
+                        <textarea name="description" rows="8" placeholder="Descrie dotările, istoricul de service, starea tehnică..." class="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#252525] border border-gray-200 dark:border-[#444] focus:border-[#C81424] outline-none text-sm text-gray-900 dark:text-white resize-none" required></textarea>
                     </div>
                 </div>
             </div>
@@ -302,16 +302,16 @@
             {{-- ================= PASUL 3: FINALIZARE ================= --}}
             <div class="step-content p-6 md:p-8 hidden opacity-0" data-step="3">
                 <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                    <span class="text-blue-500">📸</span> Galerie & Preț
+                    <span class="text-[#C81424]">📸</span> Galerie & Preț
                 </h2>
 
                 {{-- DRAG & DROP FOTO --}}
                 <div class="mb-8">
                     <div class="relative w-full group">
                         <input type="file" id="imageInput" name="images[]" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
-                        <div class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 dark:border-[#444] rounded-xl bg-gray-50 dark:bg-[#252525] group-hover:bg-blue-50 dark:group-hover:bg-[#2a2a2a] group-hover:border-blue-400 transition-all">
+                        <div class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 dark:border-[#444] rounded-xl bg-gray-50 dark:bg-[#252525] group-hover:bg-[#fff4f5] dark:group-hover:bg-[#2a2a2a] group-hover:border-[#C81424] transition-all">
                             <div class="p-3 bg-white dark:bg-[#333] rounded-full shadow-sm mb-2">
-                                <svg class="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                <svg class="w-6 h-6 text-[#C81424]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                             </div>
                             <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">Click sau trage poze aici</p>
                             <p class="text-xs text-gray-400 mt-1">Maxim 10 imagini</p>
@@ -371,9 +371,9 @@
                 {{-- GUEST / AUTH SECTION --}}
                 @guest
                 <div class="mt-8 pt-8 border-t border-gray-100 dark:border-[#333]">
-                    <div class="mb-5 flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800/30">
+                    <div class="mb-5 flex items-start gap-3 p-4 bg-[#fff4f5] dark:bg-[#2a1013] rounded-xl border border-red-100 dark:border-red-900/40">
                         <span class="text-xl">ℹ️</span>
-                        <div class="text-sm text-blue-800 dark:text-blue-200">
+                        <div class="text-sm text-[#7f1d1d] dark:text-red-100">
                             <p class="font-bold mb-1">Nu ai cont?</p>
                             <p class="opacity-90">Completează datele de mai jos și îți creăm automat un cont.</p>
                         </div>
@@ -413,7 +413,7 @@
                 <button type="button" id="nextBtn" class="ml-auto bg-gray-900 dark:bg-white text-white dark:text-black font-bold text-sm px-8 py-3 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all">
                     Continuă
                 </button>
-                <button type="submit" id="submitBtn" class="hidden ml-auto bg-blue-600 text-white font-bold text-sm px-8 py-3 rounded-xl hover:shadow-lg hover:shadow-blue-500/30 hover:scale-[1.02] transition-all">
+                <button type="submit" id="submitBtn" class="hidden ml-auto bg-[#C81424] text-white font-bold text-sm px-8 py-3 rounded-xl hover:shadow-lg hover:shadow-red-700/25 hover:scale-[1.02] transition-all">
                     Publică Anunțul
                 </button>
             </div>
@@ -425,7 +425,7 @@
 <style>
     .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-    .pill-btn.selected { background-color: #3B82F6; color: white !important; border-color: #3B82F6; }
+    .pill-btn.selected { background-color: #C81424; color: white !important; border-color: #C81424; }
     button[onclick*="inputPriceType"].selected, button[onclick*="inputCurrency"].selected { background-color: #10B981 !important; color: white !important; border-color: #10B981 !important; }
     input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 </style>
@@ -456,7 +456,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         dots.forEach((dot, idx) => {
             if (idx + 1 === currentStep) {
-                dot.className = 'step-dot w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-blue-600 text-white transition-all scale-110 shadow-md';
+                dot.className = 'step-dot w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-[#C81424] text-white transition-all scale-110 shadow-md';
             } else if (idx + 1 < currentStep) {
                 dot.className = 'step-dot w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-green-500 text-white transition-all';
                 dot.innerHTML = '✓';

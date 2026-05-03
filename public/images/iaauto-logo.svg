@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="184" height="48" viewBox="0 0 184 48" role="img" aria-labelledby="title desc">
+  <title id="title">iaAuto.ro</title>
+  <desc id="desc">Logo minimalist iaAuto.ro</desc>
+  <g fill="none" fill-rule="evenodd">
+    <path fill="#fff" d="M24 7c8.74 0 16.09 5.96 18.2 14.04h-4.82c-1.92-5.38-7.1-9.24-13.22-9.24h-3.54c-6.12 0-11.3 3.86-13.22 9.24H2.6C4.7 12.96 12.06 7 20.8 7H24Z"/>
+    <path fill="#fff" d="M8.8 25.1h30.4c2.06 0 3.8 1.62 3.8 3.72v5.12c0 1.18-.96 2.14-2.14 2.14h-2.6a5.28 5.28 0 0 0-10.22 0h-8.08a5.28 5.28 0 0 0-10.22 0h-2.6A2.14 2.14 0 0 1 5 33.94v-5.12c0-2.1 1.74-3.72 3.8-3.72Zm8.04 13.5a2.72 2.72 0 1 0 0-5.44 2.72 2.72 0 0 0 0 5.44Zm16.32 0a2.72 2.72 0 1 0 0-5.44 2.72 2.72 0 0 0 0 5.44Z"/>
+    <text x="53" y="32" fill="#fff" font-family="Inter, Arial, sans-serif" font-size="25" font-weight="850" letter-spacing="0">iaAuto<tspan font-size="16" font-weight="750">.ro</tspan></text>
+  </g>
+</svg>

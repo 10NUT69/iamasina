@@ -115,7 +115,7 @@
                                 <td class="p-4">
                                     @if($service->trashed())
                                         <span class="px-2 py-1 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">ȘTERS</span>
-                                    @elseif($service->is_active)
+                                    @elseif($service->status === 'active')
                                         <span class="px-2 py-1 rounded text-[10px] font-bold bg-green-100 text-green-700 border border-green-200">ACTIV</span>
                                     @else
                                         <span class="px-2 py-1 rounded text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">INACTIV</span>
@@ -125,11 +125,17 @@
                                 <td class="p-4 text-right">
                                     <div class="flex items-center justify-end gap-2">
                                         
+                                        <a href="{{ route('admin.services.edit', $service->id) }}"
+                                           class="p-2 border border-blue-200 text-blue-600 rounded-lg hover:bg-blue-50"
+                                           title="Editeaza anunt">
+                                            <i class="fas fa-pen"></i>
+                                        </a>
+
                                         @if(!$service->trashed())
                                             {{-- Toggle --}}
                                             <button type="button" onclick="toggleService({{ $service->id }})" 
                                                     class="p-2 border rounded-lg hover:bg-slate-50 text-slate-500" title="Activează/Dezactivează">
-                                                <i class="fas {{ $service->is_active ? 'fa-pause' : 'fa-play' }}"></i>
+                                                <i class="fas {{ $service->status === 'active' ? 'fa-pause' : 'fa-play' }}"></i>
                                             </button>
 
                                             {{-- Soft Delete (Coș) --}}

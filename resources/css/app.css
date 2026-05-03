@@ -1,6 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+    --ia-red: #c81424;
+    --ia-red-dark: #94111b;
+    --ia-red-soft: #fff4f5;
+}
+
 /* HEADER NORMAL (mare) */
 #mainHeader {
     padding-top: 0.4rem;
@@ -14,12 +21,19 @@
     backdrop-filter: blur(6px);
 }
 .emag-gradient {
-    background: linear-gradient(90deg,
-        #e52620 0%,
-        #d51d68 20%,
-        #7b2bbf 60%,
-        #007bff 100%
-    );
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 42%),
+        linear-gradient(90deg, #7f1118 0%, #a9111d 48%, #d7192b 100%);
+    box-shadow: 0 12px 32px rgba(132, 16, 24, 0.26);
+}
+
+@media (prefers-color-scheme: dark) {
+    .emag-gradient {
+        background:
+            linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 44%),
+            linear-gradient(90deg, #270709 0%, #650f16 52%, #9e1320 100%);
+        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.38);
+    }
 }
 /* Logo normal */
 .logo-main {

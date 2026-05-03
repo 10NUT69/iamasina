@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('meta_title', view()->hasSection('title') ? view()->getSection('title') . ' - MeseriasBun.ro' : 'Servicii România - MeseriasBun.ro')</title>
-    <meta name="description" content="@yield('meta_description', 'Găsește rapid meseriașul potrivit în zona ta. Electricieni, instalatori, constructori și multe altele pe MeseriasBun.ro')">
+    <title>@yield('meta_title', view()->hasSection('title') ? view()->getSection('title') . ' - iaAuto.ro' : 'Anunțuri auto de vânzare - iaAuto.ro')</title>
+    <meta name="description" content="@yield('meta_description', 'Găsește rapid mașina potrivită pe iaAuto.ro. Anunțuri auto curate de la proprietari și parcuri auto din toată țara.')">
 
     @hasSection('canonical')
         @yield('canonical')
@@ -15,15 +15,15 @@
     @endif
 
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="MeseriasBun.ro">
+    <meta property="og:site_name" content="iaAuto.ro">
     <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:title" content="@yield('meta_title', view()->hasSection('title') ? view()->getSection('title') : 'Servicii România')">
-    <meta property="og:description" content="@yield('meta_description', 'Găsește meseriași verificați în zona ta.')">
-    <meta property="og:image" content="@yield('meta_image', asset('images/logo.webp'))">
+    <meta property="og:title" content="@yield('meta_title', view()->hasSection('title') ? view()->getSection('title') : 'Anunțuri auto de vânzare')">
+    <meta property="og:description" content="@yield('meta_description', 'Găsește anunțuri auto curate din zona ta.')">
+    <meta property="og:image" content="@yield('meta_image', asset('images/social-share.webp'))">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="@yield('meta_title', view()->hasSection('title') ? view()->getSection('title') : 'Servicii România')">
-    <meta name="twitter:description" content="@yield('meta_description', 'Găsește meseriași verificați în zona ta.')">
-    <meta name="twitter:image" content="@yield('meta_image', asset('images/logo.webp'))">
+    <meta name="twitter:title" content="@yield('meta_title', view()->hasSection('title') ? view()->getSection('title') : 'Anunțuri auto de vânzare')">
+    <meta name="twitter:description" content="@yield('meta_description', 'Găsește anunțuri auto curate din zona ta.')">
+    <meta name="twitter:image" content="@yield('meta_image', asset('images/social-share.webp'))">
 
     @yield('schema')
 
@@ -45,34 +45,39 @@
     {{-- HEADER FIX --}}
     <nav id="main-nav" class="fixed top-0 left-0 w-full z-50 h-14 md:h-[72px] transition-all duration-500 ease-in-out
                             emag-gradient text-white border-b border-transparent dark:border-gray-800 flex items-center shadow-md will-change-transform">
-        
+
         <div class="w-full max-w-7xl mx-auto px-3 sm:px-4 flex items-center justify-between">
 
             {{-- 1. LOGO --}}
             <a href="{{ route('services.index') }}" class="flex items-center shrink-0 gap-1 group decoration-0">
-                <img src="/images/logo.webp" 
-                     alt="Logo MeseriasBun"
-                     width="150" 
-                     height="44"
+                <img src="/images/iaauto-logo.svg"
+                     alt="iaAuto.ro"
+                     width="184"
+                     height="48"
                      id="logo-img"
-                     class="max-h-8 md:max-h-11 w-auto object-contain select-none transition-all duration-500">
+                     class="max-h-7 sm:max-h-8 md:max-h-10 w-auto object-contain select-none transition-all duration-500">
             </a>
 
             {{-- 2. MENIU DREAPTA --}}
-            <div class="flex items-center gap-2 sm:gap-5">
+            <div class="flex items-center gap-1.5 sm:gap-4">
+
+                <a href="{{ route('page.blog') }}"
+                   class="hidden md:inline-flex items-center rounded-full px-3.5 py-2 text-sm font-bold text-white/95 transition hover:bg-white/10 hover:text-white">
+                    Blog
+                </a>
 
                 {{-- Favorite --}}
-                <button onclick="goToFavorites()" 
+                <button onclick="goToFavorites()"
                         aria-label="Vezi favorite"
-                        class="transition-all duration-300 flex items-center justify-center h-9 w-9 rounded-full hover:bg-white/10 shrink-0 text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                        class="transition-all duration-300 flex items-center justify-center h-8 w-8 md:h-9 md:w-9 rounded-full hover:bg-white/10 shrink-0 text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 md:w-6 md:h-6">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733C11.285 4.876 9.623 3.75 7.688 3.75 5.099 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                     </svg>
                 </button>
 
                 @auth
                     {{-- LOGAT --}}
-                    <a href="{{ route('account.index') }}" 
+                    <a href="{{ route('account.index') }}"
                        aria-label="Contul meu"
                        class="md:hidden flex items-center justify-center w-8 h-8 rounded-full bg-white/20 border border-white/30 text-sm font-bold text-white">
                         {{ substr(auth()->user()->name, 0, 1) }}
@@ -92,10 +97,10 @@
 
                 @else
                     {{-- NE-LOGAT --}}
-                    <a href="{{ route('login') }}" 
+                    <a href="{{ route('login') }}"
                        aria-label="Autentificare"
-                       class="md:hidden p-2 hover:bg-white/10 rounded-full transition text-white">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7">
+                       class="md:hidden p-1.5 hover:bg-white/10 rounded-full transition text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                     </a>
@@ -108,12 +113,12 @@
                 @endauth
 
                 {{-- BUTON ADAUGĂ --}}
-                <a href="{{ route('services.create') }}" 
-                   class="ml-1 bg-white text-gray-800 font-bold rounded-lg shadow hover:bg-gray-100 transition-all duration-500 active:scale-95 flex items-center gap-1
-                          px-3 py-2 text-sm md:text-base md:px-4 md:py-2"
+                <a href="{{ route('services.create') }}"
+                   class="ml-0.5 sm:ml-1 bg-white text-[#8f111a] font-bold rounded-lg shadow hover:bg-[#fff4f5] transition-all duration-500 active:scale-95 flex items-center justify-center gap-0 sm:gap-1
+                          px-2 py-2 text-sm md:text-base sm:px-3 md:px-4 md:py-2"
                    id="add-btn">
                     <span class="text-lg md:text-xl leading-none font-black">+</span>
-                    <span class="hidden xs:inline">Adaugă</span>
+                    <span class="hidden sm:inline">Adaugă</span>
                 </a>
 
             </div>
@@ -143,30 +148,34 @@
             {{-- Rând 1: Brand + slogan --}}
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div class="text-center md:text-left space-y-1">
-                    <span class="text-sm font-extrabold tracking-tight text-[#CC2E2E]">
-                        MeseriasBun.ro
+                    <span class="text-sm font-extrabold tracking-tight text-[#C81424]">
+                        iaAuto.ro
                     </span>
                     <p class="text-[11px] text-gray-500 dark:text-gray-500 leading-tight">
-                        Găsești rapid meseriași și servicii în toată țara – simplu și fără bătăi de cap.
+                        Anunțuri auto curate, ușor de filtrat, de la proprietari și parcuri auto din toată țara.
                     </p>
                 </div>
 
                 {{-- Navigație utilă --}}
                 <nav class="flex flex-wrap justify-center md:justify-end gap-2 md:gap-3">
+                    <a href="{{ route('page.blog') }}"
+                       class="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-[#18181B] text-[11px] hover:bg-[#C81424] hover:text-white transition">
+                        Blog
+                    </a>
                     <a href="{{ route('page.about') }}"
-                       class="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-[#18181B] text-[11px] hover:bg-[#CC2E2E] hover:text-white transition">
+                       class="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-[#18181B] text-[11px] hover:bg-[#C81424] hover:text-white transition">
                         Despre noi
                     </a>
                     <a href="{{ route('page.contact') }}"
-                       class="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-[#18181B] text-[11px] hover:bg-[#CC2E2E] hover:text-white transition">
+                       class="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-[#18181B] text-[11px] hover:bg-[#C81424] hover:text-white transition">
                         Contact
                     </a>
                     <a href="{{ route('page.terms') }}"
-                       class="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-[#18181B] text-[11px] hover:bg-[#CC2E2E] hover:text-white transition">
+                       class="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-[#18181B] text-[11px] hover:bg-[#C81424] hover:text-white transition">
                         Termeni &amp; condiții
                     </a>
                     <a href="{{ route('page.privacy') }}"
-                       class="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-[#18181B] text-[11px] hover:bg-[#CC2E2E] hover:text-white transition">
+                       class="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-[#18181B] text-[11px] hover:bg-[#C81424] hover:text-white transition">
                         Confidențialitate
                     </a>
                 </nav>
@@ -175,10 +184,10 @@
             {{-- Rând 2: Linie fină + text mic --}}
             <div class="mt-3 pt-3 border-t border-dashed border-gray-200 dark:border-gray-800 flex flex-col md:flex-row md:items-center md:justify-between gap-2 text-[10px] text-gray-400 dark:text-gray-500">
                 <p class="text-center md:text-left">
-                    &copy; {{ date('Y') }} MeseriasBun.ro – Toate drepturile rezervate.
+                    &copy; {{ date('Y') }} iaAuto.ro – Toate drepturile rezervate.
                 </p>
                 <p class="text-center md:text-right">
-                    Platformă de anunțuri pentru servicii. Verifică întotdeauna meseriașul înainte de colaborare.
+                    Platformă de anunțuri auto. Verifică actele, istoricul și vânzătorul înainte de cumpărare.
                 </p>
             </div>
         </div>
@@ -189,25 +198,25 @@
     <script>
        function goToFavorites() {
         @if(auth()->check())
-            window.location.href = "{{ route('account.index', ['tab' => 'favorite']) }}"; 
+            window.location.href = "{{ route('account.index', ['tab' => 'favorite']) }}";
         @else
             alert("Trebuie să fii autentificat.");
         @endif
     }
-    
+
     // ============================================================
     // LOGICA HEADER SCROLL & MOBILE HIDE
     // ============================================================
-    
+
     const isHomepage = {{ request()->routeIs('services.index') ? 'true' : 'false' }};
     let lastScrollY = window.scrollY;
     const nav = document.getElementById('main-nav');
     const logo = document.getElementById('logo-img');
-    const threshold = 15; 
+    const threshold = 15;
 
     window.addEventListener('scroll', function() {
         const currentScrollY = window.scrollY;
-        const isMobile = window.innerWidth < 768; 
+        const isMobile = window.innerWidth < 768;
 
         // --- 1. LOGICA DE DIMENSIUNE (SHRINK: Afectează doar Desktop) ---
         if (!isMobile) {
@@ -215,10 +224,10 @@
                 // Desktop Scroll Jos -> Compact (h-14)
                 nav.classList.remove('md:h-[72px]');
                 nav.classList.add('md:h-14', 'shadow-xl');
-                
+
                 // Logo devine și mai mic (md:max-h-9)
                 if (logo) {
-                    logo.classList.remove('md:max-h-11');
+                    logo.classList.remove('md:max-h-10');
                     logo.classList.add('md:max-h-9');
                 }
             } else {
@@ -229,14 +238,14 @@
                 // Logo revine la mărimea medie (md:max-h-11)
                 if (logo) {
                     logo.classList.remove('md:max-h-9');
-                    logo.classList.add('md:max-h-11');
+                    logo.classList.add('md:max-h-10');
                 }
             }
         }
 
         // --- 2. LOGICA OLX (ASCUNDE/ARATĂ PE MOBIL) ---
         if (isHomepage && isMobile) {
-            
+
             if (Math.abs(currentScrollY - lastScrollY) < threshold) return;
 
             if (currentScrollY < 10) {
@@ -263,7 +272,7 @@
         .xs\:inline { display: inline !important; }
     }
     html, body {
-        overscroll-behavior-y: none; 
+        overscroll-behavior-y: none;
     }
     </style>
 

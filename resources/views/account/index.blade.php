@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Contul meu - Servicii România')
+@section('title', 'Contul meu - iaAuto.ro')
 
 @section('content')
 
@@ -15,9 +15,9 @@
                 Gestionează anunțurile și setările contului tău.
             </p>
         </div>
-        
-        <a href="{{ route('services.create') }}" 
-           class="px-5 py-3 bg-[#CC2E2E] hover:bg-[#B72626] text-white font-bold rounded-xl shadow-lg 
+
+        <a href="{{ route('services.create') }}"
+           class="px-5 py-3 bg-[#C81424] hover:bg-[#94111B] text-white font-bold rounded-xl shadow-lg
                   transition transform active:scale-95 flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -32,7 +32,7 @@
                 <a href="?tab=anunturi"
                    class="pb-3 inline-block transition-colors whitespace-nowrap
                    {{ request('tab') === 'anunturi' || !request('tab')
-                       ? 'text-[#CC2E2E] border-b-2 border-[#CC2E2E]'
+                       ? 'text-[#C81424] border-b-2 border-[#C81424]'
                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200' }}">
                    Anunțurile mele
                 </a>
@@ -41,7 +41,7 @@
                 <a href="?tab=favorite"
                    class="pb-3 inline-block transition-colors whitespace-nowrap
                    {{ request('tab') === 'favorite'
-                       ? 'text-[#CC2E2E] border-b-2 border-[#CC2E2E]'
+                       ? 'text-[#C81424] border-b-2 border-[#C81424]'
                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200' }}">
                    Favorite
                 </a>
@@ -50,7 +50,7 @@
                 <a href="?tab=profil"
                    class="pb-3 inline-block transition-colors whitespace-nowrap
                    {{ request('tab') === 'profil'
-                       ? 'text-[#CC2E2E] border-b-2 border-[#CC2E2E]'
+                       ? 'text-[#C81424] border-b-2 border-[#C81424]'
                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200' }}">
                    Setări Profil
                 </a>
@@ -75,7 +75,7 @@
 
         <div id="myServicesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($myServices as $service)
-            <div class="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-sm border border-gray-200 dark:border-[#333333] 
+            <div class="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-sm border border-gray-200 dark:border-[#333333]
                         overflow-hidden hover:shadow-lg transition-all duration-300 group"
                  id="service-{{ $service->id }}">
 
@@ -84,7 +84,7 @@
                     <img src="{{ $service->main_image_url }}"
                          class="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
                          alt="{{ $service->title }}">
-                    
+
                     <span class="absolute top-2 right-2 px-2 py-1 text-xs font-bold rounded-md shadow-sm
                         {{ $service->status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600' }}">
                         {{ ucfirst($service->status ?? 'Activ') }}
@@ -115,9 +115,20 @@
                         <span>{{ $service->created_at->format('d.m.Y') }}</span>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button"
+                                data-id="{{ $service->id }}"
+                                data-url="{{ route('services.renew', $service->id) }}"
+                                onclick="refreshService(this)"
+                                title="Reactualizeaza anuntul"
+                                class="px-2 py-2 text-xs font-semibold bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/40 transition flex items-center justify-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            <span class="hidden sm:inline">Reactualizare</span>
+                        </button>
                         <a href="{{ route('services.edit', $service->id) }}"
-                           class="px-3 py-2 text-sm font-medium text-center bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition">
+                           class="px-3 py-2 text-sm font-medium text-center bg-[#fff4f5] dark:bg-[#2a1013] text-[#C81424] dark:text-red-300 rounded-lg hover:bg-[#ffe7ea] dark:hover:bg-[#3a171c] transition">
                             Editare
                         </a>
 
@@ -127,6 +138,39 @@
                                 onclick="deleteService(this)"
                                 class="px-3 py-2 text-sm font-medium text-center bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 transition">
                             Șterge
+                        </button>
+                    </div>
+
+                    <div class="mt-2 grid grid-cols-3 gap-2">
+                        <button type="button"
+                                data-url="{{ $service->public_url }}"
+                                onclick="setShareUrl(this); shareFacebook()"
+                                class="w-full px-2 py-2 text-xs font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/35 transition flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4 text-blue-600 dark:text-blue-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <path d="M22 12a10 10 0 10-11.5 9.9v-7H8v-3h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.4h-1.2c-1.2 0-1.6.8-1.6 1.6V12H16.9l-.4 3h-2.2v7A10 10 0 0022 12z"/>
+                            </svg>
+                            <span class="hidden sm:inline">Facebook</span>
+                        </button>
+
+                        <button type="button"
+                                data-url="{{ $service->public_url }}"
+                                data-title="{{ e($service->title) }}"
+                                onclick="setShareUrl(this); shareWhatsapp()"
+                                class="w-full px-2 py-2 text-xs font-medium bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/35 transition flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4 text-green-600 dark:text-green-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <path d="M20.5 3.5A11 11 0 003.9 18.6L3 22l3.5-.9A11 11 0 1020.5 3.5zm-9.5 18a8.9 8.9 0 01-4.5-1.2l-.3-.2-2.1.5.6-2-.2-.3A9 9 0 1111 21.5zm5.2-6.6c-.3-.2-1.7-.8-2-.9s-.5-.2-.7.2-.8.9-1 1.1-.4.2-.7 0a7.4 7.4 0 01-2.2-1.4 8.2 8.2 0 01-1.5-1.9c-.2-.3 0-.5.1-.6l.5-.6c.2-.2.2-.4.3-.6s0-.4 0-.6-.7-1.7-1-2.3c-.3-.7-.6-.6-.7-.6h-.6c-.2 0-.6.1-.9.4s-1.2 1.1-1.2 2.8 1.2 3.2 1.4 3.4a13 13 0 005 4.6c.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.6-.1 1.7-.7 1.9-1.4s.2-1.2.1-1.4-.3-.2-.6-.4z"/>
+                            </svg>
+                            <span class="hidden sm:inline">WhatsApp</span>
+                        </button>
+
+                        <button type="button"
+                                data-url="{{ $service->public_url }}"
+                                onclick="setShareUrl(this); copyLink(this)"
+                                class="w-full px-2 py-2 text-xs font-medium bg-gray-50 dark:bg-[#252525] text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2f2f2f] transition flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-2 10h2a2 2 0 002-2V10a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            <span class="hidden sm:inline">Copiaza</span>
                         </button>
                     </div>
                 </div>
@@ -161,7 +205,7 @@
 
         <div id="favoriteList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($favorites as $service)
-            <div class="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-sm border border-gray-200 dark:border-[#333333] p-4 favorite-card transition-colors group" 
+            <div class="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-sm border border-gray-200 dark:border-[#333333] p-4 favorite-card transition-colors group"
                  id="favorite-{{ $service->id }}">
 
                 {{-- 🔥 MODIFICAT AICI: Link SEO Friendly --}}
@@ -196,13 +240,13 @@
    @if(request('tab') === 'profil')
 
    <div class="max-w-5xl mr-auto">
-       
+
        <div class="bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-[#333333] shadow-xl rounded-2xl overflow-hidden flex flex-col md:flex-row transition-colors">
-           
+
            <div class="w-full md:w-1/4 bg-gray-50 dark:bg-[#181818] p-6 border-b md:border-b-0 md:border-r border-gray-200 dark:border-[#333333] flex flex-col items-center text-center justify-center">
-               
+
                 <div class="relative">
-                    <div class="w-20 h-20 rounded-full bg-gradient-to-br from-[#CC2E2E] to-[#801010] text-white flex items-center justify-center text-2xl font-bold shadow-lg mb-3 select-none">
+                    <div class="w-20 h-20 rounded-full bg-gradient-to-br from-[#C81424] to-[#5f0f14] text-white flex items-center justify-center text-2xl font-bold shadow-lg mb-3 select-none">
                         {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                     </div>
                     <div class="absolute bottom-3 right-0 w-4 h-4 bg-green-500 border-2 border-white dark:border-[#181818] rounded-full"></div>
@@ -211,14 +255,14 @@
                 <h2 class="text-lg font-bold text-gray-900 dark:text-white truncate w-full px-2">
                     {{ auth()->user()->name }}
                 </h2>
-                
+
                 <div class="mt-1 px-3 py-1 bg-white dark:bg-[#252525] border border-gray-200 dark:border-[#333333] rounded-full text-xs text-gray-500 dark:text-gray-400 shadow-sm">
                     Membru din {{ auth()->user()->created_at->format('Y') }}
                 </div>
            </div>
 
            <div class="w-full md:w-3/4 p-8">
-               
+
                 <div class="flex items-center justify-between mb-8">
                     <div>
                         <h3 class="text-xl font-bold text-gray-900 dark:text-white">Setări Cont</h3>
@@ -229,23 +273,23 @@
                 <div id="profileSavedMsg" class="hidden mb-6 p-3 rounded-lg text-sm font-medium text-center transition-all"></div>
 
                 <div class="space-y-6">
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        
+
                         <div>
                             <label class="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Numele tău</label>
                             <div class="relative group">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#CC2E2E] transition-colors">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#C81424] transition-colors">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
                                 </div>
                                 <input id="editName" type="text" value="{{ auth()->user()->name }}"
-                                    class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040] 
+                                    class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
                                            bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
-                                           focus:ring-2 focus:ring-[#CC2E2E]/20 focus:border-[#CC2E2E] outline-none transition shadow-sm">
+                                           focus:ring-2 focus:ring-[#C81424]/20 focus:border-[#C81424] outline-none transition shadow-sm">
                             </div>
-                            
+
                             {{-- FEEDBACK VALIDARE --}}
                             <div class="mt-2 min-h-[20px] space-y-2">
                                 <div id="nameCheckMsg" class="text-sm font-medium"></div>
@@ -256,15 +300,15 @@
                         <div>
                             <label class="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</label>
                             <div class="relative group">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#CC2E2E] transition-colors">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#C81424] transition-colors">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
                                 </div>
                                 <input id="editEmail" type="email" value="{{ auth()->user()->email }}"
-                                    class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040] 
+                                    class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
                                            bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
-                                           focus:ring-2 focus:ring-[#CC2E2E]/20 focus:border-[#CC2E2E] outline-none transition shadow-sm">
+                                           focus:ring-2 focus:ring-[#C81424]/20 focus:border-[#C81424] outline-none transition shadow-sm">
                             </div>
                         </div>
                     </div>
@@ -285,7 +329,7 @@
             <select id="editUserType"
                 class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
                        bg-white dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
-                       focus:ring-2 focus:ring-[#CC2E2E]/20 focus:border-[#CC2E2E] outline-none transition shadow-sm">
+                       focus:ring-2 focus:ring-[#C81424]/20 focus:border-[#C81424] outline-none transition shadow-sm">
                 <option value="individual" {{ $ut === 'individual' ? 'selected' : '' }}>Persoană fizică</option>
                 <option value="dealer" {{ $ut === 'dealer' ? 'selected' : '' }}>Parc auto</option>
             </select>
@@ -308,7 +352,7 @@
                 <input id="editCompanyName" type="text" value="{{ auth()->user()->company_name }}"
                     class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
                            bg-white dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
-                           focus:ring-2 focus:ring-[#CC2E2E]/20 focus:border-[#CC2E2E] outline-none transition shadow-sm"
+                           focus:ring-2 focus:ring-[#C81424]/20 focus:border-[#C81424] outline-none transition shadow-sm"
                     placeholder="Ex: AutoBest SRL">
             </div>
 			<div class="mt-2 min-h-[20px] text-sm font-medium" id="companyCheckMsg"></div>
@@ -320,7 +364,7 @@
                 <input id="editCui" type="text" value="{{ auth()->user()->cui }}"
                     class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
                            bg-white dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
-                           focus:ring-2 focus:ring-[#CC2E2E]/20 focus:border-[#CC2E2E] outline-none transition shadow-sm"
+                           focus:ring-2 focus:ring-[#C81424]/20 focus:border-[#C81424] outline-none transition shadow-sm"
                     placeholder="RO12345678">
             </div>
 
@@ -329,7 +373,7 @@
                 <input id="editDealerPhone" type="text" value="{{ auth()->user()->phone }}"
                     class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
                            bg-white dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
-                           focus:ring-2 focus:ring-[#CC2E2E]/20 focus:border-[#CC2E2E] outline-none transition shadow-sm"
+                           focus:ring-2 focus:ring-[#C81424]/20 focus:border-[#C81424] outline-none transition shadow-sm"
                     placeholder="07xx xxx xxx">
             </div>
 
@@ -338,7 +382,7 @@
                 <input id="editCounty" type="text" value="{{ auth()->user()->county }}"
                     class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
                            bg-white dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
-                           focus:ring-2 focus:ring-[#CC2E2E]/20 focus:border-[#CC2E2E] outline-none transition shadow-sm"
+                           focus:ring-2 focus:ring-[#C81424]/20 focus:border-[#C81424] outline-none transition shadow-sm"
                     placeholder="Ex: Cluj">
             </div>
 
@@ -347,7 +391,7 @@
                 <input id="editCity" type="text" value="{{ auth()->user()->city }}"
                     class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
                            bg-white dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
-                           focus:ring-2 focus:ring-[#CC2E2E]/20 focus:border-[#CC2E2E] outline-none transition shadow-sm"
+                           focus:ring-2 focus:ring-[#C81424]/20 focus:border-[#C81424] outline-none transition shadow-sm"
                     placeholder="Ex: Cluj-Napoca">
             </div>
 
@@ -356,7 +400,7 @@
                 <input id="editAddress" type="text" value="{{ auth()->user()->address }}"
                     class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
                            bg-white dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
-                           focus:ring-2 focus:ring-[#CC2E2E]/20 focus:border-[#CC2E2E] outline-none transition shadow-sm"
+                           focus:ring-2 focus:ring-[#C81424]/20 focus:border-[#C81424] outline-none transition shadow-sm"
                     placeholder="Stradă, număr">
             </div>
         </div>
@@ -372,19 +416,19 @@
                             </svg>
                             Securitate
                         </h3>
-                        
+
                         <div class="md:w-1/2 pr-0 md:pr-3">
                             <label class="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Parolă Nouă</label>
                             <div class="relative group">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#CC2E2E] transition-colors">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#C81424] transition-colors">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                                     </svg>
                                 </div>
                                 <input id="editPassword" type="password" placeholder="Lasă gol dacă nu schimbi"
-                                    class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040] 
+                                    class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
                                            bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
-                                           focus:ring-2 focus:ring-[#CC2E2E]/20 focus:border-[#CC2E2E] outline-none transition shadow-sm">
+                                           focus:ring-2 focus:ring-[#C81424]/20 focus:border-[#C81424] outline-none transition shadow-sm">
                             </div>
                         </div>
                     </div>
@@ -392,7 +436,7 @@
                     <div class="pt-4 flex justify-start">
                         <button onclick="updateProfile()"
                             class="px-6 py-3 rounded-xl text-white font-bold text-sm tracking-wide
-                                   bg-[#CC2E2E] hover:bg-[#B72626] 
+                                   bg-[#C81424] hover:bg-[#94111B]
                                    shadow-lg hover:shadow-red-500/20 active:scale-95 transition-all duration-200 flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -413,6 +457,87 @@
 
 
 <script>
+let currentShareUrl = '';
+let currentShareTitle = '';
+
+function refreshService(btn) {
+    const url = btn.getAttribute('data-url');
+    const originalContent = btn.innerHTML;
+
+    btn.disabled = true;
+    btn.innerHTML = `<svg class="animate-spin h-4 w-4 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+
+    fetch(url, {
+        method: "POST",
+        headers: {
+            "X-CSRF-TOKEN": "{{ csrf_token() }}",
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        }
+    })
+    .then(async res => {
+        const data = await res.json().catch(() => ({}));
+
+        if (res.ok && (data.status === "success" || data.success)) {
+            window.location.reload();
+            return;
+        }
+
+        alert(data.message || "Nu am putut reactualiza anuntul.");
+        btn.innerHTML = originalContent;
+        btn.disabled = false;
+    })
+    .catch(() => {
+        alert("Eroare de conexiune.");
+        btn.innerHTML = originalContent;
+        btn.disabled = false;
+    });
+}
+
+function setShareUrl(btn) {
+    currentShareUrl = btn.dataset.url || '';
+    currentShareTitle = btn.dataset.title || '';
+}
+
+function shareFacebook() {
+    if (!currentShareUrl) return;
+    window.open(
+        'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(currentShareUrl),
+        '_blank'
+    );
+}
+
+function shareWhatsapp() {
+    if (!currentShareUrl) return;
+    window.open(
+        'https://api.whatsapp.com/send?text=' + encodeURIComponent((currentShareTitle ? currentShareTitle + ' - ' : '') + currentShareUrl),
+        '_blank'
+    );
+}
+
+function copyLink(btn) {
+    if (!currentShareUrl) return;
+
+    const done = () => {
+        const original = btn.innerHTML;
+        btn.innerHTML = `<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>`;
+        setTimeout(() => { btn.innerHTML = original; }, 900);
+    };
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(currentShareUrl).then(done).catch(done);
+        return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = currentShareUrl;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    done();
+}
+
 function toggleFavorite(serviceId, btn) {
     fetch("{{ route('favorite.toggle') }}", {
         method: "POST",
@@ -641,7 +766,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     (data.suggestions || []).forEach(function (s) {
                         html += `<button type="button"
-                                         class="px-2 py-1 text-xs font-medium bg-white dark:bg-[#2C2C2C] border border-gray-200 dark:border-[#404040] rounded hover:border-[#CC2E2E] dark:hover:border-[#CC2E2E] transition text-gray-700 dark:text-gray-300"
+                                         class="px-2 py-1 text-xs font-medium bg-white dark:bg-[#2C2C2C] border border-gray-200 dark:border-[#404040] rounded hover:border-[#C81424] dark:hover:border-[#C81424] transition text-gray-700 dark:text-gray-300"
                                          onclick="useSuggestion('${String(s).replace(/'/g, "\\'")}')">
                                     ${s}
                                  </button>`;
@@ -713,7 +838,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         (data.suggestions || []).forEach(function (s) {
                             html += `<button type="button"
-                                             class="px-2 py-1 text-xs font-medium bg-white dark:bg-[#2C2C2C] border border-gray-200 dark:border-[#404040] rounded hover:border-[#CC2E2E] dark:hover:border-[#CC2E2E] transition text-gray-700 dark:text-gray-300"
+                                             class="px-2 py-1 text-xs font-medium bg-white dark:bg-[#2C2C2C] border border-gray-200 dark:border-[#404040] rounded hover:border-[#C81424] dark:hover:border-[#C81424] transition text-gray-700 dark:text-gray-300"
                                              onclick="useCompanySuggestion('${String(s).replace(/'/g, "\\'")}')">
                                         ${s}
                                      </button>`;

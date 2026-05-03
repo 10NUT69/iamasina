@@ -3,7 +3,7 @@
 @php
     use Illuminate\Support\Str;
 
-    $siteBrand = 'MeseriasBun.ro';
+    $siteBrand = 'iaAuto.ro';
     $isDeleted = $service->trashed();
 
     // --- DEALER DETECT ---
@@ -189,11 +189,11 @@
                     <a href="/" class="font-bold text-gray-400 hover:text-[#E03E2D] transition">Acasă</a>
                     <span class="text-gray-300">/</span>
                     @if($brandName)
-                        <span class="font-bold text-blue-600 dark:text-blue-400">{{ $brandName }}</span>
+                        <span class="font-bold text-[#C81424] dark:text-red-300">{{ $brandName }}</span>
                     @endif
                     @if($modelName)
                         <span class="text-gray-300">/</span>
-                        <span class="font-bold text-blue-600 dark:text-blue-400">{{ $modelName }}</span>
+                        <span class="font-bold text-[#C81424] dark:text-red-300">{{ $modelName }}</span>
                     @endif
                     <span class="text-gray-300">/</span>
                     <span class="text-gray-800 dark:text-gray-200 truncate max-w-[150px]">{{ Str::limit($service->title, 20) }}</span>
@@ -393,7 +393,7 @@
                 @if($isImported || $isDamaged || $hasDpf)
                     <div class="px-6 py-4 border-t border-gray-100 dark:border-[#333] flex flex-wrap gap-2 bg-white dark:bg-[#1E1E1E]">
                         @if($isImported)
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-[#fff4f5] text-[#8f111a] border border-red-100">
                                 Importată
                             </span>
                         @endif
@@ -506,7 +506,7 @@
                         @else
                             {{-- === PRIVATE SELLER === --}}
                             <div class="flex items-center gap-4 mb-4">
-                                <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg">
+                                <div class="w-12 h-12 rounded-full bg-red-100 text-[#C81424] flex items-center justify-center font-bold text-lg">
                                     {{ $service->author_initial ?? 'U' }}
                                 </div>
                                 <div>
@@ -534,11 +534,11 @@
                 </div>
 
                 {{-- CARD SIGURANTA --}}
-                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800 flex gap-3 items-start">
-                    <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                <div class="bg-[#fff4f5] dark:bg-[#2a1013] p-4 rounded-xl border border-red-100 dark:border-red-900/40 flex gap-3 items-start">
+                    <svg class="w-5 h-5 text-[#C81424] flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                     <div>
-                        <h5 class="font-bold text-blue-800 dark:text-blue-300 text-sm">Siguranță</h5>
-                        <p class="text-xs text-blue-700 dark:text-blue-400 mt-1 leading-snug">Verificați istoricul mașinii înainte de achiziție. Nu plătiți în avans.</p>
+                        <h5 class="font-bold text-[#7f1d1d] dark:text-red-200 text-sm">Siguranță</h5>
+                        <p class="text-xs text-[#8f111a] dark:text-red-300 mt-1 leading-snug">Verificați istoricul mașinii înainte de achiziție. Nu plătiți în avans.</p>
                     </div>
                 </div>
 

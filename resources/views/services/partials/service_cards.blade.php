@@ -28,7 +28,7 @@
                 title="Adaugă la favorite">
             <svg xmlns="http://www.w3.org/2000/svg"
                 class="heart-icon h-4 w-4 md:h-5 md:w-5 transition-transform duration-300 ease-in-out group-active/heart:scale-75
-                        {{ $isFav ? 'text-[#CC2E2E] fill-[#CC2E2E] scale-110' : 'text-gray-600 dark:text-gray-300 fill-none group-hover/heart:text-[#CC2E2E]' }}"
+                        {{ $isFav ? 'text-[#C81424] fill-[#C81424] scale-110' : 'text-gray-600 dark:text-gray-300 fill-none group-hover/heart:text-[#C81424]' }}"
                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round"
                     d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733C11.285 4.876 9.623 3.75 7.688 3.75 5.099 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
@@ -54,7 +54,7 @@
 
             {{-- Card Content --}}
             <div class="p-3 md:p-4 flex flex-col flex-grow">
-                <h3 class="text-sm md:text-lg font-bold text-gray-900 dark:text-[#F2F2F2] mb-1 uppercase tracking-tight line-clamp-2 leading-snug overflow-hidden group-hover:text-[#CC2E2E] transition-colors min-h-[2.5rem] md:min-h-[3.5rem]"
+                <h3 class="text-sm md:text-lg font-bold text-gray-900 dark:text-[#F2F2F2] mb-1 uppercase tracking-tight line-clamp-2 leading-snug overflow-hidden group-hover:text-[#C81424] transition-colors min-h-[2.5rem] md:min-h-[3.5rem]"
                     title="{{ $brandModel ?: $service->title }}">
                     {{ $brandModel ?: $service->title }}
                 </h3>
@@ -94,10 +94,10 @@
                                 <span class="text-gray-500 dark:text-gray-400 text-[10px] md:text-xs font-normal">Neg.</span>
                             @endif
                         @else
-                            <span class="text-sm md:text-base font-bold text-[#CC2E2E]">Cere ofertă</span>
+                            <span class="text-sm md:text-base font-bold text-[#C81424]">Cere ofertă</span>
                         @endif
                     </div>
-                    <span class="text-[#CC2E2E] font-semibold flex items-center gap-1">
+                    <span class="text-[#C81424] font-semibold flex items-center gap-1">
                         Vezi detalii
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
@@ -111,7 +111,7 @@
     {{-- 🔥 EMPTY STATE GRAFIC (DESIGN COMPLET) --}}
     <div class="col-span-full flex flex-col items-center justify-center py-20 px-4 text-center bg-white dark:bg-[#1E1E1E] rounded-3xl border-2 border-dashed border-gray-200 dark:border-[#333333]">
         <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-red-50 dark:bg-red-900/10 mb-6 animate-pulse">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-[#CC2E2E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-[#C81424]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
         </div>
@@ -122,7 +122,7 @@
             Din păcate nu există anunțuri care să corespundă filtrelor selectate. Încearcă să cauți altceva sau să resetezi filtrele.
         </p>
         <button type="button" onclick="resetFilters()" 
-                class="inline-flex items-center gap-2 px-8 py-3.5 bg-[#CC2E2E] hover:bg-[#B72626] text-white font-bold rounded-xl shadow-lg shadow-red-600/20 transition-all hover:-translate-y-1 active:translate-y-0">
+                class="inline-flex items-center gap-2 px-8 py-3.5 bg-[#C81424] hover:bg-[#94111B] text-white font-bold rounded-xl shadow-lg shadow-red-600/20 transition-all hover:-translate-y-1 active:translate-y-0">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>

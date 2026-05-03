@@ -967,12 +967,20 @@ public function edit($id)
     // ==========================================
     // 10. RENEW
     // ==========================================
-    public function renew($id)
+    public function renew(Request $request, $id)
     {
         $service             = Service::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
         $service->status     = 'active';
         $service->created_at = now();
+        $service->published_at = now();
         $service->save();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Anuntul a fost reactualizat.',
+            ]);
+        }
         return back()->with('success', 'Reînnoit!');
     }
 

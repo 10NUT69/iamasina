@@ -31,7 +31,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         // ✅ Redirecționăm utilizatorul către homepage (lista de anunțuri)
-        return redirect()->intended(route('services.index'));
+        return redirect()->intended(route('dashboard'));
     }
 
     /**

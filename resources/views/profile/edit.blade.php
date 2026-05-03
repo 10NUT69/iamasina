@@ -59,7 +59,7 @@
                    class="w-full mt-1 px-4 py-3 border rounded-xl bg-gray-50 focus:ring-2 focus:ring-primary-end">
         </div>
 
-        <button class="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition">
+        <button class="px-6 py-3 bg-[#C81424] text-white rounded-xl font-semibold hover:bg-[#94111B] transition">
             Actualizează parola
         </button>
     </form>

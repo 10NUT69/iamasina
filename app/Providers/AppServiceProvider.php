@@ -29,9 +29,9 @@ class AppServiceProvider extends ServiceProvider
             ], false));
 
             return (new MailMessage)
-                ->subject('Resetare parolă MeseriasBun.ro')
+                ->subject('Resetare parolă iaAuto.ro')
                 ->greeting('Salut!')
-                ->line('Ai cerut resetarea parolei pentru contul tău MeseriasBun.ro.')
+                ->line('Ai cerut resetarea parolei pentru contul tău iaAuto.ro.')
                 ->action('Resetează parola', $url)
                 ->line('Dacă nu ai cerut resetarea, poți ignora acest email.');
         });

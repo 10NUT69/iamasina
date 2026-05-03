@@ -50,7 +50,7 @@
     @endphp
 
     {{-- CARD ANUNȚ (DESIGN 2025-2026) --}}
-    <article class="group relative flex flex-col md:flex-row bg-white dark:bg-[#18181b] rounded-xl border border-gray-200 dark:border-[#27272a] shadow-sm hover:shadow-xl hover:border-blue-500/30 transition-all duration-300 overflow-hidden mb-5">
+    <article class="group relative flex flex-col md:flex-row bg-white dark:bg-[#18181b] rounded-xl border border-gray-200 dark:border-[#27272a] shadow-sm hover:shadow-xl hover:border-[#C81424]/30 transition-all duration-300 overflow-hidden mb-5">
         
         {{-- A. ZONA FOTO (Slider + Badges) --}}
         <div class="relative w-full md:w-[320px] lg:w-[340px] shrink-0 aspect-[4/3] md:aspect-auto md:min-h-[240px] overflow-hidden bg-gray-100 dark:bg-[#09090b]"
@@ -115,7 +115,7 @@
             {{-- Badge Promovat --}}
             @if($isPromoted)
                 <div class="absolute top-3 left-3 z-10">
-                    <span class="px-2.5 py-1 rounded bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                    <span class="px-2.5 py-1 rounded bg-[#C81424] text-white text-[10px] font-bold uppercase tracking-wider shadow-sm">
                         Promovat
                     </span>
                 </div>
@@ -137,7 +137,7 @@
                 {{-- Header: Titlu & Preț --}}
                 <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-2 mb-2">
                     <div class="flex-1 min-w-0 pr-2">
-                        <a href="{{ $service->public_url }}" class="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        <a href="{{ $service->public_url }}" class="group-hover:text-[#C81424] dark:group-hover:text-red-300 transition-colors">
                             <h3 class="text-lg md:text-xl font-bold text-gray-900 dark:text-gray-100 leading-snug truncate">
                                 {{ $listingTitle }}
                             </h3>
@@ -162,7 +162,7 @@
                                 </span>
                             @endif
                         @else
-                            <span class="text-lg font-bold text-blue-600">La cerere</span>
+                            <span class="text-lg font-bold text-[#C81424]">La cerere</span>
                         @endif
                     </div>
                 </div>
@@ -220,7 +220,7 @@
                         </svg>
                     </button>
                     
-                    <a href="{{ $service->public_url }}" class="hidden md:inline-flex items-center justify-center px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-bold uppercase tracking-wide rounded-lg hover:bg-blue-600 dark:hover:bg-gray-200 transition-colors shadow-sm">
+                    <a href="{{ $service->public_url }}" class="hidden md:inline-flex items-center justify-center px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-bold uppercase tracking-wide rounded-lg hover:bg-[#C81424] dark:hover:bg-gray-200 transition-colors shadow-sm">
                         Vezi anunț
                     </a>
                 </div>

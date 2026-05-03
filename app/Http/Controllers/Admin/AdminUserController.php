@@ -3,62 +3,100 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\Service;
-use Illuminate\Http\Request; // Necesar pentru bulkAction
-use Illuminate\Support\Facades\Storage;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class AdminUserController extends Controller
 {
-    // ==========================================================
-    // LISTA UTILIZATORILOR
-    // ==========================================================
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::withCount('services')
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        $search = trim((string) $request->input('search', ''));
+        $sort = $request->input('sort');
+        $direction = $request->input('direction') === 'asc' ? 'asc' : 'desc';
+
+        $query = User::with([
+                'services' => function ($query) {
+                    $query->withTrashed()
+                        ->with(['category', 'county', 'locality', 'brandRel', 'modelRel'])
+                        ->orderBy('created_at', 'desc');
+                },
+            ])
+            ->withCount('services')
+            ->withCount([
+                'services as all_services_count' => fn ($query) => $query->withTrashed(),
+            ])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%');
+
+                    if (ctype_digit($search)) {
+                        $query->orWhere('id', (int) $search);
+                    }
+                });
+            });
+
+        if ($sort === 'ads') {
+            $query->orderBy('all_services_count', $direction)
+                ->orderBy('created_at', 'desc');
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        $users = $query->paginate(20)->withQueryString();
 
         return view('admin.users.index', compact('users'));
     }
 
-    // ==========================================================
-    // BULK ACTIONS (ACTIVATE / DEACTIVATE / DELETE)
-    // ==========================================================
+    public function exportEmailsWithServices()
+    {
+        return $this->exportEmails('with_services');
+    }
+
+    public function exportEmailsWithoutServices()
+    {
+        return $this->exportEmails('without_services');
+    }
+
     public function bulkAction(Request $request)
     {
         $action = $request->input('action');
-        $rawIds = $request->input('ids'); // String "1,2,3" din JS
+        $rawIds = $request->input('ids');
 
         if (empty($rawIds)) {
-            return back()->with('error', 'Selectează cel puțin un utilizator.');
+            return back()->with('error', 'Selecteaza cel putin un utilizator.');
         }
 
-        $ids = explode(',', $rawIds);
-        $users = User::whereIn('id', $ids)->get(); 
+        $ids = array_filter(explode(',', $rawIds));
+        $users = User::whereIn('id', $ids)->get();
         $count = 0;
 
         foreach ($users as $user) {
-            // 🛡️ PROTECȚIE: Nu te poți bloca/șterge pe tine însuți!
-            if ($user->id == auth()->id()) {
-                continue; 
+            if ($user->id === auth()->id()) {
+                continue;
             }
 
             switch ($action) {
                 case 'activate':
-                    $user->is_active = 1; 
-                    $user->save();
+                    if (Schema::hasColumn('users', 'is_active')) {
+                        $user->is_active = 1;
+                        $user->save();
+                    }
                     $count++;
                     break;
 
                 case 'deactivate':
-                    $user->is_active = 0;
-                    $user->save();
+                    if (Schema::hasColumn('users', 'is_active')) {
+                        $user->is_active = 0;
+                        $user->save();
+                    }
                     $count++;
                     break;
 
                 case 'delete':
-                    // Curățăm anunțurile și imaginile asociate
                     $this->cleanupUserResources($user);
                     $user->delete();
                     $count++;
@@ -67,21 +105,22 @@ class AdminUserController extends Controller
         }
 
         if ($count === 0 && count($ids) > 0) {
-            return back()->with('error', 'Nu poți efectua acțiuni asupra propriului cont.');
+            return back()->with('error', 'Nu poti efectua actiuni asupra propriului cont.');
         }
 
-        return back()->with('success', "Acțiunea '{$action}' a fost aplicată pe {$count} utilizatori.");
+        return back()->with('success', "Actiunea '{$action}' a fost aplicata pe {$count} utilizatori.");
     }
 
-    // ==========================================================
-    // ACTIVARE / DEZACTIVARE USER
-    // ==========================================================
     public function toggle($id)
     {
         $user = User::findOrFail($id);
 
-        if ($user->id == auth()->id()) {
-            return back()->with('error', 'Nu poți dezactiva propriul cont.');
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'Nu poti dezactiva propriul cont.');
+        }
+
+        if (!Schema::hasColumn('users', 'is_active')) {
+            return back()->with('error', 'Coloana is_active lipseste din tabelul users. Ruleaza migrarile.');
         }
 
         $user->is_active = !$user->is_active;
@@ -90,53 +129,97 @@ class AdminUserController extends Controller
         return back()->with('success', 'Status utilizator actualizat.');
     }
 
-    // ==========================================================
-    // ȘTERGERE USER (Individual)
-    // ==========================================================
     public function destroy($id)
     {
         $user = User::findOrFail($id);
 
-        if ($user->id == auth()->id()) {
-            return back()->with('error', 'Nu poți șterge propriul cont.');
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'Nu poti sterge propriul cont.');
         }
 
-        // Curățăm anunțurile și imaginile asociate
         $this->cleanupUserResources($user);
-
-        // Ștergem utilizatorul
         $user->delete();
 
-        return back()->with('success', 'Utilizatorul și toate anunțurile sale au fost șterse.');
+        return back()->with('success', 'Utilizatorul si anunturile sale au fost sterse.');
     }
 
-    // ==========================================================
-    // HELPER: ȘTERGE ANUNȚURILE ȘI IMAGINILE ASOCIATE
-    // (Logica preluată din metoda ta destroy)
-    // ==========================================================
-    private function cleanupUserResources(User $user)
+    private function cleanupUserResources(User $user): void
     {
-        $services = Service::where('user_id', $user->id)->get();
+        $services = Service::withTrashed()->where('user_id', $user->id)->get();
 
         foreach ($services as $service) {
-            // Ștergere imagini
-            // Asigură-te că $service->images este un array (folosește un Accessor/Mutator în model dacă e stocat ca JSON)
-            if (is_string($service->images)) {
-                $images = json_decode($service->images, true);
-            } else {
-                $images = $service->images;
-            }
-
-            if (is_array($images)) {
-                foreach ($images as $img) {
-                    if (!empty($img) && Storage::exists($img)) {
-                        Storage::delete($img);
-                    }
-                }
-            }
-
-            // Ștergem înregistrarea serviciului
+            $this->deleteServiceImages($service);
+            $service->images = null;
+            $service->save();
             $service->delete();
         }
+    }
+
+    private function deleteServiceImages(Service $service): void
+    {
+        $images = $service->images;
+
+        if (is_string($images)) {
+            $images = json_decode($images, true);
+        }
+
+        if (!is_array($images)) {
+            return;
+        }
+
+        foreach ($images as $image) {
+            if (empty($image)) {
+                continue;
+            }
+
+            $path = storage_path('app/public/services/' . $image);
+            if (is_file($path)) {
+                @unlink($path);
+            }
+        }
+    }
+
+    private function exportEmails(string $type)
+    {
+        $withServices = $type === 'with_services';
+        $fileName = $withServices
+            ? 'iaauto-emailuri-utilizatori-cu-anunturi-' . now()->format('Y-m-d-H-i-s') . '.csv'
+            : 'iaauto-emailuri-utilizatori-fara-anunturi-' . now()->format('Y-m-d-H-i-s') . '.csv';
+
+        $query = User::query()
+            ->select(['id', 'name', 'email', 'created_at'])
+            ->whereNotNull('email')
+            ->where('email', '!=', '')
+            ->withCount('services')
+            ->when($withServices, fn ($query) => $query->whereHas('services'))
+            ->when(!$withServices, fn ($query) => $query->doesntHave('services'))
+            ->orderBy('email');
+
+        Log::info('Admin user emails export', [
+            'type' => $type,
+            'admin_id' => auth()->id(),
+            'admin_email' => auth()->user()?->email,
+            'timestamp' => now()->toIso8601String(),
+        ]);
+
+        return response()->streamDownload(function () use ($query) {
+            $handle = fopen('php://output', 'w');
+
+            fwrite($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, ['email', 'name', 'anunturi', 'inregistrat_la']);
+
+            foreach ($query->cursor() as $user) {
+                fputcsv($handle, [
+                    $user->email,
+                    $user->name,
+                    $user->services_count,
+                    optional($user->created_at)->format('Y-m-d H:i:s'),
+                ]);
+            }
+
+            fclose($handle);
+        }, $fileName, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
     }
 }

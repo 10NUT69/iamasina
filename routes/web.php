@@ -59,6 +59,10 @@ Route::get('/contul-meu', function () {
     return view('account.index');
 })->middleware('auth')->name('account.index');
 
+Route::get('/dashboard', function () {
+    return redirect()->route('account.index');
+})->middleware('auth')->name('dashboard');
+
 /*
 |--------------------------------------------------------------------------
 | AJAX routes
@@ -123,6 +127,8 @@ Route::middleware(['auth', 'admin.access'])
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
 
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::post('/users/export-emails/with-services', [AdminUserController::class, 'exportEmailsWithServices'])->name('users.export-emails.with-services');
+        Route::post('/users/export-emails/without-services', [AdminUserController::class, 'exportEmailsWithoutServices'])->name('users.export-emails.without-services');
         Route::post('/users', [AdminUserController::class, 'bulkAction'])->name('users.bulk');
         Route::post('/users/{id}/toggle', [AdminUserController::class, 'toggle'])->name('users.toggle');
         Route::delete('/users/{id}', [AdminUserController::class, 'destroy'])->name('users.destroy');
@@ -131,6 +137,9 @@ Route::middleware(['auth', 'admin.access'])
         Route::delete('/services/{id}', [AdminServiceController::class, 'destroy'])->name('services.destroy');
         Route::post('/services/{id}/toggle', [AdminServiceController::class, 'toggle'])->name('services.toggle');
         Route::post('/services/bulk', [AdminServiceController::class, 'bulkAction'])->name('services.bulk');
+        Route::get('/services/{id}/edit', [AdminServiceController::class, 'edit'])->name('services.edit');
+        Route::put('/services/{id}', [AdminServiceController::class, 'update'])->name('services.update');
+        Route::delete('/services/{id}/image', [AdminServiceController::class, 'deleteImage'])->name('services.deleteImage');
 
         Route::get('/categories', [AdminCategoryController::class, 'index'])->name('categories.index');
         Route::get('/categories/create', [AdminCategoryController::class, 'create'])->name('categories.create');
@@ -158,6 +167,7 @@ require __DIR__.'/auth.php';
 
 Route::view('/despre-noi', 'services.about')->name('page.about');
 Route::view('/contact', 'services.contact')->name('page.contact');
+Route::view('/blog', 'services.blog')->name('page.blog');
 Route::view('/termeni-si-conditii', 'services.terms')->name('page.terms');
 Route::view('/politica-confidentialitate', 'services.privacy')->name('page.privacy');
 
