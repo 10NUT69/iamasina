@@ -165,7 +165,7 @@
 <div class="bg-[#F8F9FA] dark:bg-[#121212] min-h-screen font-sans text-gray-800 dark:text-gray-200 pb-32 lg:pb-12 pt-6">
 
     @if($isDeleted)
-        <div class="max-w-[1280px] mx-auto px-4 mb-4">
+        <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-4">
             <div class="bg-red-50 text-red-600 px-4 py-3 rounded-xl border border-red-100 flex items-center gap-3 font-semibold shadow-sm">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 Anunț Indisponibil
@@ -173,7 +173,7 @@
         </div>
     @endif
 
-    <div class="max-w-[1280px] mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         {{-- === STÂNGA (Galerie, Info, Descriere) === --}}
         <div class="lg:col-span-8 space-y-6">
@@ -514,6 +514,13 @@
                                     <h4 class="font-bold text-base text-gray-900 dark:text-white">{{ $service->author_name ?? 'Utilizator' }}</h4>
                                 </div>
                             </div>
+                        @endif
+
+                        @if($isDealer && !empty($sellerUser->dealer_public_url))
+                            <a href="{{ $sellerUser->dealer_public_url }}"
+                               class="mb-3 inline-flex w-full items-center justify-center rounded-xl border border-[#C81424]/20 bg-[#fff4f5] px-4 py-3 text-sm font-bold text-[#C81424] transition hover:border-[#C81424] hover:bg-white dark:border-red-900/40 dark:bg-[#2a1013] dark:text-red-200 dark:hover:bg-[#18181B]">
+                                Vezi portofoliul parcului
+                            </a>
                         @endif
 
                         {{-- ACTION BUTTONS DESKTOP --}}

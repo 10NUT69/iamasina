@@ -4,11 +4,11 @@
 
 @section('hero')
 {{-- HERO SECTION: Split Screen --}}
-<div class="w-full bg-[radial-gradient(circle_at_top_left,rgba(200,20,36,0.10),transparent_34%),linear-gradient(180deg,#fff7f8_0%,#ffffff_66%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(200,20,36,0.18),transparent_36%),linear-gradient(180deg,#171112_0%,#121212_72%)] pt-16 md:pt-24 pb-8">
-    <div class="max-w-7xl mx-auto px-4 flex flex-col-reverse md:flex-row items-center justify-between gap-6 md:gap-10">
+<div class="w-full bg-[radial-gradient(circle_at_top_left,rgba(200,20,36,0.10),transparent_34%),linear-gradient(180deg,#fff7f8_0%,#ffffff_66%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(200,20,36,0.18),transparent_36%),linear-gradient(180deg,#171112_0%,#121212_72%)] pt-14 md:pt-20 lg:pt-24 pb-5 md:pb-6 lg:pb-8">
+    <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col-reverse lg:flex-row items-center justify-between gap-5 md:gap-6 lg:gap-8 xl:gap-10">
 
         {{-- 1. ZONA FILTRE (STÂNGA - aprox 60% - MAI LATĂ) --}}
-        <div class="w-full min-w-0 md:w-7/12 bg-white/95 dark:bg-[#181516] rounded-xl shadow-[0_24px_70px_rgba(15,23,42,0.12)] dark:shadow-black/50 border border-red-100/70 dark:border-white/10 relative z-40 backdrop-blur">
+        <div class="w-full max-w-[920px] min-w-0 lg:max-w-none lg:w-7/12 bg-white/95 dark:bg-[#181516] rounded-xl shadow-[0_24px_70px_rgba(15,23,42,0.12)] dark:shadow-black/50 border border-red-100/70 dark:border-white/10 relative z-40 backdrop-blur">
 
             {{-- HEADER FILTRE: Sursă Anunț --}}
             <div class="search-panel-header flex flex-col sm:flex-row sm:items-stretch sm:justify-between border-b border-red-100/70 dark:border-white/10">
@@ -169,15 +169,17 @@
         </div>
 
         {{-- 2. ZONA TEXT (DREAPTA - aprox 40%) --}}
-        <div class="w-full md:w-5/12 flex flex-col items-center md:items-end justify-center text-center md:text-right">
-            <h1 class="text-4xl lg:text-5xl xl:text-6xl font-black text-gray-900 dark:text-white tracking-tight leading-[1.1]">
-                Găsește mașina <br />
-                <span class="text-[#C81424]">perfectă</span> <br />
-                pentru tine
+        <div class="w-full lg:w-5/12 flex flex-col items-center justify-center text-center">
+            <h1 class="max-w-[20rem] text-[1.85rem] sm:max-w-[34rem] sm:text-[2.5rem] md:max-w-[46rem] md:text-[2.75rem] lg:max-w-none lg:whitespace-nowrap lg:text-[1.65rem] xl:text-[1.9rem] font-black text-gray-900 dark:text-white tracking-tight leading-[1.08]">
+                Găsește mașina potrivită pentru tine
             </h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-6 text-lg md:text-xl font-medium max-w-md">
-                Mii de anunțuri verificate de la proprietari și parcuri auto din toată țara.
+            <p class="text-gray-500 dark:text-gray-400 mt-3 text-base md:text-lg lg:text-xl font-medium max-w-[20rem] sm:max-w-none">
+                Publică GRATUIT — o mașină sau 100.
             </p>
+            <a href="{{ route('services.create') }}"
+               class="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-lg bg-[#C81424] px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-white shadow-md shadow-red-700/20 transition hover:bg-[#94111B] active:scale-[0.98] md:px-6 md:py-3">
+                PUBLICĂ ANUNȚ
+            </a>
         </div>
 
     </div>
@@ -186,7 +188,7 @@
 
 @section('content')
 
-<div class="max-w-7xl mx-auto px-4 mt-4">
+<div class="w-full mt-4">
     <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-100 dark:border-[#2C2C2C]">
         <div class="flex items-center gap-3">
              <div class="w-1.5 h-8 bg-[#C81424] rounded-full shadow-sm"></div>
@@ -196,7 +198,7 @@
     </div>
 
     {{-- GRID CARDURI VERTICALE --}}
-    <div id="services-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20 relative z-0">
+    <div id="services-container" class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 pb-20 relative z-0">
         @forelse($services as $service)
             @php
                 $isFav = auth()->check() && $service->isFavoritedBy(auth()->user());
@@ -214,31 +216,31 @@
                     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-80"></div>
 
                     {{-- Preț --}}
-                    <div class="absolute bottom-4 left-4 flex flex-col items-start z-10">
+                    <div class="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 flex flex-col items-start z-10">
                         @if($price)
-                            <span class="text-xl font-black text-white drop-shadow-lg tracking-tight">{{ $price }} <span class="text-sm font-bold">{{ $service->currency }}</span></span>
+                            <span class="text-base sm:text-xl font-black text-white drop-shadow-lg tracking-tight">{{ $price }} <span class="text-[10px] sm:text-sm font-bold">{{ $service->currency }}</span></span>
                             @if($service->price_type === 'negotiable') <span class="text-[9px] uppercase font-bold text-white/90 bg-[#C81424] px-1.5 py-0.5 rounded shadow-sm mt-1">Negociabil</span> @endif
                         @else
-                            <span class="text-lg font-bold text-white drop-shadow-md">La cerere</span>
+                            <span class="text-base sm:text-lg font-bold text-white drop-shadow-md">La cerere</span>
                         @endif
                     </div>
 
                     {{-- Favorite --}}
-                    <button onclick="event.preventDefault(); toggleHeart(this, {{ $service->id }})" class="absolute top-3 right-3 p-2 rounded-full bg-black/20 hover:bg-white backdrop-blur-md transition-all duration-300 group/heart shadow-lg">
-                        <svg class="w-5 h-5 transition-colors {{ $isFav ? 'text-[#C81424] fill-[#C81424]' : 'text-white fill-none group-hover/heart:text-[#C81424]' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <button onclick="event.preventDefault(); toggleHeart(this, {{ $service->id }})" class="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 rounded-full bg-black/20 hover:bg-white backdrop-blur-md transition-all duration-300 group/heart shadow-lg">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 transition-colors {{ $isFav ? 'text-[#C81424] fill-[#C81424]' : 'text-white fill-none group-hover/heart:text-[#C81424]' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733C11.285 4.876 9.623 3.75 7.688 3.75 5.099 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                         </svg>
                     </button>
                 </a>
 
-                <div class="p-5 flex-1 flex flex-col">
+                <div class="p-3 sm:p-5 flex-1 flex flex-col">
                     <a href="{{ $service->public_url }}" class="block mb-4">
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-tight line-clamp-1 group-hover:text-[#C81424] transition-colors">{{ $listingTitle }}</h3>
+                        <h3 class="text-sm sm:text-lg font-bold text-gray-900 dark:text-white leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-[#C81424] transition-colors">{{ $listingTitle }}</h3>
                          <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mt-1 truncate uppercase tracking-wide">{{ $service->putere ?? '-' }} CP • {{ $service->capacitate_cilindrica ? number_format($service->capacitate_cilindrica, 0, '', '.') : '-' }} cm³</p>
                     </a>
 
                     {{-- Grid Specificații --}}
-                    <div class="grid grid-cols-2 gap-2 mb-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
                         <div class="spec-pill">
                             <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                             <span>{{ $service->an_fabricatie ?? '-' }}</span>
@@ -260,9 +262,9 @@
                     <div class="mt-auto pt-4 border-t border-gray-100 dark:border-[#333] flex items-center justify-between text-xs text-gray-500">
                         <div class="flex items-center">
                             <svg class="w-3.5 h-3.5 mr-1.5 text-[#C81424]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            <span class="truncate max-w-[140px]">{{ $locationLabel }}</span>
+                            <span class="truncate max-w-[80px] sm:max-w-[140px]">{{ $locationLabel }}</span>
                         </div>
-                        <span class="text-gray-400 font-medium">Vezi detalii &rarr;</span>
+                        <span class="hidden sm:inline text-gray-400 font-medium">Vezi detalii &rarr;</span>
                     </div>
                 </div>
             </article>
@@ -885,6 +887,7 @@
 
     .spec-pill {
         display: flex; align-items: center; gap: 0.375rem;
+        min-width: 0;
         background-color: #f9fafb;
         padding: 0.375rem 0.5rem;
         border-radius: 0.5rem;
@@ -893,6 +896,7 @@
         font-weight: 600;
         color: #374151;
     }
+    .spec-pill span { min-width: 0; }
     .dark .spec-pill { background-color: #252525; border-color: #333; color: #d1d5db; }
     optgroup { font-weight: 700; color: #C81424; background-color: #f9fafb; }
 </style>

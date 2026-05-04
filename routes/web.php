@@ -28,6 +28,11 @@ Route::get('/anunturi-auto-de-vanzare/{id}/edit', [ServiceController::class, 'ed
     ->whereNumber('id')
     ->name('services.edit');
 
+Route::get(
+    '/anunturi-auto-de-vanzare/parc-auto/{countySlug}/{citySlug}/{dealerSlug}',
+    [ServiceController::class, 'showDealerPortfolio']
+)->name('dealers.show');
+
 // Detail URL: /anunturi-auto-de-vanzare/{marca}/{model}/{judet}/{oras}/{titlu}-{id}
 Route::get(
     '/anunturi-auto-de-vanzare/{brandSlug}/{modelSlug}/{countySlug}/{citySlug}/{slug}-{id}',
@@ -89,6 +94,15 @@ Route::post('/profile/check-email', [ProfileController::class, 'checkEmail'])
 Route::post('/profile/ajax-update', [ProfileController::class, 'ajaxUpdate'])
     ->middleware('auth')
     ->name('profile.ajaxUpdate');
+
+Route::post('/profile/dealer-gallery', [ProfileController::class, 'uploadDealerGallery'])
+    ->middleware('auth')
+    ->name('profile.dealerGallery.upload');
+
+Route::delete('/profile/dealer-gallery/{index}', [ProfileController::class, 'deleteDealerGalleryImage'])
+    ->middleware('auth')
+    ->whereNumber('index')
+    ->name('profile.dealerGallery.delete');
 
 /*
 |--------------------------------------------------------------------------

@@ -46,7 +46,7 @@
     <nav id="main-nav" class="fixed top-0 left-0 w-full z-50 h-14 md:h-[72px] transition-all duration-500 ease-in-out
                             emag-gradient text-white border-b border-transparent dark:border-gray-800 flex items-center shadow-md will-change-transform">
 
-        <div class="w-full max-w-7xl mx-auto px-3 sm:px-4 flex items-center justify-between">
+        <div class="w-full max-w-[1536px] mx-auto px-3 sm:px-4 lg:px-8 flex items-center justify-between">
 
             {{-- 1. LOGO --}}
             <a href="{{ route('services.index') }}" class="flex items-center shrink-0 gap-1 group decoration-0">
@@ -130,7 +130,7 @@
 
     {{-- MAIN CONTENT --}}
     {{-- Condiția care protejează paginile interne să nu intre sub header --}}
-    <main class="max-w-7xl mx-auto px-4 py-6 w-full flex-grow relative z-0 {{ !View::hasSection('hero') ? 'pt-20 md:pt-24' : '' }}">
+    <main class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-grow relative z-0 {{ !View::hasSection('hero') ? 'pt-20 md:pt-24' : '' }}">
         @if(session('success'))
             <div class="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800 shadow-sm dark:border-green-900/50 dark:bg-green-950/40 dark:text-green-200">
                 {{ session('success') }}
@@ -143,7 +143,7 @@
 
     {{-- FOOTER --}}
     <footer class="mt-auto border-t border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-[#050505]/95 backdrop-blur">
-        <div class="max-w-7xl mx-auto px-4 md:px-0 py-4 md:py-5 text-xs text-gray-600 dark:text-gray-400">
+        <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-5 text-xs text-gray-600 dark:text-gray-400">
 
             {{-- Rând 1: Brand + slogan --}}
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">

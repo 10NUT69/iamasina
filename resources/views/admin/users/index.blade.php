@@ -11,7 +11,7 @@
     ));
 @endphp
 
-<div class="max-w-[1600px] mx-auto py-8 px-4 sm:px-6 lg:px-8 bg-[#F8FAFC] min-h-screen font-sans text-slate-600">
+<div class="max-w-[1536px] mx-auto py-8 px-4 sm:px-6 lg:px-8 bg-[#F8FAFC] min-h-screen font-sans text-slate-600">
     <div class="flex flex-col md:flex-row justify-between items-end mb-6 gap-4">
         <div>
             <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Utilizatori</h1>

@@ -5,7 +5,7 @@
 @section('meta_image', asset('images/social-share.webp'))
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 pt-6 pb-12">
+<div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12">
     <div class="flex flex-col lg:flex-row gap-6">
         {{-- Sidebar filtre (desktop) --}}
         <aside class="lg:w-[300px]">
@@ -543,7 +543,8 @@
             domElements.yearMin, domElements.yearMax
         ];
 
-        const hasAnyFilter = filters.some(el => el && el.value !== '');
+        const hasSellerFilter = domElements.sellerType && domElements.sellerType.value !== 'all';
+        const hasAnyFilter = hasSellerFilter || filters.some(el => el && el.value !== '');
 
         if (hasAnyFilter) {
             btn.disabled = false;

@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use App\Models\User;
 
 class ProfileController extends Controller
@@ -31,9 +33,12 @@ class ProfileController extends Controller
                 'company_name' => 'required|string|max:150|unique:users,company_name,' . $user->id,
                 'cui'          => 'required|string|max:20',
                 'phone'        => 'required|string|max:30',
+                'phone_2'      => 'nullable|string|max:30',
+                'phone_3'      => 'nullable|string|max:30',
                 'county'       => 'required|string|max:100',
                 'city'         => 'required|string|max:100',
                 'address'      => 'required|string|max:255',
+                'dealer_description' => 'nullable|string|max:3000',
             ]);
         }
 
@@ -49,13 +54,18 @@ class ProfileController extends Controller
             $user->company_name = $validated['company_name'];
             $user->cui          = $validated['cui'];
             $user->phone        = $validated['phone'];
+            $user->phone_2      = $validated['phone_2'] ?? null;
+            $user->phone_3      = $validated['phone_3'] ?? null;
             $user->county       = $validated['county'];
             $user->city         = $validated['city'];
             $user->address      = $validated['address'];
+            $user->dealer_description = $validated['dealer_description'] ?? null;
         } else {
             // curățăm datele dacă revine la persoană fizică
             $user->company_name = null;
-            $user->cui = $user->phone = $user->county = $user->city = $user->address = null;
+            $user->cui = $user->phone = $user->phone_2 = $user->phone_3 = $user->county = $user->city = $user->address = null;
+            $user->dealer_description = null;
+            $user->dealer_gallery = null;
         }
 
         // Update password ONLY if provided
@@ -69,6 +79,97 @@ class ProfileController extends Controller
             'success' => true,
             'message' => 'Profil actualizat cu succes!',
         ]);
+    }
+
+    public function uploadDealerGallery(Request $request)
+    {
+        $user = Auth::user();
+
+        abort_unless($user && $user->user_type === 'dealer', 403);
+
+        $request->validate([
+            'dealer_images' => 'required|array|max:12',
+            'dealer_images.*' => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
+        ]);
+
+        $gallery = array_values($user->dealer_gallery ?: []);
+        $remainingSlots = max(0, 12 - count($gallery));
+
+        if ($remainingSlots === 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Galeria poate conține maximum 12 imagini.',
+                'gallery' => $this->dealerGalleryPayload($user),
+            ], 422);
+        }
+
+        $directory = public_path('storage/dealers/' . $user->id);
+        File::ensureDirectoryExists($directory);
+
+        foreach (array_slice($request->file('dealer_images', []), 0, $remainingSlots) as $image) {
+            if (!$image->isValid()) {
+                continue;
+            }
+
+            $extension = strtolower($image->getClientOriginalExtension() ?: $image->guessExtension() ?: 'jpg');
+            $extension = preg_replace('/[^a-z0-9]/', '', $extension) ?: 'jpg';
+            $filename = (string) Str::uuid() . '.' . $extension;
+
+            $image->move($directory, $filename);
+            $gallery[] = 'dealers/' . $user->id . '/' . $filename;
+        }
+
+        $user->dealer_gallery = array_values($gallery);
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'gallery' => $this->dealerGalleryPayload($user),
+        ]);
+    }
+
+    public function deleteDealerGalleryImage(int $index)
+    {
+        $user = Auth::user();
+
+        abort_unless($user && $user->user_type === 'dealer', 403);
+
+        $gallery = array_values($user->dealer_gallery ?: []);
+        if (!isset($gallery[$index])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Imaginea nu a fost găsită.',
+                'gallery' => $this->dealerGalleryPayload($user),
+            ], 404);
+        }
+
+        $path = $gallery[$index];
+        unset($gallery[$index]);
+        $gallery = array_values($gallery);
+
+        if (Str::startsWith($path, 'dealers/' . $user->id . '/')) {
+            File::delete(public_path('storage/' . $path));
+        }
+
+        $user->dealer_gallery = $gallery;
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'gallery' => $this->dealerGalleryPayload($user),
+        ]);
+    }
+
+    private function dealerGalleryPayload(User $user): array
+    {
+        return collect($user->dealer_gallery ?: [])
+            ->values()
+            ->map(fn ($path, $index) => [
+                'index' => $index,
+                'path' => $path,
+                'url' => asset('storage/' . ltrim($path, '/')),
+            ])
+            ->all();
     }
 
     /**

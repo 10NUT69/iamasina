@@ -3,7 +3,7 @@
 @section('title', 'Editează profilul')
 
 @section('content')
-<div class="max-w-3xl mx-auto mt-12 mb-20">
+<div class="max-w-[1536px] mx-auto mt-12 mb-20 px-4 sm:px-6 lg:px-8">
 
     <h1 class="text-3xl font-bold mb-6 text-gray-900">Editează profilul</h1>
 

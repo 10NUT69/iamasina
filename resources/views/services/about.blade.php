@@ -5,7 +5,7 @@
 @section('meta_description', 'iaAuto.ro este o platformă de anunțuri auto gândită pentru cumpărători și vânzători care vor filtre clare, URL-uri curate și o experiență rapidă.')
 
 @section('content')
-    <div class="max-w-5xl mx-auto">
+    <div class="max-w-[1536px] mx-auto">
         <header class="mb-6 md:mb-8">
             <h1 class="text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-900 dark:text-gray-100 mb-2">
                 Despre iaAuto.ro

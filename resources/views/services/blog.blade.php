@@ -5,7 +5,7 @@
 @section('meta_description', 'Ghiduri simple despre cumpărarea unei mașini second-hand, acte de vânzare, verificări utile și publicarea unui anunț auto mai bun.')
 
 @section('content')
-    <div class="max-w-6xl mx-auto">
+    <div class="max-w-[1536px] mx-auto">
         <header class="mb-8">
             <p class="text-xs font-extrabold uppercase tracking-wider text-[#C81424] mb-2">Blog iaAuto.ro</p>
             <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">

@@ -276,6 +276,102 @@ class ServiceController extends Controller
     ]);
 }
 
+public function showDealerPortfolio(Request $request, string $countySlug, string $citySlug, string $dealerSlug)
+{
+    $dealer = User::query()
+        ->where('user_type', 'dealer')
+        ->where(function ($query) use ($dealerSlug) {
+            $query->where('dealer_slug', $dealerSlug)
+                ->orWhereNull('dealer_slug')
+                ->orWhere('dealer_slug', '');
+        })
+        ->get()
+        ->first(function ($user) use ($dealerSlug) {
+            return ($user->dealer_slug ?: Str::slug($user->company_name)) === $dealerSlug;
+        });
+
+    abort_unless($dealer, 404);
+
+    $canonicalUrl = $dealer->dealer_public_url;
+    if ($canonicalUrl && $request->url() !== $canonicalUrl) {
+        return redirect()->to($canonicalUrl, 301);
+    }
+
+    $baseQuery = Service::query()
+        ->where('status', 'active')
+        ->where('user_id', $dealer->id);
+
+    $brandIds = (clone $baseQuery)
+        ->whereNotNull('brand_id')
+        ->distinct()
+        ->pluck('brand_id')
+        ->filter()
+        ->values();
+
+    $brands = CarBrand::query()
+        ->whereIn('id', $brandIds)
+        ->orderBy('name')
+        ->get();
+
+    $selectedBrandId = $request->input('brand_id');
+    $selectedModelId = $request->input('model_id');
+
+    $modelIdsQuery = (clone $baseQuery)->whereNotNull('model_id');
+    if ($selectedBrandId) {
+        $modelIdsQuery->where('brand_id', $selectedBrandId);
+    }
+
+    $modelIds = $modelIdsQuery
+        ->distinct()
+        ->pluck('model_id')
+        ->filter()
+        ->values();
+
+    $models = CarModel::query()
+        ->whereIn('id', $modelIds)
+        ->orderBy('name')
+        ->get();
+
+    $servicesQuery = Service::with([
+        'county',
+        'locality',
+        'category',
+        'user',
+        'combustibil',
+        'cutieViteze',
+        'brandRel',
+        'modelRel',
+        'generation.model.brand',
+        'normaPoluare',
+    ])
+        ->where('status', 'active')
+        ->where('user_id', $dealer->id);
+
+    if ($selectedBrandId) {
+        $servicesQuery->where('brand_id', $selectedBrandId);
+    }
+
+    if ($selectedModelId) {
+        $servicesQuery->where('model_id', $selectedModelId);
+    }
+
+    $totalCount = $servicesQuery->count();
+
+    $services = $servicesQuery
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    return view('services.dealer-portfolio', [
+        'dealer' => $dealer,
+        'services' => $services,
+        'totalCount' => $totalCount,
+        'brands' => $brands,
+        'models' => $models,
+        'selectedBrandId' => $selectedBrandId,
+        'selectedModelId' => $selectedModelId,
+    ]);
+}
+
 // ==========================================
 // INDEX LOCATION (aliniat pe ID-uri)
 // ==========================================

@@ -4,7 +4,7 @@
 
 @section('content')
 
-<div class="max-w-7xl mx-auto mt-10 mb-20 px-4 md:px-0">
+<div class="max-w-[1536px] mx-auto mt-10 mb-20 px-4 sm:px-6 lg:px-8">
 
     <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-10 gap-4">
         <div>
@@ -73,7 +73,7 @@
             </div>
         @else
 
-        <div id="myServicesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="myServicesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             @foreach($myServices as $service)
             <div class="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-sm border border-gray-200 dark:border-[#333333]
                         overflow-hidden hover:shadow-lg transition-all duration-300 group"
@@ -203,7 +203,7 @@
             <p class="text-gray-500 dark:text-gray-400 text-lg">Nu ai niciun anunț salvat la favorite.</p>
         </div>
 
-        <div id="favoriteList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="favoriteList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             @foreach($favorites as $service)
             <div class="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-sm border border-gray-200 dark:border-[#333333] p-4 favorite-card transition-colors group"
                  id="favorite-{{ $service->id }}">
@@ -239,7 +239,7 @@
    {{-- TAB 3: PROFIL --}}
    @if(request('tab') === 'profil')
 
-   <div class="max-w-5xl mr-auto">
+   <div class="w-full">
 
        <div class="bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-[#333333] shadow-xl rounded-2xl overflow-hidden flex flex-col md:flex-row transition-colors">
 
@@ -378,6 +378,24 @@
             </div>
 
             <div>
+                <label class="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Telefon 2</label>
+                <input id="editDealerPhone2" type="text" value="{{ auth()->user()->phone_2 }}"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
+                           bg-white dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
+                           focus:ring-2 focus:ring-[#C81424]/20 focus:border-[#C81424] outline-none transition shadow-sm"
+                    placeholder="Opțional">
+            </div>
+
+            <div>
+                <label class="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Telefon 3</label>
+                <input id="editDealerPhone3" type="text" value="{{ auth()->user()->phone_3 }}"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
+                           bg-white dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
+                           focus:ring-2 focus:ring-[#C81424]/20 focus:border-[#C81424] outline-none transition shadow-sm"
+                    placeholder="Opțional">
+            </div>
+
+            <div>
                 <label class="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Județ</label>
                 <input id="editCounty" type="text" value="{{ auth()->user()->county }}"
                     class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
@@ -402,6 +420,53 @@
                            bg-white dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
                            focus:ring-2 focus:ring-[#C81424]/20 focus:border-[#C81424] outline-none transition shadow-sm"
                     placeholder="Stradă, număr">
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Descriere parc auto</label>
+                <textarea id="editDealerDescription" rows="5"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
+                           bg-white dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
+                           focus:ring-2 focus:ring-[#C81424]/20 focus:border-[#C81424] outline-none transition shadow-sm"
+                    placeholder="Scrie câteva detalii despre parc, servicii, program sau avantajele pentru cumpărători.">{{ auth()->user()->dealer_description }}</textarea>
+            </div>
+        </div>
+
+        <div class="mt-5 rounded-2xl border border-gray-200 bg-white p-4 dark:border-[#333333] dark:bg-[#1E1E1E]">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <h4 class="text-sm font-bold text-gray-900 dark:text-white">Galerie profil parc auto</h4>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Pozele apar pe pagina publică a parcului auto. Poți adăuga maximum 12 imagini.</p>
+                    @if(auth()->user()->dealer_public_url)
+                        <a href="{{ auth()->user()->dealer_public_url }}" target="_blank" class="mt-2 inline-flex text-xs font-bold text-[#C81424] hover:text-[#94111B]">
+                            Vezi pagina publică
+                        </a>
+                    @endif
+                </div>
+
+                <div class="flex flex-col gap-2 sm:min-w-[240px]">
+                    <input id="dealerGalleryInput" type="file" accept="image/jpeg,image/png,image/webp" multiple
+                        class="block w-full text-xs text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#C81424] file:px-3 file:py-2 file:text-xs file:font-bold file:text-white hover:file:bg-[#94111B] dark:text-gray-300">
+                    <button type="button" onclick="uploadDealerGallery()"
+                        class="inline-flex h-10 items-center justify-center rounded-lg bg-gray-900 px-4 text-xs font-bold uppercase text-white transition hover:bg-black dark:bg-white dark:text-gray-900">
+                        Încarcă poze
+                    </button>
+                </div>
+            </div>
+
+            <div id="dealerGalleryMsg" class="mt-3 hidden rounded-lg px-3 py-2 text-sm font-semibold"></div>
+
+            <div id="dealerGalleryPreview" class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                @foreach((auth()->user()->dealer_gallery_urls ?? []) as $index => $imageUrl)
+                    <div class="relative overflow-hidden rounded-xl border border-gray-100 bg-gray-100 aspect-square dark:border-[#333] dark:bg-[#252525]" data-gallery-item="{{ $index }}">
+                        <img src="{{ $imageUrl }}" alt="Imagine parc auto {{ $index + 1 }}" class="h-full w-full object-cover">
+                        <button type="button" onclick="deleteDealerGalleryImage({{ $index }})"
+                            class="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-[#C81424]"
+                            title="Șterge imaginea">
+                            ×
+                        </button>
+                    </div>
+                @endforeach
             </div>
         </div>
     </div>
@@ -599,6 +664,101 @@ function deleteService(btn) {
     });
 }
 
+function setDealerGalleryMessage(message, success = true) {
+    const msg = document.getElementById("dealerGalleryMsg");
+    if (!msg) return;
+
+    msg.classList.remove("hidden", "bg-green-100", "text-green-700", "bg-red-100", "text-red-700");
+    msg.classList.add(success ? "bg-green-100" : "bg-red-100", success ? "text-green-700" : "text-red-700");
+    msg.textContent = message;
+}
+
+function renderDealerGallery(gallery = []) {
+    const preview = document.getElementById("dealerGalleryPreview");
+    if (!preview) return;
+
+    preview.innerHTML = "";
+
+    gallery.forEach((item) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "relative overflow-hidden rounded-xl border border-gray-100 bg-gray-100 aspect-square dark:border-[#333] dark:bg-[#252525]";
+        wrapper.dataset.galleryItem = item.index;
+
+        const image = document.createElement("img");
+        image.src = item.url;
+        image.alt = `Imagine parc auto ${Number(item.index) + 1}`;
+        image.className = "h-full w-full object-cover";
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.title = "Șterge imaginea";
+        button.className = "absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-[#C81424]";
+        button.textContent = "×";
+        button.addEventListener("click", () => deleteDealerGalleryImage(item.index));
+
+        wrapper.appendChild(image);
+        wrapper.appendChild(button);
+        preview.appendChild(wrapper);
+    });
+}
+
+function uploadDealerGallery() {
+    const input = document.getElementById("dealerGalleryInput");
+    if (!input || !input.files.length) {
+        setDealerGalleryMessage("Alege cel puțin o imagine.", false);
+        return;
+    }
+
+    const formData = new FormData();
+    Array.from(input.files).forEach((file) => formData.append("dealer_images[]", file));
+
+    fetch("{{ route('profile.dealerGallery.upload') }}", {
+        method: "POST",
+        headers: {
+            "X-CSRF-TOKEN": "{{ csrf_token() }}",
+            "Accept": "application/json"
+        },
+        body: formData
+    })
+    .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok || !data.success) {
+            setDealerGalleryMessage(data.message || "Nu am putut încărca imaginile.", false);
+            return;
+        }
+
+        input.value = "";
+        renderDealerGallery(data.gallery || []);
+        setDealerGalleryMessage("Galeria a fost actualizată.");
+    })
+    .catch(() => setDealerGalleryMessage("Eroare de conexiune la încărcarea imaginilor.", false));
+}
+
+function deleteDealerGalleryImage(index) {
+    if (!confirm("Sigur ștergi această imagine?")) return;
+
+    fetch("{{ url('/profile/dealer-gallery') }}/" + index, {
+        method: "DELETE",
+        headers: {
+            "X-CSRF-TOKEN": "{{ csrf_token() }}",
+            "Accept": "application/json"
+        }
+    })
+    .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok || !data.success) {
+            setDealerGalleryMessage(data.message || "Nu am putut șterge imaginea.", false);
+            return;
+        }
+
+        renderDealerGallery(data.gallery || []);
+        setDealerGalleryMessage("Imaginea a fost ștearsă.");
+    })
+    .catch(() => setDealerGalleryMessage("Eroare de conexiune la ștergerea imaginii.", false));
+}
+
 function updateProfile() {
     let name     = document.getElementById("editName")?.value || "";
     let email    = document.getElementById("editEmail")?.value || "";
@@ -615,9 +775,12 @@ function updateProfile() {
         company_name: document.getElementById("editCompanyName")?.value || null,
         cui:          document.getElementById("editCui")?.value || null,
         phone:        document.getElementById("editDealerPhone")?.value || null,
+        phone_2:      document.getElementById("editDealerPhone2")?.value || null,
+        phone_3:      document.getElementById("editDealerPhone3")?.value || null,
         county:       document.getElementById("editCounty")?.value || null,
         city:         document.getElementById("editCity")?.value || null,
         address:      document.getElementById("editAddress")?.value || null,
+        dealer_description: document.getElementById("editDealerDescription")?.value || null,
     };
 
     // dacă nu e dealer, trimitem null (controller oricum golește)
@@ -625,9 +788,12 @@ function updateProfile() {
         payload.company_name = null;
         payload.cui = null;
         payload.phone = null;
+        payload.phone_2 = null;
+        payload.phone_3 = null;
         payload.county = null;
         payload.city = null;
         payload.address = null;
+        payload.dealer_description = null;
     }
 
     fetch("{{ route('profile.ajaxUpdate') }}", {

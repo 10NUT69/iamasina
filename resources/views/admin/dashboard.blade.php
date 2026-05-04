@@ -21,7 +21,7 @@
     $mapData = $topCountries->pluck('total', 'country')->toArray();
 @endphp
 
-<div class="max-w-[1600px] mx-auto py-6 px-4 sm:px-6 lg:px-8 bg-[#F8FAFC] min-h-screen font-sans text-slate-600">
+<div class="max-w-[1536px] mx-auto py-6 px-4 sm:px-6 lg:px-8 bg-[#F8FAFC] min-h-screen font-sans text-slate-600">
 
     <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
         
