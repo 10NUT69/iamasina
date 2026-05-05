@@ -516,17 +516,16 @@
                             </div>
                         @endif
 
-                        @if($isDealer && !empty($sellerUser->dealer_public_url))
-                            <a href="{{ $sellerUser->dealer_public_url }}"
-                               class="mb-3 inline-flex w-full items-center justify-center rounded-xl border border-[#C81424]/20 bg-[#fff4f5] px-4 py-3 text-sm font-bold text-[#C81424] transition hover:border-[#C81424] hover:bg-white dark:border-red-900/40 dark:bg-[#2a1013] dark:text-red-200 dark:hover:bg-[#18181B]">
-                                Vezi portofoliul parcului
-                            </a>
-                        @endif
-
                         {{-- ACTION BUTTONS DESKTOP --}}
                         <div class="mt-4 space-y-3 hidden md:block">
                             @if($isDeleted)
                                 <button disabled class="w-full bg-gray-200 text-gray-500 py-3.5 rounded-xl font-bold">Anunț Dezactivat</button>
+                                @if($isDealer && !empty($sellerUser->dealer_public_url))
+                                    <a href="{{ $sellerUser->dealer_public_url }}"
+                                       class="inline-flex w-full items-center justify-center rounded-xl border border-[#C81424]/20 bg-[#fff4f5] px-4 py-3 text-sm font-bold text-[#C81424] transition hover:border-[#C81424] hover:bg-white dark:border-red-900/40 dark:bg-[#2a1013] dark:text-red-200 dark:hover:bg-[#18181B]">
+                                        Vezi portofoliul parcului
+                                    </a>
+                                @endif
                             @else
                                 <button onclick="revealPhone('desktop', '{{ $rawPhone }}', '{{ $formattedPhone }}')" id="btn-phone-desktop" class="w-full bg-[#E03E2D] hover:bg-[#c92a1b] text-white font-bold py-3.5 rounded-xl shadow-lg shadow-red-500/20 transition transform active:scale-95 flex items-center justify-center gap-2 group">
                                     <svg class="w-5 h-5 group-hover:animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
@@ -535,6 +534,12 @@
                                 <button class="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3.5 rounded-xl transition">
                                     Trimite Mesaj
                                 </button>
+                                @if($isDealer && !empty($sellerUser->dealer_public_url))
+                                    <a href="{{ $sellerUser->dealer_public_url }}"
+                                       class="inline-flex w-full items-center justify-center rounded-xl border border-[#C81424]/20 bg-[#fff4f5] px-4 py-3 text-sm font-bold text-[#C81424] transition hover:border-[#C81424] hover:bg-white dark:border-red-900/40 dark:bg-[#2a1013] dark:text-red-200 dark:hover:bg-[#18181B]">
+                                        Vezi portofoliul parcului
+                                    </a>
+                                @endif
                             @endif
                         </div>
                     </div>

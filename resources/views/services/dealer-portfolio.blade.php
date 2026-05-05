@@ -52,7 +52,10 @@
     $mapsQuery = trim(implode(', ', array_filter([$dealer->address, $dealer->city, $dealer->county])));
     $mapsUrl = $mapsQuery ? 'https://www.google.com/maps/search/?api=1&query=' . urlencode($mapsQuery) : null;
     $selectedBrandName = $brands->first(fn ($brand) => (string) $brand->id === (string) $selectedBrandId)?->name ?? 'Toate mărcile';
-    $selectedModelName = $models->first(fn ($model) => (string) $model->id === (string) $selectedModelId)?->name ?? 'Toate modelele';
+    $modelSelectDisabled = ! $selectedBrandId || $models->isEmpty();
+    $selectedModelName = $selectedBrandId
+        ? ($models->first(fn ($model) => (string) $model->id === (string) $selectedModelId)?->name ?? ($models->isEmpty() ? 'Nu sunt modele' : 'Toate modelele'))
+        : 'Alege marca';
 @endphp
 
 <div class="w-full min-w-0 space-y-8 overflow-hidden pb-24 lg:pb-12">
@@ -296,7 +299,11 @@
                         <label for="dealerModelTrigger" class="mb-2 block text-xs font-bold uppercase tracking-wide text-gray-500">Model</label>
                         <input type="hidden" id="model_id" name="model_id" value="{{ $selectedModelId }}" data-dealer-select-input="model">
                         <div class="dealer-custom-select relative">
-                            <button id="dealerModelTrigger" type="button" data-dealer-select-trigger="model" aria-haspopup="listbox" aria-expanded="false" class="flex h-11 w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 text-left text-sm font-semibold text-gray-900 transition hover:border-[#C81424] focus:border-[#C81424] focus:outline-none focus:ring-2 focus:ring-[#C81424]/20 dark:border-[#333] dark:bg-[#202024] dark:text-white">
+                            <button id="dealerModelTrigger" type="button" data-dealer-select-trigger="model" aria-haspopup="listbox" aria-expanded="false" aria-disabled="{{ $modelSelectDisabled ? 'true' : 'false' }}" @disabled($modelSelectDisabled) @class([
+                                'flex h-11 w-full items-center justify-between rounded-lg border px-3 text-left text-sm font-semibold transition focus:outline-none',
+                                'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400 dark:border-[#333] dark:bg-[#202024] dark:text-gray-500' => $modelSelectDisabled,
+                                'border-gray-200 bg-white text-gray-900 hover:border-[#C81424] focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/20 dark:border-[#333] dark:bg-[#202024] dark:text-white' => ! $modelSelectDisabled,
+                            ])>
                                 <span class="truncate" data-dealer-select-label="model">{{ $selectedModelName }}</span>
                                 <svg class="h-4 w-4 shrink-0 text-gray-500 transition" data-dealer-select-icon="model" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -407,6 +414,7 @@
 <script>
 const dealerGalleryImages = @json($galleryUrls);
 const dealerGalleryAltBase = @json($dealerDisplayName);
+const dealerModelsByBrand = @json($modelsByBrand);
 let dealerGalleryIndex = 0;
 let dealerMobileGalleryIndex = 0;
 let dealerMobileGalleryTouchStartX = 0;
@@ -528,6 +536,12 @@ document.addEventListener('keydown', function (event) {
 document.addEventListener('DOMContentLoaded', function () {
     const selectedOptionClasses = ['bg-[#C81424]', 'text-white'];
     const defaultOptionClasses = ['text-gray-700', 'hover:bg-[#fff4f5]', 'hover:text-[#C81424]', 'dark:text-gray-100', 'dark:hover:bg-[#2A1418]'];
+    const modelDisabledClasses = ['cursor-not-allowed', 'border-gray-200', 'bg-gray-50', 'text-gray-400', 'dark:border-[#333]', 'dark:bg-[#202024]', 'dark:text-gray-500'];
+    const modelEnabledClasses = ['border-gray-200', 'bg-white', 'text-gray-900', 'hover:border-[#C81424]', 'focus:border-[#C81424]', 'focus:ring-2', 'focus:ring-[#C81424]/20', 'dark:border-[#333]', 'dark:bg-[#202024]', 'dark:text-white'];
+    const modelTrigger = document.querySelector('[data-dealer-select-trigger="model"]');
+    const modelInput = document.querySelector('[data-dealer-select-input="model"]');
+    const modelLabel = document.querySelector('[data-dealer-select-label="model"]');
+    const modelMenu = document.querySelector('[data-dealer-select-menu="model"]');
 
     function updateDealerSelectOptions(type, selectedValue) {
         document.querySelectorAll(`[data-dealer-select-option="${type}"]`).forEach(option => {
@@ -539,6 +553,59 @@ document.addEventListener('DOMContentLoaded', function () {
                 option.classList.add(...defaultOptionClasses);
             }
         });
+    }
+
+    function createDealerSelectOption(type, value, label) {
+        const option = document.createElement('button');
+
+        option.type = 'button';
+        option.dataset.dealerSelectOption = type;
+        option.dataset.value = String(value || '');
+        option.classList.add('block', 'w-full', 'px-3', 'py-2', 'text-left', 'text-sm', 'font-semibold', 'transition');
+        option.textContent = label;
+
+        return option;
+    }
+
+    function renderDealerModelOptions(brandId, selectedValue = '') {
+        if (!modelMenu) return;
+
+        const models = dealerModelsByBrand[String(brandId || '')] || [];
+        modelMenu.innerHTML = '';
+        modelMenu.appendChild(createDealerSelectOption('model', '', 'Toate modelele'));
+
+        models.forEach(model => {
+            modelMenu.appendChild(createDealerSelectOption('model', model.id, model.name));
+        });
+
+        updateDealerSelectOptions('model', selectedValue);
+    }
+
+    function setDealerModelState(brandId, selectedValue = '') {
+        const models = dealerModelsByBrand[String(brandId || '')] || [];
+        const isDisabled = !brandId || models.length === 0;
+
+        if (modelTrigger) {
+            modelTrigger.disabled = isDisabled;
+            modelTrigger.setAttribute('aria-disabled', isDisabled ? 'true' : 'false');
+            modelTrigger.classList.remove(...modelDisabledClasses, ...modelEnabledClasses);
+            modelTrigger.classList.add(...(isDisabled ? modelDisabledClasses : modelEnabledClasses));
+        }
+
+        if (isDisabled) {
+            if (modelInput) modelInput.value = '';
+            if (modelLabel) modelLabel.textContent = brandId ? 'Nu sunt modele' : 'Alege marca';
+            if (modelMenu) modelMenu.innerHTML = '';
+            closeDealerSelects();
+            return;
+        }
+
+        const selectedModel = models.find(model => String(model.id) === String(selectedValue));
+
+        if (modelInput) modelInput.value = selectedModel ? selectedValue : '';
+        if (modelLabel) modelLabel.textContent = selectedModel ? selectedModel.name : 'Toate modelele';
+
+        renderDealerModelOptions(brandId, selectedModel ? selectedValue : '');
     }
 
     function closeDealerSelects(exceptType = null) {
@@ -559,6 +626,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelectorAll('[data-dealer-select-trigger]').forEach(trigger => {
         trigger.addEventListener('click', function () {
+            if (this.disabled || this.getAttribute('aria-disabled') === 'true') return;
+
             const type = this.dataset.dealerSelectTrigger;
             const menu = document.querySelector(`[data-dealer-select-menu="${type}"]`);
             const icon = document.querySelector(`[data-dealer-select-icon="${type}"]`);
@@ -577,29 +646,32 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    document.querySelectorAll('[data-dealer-select-option]').forEach(option => {
-        option.addEventListener('click', function () {
-            const type = this.dataset.dealerSelectOption;
-            const value = this.dataset.value || '';
-            const input = document.querySelector(`[data-dealer-select-input="${type}"]`);
-            const label = document.querySelector(`[data-dealer-select-label="${type}"]`);
-            const previousValue = input?.value || '';
+    document.addEventListener('click', function (event) {
+        const option = event.target.closest('[data-dealer-select-option]');
+        if (!option) return;
 
-            if (input) input.value = value;
-            if (label) label.textContent = this.textContent.trim();
-            updateDealerSelectOptions(type, value);
-            closeDealerSelects();
+        const type = option.dataset.dealerSelectOption;
+        const value = option.dataset.value || '';
+        const input = document.querySelector(`[data-dealer-select-input="${type}"]`);
+        const label = document.querySelector(`[data-dealer-select-label="${type}"]`);
+        const previousValue = input?.value || '';
 
-            if (type === 'brand' && value !== previousValue) {
-                const modelInput = document.querySelector('[data-dealer-select-input="model"]');
-                const modelLabel = document.querySelector('[data-dealer-select-label="model"]');
+        event.preventDefault();
 
-                if (modelInput) modelInput.value = '';
-                if (modelLabel) modelLabel.textContent = 'Toate modelele';
-                updateDealerSelectOptions('model', '');
-            }
-        });
+        if (input) input.value = value;
+        if (label) label.textContent = option.textContent.trim();
+        updateDealerSelectOptions(type, value);
+        closeDealerSelects();
+
+        if (type === 'brand' && value !== previousValue) {
+            setDealerModelState(value, '');
+        }
     });
+
+    setDealerModelState(
+        document.querySelector('[data-dealer-select-input="brand"]')?.value || '',
+        modelInput?.value || ''
+    );
 
     document.addEventListener('click', function (event) {
         if (!event.target.closest('.dealer-custom-select')) {

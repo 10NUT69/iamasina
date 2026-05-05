@@ -301,11 +301,48 @@ public function showDealerPortfolio(Request $request, string $countySlug, string
         ->where('status', 'active')
         ->where('user_id', $dealer->id);
 
-    $brandIds = (clone $baseQuery)
-        ->whereNotNull('brand_id')
-        ->distinct()
-        ->pluck('brand_id')
+    $stockServices = (clone $baseQuery)
+        ->with([
+            'brandRel:id,name,slug',
+            'modelRel:id,car_brand_id,name,slug',
+            'generation.model.brand:id,name,slug',
+        ])
+        ->get(['id', 'brand_id', 'model_id', 'car_generation_id', 'brand', 'model']);
+
+    $normalizeName = fn ($name) => Str::lower(trim((string) $name));
+
+    $textBrandNames = $stockServices
+        ->pluck('brand')
+        ->map(fn ($name) => trim((string) $name))
         ->filter()
+        ->unique()
+        ->values();
+
+    $textBrandIdsByName = $textBrandNames->isNotEmpty()
+        ? CarBrand::query()
+            ->whereIn('name', $textBrandNames)
+            ->get(['id', 'name'])
+            ->mapWithKeys(fn ($brand) => [$normalizeName($brand->name) => (int) $brand->id])
+        : collect();
+
+    $resolveServiceBrandId = function (Service $service) use ($textBrandIdsByName, $normalizeName): ?int {
+        $brandId = $service->brand_id
+            ?: $service->generation?->model?->car_brand_id
+            ?: $service->modelRel?->car_brand_id;
+
+        if ($brandId) {
+            return (int) $brandId;
+        }
+
+        $brandNameKey = $normalizeName($service->brand);
+
+        return $textBrandIdsByName->get($brandNameKey);
+    };
+
+    $brandIds = $stockServices
+        ->map($resolveServiceBrandId)
+        ->filter()
+        ->unique()
         ->values();
 
     $brands = CarBrand::query()
@@ -313,24 +350,80 @@ public function showDealerPortfolio(Request $request, string $countySlug, string
         ->orderBy('name')
         ->get();
 
-    $selectedBrandId = $request->input('brand_id');
-    $selectedModelId = $request->input('model_id');
-
-    $modelIdsQuery = (clone $baseQuery)->whereNotNull('model_id');
-    if ($selectedBrandId) {
-        $modelIdsQuery->where('brand_id', $selectedBrandId);
+    $selectedBrandId = $request->integer('brand_id') ?: null;
+    if ($selectedBrandId && ! $brandIds->contains($selectedBrandId)) {
+        $selectedBrandId = null;
     }
 
-    $modelIds = $modelIdsQuery
-        ->distinct()
-        ->pluck('model_id')
+    $textModelCandidates = $stockServices
+        ->map(function (Service $service) use ($resolveServiceBrandId, $normalizeName) {
+            $brandId = $resolveServiceBrandId($service);
+            $modelName = trim((string) $service->model);
+
+            if (! $brandId || $modelName === '') {
+                return null;
+            }
+
+            return [
+                'brand_id' => $brandId,
+                'name' => $modelName,
+                'key' => $brandId . '|' . $normalizeName($modelName),
+            ];
+        })
         ->filter()
+        ->unique('key')
         ->values();
 
-    $models = CarModel::query()
+    $textModelKeys = $textModelCandidates->pluck('key');
+
+    $textModelIds = $textModelCandidates->isNotEmpty()
+        ? CarModel::query()
+            ->whereIn('car_brand_id', $textModelCandidates->pluck('brand_id')->unique()->values())
+            ->whereIn('name', $textModelCandidates->pluck('name')->unique()->values())
+            ->get(['id', 'car_brand_id', 'name'])
+            ->filter(fn ($model) => $textModelKeys->contains($model->car_brand_id . '|' . $normalizeName($model->name)))
+            ->pluck('id')
+        : collect();
+
+    $modelIds = $stockServices
+        ->map(fn (Service $service) => $service->model_id ?: $service->generation?->model?->id)
+        ->merge($textModelIds)
+        ->filter()
+        ->map(fn ($id) => (int) $id)
+        ->unique()
+        ->values();
+
+    $availableModels = CarModel::query()
         ->whereIn('id', $modelIds)
         ->orderBy('name')
         ->get();
+
+    $modelsByBrand = $availableModels
+        ->groupBy('car_brand_id')
+        ->map(fn ($models) => $models
+            ->map(fn ($model) => [
+                'id' => $model->id,
+                'name' => $model->name,
+            ])
+            ->values()
+        );
+
+    $models = $selectedBrandId
+        ? $availableModels->where('car_brand_id', $selectedBrandId)->values()
+        : collect();
+
+    $selectedModelId = $selectedBrandId ? ($request->integer('model_id') ?: null) : null;
+    if ($selectedModelId && ! $models->pluck('id')->contains($selectedModelId)) {
+        $selectedModelId = null;
+    }
+
+    $selectedBrand = $selectedBrandId
+        ? $brands->firstWhere('id', $selectedBrandId)
+        : null;
+
+    $selectedModel = $selectedModelId
+        ? $models->firstWhere('id', $selectedModelId)
+        : null;
 
     $servicesQuery = Service::with([
         'county',
@@ -348,11 +441,28 @@ public function showDealerPortfolio(Request $request, string $countySlug, string
         ->where('user_id', $dealer->id);
 
     if ($selectedBrandId) {
-        $servicesQuery->where('brand_id', $selectedBrandId);
+        $servicesQuery->where(function ($query) use ($selectedBrandId, $selectedBrand) {
+            $query
+                ->where('brand_id', $selectedBrandId)
+                ->orWhereHas('modelRel', fn ($modelQuery) => $modelQuery->where('car_brand_id', $selectedBrandId))
+                ->orWhereHas('generation.model', fn ($modelQuery) => $modelQuery->where('car_brand_id', $selectedBrandId));
+
+            if ($selectedBrand) {
+                $query->orWhere('brand', $selectedBrand->name);
+            }
+        });
     }
 
     if ($selectedModelId) {
-        $servicesQuery->where('model_id', $selectedModelId);
+        $servicesQuery->where(function ($query) use ($selectedModelId, $selectedModel) {
+            $query
+                ->where('model_id', $selectedModelId)
+                ->orWhereHas('generation', fn ($generationQuery) => $generationQuery->where('car_model_id', $selectedModelId));
+
+            if ($selectedModel) {
+                $query->orWhere('model', $selectedModel->name);
+            }
+        });
     }
 
     $totalCount = $servicesQuery->count();
@@ -367,6 +477,7 @@ public function showDealerPortfolio(Request $request, string $countySlug, string
         'totalCount' => $totalCount,
         'brands' => $brands,
         'models' => $models,
+        'modelsByBrand' => $modelsByBrand,
         'selectedBrandId' => $selectedBrandId,
         'selectedModelId' => $selectedModelId,
     ]);
