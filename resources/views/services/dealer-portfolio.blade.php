@@ -7,9 +7,31 @@
 @section('content')
 @php
     $galleryUrls = $dealer->dealer_gallery_urls;
+    $firstGalleryUrl = count($galleryUrls) ? $galleryUrls[0] : null;
     $phones = collect([$dealer->phone, $dealer->phone_2, $dealer->phone_3])->filter()->values();
     $primaryPhone = $phones->first();
-    $primaryPhoneHref = $primaryPhone ? preg_replace('/\s+/', '', $primaryPhone) : null;
+    $formatPhoneDisplay = function ($phone) {
+        $phone = trim((string) $phone);
+        $compact = preg_replace('/\s+/', '', $phone);
+        $digits = preg_replace('/\D+/', '', $compact);
+
+        if (strlen($digits) === 10 && str_starts_with($digits, '0')) {
+            return substr($digits, 0, 4) . ' ' . substr($digits, 4, 3) . ' ' . substr($digits, 7, 3);
+        }
+
+        if (strlen($digits) === 12 && str_starts_with($digits, '40')) {
+            return '+40 ' . substr($digits, 2, 3) . ' ' . substr($digits, 5, 3) . ' ' . substr($digits, 8, 3);
+        }
+
+        return $phone;
+    };
+    $phoneItems = $phones->map(fn ($phone) => [
+        'href' => preg_replace('/\s+/', '', $phone),
+        'label' => $formatPhoneDisplay($phone),
+    ])->values();
+    $primaryPhoneHref = $phoneItems->first()['href'] ?? null;
+    $secondaryPhoneItems = $phoneItems->slice(1)->values();
+    $dealerDisplayName = $dealer->company_name ?: $dealer->name;
     $dealerUrl = $dealer->dealer_public_url ?: url()->current();
     $activeCount = $totalCount ?? $services->count();
     $dealerSubtitle = 'Parc auto';
@@ -50,7 +72,7 @@
                     </p>
 
                     <h1 class="mt-2 break-words text-3xl font-black tracking-tight text-gray-950 dark:text-white sm:text-4xl xl:text-5xl">
-                        {{ $dealer->company_name ?: $dealer->name }}
+                        {{ $dealerDisplayName }}
                     </h1>
                 </div>
 
@@ -75,24 +97,56 @@
                     </div>
                 </div>
 
-                <div class="flex flex-col gap-2 sm:flex-row">
+                <div @class([
+                    'grid gap-2 sm:flex sm:flex-row',
+                    'grid-cols-2' => $primaryPhone,
+                    'grid-cols-1' => ! $primaryPhone,
+                ])>
                     @if($primaryPhone)
-                        <a href="tel:{{ $primaryPhoneHref }}" class="inline-flex h-12 flex-1 items-center justify-center rounded-xl bg-[#C81424] px-5 text-sm font-black uppercase text-white shadow-lg shadow-red-600/20 transition hover:bg-[#94111B]">
+                        <a href="tel:{{ $primaryPhoneHref }}" class="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-xl bg-[#C81424] px-3 text-xs font-black uppercase text-white shadow-lg shadow-red-600/20 transition hover:bg-[#94111B] sm:h-12 sm:flex-1 sm:px-5 sm:text-sm">
+                            <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106a1.125 1.125 0 00-1.173.417l-.97 1.293a1.125 1.125 0 01-1.21.38 12.035 12.035 0 01-7.143-7.143 1.125 1.125 0 01.38-1.21l1.293-.97a1.125 1.125 0 00.417-1.173L6.963 3.102A1.125 1.125 0 005.872 2.25H4.5A2.25 2.25 0 002.25 4.5v2.25z"/>
+                            </svg>
                             Sună acum
                         </a>
                     @endif
 
-                    <a href="#dealer-listings" class="inline-flex h-12 flex-1 items-center justify-center rounded-xl border border-gray-200 bg-white px-5 text-sm font-black uppercase text-gray-800 transition hover:border-[#C81424] hover:text-[#C81424] dark:border-[#333] dark:bg-[#202024] dark:text-gray-100">
+                    <a href="#dealer-listings" class="inline-flex h-11 min-w-0 items-center justify-center rounded-xl border border-gray-200 bg-white px-3 text-xs font-black uppercase text-gray-800 transition hover:border-[#C81424] hover:text-[#C81424] dark:border-[#333] dark:bg-[#202024] dark:text-gray-100 sm:h-12 sm:flex-1 sm:px-5 sm:text-sm">
                         Vezi anunțurile
                     </a>
                 </div>
 
+                @if($secondaryPhoneItems->isNotEmpty())
+                    <div class="rounded-xl border border-red-100 bg-[#fff4f5] p-3 dark:border-[#3A1F24] dark:bg-[#241316] sm:p-4">
+                        <span class="block text-xs font-black tracking-wide text-[#C81424] dark:text-red-300">
+                            Alte numere telefon
+                        </span>
+
+                        <div @class([
+                            'mt-3 grid gap-2',
+                            'grid-cols-2' => $secondaryPhoneItems->count() > 1,
+                            'grid-cols-1' => $secondaryPhoneItems->count() === 1,
+                        ])>
+                            @foreach($secondaryPhoneItems as $phone)
+                                <a href="tel:{{ $phone['href'] }}" class="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-lg border border-red-100 bg-white px-2.5 text-[13px] font-black text-[#C81424] shadow-sm transition hover:border-[#C81424] hover:bg-[#C81424] hover:text-white dark:border-[#3A1F24] dark:bg-[#202024] dark:text-red-300 dark:hover:bg-[#C81424] dark:hover:text-white sm:px-3 sm:text-sm">
+                                    <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106a1.125 1.125 0 00-1.173.417l-.97 1.293a1.125 1.125 0 01-1.21.38 12.035 12.035 0 01-7.143-7.143 1.125 1.125 0 01.38-1.21l1.293-.97a1.125 1.125 0 00.417-1.173L6.963 3.102A1.125 1.125 0 005.872 2.25H4.5A2.25 2.25 0 002.25 4.5v2.25z"/>
+                                    </svg>
+                                    <span class="truncate">{{ $phone['label'] }}</span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
                 @if($dealer->dealer_description)
                     <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-[#333] dark:bg-[#202024] sm:p-6">
-                        <h2 class="text-lg font-black text-gray-950 dark:text-white">Despre parc auto</h2>
-                        <p class="mt-3 max-w-3xl whitespace-pre-line break-words text-base leading-[1.7] text-gray-600 dark:text-gray-300">
-                            {{ $dealer->dealer_description }}
-                        </p>
+                        <h2 class="text-lg font-black text-gray-950 dark:text-white">Despre {{ $dealerDisplayName }}:</h2>
+                        <div class="mt-3 max-h-56 max-w-3xl overflow-y-auto pr-2 text-justify text-base leading-[1.7] text-gray-600 dark:text-gray-300 sm:max-h-64">
+                            <p class="whitespace-pre-line break-words">
+                                {{ $dealer->dealer_description }}
+                            </p>
+                        </div>
                     </div>
                 @endif
             </div>
@@ -100,20 +154,48 @@
 
         <div class="relative min-w-0 overflow-hidden rounded-2xl border border-gray-100 bg-white p-2 shadow-sm dark:border-[#333] dark:bg-[#18181B]">
             @if(count($galleryUrls))
-                <div class="flex min-h-[250px] snap-x gap-2 overflow-x-auto pb-1 lg:grid lg:h-full lg:min-h-[340px] lg:grid-cols-[minmax(0,2fr)_minmax(150px,0.82fr)] lg:grid-rows-2 lg:overflow-visible lg:pb-0">
+                <div id="dealerMobileGalleryTouchArea" class="relative overflow-hidden rounded-xl bg-gray-200 dark:bg-[#202024] lg:hidden">
+                    <div class="h-[260px] w-full sm:h-[320px]">
+                        <img id="dealerMobileGalleryImage" src="{{ $firstGalleryUrl }}" alt="{{ $dealerDisplayName }} imagine 1" class="h-full w-full object-cover">
+                    </div>
+
+                    @if(count($galleryUrls) > 1)
+                        <button type="button" onclick="changeDealerMobileGalleryImage(-1)" class="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white shadow-lg backdrop-blur transition hover:bg-[#C81424]" aria-label="Imaginea anterioară">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                        </button>
+
+                        <button type="button" onclick="changeDealerMobileGalleryImage(1)" class="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white shadow-lg backdrop-blur transition hover:bg-[#C81424]" aria-label="Imaginea următoare">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+
+                        <div id="dealerMobileGalleryCounter" class="absolute bottom-3 left-3 z-10 rounded-full bg-black/55 px-3 py-1.5 text-xs font-black text-white shadow-lg backdrop-blur">
+                            1 / {{ count($galleryUrls) }}
+                        </div>
+                    @endif
+
+                    <button type="button" onclick="openDealerMobileGallery()" class="absolute bottom-3 right-3 z-10 inline-flex items-center rounded-full bg-black/65 px-3 py-1.5 text-[11px] font-black uppercase text-white shadow-lg backdrop-blur transition hover:bg-[#C81424]">
+                        Vezi galeria · {{ count($galleryUrls) }} fotografii
+                    </button>
+                </div>
+
+                <div class="hidden lg:grid lg:h-full lg:min-h-[340px] lg:grid-cols-[minmax(0,2fr)_minmax(150px,0.82fr)] lg:grid-rows-2 lg:gap-2">
                     @foreach(array_slice($galleryUrls, 0, 3) as $index => $imageUrl)
                         @php
                             $tileClass = $index === 0
                                 ? (count($galleryUrls) === 1 ? 'lg:col-span-2 lg:row-span-2' : 'lg:row-span-2')
                                 : '';
                         @endphp
-                        <button type="button" onclick="openDealerGallery({{ $index }})" class="{{ $tileClass }} relative block h-[250px] min-w-[82%] snap-start overflow-hidden rounded-xl bg-gray-200 text-left dark:bg-[#202024] sm:min-w-[62%] lg:h-auto lg:min-w-0">
+                        <button type="button" onclick="openDealerGallery({{ $index }})" class="{{ $tileClass }} relative block overflow-hidden rounded-xl bg-gray-200 text-left dark:bg-[#202024]">
                             <img src="{{ $imageUrl }}" alt="{{ $dealer->company_name }} imagine {{ $index + 1 }}" class="h-full w-full object-cover transition duration-500 hover:scale-105">
                         </button>
                     @endforeach
                 </div>
 
-                <button type="button" onclick="openDealerGallery(0)" class="absolute bottom-4 right-4 inline-flex items-center rounded-full bg-black/65 px-4 py-2 text-xs font-black uppercase text-white shadow-lg backdrop-blur transition hover:bg-[#C81424]">
+                <button type="button" onclick="openDealerGallery(0)" class="absolute bottom-4 right-4 hidden items-center rounded-full bg-black/65 px-4 py-2 text-xs font-black uppercase text-white shadow-lg backdrop-blur transition hover:bg-[#C81424] lg:inline-flex">
                     Vezi galeria · {{ count($galleryUrls) }} fotografii
                 </button>
             @else
@@ -131,12 +213,12 @@
         </div>
     </section>
 
-    @if($dealer->county || $dealer->city || $dealer->address || $primaryPhone)
+    @if($dealer->county || $dealer->city || $dealer->address || $phoneItems->isNotEmpty())
         <section class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-[#333] dark:bg-[#18181B] sm:p-6">
-            <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                <div>
+            <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+                <div class="min-w-0">
                     <h2 class="text-2xl font-black text-gray-950 dark:text-white">Unde ne găsești</h2>
-                    <div class="mt-3 grid gap-2 text-sm font-semibold text-gray-600 dark:text-gray-300 sm:grid-cols-3">
+                    <div class="mt-3 space-y-2 text-sm font-semibold text-gray-600 dark:text-gray-300">
                         @if($dealer->county)
                             <p><span class="font-black text-gray-900 dark:text-white">Județ:</span> {{ $dealer->county }}</p>
                         @endif
@@ -149,15 +231,22 @@
                     </div>
                 </div>
 
-                <div class="flex flex-col gap-2 sm:flex-row">
-                    @if($primaryPhone)
-                        <a href="tel:{{ $primaryPhoneHref }}" class="inline-flex h-12 items-center justify-center rounded-xl bg-[#C81424] px-6 text-sm font-black uppercase text-white transition hover:bg-[#94111B]">
-                            Sună acum
-                        </a>
+                <div class="w-full lg:w-auto lg:min-w-[280px]">
+                    @if($phoneItems->isNotEmpty())
+                        <div class="hidden gap-2 lg:flex lg:justify-end">
+                            @foreach($phoneItems as $phone)
+                                <a href="tel:{{ $phone['href'] }}" class="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-xl border border-red-100 bg-[#fff4f5] px-3 text-[13px] font-black text-[#C81424] transition hover:border-[#C81424] hover:bg-[#C81424] hover:text-white dark:border-[#3A1F24] dark:bg-[#202024] dark:text-red-300">
+                                    <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106a1.125 1.125 0 00-1.173.417l-.970 1.293a1.125 1.125 0 01-1.210.380 12.035 12.035 0 01-7.143-7.143 1.125 1.125 0 01.380-1.210l1.293-.970a1.125 1.125 0 00.417-1.173L6.963 3.102A1.125 1.125 0 005.872 2.25H4.5A2.25 2.25 0 002.25 4.5v2.25z"/>
+                                    </svg>
+                                    <span class="truncate">{{ $phone['label'] }}</span>
+                                </a>
+                            @endforeach
+                        </div>
                     @endif
 
                     @if($mapsUrl)
-                        <a href="{{ $mapsUrl }}" target="_blank" rel="noopener" class="inline-flex h-12 items-center justify-center rounded-xl border border-gray-200 bg-white px-6 text-sm font-black uppercase text-gray-800 transition hover:border-[#C81424] hover:text-[#C81424] dark:border-[#333] dark:bg-[#202024] dark:text-gray-100">
+                        <a href="{{ $mapsUrl }}" target="_blank" rel="noopener" class="inline-flex h-12 w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-6 text-sm font-black uppercase text-gray-800 transition hover:border-[#C81424] hover:text-[#C81424] dark:border-[#333] dark:bg-[#202024] dark:text-gray-100 lg:mt-2">
                             Google Maps
                         </a>
                     @endif
@@ -264,7 +353,10 @@
 @if($primaryPhone)
     <div class="fixed inset-x-0 bottom-0 z-[60] border-t border-gray-200 bg-white/95 p-3 shadow-2xl backdrop-blur dark:border-[#333] dark:bg-[#18181B]/95 lg:hidden">
         <div class="grid grid-cols-2 gap-2">
-            <a href="tel:{{ $primaryPhoneHref }}" class="inline-flex h-12 items-center justify-center rounded-xl bg-[#C81424] text-sm font-black uppercase text-white">
+            <a href="tel:{{ $primaryPhoneHref }}" class="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#C81424] text-sm font-black uppercase text-white">
+                <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106a1.125 1.125 0 00-1.173.417l-.97 1.293a1.125 1.125 0 01-1.21.38 12.035 12.035 0 01-7.143-7.143 1.125 1.125 0 01.38-1.21l1.293-.97a1.125 1.125 0 00.417-1.173L6.963 3.102A1.125 1.125 0 005.872 2.25H4.5A2.25 2.25 0 002.25 4.5v2.25z"/>
+                </svg>
                 Sună
             </a>
             <a href="#dealer-listings" class="inline-flex h-12 items-center justify-center rounded-xl border border-gray-200 bg-white text-sm font-black uppercase text-gray-900 dark:border-[#333] dark:bg-[#202024] dark:text-white">
@@ -314,7 +406,11 @@
 
 <script>
 const dealerGalleryImages = @json($galleryUrls);
+const dealerGalleryAltBase = @json($dealerDisplayName);
 let dealerGalleryIndex = 0;
+let dealerMobileGalleryIndex = 0;
+let dealerMobileGalleryTouchStartX = 0;
+let dealerMobileGalleryTouchStartY = 0;
 let dealerGalleryTouchStartX = 0;
 let dealerGalleryTouchStartY = 0;
 
@@ -393,6 +489,31 @@ function changeDealerGalleryImage(direction) {
 
     dealerGalleryIndex = (dealerGalleryIndex + direction + dealerGalleryImages.length) % dealerGalleryImages.length;
     updateDealerGalleryImage();
+}
+
+function updateDealerMobileGalleryImage() {
+    const image = document.getElementById('dealerMobileGalleryImage');
+    const counter = document.getElementById('dealerMobileGalleryCounter');
+
+    if (!image || !dealerGalleryImages.length) return;
+
+    image.src = dealerGalleryImages[dealerMobileGalleryIndex];
+    image.alt = `${dealerGalleryAltBase} imagine ${dealerMobileGalleryIndex + 1}`;
+
+    if (counter) {
+        counter.textContent = `${dealerMobileGalleryIndex + 1} / ${dealerGalleryImages.length}`;
+    }
+}
+
+function changeDealerMobileGalleryImage(direction) {
+    if (dealerGalleryImages.length < 2) return;
+
+    dealerMobileGalleryIndex = (dealerMobileGalleryIndex + direction + dealerGalleryImages.length) % dealerGalleryImages.length;
+    updateDealerMobileGalleryImage();
+}
+
+function openDealerMobileGallery() {
+    openDealerGallery(dealerMobileGalleryIndex);
 }
 
 document.addEventListener('keydown', function (event) {
@@ -494,6 +615,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const modal = document.getElementById('dealerGalleryModal');
     const touchArea = document.getElementById('dealerGalleryTouchArea');
+    const mobileGalleryTouchArea = document.getElementById('dealerMobileGalleryTouchArea');
 
     if (modal) {
         document.body.appendChild(modal);
@@ -501,6 +623,24 @@ document.addEventListener('DOMContentLoaded', function () {
         modal.addEventListener('click', function (event) {
             if (event.target === modal) closeDealerGallery();
         });
+    }
+
+    if (mobileGalleryTouchArea) {
+        mobileGalleryTouchArea.addEventListener('touchstart', function (event) {
+            const touch = event.changedTouches[0];
+            dealerMobileGalleryTouchStartX = touch.clientX;
+            dealerMobileGalleryTouchStartY = touch.clientY;
+        }, { passive: true });
+
+        mobileGalleryTouchArea.addEventListener('touchend', function (event) {
+            const touch = event.changedTouches[0];
+            const deltaX = touch.clientX - dealerMobileGalleryTouchStartX;
+            const deltaY = touch.clientY - dealerMobileGalleryTouchStartY;
+
+            if (Math.abs(deltaX) < 45 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+
+            changeDealerMobileGalleryImage(deltaX < 0 ? 1 : -1);
+        }, { passive: true });
     }
 
     if (!touchArea) return;
