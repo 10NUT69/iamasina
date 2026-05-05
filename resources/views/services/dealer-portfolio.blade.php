@@ -51,11 +51,7 @@
     );
     $mapsQuery = trim(implode(', ', array_filter([$dealer->address, $dealer->city, $dealer->county])));
     $mapsUrl = $mapsQuery ? 'https://www.google.com/maps/search/?api=1&query=' . urlencode($mapsQuery) : null;
-    $selectedBrandName = $brands->first(fn ($brand) => (string) $brand->id === (string) $selectedBrandId)?->name ?? 'Toate mărcile';
     $modelSelectDisabled = ! $selectedBrandId || $models->isEmpty();
-    $selectedModelName = $selectedBrandId
-        ? ($models->first(fn ($model) => (string) $model->id === (string) $selectedModelId)?->name ?? ($models->isEmpty() ? 'Nu sunt modele' : 'Toate modelele'))
-        : 'Alege marca';
 @endphp
 
 <div class="w-full min-w-0 space-y-8 overflow-hidden pb-24 lg:pb-12">
@@ -265,69 +261,31 @@
 
                 <div class="space-y-4">
                     <div>
-                        <label for="dealerBrandTrigger" class="mb-2 block text-xs font-bold uppercase tracking-wide text-gray-500">Marca</label>
-                        <input type="hidden" id="brand_id" name="brand_id" value="{{ $selectedBrandId }}" data-dealer-select-input="brand">
-                        <div class="dealer-custom-select relative">
-                            <button id="dealerBrandTrigger" type="button" data-dealer-select-trigger="brand" aria-haspopup="listbox" aria-expanded="false" class="flex h-11 w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 text-left text-sm font-semibold text-gray-900 transition hover:border-[#C81424] focus:border-[#C81424] focus:outline-none focus:ring-2 focus:ring-[#C81424]/20 dark:border-[#333] dark:bg-[#202024] dark:text-white">
-                                <span class="truncate" data-dealer-select-label="brand">{{ $selectedBrandName }}</span>
-                                <svg class="h-4 w-4 shrink-0 text-gray-500 transition" data-dealer-select-icon="brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                            </button>
-                            <div data-dealer-select-menu="brand" class="absolute left-0 right-0 z-40 mt-1 hidden max-h-64 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-xl dark:border-[#333] dark:bg-[#202024]" role="listbox">
-                                <button type="button" data-dealer-select-option="brand" data-value="" @class([
-                                    'block w-full px-3 py-2 text-left text-sm font-semibold transition',
-                                    'bg-[#C81424] text-white' => ! $selectedBrandId,
-                                    'text-gray-700 hover:bg-[#fff4f5] hover:text-[#C81424] dark:text-gray-100 dark:hover:bg-[#2A1418]' => $selectedBrandId,
-                                ])>
-                                    Toate mărcile
-                                </button>
-                                @foreach($brands as $brand)
-                                    <button type="button" data-dealer-select-option="brand" data-value="{{ $brand->id }}" @class([
-                                        'block w-full px-3 py-2 text-left text-sm font-semibold transition',
-                                        'bg-[#C81424] text-white' => (string) $selectedBrandId === (string) $brand->id,
-                                        'text-gray-700 hover:bg-[#fff4f5] hover:text-[#C81424] dark:text-gray-100 dark:hover:bg-[#2A1418]' => (string) $selectedBrandId !== (string) $brand->id,
-                                    ])>
-                                        {{ $brand->name }}
-                                    </button>
-                                @endforeach
-                            </div>
-                        </div>
+                        <label for="brand-filter" class="mb-2 block text-xs font-bold uppercase tracking-wide text-gray-500">Marca</label>
+                        <select id="brand-filter" name="brand_id" class="h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-900 transition hover:border-[#C81424] focus:border-[#C81424] focus:outline-none focus:ring-2 focus:ring-[#C81424]/20 dark:border-[#333] dark:bg-[#202024] dark:text-white">
+                            <option value="">Toate mărcile</option>
+                            @foreach($brands as $brand)
+                                <option value="{{ $brand->id }}" data-slug="{{ $brand->slug }}" @selected((string) $selectedBrandId === (string) $brand->id)>
+                                    {{ $brand->name }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div>
-                        <label for="dealerModelTrigger" class="mb-2 block text-xs font-bold uppercase tracking-wide text-gray-500">Model</label>
-                        <input type="hidden" id="model_id" name="model_id" value="{{ $selectedModelId }}" data-dealer-select-input="model">
-                        <div class="dealer-custom-select relative">
-                            <button id="dealerModelTrigger" type="button" data-dealer-select-trigger="model" aria-haspopup="listbox" aria-expanded="false" aria-disabled="{{ $modelSelectDisabled ? 'true' : 'false' }}" @disabled($modelSelectDisabled) @class([
-                                'flex h-11 w-full items-center justify-between rounded-lg border px-3 text-left text-sm font-semibold transition focus:outline-none',
-                                'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400 dark:border-[#333] dark:bg-[#202024] dark:text-gray-500' => $modelSelectDisabled,
-                                'border-gray-200 bg-white text-gray-900 hover:border-[#C81424] focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/20 dark:border-[#333] dark:bg-[#202024] dark:text-white' => ! $modelSelectDisabled,
-                            ])>
-                                <span class="truncate" data-dealer-select-label="model">{{ $selectedModelName }}</span>
-                                <svg class="h-4 w-4 shrink-0 text-gray-500 transition" data-dealer-select-icon="model" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                            </button>
-                            <div data-dealer-select-menu="model" class="absolute left-0 right-0 z-40 mt-1 hidden max-h-64 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-xl dark:border-[#333] dark:bg-[#202024]" role="listbox">
-                                <button type="button" data-dealer-select-option="model" data-value="" @class([
-                                    'block w-full px-3 py-2 text-left text-sm font-semibold transition',
-                                    'bg-[#C81424] text-white' => ! $selectedModelId,
-                                    'text-gray-700 hover:bg-[#fff4f5] hover:text-[#C81424] dark:text-gray-100 dark:hover:bg-[#2A1418]' => $selectedModelId,
-                                ])>
-                                    Toate modelele
-                                </button>
-                                @foreach($models as $model)
-                                    <button type="button" data-dealer-select-option="model" data-value="{{ $model->id }}" @class([
-                                        'block w-full px-3 py-2 text-left text-sm font-semibold transition',
-                                        'bg-[#C81424] text-white' => (string) $selectedModelId === (string) $model->id,
-                                        'text-gray-700 hover:bg-[#fff4f5] hover:text-[#C81424] dark:text-gray-100 dark:hover:bg-[#2A1418]' => (string) $selectedModelId !== (string) $model->id,
-                                    ])>
-                                        {{ $model->name }}
-                                    </button>
-                                @endforeach
-                            </div>
-                        </div>
+                        <label for="model-filter" class="mb-2 block text-xs font-bold uppercase tracking-wide text-gray-500">Model</label>
+                        <select id="model-filter" name="model_id" @disabled($modelSelectDisabled) @class([
+                            'h-11 w-full rounded-lg border border-gray-200 px-3 text-sm font-semibold transition focus:border-[#C81424] focus:outline-none focus:ring-2 focus:ring-[#C81424]/20 dark:border-[#333] dark:bg-[#202024]',
+                            'cursor-not-allowed bg-gray-50 text-gray-400 dark:text-gray-500' => $modelSelectDisabled,
+                            'bg-white text-gray-900 hover:border-[#C81424] dark:text-white' => ! $modelSelectDisabled,
+                        ])>
+                            <option value="">{{ $selectedBrandId ? 'Toate modelele' : 'Alege marca' }}</option>
+                            @foreach($models as $model)
+                                <option value="{{ $model->id }}" data-slug="{{ $model->slug }}" @selected((string) $selectedModelId === (string) $model->id)>
+                                    {{ $model->name }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div class="grid grid-cols-2 gap-2 pt-2">
@@ -414,7 +372,8 @@
 <script>
 const dealerGalleryImages = @json($galleryUrls);
 const dealerGalleryAltBase = @json($dealerDisplayName);
-const dealerModelsByBrand = @json($modelsByBrand);
+const dealerCarData = @json($carData ?? []);
+const initialDealerModelId = @json((string) $selectedModelId);
 let dealerGalleryIndex = 0;
 let dealerMobileGalleryIndex = 0;
 let dealerMobileGalleryTouchStartX = 0;
@@ -534,156 +493,64 @@ document.addEventListener('keydown', function (event) {
 });
 
 document.addEventListener('DOMContentLoaded', function () {
-    const selectedOptionClasses = ['bg-[#C81424]', 'text-white'];
-    const defaultOptionClasses = ['text-gray-700', 'hover:bg-[#fff4f5]', 'hover:text-[#C81424]', 'dark:text-gray-100', 'dark:hover:bg-[#2A1418]'];
-    const modelDisabledClasses = ['cursor-not-allowed', 'border-gray-200', 'bg-gray-50', 'text-gray-400', 'dark:border-[#333]', 'dark:bg-[#202024]', 'dark:text-gray-500'];
-    const modelEnabledClasses = ['border-gray-200', 'bg-white', 'text-gray-900', 'hover:border-[#C81424]', 'focus:border-[#C81424]', 'focus:ring-2', 'focus:ring-[#C81424]/20', 'dark:border-[#333]', 'dark:bg-[#202024]', 'dark:text-white'];
-    const modelTrigger = document.querySelector('[data-dealer-select-trigger="model"]');
-    const modelInput = document.querySelector('[data-dealer-select-input="model"]');
-    const modelLabel = document.querySelector('[data-dealer-select-label="model"]');
-    const modelMenu = document.querySelector('[data-dealer-select-menu="model"]');
+    const brandFilter = document.getElementById('brand-filter');
+    const modelFilter = document.getElementById('model-filter');
 
-    function updateDealerSelectOptions(type, selectedValue) {
-        document.querySelectorAll(`[data-dealer-select-option="${type}"]`).forEach(option => {
-            option.classList.remove(...selectedOptionClasses, ...defaultOptionClasses);
+    function resetDealerModelSelect(placeholder = 'Alege marca') {
+        if (!modelFilter) return;
 
-            if ((option.dataset.value || '') === (selectedValue || '')) {
-                option.classList.add(...selectedOptionClasses);
-            } else {
-                option.classList.add(...defaultOptionClasses);
-            }
-        });
+        modelFilter.innerHTML = `<option value="">${placeholder}</option>`;
+        modelFilter.disabled = true;
+        modelFilter.classList.add('cursor-not-allowed', 'bg-gray-50', 'text-gray-400', 'dark:text-gray-500');
+        modelFilter.classList.remove('bg-white', 'text-gray-900', 'hover:border-[#C81424]', 'dark:text-white');
     }
 
-    function createDealerSelectOption(type, value, label) {
-        const option = document.createElement('button');
+    function enableDealerModelSelect() {
+        if (!modelFilter) return;
 
-        option.type = 'button';
-        option.dataset.dealerSelectOption = type;
-        option.dataset.value = String(value || '');
-        option.classList.add('block', 'w-full', 'px-3', 'py-2', 'text-left', 'text-sm', 'font-semibold', 'transition');
-        option.textContent = label;
-
-        return option;
+        modelFilter.disabled = false;
+        modelFilter.classList.remove('cursor-not-allowed', 'bg-gray-50', 'text-gray-400', 'dark:text-gray-500');
+        modelFilter.classList.add('bg-white', 'text-gray-900', 'hover:border-[#C81424]', 'dark:text-white');
     }
 
-    function renderDealerModelOptions(brandId, selectedValue = '') {
-        if (!modelMenu) return;
+    function populateDealerModels(brandId, selectedModelId = '') {
+        if (!modelFilter) return;
 
-        const models = dealerModelsByBrand[String(brandId || '')] || [];
-        modelMenu.innerHTML = '';
-        modelMenu.appendChild(createDealerSelectOption('model', '', 'Toate modelele'));
+        const models = dealerCarData[String(brandId || '')] || [];
 
-        models.forEach(model => {
-            modelMenu.appendChild(createDealerSelectOption('model', model.id, model.name));
-        });
-
-        updateDealerSelectOptions('model', selectedValue);
-    }
-
-    function setDealerModelState(brandId, selectedValue = '') {
-        const models = dealerModelsByBrand[String(brandId || '')] || [];
-        const isDisabled = !brandId || models.length === 0;
-
-        if (modelTrigger) {
-            modelTrigger.disabled = isDisabled;
-            modelTrigger.setAttribute('aria-disabled', isDisabled ? 'true' : 'false');
-            modelTrigger.classList.remove(...modelDisabledClasses, ...modelEnabledClasses);
-            modelTrigger.classList.add(...(isDisabled ? modelDisabledClasses : modelEnabledClasses));
-        }
-
-        if (isDisabled) {
-            if (modelInput) modelInput.value = '';
-            if (modelLabel) modelLabel.textContent = brandId ? 'Nu sunt modele' : 'Alege marca';
-            if (modelMenu) modelMenu.innerHTML = '';
-            closeDealerSelects();
+        if (!brandId) {
+            resetDealerModelSelect('Alege marca');
             return;
         }
 
-        const selectedModel = models.find(model => String(model.id) === String(selectedValue));
+        if (!models.length) {
+            resetDealerModelSelect('Nu sunt modele');
+            return;
+        }
 
-        if (modelInput) modelInput.value = selectedModel ? selectedValue : '';
-        if (modelLabel) modelLabel.textContent = selectedModel ? selectedModel.name : 'Toate modelele';
+        modelFilter.innerHTML = '<option value="">Toate modelele</option>';
+        models.forEach(model => {
+            const option = document.createElement('option');
+            option.value = model.id;
+            option.textContent = model.name;
+            option.dataset.slug = model.slug || '';
 
-        renderDealerModelOptions(brandId, selectedModel ? selectedValue : '');
+            if (String(selectedModelId) === String(model.id)) {
+                option.selected = true;
+            }
+
+            modelFilter.appendChild(option);
+        });
+        enableDealerModelSelect();
     }
 
-    function closeDealerSelects(exceptType = null) {
-        document.querySelectorAll('[data-dealer-select-menu]').forEach(menu => {
-            const type = menu.dataset.dealerSelectMenu;
+    if (brandFilter && modelFilter) {
+        populateDealerModels(brandFilter.value, initialDealerModelId);
 
-            if (type === exceptType) return;
-
-            const trigger = document.querySelector(`[data-dealer-select-trigger="${type}"]`);
-            const icon = document.querySelector(`[data-dealer-select-icon="${type}"]`);
-
-            menu.classList.add('hidden');
-            trigger?.setAttribute('aria-expanded', 'false');
-            trigger?.classList.remove('border-[#C81424]', 'ring-2', 'ring-[#C81424]/20');
-            icon?.classList.remove('rotate-180');
+        brandFilter.addEventListener('change', function () {
+            populateDealerModels(this.value);
         });
     }
-
-    document.querySelectorAll('[data-dealer-select-trigger]').forEach(trigger => {
-        trigger.addEventListener('click', function () {
-            if (this.disabled || this.getAttribute('aria-disabled') === 'true') return;
-
-            const type = this.dataset.dealerSelectTrigger;
-            const menu = document.querySelector(`[data-dealer-select-menu="${type}"]`);
-            const icon = document.querySelector(`[data-dealer-select-icon="${type}"]`);
-            const willOpen = menu?.classList.contains('hidden');
-
-            closeDealerSelects(type);
-
-            if (!menu) return;
-
-            menu.classList.toggle('hidden', !willOpen);
-            this.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-            this.classList.toggle('border-[#C81424]', willOpen);
-            this.classList.toggle('ring-2', willOpen);
-            this.classList.toggle('ring-[#C81424]/20', willOpen);
-            icon?.classList.toggle('rotate-180', willOpen);
-        });
-    });
-
-    document.addEventListener('click', function (event) {
-        const option = event.target.closest('[data-dealer-select-option]');
-        if (!option) return;
-
-        const type = option.dataset.dealerSelectOption;
-        const value = option.dataset.value || '';
-        const input = document.querySelector(`[data-dealer-select-input="${type}"]`);
-        const label = document.querySelector(`[data-dealer-select-label="${type}"]`);
-        const previousValue = input?.value || '';
-
-        event.preventDefault();
-
-        if (input) input.value = value;
-        if (label) label.textContent = option.textContent.trim();
-        updateDealerSelectOptions(type, value);
-        closeDealerSelects();
-
-        if (type === 'brand' && value !== previousValue) {
-            setDealerModelState(value, '');
-        }
-    });
-
-    setDealerModelState(
-        document.querySelector('[data-dealer-select-input="brand"]')?.value || '',
-        modelInput?.value || ''
-    );
-
-    document.addEventListener('click', function (event) {
-        if (!event.target.closest('.dealer-custom-select')) {
-            closeDealerSelects();
-        }
-    });
-
-    document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape') {
-            closeDealerSelects();
-        }
-    });
 
     const modal = document.getElementById('dealerGalleryModal');
     const touchArea = document.getElementById('dealerGalleryTouchArea');

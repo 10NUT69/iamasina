@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use App\Models\User;
 
@@ -19,6 +20,12 @@ class ProfileController extends Controller
     public function ajaxUpdate(Request $request)
     {
         $user = Auth::user();
+        $userColumns = $this->userColumnAvailability([
+            'phone_2',
+            'phone_3',
+            'dealer_description',
+            'dealer_gallery',
+        ]);
 
         $rules = [
             'name'      => 'required|string|max:100|unique:users,name,' . $user->id,
@@ -33,13 +40,22 @@ class ProfileController extends Controller
                 'company_name' => 'required|string|max:150|unique:users,company_name,' . $user->id,
                 'cui'          => 'required|string|max:20',
                 'phone'        => 'required|string|max:30',
-                'phone_2'      => 'nullable|string|max:30',
-                'phone_3'      => 'nullable|string|max:30',
                 'county'       => 'required|string|max:100',
                 'city'         => 'required|string|max:100',
                 'address'      => 'required|string|max:255',
-                'dealer_description' => 'nullable|string|max:3000',
             ]);
+
+            if ($userColumns['phone_2']) {
+                $rules['phone_2'] = 'nullable|string|max:30';
+            }
+
+            if ($userColumns['phone_3']) {
+                $rules['phone_3'] = 'nullable|string|max:30';
+            }
+
+            if ($userColumns['dealer_description']) {
+                $rules['dealer_description'] = 'nullable|string|max:3000';
+            }
         }
 
         $validated = $request->validate($rules);
@@ -54,18 +70,41 @@ class ProfileController extends Controller
             $user->company_name = $validated['company_name'];
             $user->cui          = $validated['cui'];
             $user->phone        = $validated['phone'];
-            $user->phone_2      = $validated['phone_2'] ?? null;
-            $user->phone_3      = $validated['phone_3'] ?? null;
             $user->county       = $validated['county'];
             $user->city         = $validated['city'];
             $user->address      = $validated['address'];
-            $user->dealer_description = $validated['dealer_description'] ?? null;
+
+            if ($userColumns['phone_2']) {
+                $user->phone_2 = $validated['phone_2'] ?? null;
+            }
+
+            if ($userColumns['phone_3']) {
+                $user->phone_3 = $validated['phone_3'] ?? null;
+            }
+
+            if ($userColumns['dealer_description']) {
+                $user->dealer_description = $validated['dealer_description'] ?? null;
+            }
         } else {
             // curățăm datele dacă revine la persoană fizică
             $user->company_name = null;
-            $user->cui = $user->phone = $user->phone_2 = $user->phone_3 = $user->county = $user->city = $user->address = null;
-            $user->dealer_description = null;
-            $user->dealer_gallery = null;
+            $user->cui = $user->phone = $user->county = $user->city = $user->address = null;
+
+            if ($userColumns['phone_2']) {
+                $user->phone_2 = null;
+            }
+
+            if ($userColumns['phone_3']) {
+                $user->phone_3 = null;
+            }
+
+            if ($userColumns['dealer_description']) {
+                $user->dealer_description = null;
+            }
+
+            if ($userColumns['dealer_gallery']) {
+                $user->dealer_gallery = null;
+            }
         }
 
         // Update password ONLY if provided
@@ -86,6 +125,14 @@ class ProfileController extends Controller
         $user = Auth::user();
 
         abort_unless($user && $user->user_type === 'dealer', 403);
+
+        if (! $this->userHasColumn('dealer_gallery')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Galeria dealerului nu este disponibila momentan.',
+                'gallery' => [],
+            ], 422);
+        }
 
         $request->validate([
             'dealer_images' => 'required|array|max:12',
@@ -134,6 +181,14 @@ class ProfileController extends Controller
 
         abort_unless($user && $user->user_type === 'dealer', 403);
 
+        if (! $this->userHasColumn('dealer_gallery')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Galeria dealerului nu este disponibila momentan.',
+                'gallery' => [],
+            ], 422);
+        }
+
         $gallery = array_values($user->dealer_gallery ?: []);
         if (!isset($gallery[$index])) {
             return response()->json([
@@ -162,6 +217,10 @@ class ProfileController extends Controller
 
     private function dealerGalleryPayload(User $user): array
     {
+        if (! $this->userHasColumn('dealer_gallery')) {
+            return [];
+        }
+
         return collect($user->dealer_gallery ?: [])
             ->values()
             ->map(fn ($path, $index) => [
@@ -169,6 +228,24 @@ class ProfileController extends Controller
                 'path' => $path,
                 'url' => asset('storage/' . ltrim($path, '/')),
             ])
+            ->all();
+    }
+
+    private function userHasColumn(string $column): bool
+    {
+        return $this->userColumnAvailability([$column])[$column];
+    }
+
+    private function userColumnAvailability(array $columns): array
+    {
+        static $cache = [];
+
+        foreach ($columns as $column) {
+            $cache[$column] ??= Schema::hasColumn('users', $column);
+        }
+
+        return collect($columns)
+            ->mapWithKeys(fn ($column) => [$column => $cache[$column]])
             ->all();
     }
 

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class User extends Authenticatable
@@ -68,6 +69,11 @@ class User extends Authenticatable
     protected static function booted(): void
     {
         static::saving(function (User $user) {
+            if (! static::hasDealerSlugColumn()) {
+                unset($user->attributes['dealer_slug']);
+                return;
+            }
+
             if ($user->user_type !== 'dealer' || empty($user->company_name)) {
                 $user->dealer_slug = null;
                 return;
@@ -95,6 +101,43 @@ class User extends Authenticatable
         return $this->hasMany(Service::class);
     }
 
+    public static function findDealerByRouteSlug(string $dealerSlug): ?self
+    {
+        $dealerQuery = static::query()->where('user_type', 'dealer');
+
+        if (static::hasDealerSlugColumn()) {
+            $dealer = (clone $dealerQuery)
+                ->where('dealer_slug', $dealerSlug)
+                ->first();
+
+            if ($dealer) {
+                return $dealer;
+            }
+
+            $dealerQuery->where(function ($query) use ($dealerSlug) {
+                $query->whereNull('dealer_slug')
+                    ->orWhere('dealer_slug', '');
+            });
+        }
+
+        return $dealerQuery
+            ->get()
+            ->first(fn (User $user) => $user->dealer_route_slug === $dealerSlug);
+    }
+
+    public function getDealerRouteSlugAttribute(): ?string
+    {
+        if ($this->user_type !== 'dealer' || empty($this->company_name)) {
+            return null;
+        }
+
+        if (static::hasDealerSlugColumn() && ! empty($this->dealer_slug)) {
+            return $this->dealer_slug;
+        }
+
+        return static::makeDealerSlugBase($this->company_name);
+    }
+
     public function getDealerPublicUrlAttribute(): ?string
     {
         if ($this->user_type !== 'dealer' || empty($this->company_name)) {
@@ -104,7 +147,7 @@ class User extends Authenticatable
         return route('dealers.show', [
             'countySlug' => Str::slug($this->county ?: 'romania'),
             'citySlug' => Str::slug($this->city ?: 'romania'),
-            'dealerSlug' => $this->dealer_slug ?: Str::slug($this->company_name),
+            'dealerSlug' => $this->dealer_route_slug,
         ]);
     }
 
@@ -126,9 +169,13 @@ class User extends Authenticatable
 
     private static function makeUniqueDealerSlug(string $companyName, ?int $ignoreId = null): string
     {
-        $base = Str::slug($companyName) ?: 'parc-auto';
+        $base = static::makeDealerSlugBase($companyName);
         $slug = $base;
         $counter = 2;
+
+        if (! static::hasDealerSlugColumn()) {
+            return $slug;
+        }
 
         while (static::query()
             ->where('dealer_slug', $slug)
@@ -139,5 +186,17 @@ class User extends Authenticatable
         }
 
         return $slug;
+    }
+
+    private static function makeDealerSlugBase(string $companyName): string
+    {
+        return Str::slug($companyName) ?: 'parc-auto';
+    }
+
+    private static function hasDealerSlugColumn(): bool
+    {
+        static $hasColumn = null;
+
+        return $hasColumn ??= Schema::hasColumn((new static())->getTable(), 'dealer_slug');
     }
 }
