@@ -123,6 +123,8 @@
 
                         <div @class([
                             'mt-3 grid gap-2',
+                            'max-w-[280px]' => $secondaryPhoneItems->count() === 1,
+                            'max-w-[560px]' => $secondaryPhoneItems->count() > 1,
                             'grid-cols-2' => $secondaryPhoneItems->count() > 1,
                             'grid-cols-1' => $secondaryPhoneItems->count() === 1,
                         ])>

@@ -6,9 +6,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use App\Models\User;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
+use Throwable;
 
 class ProfileController extends Controller
 {
@@ -136,7 +140,9 @@ class ProfileController extends Controller
 
         $request->validate([
             'dealer_images' => 'required|array|max:12',
-            'dealer_images.*' => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'dealer_images.*' => 'required|image|mimes:jpg,jpeg,png,webp|max:15360',
+        ], [
+            'dealer_images.*.max' => 'Una dintre imagini este prea mare (max 15MB).',
         ]);
 
         $gallery = array_values($user->dealer_gallery ?: []);
@@ -152,18 +158,52 @@ class ProfileController extends Controller
 
         $directory = public_path('storage/dealers/' . $user->id);
         File::ensureDirectoryExists($directory);
+        $canOptimizeOnServer = extension_loaded('gd');
+        $manager = $canOptimizeOnServer ? new ImageManager(new Driver()) : null;
+        $targetExtension = $canOptimizeOnServer ? $this->targetDealerGalleryExtension() : null;
+        $baseName = $this->dealerGalleryBaseName($user);
+        $nextNumber = count($gallery) + 1;
+        $storedCount = 0;
 
         foreach (array_slice($request->file('dealer_images', []), 0, $remainingSlots) as $image) {
             if (!$image->isValid()) {
                 continue;
             }
 
-            $extension = strtolower($image->getClientOriginalExtension() ?: $image->guessExtension() ?: 'jpg');
-            $extension = preg_replace('/[^a-z0-9]/', '', $extension) ?: 'jpg';
-            $filename = (string) Str::uuid() . '.' . $extension;
+            $extension = $targetExtension ?: $this->uploadedDealerGalleryExtension($image);
+            $filename = $this->availableDealerGalleryImageName($directory, $baseName, $nextNumber, $extension);
+            $targetPath = $directory . DIRECTORY_SEPARATOR . $filename;
 
-            $image->move($directory, $filename);
-            $gallery[] = 'dealers/' . $user->id . '/' . $filename;
+            try {
+                if ($manager) {
+                    $processedImage = $manager->read($image->getRealPath())->scaleDown(1600);
+
+                    if ($extension === 'webp') {
+                        $processedImage->toWebp(84)->save($targetPath);
+                    } else {
+                        $processedImage->toJpeg(84)->save($targetPath);
+                    }
+                } else {
+                    $image->move($directory, $filename);
+                }
+
+                $gallery[] = 'dealers/' . $user->id . '/' . $filename;
+                $storedCount++;
+            } catch (Throwable $exception) {
+                Log::warning('Dealer gallery image processing failed.', [
+                    'user_id' => $user->id,
+                    'company_name' => $user->company_name,
+                    'message' => $exception->getMessage(),
+                ]);
+            }
+        }
+
+        if ($storedCount === 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nu am putut procesa imaginile încărcate.',
+                'gallery' => $this->dealerGalleryPayload($user),
+            ], 422);
         }
 
         $user->dealer_gallery = array_values($gallery);
@@ -229,6 +269,33 @@ class ProfileController extends Controller
                 'url' => asset('storage/' . ltrim($path, '/')),
             ])
             ->all();
+    }
+
+    private function targetDealerGalleryExtension(): string
+    {
+        return function_exists('imagewebp') ? 'webp' : 'jpg';
+    }
+
+    private function dealerGalleryBaseName(User $user): string
+    {
+        return Str::slug($user->company_name ?: $user->name ?: 'parc-auto') ?: 'parc-auto';
+    }
+
+    private function uploadedDealerGalleryExtension($image): string
+    {
+        $extension = strtolower($image->getClientOriginalExtension() ?: $image->guessExtension() ?: 'jpg');
+
+        return preg_replace('/[^a-z0-9]/', '', $extension) ?: 'jpg';
+    }
+
+    private function availableDealerGalleryImageName(string $directory, string $baseName, int &$number, string $extension): string
+    {
+        do {
+            $filename = "{$baseName}-{$number}.{$extension}";
+            $number++;
+        } while (is_file($directory . DIRECTORY_SEPARATOR . $filename));
+
+        return $filename;
     }
 
     private function userHasColumn(string $column): bool

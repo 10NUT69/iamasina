@@ -4,6 +4,8 @@
 
 @section('content')
 
+<div id="accountFloatingMsg" class="fixed left-1/2 top-24 z-[90] hidden w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 rounded-2xl px-4 py-3 text-sm font-bold shadow-2xl ring-1 backdrop-blur transition-all sm:px-5"></div>
+
 <div class="max-w-[1536px] mx-auto mt-10 mb-20 px-4 sm:px-6 lg:px-8">
 
     <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-10 gap-4">
@@ -424,11 +426,14 @@
 
             <div class="md:col-span-2">
                 <label class="block mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Descriere parc auto</label>
-                <textarea id="editDealerDescription" rows="5"
+                <textarea id="editDealerDescription" rows="5" maxlength="3000"
                     class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-[#404040]
                            bg-white dark:bg-[#2C2C2C] text-gray-900 dark:text-white text-sm font-medium
                            focus:ring-2 focus:ring-[#C81424]/20 focus:border-[#C81424] outline-none transition shadow-sm"
                     placeholder="Scrie câteva detalii despre parc, servicii, program sau avantajele pentru cumpărători.">{{ auth()->user()->dealer_description }}</textarea>
+                <div class="mt-2 flex justify-end">
+                    <span id="dealerDescriptionCounter" class="text-xs font-bold text-gray-500 dark:text-gray-400"></span>
+                </div>
             </div>
         </div>
 
@@ -524,6 +529,37 @@
 <script>
 let currentShareUrl = '';
 let currentShareTitle = '';
+let accountFloatingMsgTimer = null;
+
+function showAccountFloatingMessage(message, success = true) {
+    const msg = document.getElementById("accountFloatingMsg");
+    if (!msg) return;
+
+    clearTimeout(accountFloatingMsgTimer);
+    msg.classList.remove(
+        "hidden",
+        "bg-green-50/95",
+        "text-green-800",
+        "ring-green-200",
+        "bg-red-50/95",
+        "text-red-800",
+        "ring-red-200"
+    );
+    msg.classList.add(
+        success ? "bg-green-50/95" : "bg-red-50/95",
+        success ? "text-green-800" : "text-red-800",
+        success ? "ring-green-200" : "ring-red-200"
+    );
+    msg.textContent = message;
+    msg.style.opacity = "1";
+    msg.style.transform = "translateX(-50%) translateY(0)";
+
+    accountFloatingMsgTimer = setTimeout(() => {
+        msg.style.opacity = "0";
+        msg.style.transform = "translateX(-50%) translateY(-8px)";
+        setTimeout(() => msg.classList.add("hidden"), 250);
+    }, 3500);
+}
 
 function refreshService(btn) {
     const url = btn.getAttribute('data-url');
@@ -666,11 +702,45 @@ function deleteService(btn) {
 
 function setDealerGalleryMessage(message, success = true) {
     const msg = document.getElementById("dealerGalleryMsg");
+    showAccountFloatingMessage(message, success);
     if (!msg) return;
 
     msg.classList.remove("hidden", "bg-green-100", "text-green-700", "bg-red-100", "text-red-700");
     msg.classList.add(success ? "bg-green-100" : "bg-red-100", success ? "text-green-700" : "text-red-700");
     msg.textContent = message;
+}
+
+function updateDealerDescriptionCounter() {
+    const textarea = document.getElementById("editDealerDescription");
+    const counter = document.getElementById("dealerDescriptionCounter");
+    if (!textarea || !counter) return;
+
+    const maxLength = Number(textarea.getAttribute("maxlength")) || 3000;
+    const remaining = Math.max(0, maxLength - textarea.value.length);
+
+    counter.textContent = `${remaining.toLocaleString("ro-RO")} caractere rămase`;
+    counter.classList.toggle("text-[#C81424]", remaining <= 250);
+    counter.classList.toggle("dark:text-red-300", remaining <= 250);
+    counter.classList.toggle("text-gray-500", remaining > 250);
+    counter.classList.toggle("dark:text-gray-400", remaining > 250);
+}
+
+function setProfileSavedMessage(message, success = true) {
+    showAccountFloatingMessage(message, success);
+
+    const msg = document.getElementById("profileSavedMsg");
+    if (!msg) return;
+
+    msg.classList.remove("hidden", "bg-green-100", "text-green-700", "bg-red-100", "text-red-700");
+    msg.classList.add(success ? "bg-green-100" : "bg-red-100", success ? "text-green-700" : "text-red-700");
+    msg.innerText = message;
+    msg.style.opacity = "1";
+
+    setTimeout(() => {
+        msg.style.transition = "0.4s";
+        msg.style.opacity = "0";
+        setTimeout(() => msg.classList.add("hidden"), 400);
+    }, 3000);
 }
 
 function renderDealerGallery(gallery = []) {
@@ -702,15 +772,95 @@ function renderDealerGallery(gallery = []) {
     });
 }
 
-function uploadDealerGallery() {
+function slugifyDealerGalleryName(value) {
+    return String(value || "parc-auto")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "parc-auto";
+}
+
+function loadDealerGalleryImage(file) {
+    return new Promise((resolve, reject) => {
+        const image = new Image();
+        const objectUrl = URL.createObjectURL(file);
+
+        image.onload = () => {
+            URL.revokeObjectURL(objectUrl);
+            resolve(image);
+        };
+
+        image.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error("Imagine invalidă"));
+        };
+
+        image.src = objectUrl;
+    });
+}
+
+function canvasToDealerGalleryBlob(canvas, type, quality) {
+    return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
+}
+
+async function compressDealerGalleryFile(file, index) {
+    if (!file.type?.startsWith("image/")) {
+        return file;
+    }
+
+    try {
+        const image = await loadDealerGalleryImage(file);
+        const maxSide = 1600;
+        const ratio = Math.min(1, maxSide / Math.max(image.naturalWidth || image.width, image.naturalHeight || image.height));
+        const width = Math.max(1, Math.round((image.naturalWidth || image.width) * ratio));
+        const height = Math.max(1, Math.round((image.naturalHeight || image.height) * ratio));
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+
+        canvas.width = width;
+        canvas.height = height;
+        context.drawImage(image, 0, 0, width, height);
+
+        let blob = await canvasToDealerGalleryBlob(canvas, "image/webp", 0.84);
+        let extension = "webp";
+
+        if (!blob) {
+            blob = await canvasToDealerGalleryBlob(canvas, "image/jpeg", 0.84);
+            extension = "jpg";
+        }
+
+        if (!blob) {
+            return file;
+        }
+
+        const companyName = document.getElementById("editCompanyName")?.value || @json(auth()->user()->company_name ?: auth()->user()->name);
+        const filename = `${slugifyDealerGalleryName(companyName)}-${index + 1}.${extension}`;
+
+        return new File([blob], filename, {
+            type: blob.type || (extension === "webp" ? "image/webp" : "image/jpeg"),
+            lastModified: Date.now()
+        });
+    } catch (error) {
+        return file;
+    }
+}
+
+async function uploadDealerGallery() {
     const input = document.getElementById("dealerGalleryInput");
     if (!input || !input.files.length) {
         setDealerGalleryMessage("Alege cel puțin o imagine.", false);
         return;
     }
 
+    setDealerGalleryMessage("Optimizăm imaginile înainte de încărcare...");
+
     const formData = new FormData();
-    Array.from(input.files).forEach((file) => formData.append("dealer_images[]", file));
+    const optimizedFiles = await Promise.all(
+        Array.from(input.files).map((file, index) => compressDealerGalleryFile(file, index))
+    );
+
+    optimizedFiles.forEach((file) => formData.append("dealer_images[]", file));
 
     fetch("{{ route('profile.dealerGallery.upload') }}", {
         method: "POST",
@@ -813,56 +963,34 @@ function updateProfile() {
             throw new Error("Eroare server.");
         }
 
-        let msg = document.getElementById("profileSavedMsg");
-
         if (data.errors) {
-            msg.classList.remove("hidden");
-            msg.classList.remove("bg-green-100", "text-green-700");
-            msg.classList.add("bg-red-100", "text-red-700");
-
+            let message = "Date invalide.";
             if (data.errors.email) {
-                msg.innerText = "✖ Emailul este utilizat de altcineva.";
+                message = "Emailul este utilizat de altcineva.";
             } else if (data.errors.name) {
-                msg.innerText = "✖ Numele este utilizat de altcineva.";
+                message = "Numele este utilizat de altcineva.";
             } else if (data.errors.user_type) {
-                msg.innerText = "✖ Tip cont invalid.";
+                message = "Tip cont invalid.";
             } else if (data.errors.company_name) {
-                msg.innerText = "✖ Completează numele parcului auto.";
+                message = "Completează numele parcului auto.";
             } else if (data.errors.phone) {
-                msg.innerText = "✖ Completează telefonul parcului auto.";
-            } else {
-                msg.innerText = "✖ Date invalide.";
+                message = "Completează telefonul parcului auto.";
+            } else if (data.errors.dealer_description) {
+                message = "Descrierea parcului auto poate avea maximum 3000 de caractere.";
             }
 
-            msg.style.opacity = 1;
-
-            setTimeout(() => {
-                msg.style.transition = "0.4s";
-                msg.style.opacity = 0;
-                setTimeout(() => msg.classList.add("hidden"), 400);
-            }, 3000);
-
+            setProfileSavedMessage(message, false);
             return;
         }
 
         if (data.success) {
-            msg.classList.remove("hidden");
-            msg.classList.remove("bg-red-100", "text-red-700");
-            msg.classList.add("bg-green-100", "text-green-700");
-            msg.innerText = "Modificările au fost salvate cu succes!";
-            msg.style.opacity = 1;
+            setProfileSavedMessage("Modificările au fost salvate cu succes!");
 
             const passEl = document.getElementById("editPassword");
             if (passEl) passEl.value = "";
         }
-
-        setTimeout(() => {
-            msg.style.transition = "0.4s";
-            msg.style.opacity = 0;
-            setTimeout(() => msg.classList.add("hidden"), 400);
-        }, 3000);
     })
-    .catch(err => console.error(err));
+    .catch(() => setProfileSavedMessage("Eroare de conexiune. Încearcă din nou.", false));
 }
 
 // Live Check + Dealer toggle
@@ -880,6 +1008,12 @@ document.addEventListener("DOMContentLoaded", function () {
     if (userTypeSel && dealerBox) {
         userTypeSel.addEventListener("change", refreshDealerBox);
         refreshDealerBox(); // init
+    }
+
+    const dealerDescription = document.getElementById("editDealerDescription");
+    if (dealerDescription) {
+        dealerDescription.addEventListener("input", updateDealerDescriptionCounter);
+        updateDealerDescriptionCounter();
     }
 
     // ===== Live check name =====
