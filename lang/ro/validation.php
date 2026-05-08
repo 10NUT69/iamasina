@@ -167,9 +167,15 @@ return [
     'custom' => [
         'email' => [
             'required' => 'Te rugăm să introduci adresa de email.',
+            'email' => 'Te rugăm să introduci o adresă de email validă.',
         ],
         'password' => [
             'required' => 'Te rugăm să introduci parola.',
+            'confirmed' => 'Confirmarea parolei nu se potrivește.',
+            'min' => 'Parola trebuie să aibă cel puțin :min caractere.',
+        ],
+        'password_confirmation' => [
+            'required' => 'Te rugăm să confirmi parola.',
         ],
     ],
 
@@ -185,6 +191,8 @@ return [
     'attributes' => [
         'email'    => 'email',
         'password' => 'parolă',
+        'password_confirmation' => 'confirmarea parolei',
+        'token' => 'tokenul de resetare',
         'name'     => 'nume',
         'title'    => 'titlu',
         'phone'    => 'telefon',

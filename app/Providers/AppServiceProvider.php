@@ -30,10 +30,12 @@ class AppServiceProvider extends ServiceProvider
 
             return (new MailMessage)
                 ->subject('Resetare parolă iaAuto.ro')
-                ->greeting('Salut!')
-                ->line('Ai cerut resetarea parolei pentru contul tău iaAuto.ro.')
-                ->action('Resetează parola', $url)
-                ->line('Dacă nu ai cerut resetarea, poți ignora acest email.');
+                ->view([
+                    'html' => 'emails.password-reset',
+                    'text' => 'emails.password-reset-text',
+                ], [
+                    'url' => $url,
+                ]);
         });
     }
 }
