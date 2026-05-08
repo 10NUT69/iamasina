@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('title', 'Despre iaAuto.ro')
-@section('meta_title', 'Despre iaAuto.ro - Platformă de anunțuri auto în România')
-@section('meta_description', 'iaAuto.ro este o platformă de anunțuri auto gândită pentru cumpărători și vânzători care vor filtre clare, URL-uri curate și o experiență rapidă.')
+@section('meta_title', 'Despre iaAuto.ro - Publicare gratuită de anunțuri auto')
+@section('meta_description', 'iaAuto.ro este o platformă independentă pentru publicarea gratuită și nelimitată a anunțurilor auto, creată pentru proprietari, dealeri și parcuri auto.')
 
 @section('content')
     <div class="max-w-[1536px] mx-auto">
@@ -11,51 +11,64 @@
                 Despre iaAuto.ro
             </h1>
             <p class="text-sm md:text-base text-gray-600 dark:text-gray-300 max-w-3xl">
-                iaAuto.ro este construit ca un loc simplu și rapid pentru anunțuri auto: cauți după marcă,
-                model, județ sau oraș și ajungi repede la mașinile relevante pentru tine.
+                iaAuto.ro a fost creat dintr-o idee simplă: publicarea unui anunț auto ar trebui să fie rapidă,
+                accesibilă și fără costuri inutile.
             </p>
         </header>
 
-        <section class="grid gap-4 md:gap-6 md:grid-cols-3">
-            <article class="bg-white dark:bg-[#18181B] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-4 md:p-5">
-                <h2 class="text-base md:text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">
-                    De ce există platforma
-                </h2>
-                <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                    Piața auto are nevoie de filtre clare, pagini rapide și anunțuri ușor de parcurs. Am pornit
-                    iaAuto.ro cu ideea de a face căutarea unei mașini mai directă, fără pași inutili.
+        <section class="bg-white dark:bg-[#18181B] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-4 md:p-6">
+            <div class="space-y-4 text-sm md:text-base text-gray-700 dark:text-gray-300 leading-relaxed">
+                <p>
+                    Platforma este dezvoltată și administrată independent de 10NUT și nu este deținută, în prezent,
+                    de o persoană juridică. iaAuto.ro nu percepe taxe pentru publicarea anunțurilor și nu încasează
+                    sume de bani de la utilizatori pentru listarea mașinilor.
                 </p>
-            </article>
 
-            <article class="bg-white dark:bg-[#18181B] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-4 md:p-5">
-                <h2 class="text-base md:text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">
-                    Pentru cumpărători
-                </h2>
-                <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                    Poți filtra rapid după marcă, model, caroserie, combustibil, cutie, județ și oraș. Paginile sunt
-                    optimizate pentru mobil, pentru că multe decizii încep direct din telefon.
+                <p>
+                    Scopul proiectului este să ofere o alternativă reală pentru toți cei care vor să vândă mașini
+                    online, indiferent că vorbim despre un proprietar care publică un singur anunț sau despre un
+                    dealer ori parc auto cu un portofoliu extins.
                 </p>
-            </article>
 
-            <article class="bg-white dark:bg-[#18181B] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-4 md:p-5">
-                <h2 class="text-base md:text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">
-                    Pentru vânzători
-                </h2>
-                <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                    Publicarea anunțului este gândită să fie curată și rapidă. Imaginile sunt procesate automat,
-                    iar anunțurile primesc linkuri descriptive, utile pentru oameni și pentru motoarele de căutare.
+                <p>
+                    Pe iaAuto.ro, publicarea anunțurilor este gratuită și nelimitată. Poți adăuga o mașină sau sute
+                    de anunțuri, fără abonamente, fără taxe de listare și fără limitări artificiale.
                 </p>
-            </article>
-        </section>
 
-        <section class="mt-8 md:mt-10 bg-[#fff4f5] dark:bg-[#2a1013] border border-red-100 dark:border-red-900/40 rounded-xl p-4 md:p-5">
-            <h2 class="text-sm md:text-base font-bold text-[#8f111a] dark:text-red-100 mb-2">
-                Direcția iaAuto.ro
-            </h2>
-            <p class="text-xs md:text-sm text-[#7f1d1d] dark:text-red-100/90 leading-relaxed">
-                Construim platforma cu accent pe viteză, URL-uri curate, experiență bună pe mobil și informații auto
-                afișate cât mai clar. Scopul este simplu: să ajungi mai repede la mașina potrivită.
-            </p>
+                <p>
+                    Platforma este construită cu accent pe utilitate, simplitate și vizibilitate. Îmi doresc ca
+                    iaAuto.ro să rămână un spațiu curat, ușor de folosit și lipsit de reclame invazive, în care
+                    experiența utilizatorului să fie mai importantă decât monetizarea agresivă.
+                </p>
+
+                <p>
+                    Pentru dealeri, parcuri auto și utilizatori care publică mai multe anunțuri, am dezvoltat un
+                    sistem automat care generează o pagină dedicată de portofoliu. Această pagină reunește toate
+                    anunțurile publicate de același utilizator și poate fi folosită ca o prezentare online simplă,
+                    organizată și ușor de distribuit.
+                </p>
+
+                <p>
+                    iaAuto.ro este un proiect în dezvoltare continuă. Nu pretinde că este perfect, dar este
+                    îmbunătățit constant, în funcție de nevoile reale ale utilizatorilor. Feedbackul este important
+                    și orice sugestie care poate ajuta platforma să devină mai bună este binevenită.
+                </p>
+
+                <p>
+                    Pentru idei, propuneri sau observații, ne poți scrie la:
+                </p>
+
+                <p>
+                    <a href="mailto:contact@iaauto.ro" class="font-semibold text-[#C81424] hover:underline">
+                        contact@iaauto.ro
+                    </a>
+                </p>
+
+                <p>
+                    iaAuto.ro este construit pentru cei care vor o soluție simplă, gratuită și eficientă pentru
+                    publicarea anunțurilor auto.
+                </p>
+            </div>
         </section>
     </div>
 @endsection
