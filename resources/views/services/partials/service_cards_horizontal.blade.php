@@ -25,7 +25,9 @@
         // 4. Formatare Valori Tehnice
         $an = $service->an_fabricatie ?? '-';
         $km = $service->km ? number_format($service->km, 0, ',', '.') : null;
+        $kmLabel = $km ? $km . ' km' : '-';
         $fuel = $service->combustibil->nume ?? '-';
+        $gearbox = $service->cutieViteze->nume ?? '-';
         $engineSize = $service->capacitate_cilindrica ? number_format($service->capacitate_cilindrica, 0, ',', '.') : null;
         $power = $service->putere ?? null;
         $norma = $service->normaPoluare->nume ?? null;
@@ -37,15 +39,16 @@
         $imagesList = is_array($imagesList) ? $imagesList : [];
         $imgCount = count($imagesList);
 
-        // 6. LOGICĂ DATĂ (TimeAgo / Calendaristic)
-        $updated = \Carbon\Carbon::parse($service->updated_at);
-        if ($updated->isToday()) {
-            $dateLabel = 'Azi ' . $updated->format('H:i');
-        } elseif ($updated->isYesterday()) {
-            $dateLabel = 'Ieri ' . $updated->format('H:i');
+        // 6. Data afisata ramane data publicarii/reactualizarii, nu data editarii.
+        $listingDate = $service->published_at ?: $service->created_at;
+        if ($listingDate && $listingDate->isToday()) {
+            $dateLabel = 'Azi ' . $listingDate->format('H:i');
+        } elseif ($listingDate && $listingDate->isYesterday()) {
+            $dateLabel = 'Ieri ' . $listingDate->format('H:i');
+        } elseif ($listingDate) {
+            $dateLabel = $listingDate->translatedFormat('d M Y');
         } else {
-            // Data formatată scurt (ex: 22 Ian 2026)
-            $dateLabel = $updated->translatedFormat('d M Y'); 
+            $dateLabel = '-';
         }
     @endphp
 
@@ -168,28 +171,26 @@
                 </div>
 
                 {{-- Specificații (Chips / Pastile) --}}
-                <div class="flex flex-wrap gap-2 mt-3 mb-4">
+                <div class="grid max-w-xl grid-cols-4 gap-x-2 gap-y-3 mt-3 mb-4">
                     {{-- An --}}
-                    <div class="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-gray-50 dark:bg-[#27272a] text-gray-700 dark:text-gray-300 text-xs font-semibold border border-gray-100 dark:border-gray-700/50">
-                        <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    <div class="flex min-w-0 flex-col items-center gap-1 text-center text-xs font-medium leading-tight text-gray-700 dark:text-gray-200">
+                        <svg class="h-5 w-5 shrink-0 text-gray-900 dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M8 7V3m8 4V3M5 11h14M7 21h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         {{ $an }}
                     </div>
                     {{-- KM --}}
-                    @if($km)
-                    <div class="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-gray-50 dark:bg-[#27272a] text-gray-700 dark:text-gray-300 text-xs font-semibold border border-gray-100 dark:border-gray-700/50">
-                        <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                        {{ $km }} km
+                    <div class="flex min-w-0 flex-col items-center gap-1 text-center text-xs font-medium leading-tight text-gray-700 dark:text-gray-200">
+                        <svg class="h-5 w-5 shrink-0 text-gray-900 dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M12 15a2 2 0 100-4 2 2 0 000 4z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M12 13l3.8-4.4M5.6 18.4a9 9 0 1112.8 0" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M7.5 14H6m12 0h-1.5M12 6.5V5" /></svg>
+                        {{ $kmLabel }}
                     </div>
-                    @endif
                     {{-- Combustibil --}}
-                    <div class="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-gray-50 dark:bg-[#27272a] text-gray-700 dark:text-gray-300 text-xs font-semibold border border-gray-100 dark:border-gray-700/50">
-                        <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                    <div class="flex min-w-0 flex-col items-center gap-1 text-center text-xs font-medium leading-tight text-gray-700 dark:text-gray-200">
+                        <svg class="h-5 w-5 shrink-0 text-gray-900 dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M7 21V5a2 2 0 012-2h5a2 2 0 012 2v16M6 21h11M9 8h5M16 7h1.5L20 9.5V18a2 2 0 01-2 2h-1" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M20 10h-3" /></svg>
                         {{ $fuel }}
                     </div>
                     {{-- Transmisie --}}
-                    <div class="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-gray-50 dark:bg-[#27272a] text-gray-700 dark:text-gray-300 text-xs font-semibold border border-gray-100 dark:border-gray-700/50">
-                        <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-                        {{ $service->transmission->nume ?? 'Automată' }}
+                    <div class="flex min-w-0 flex-col items-center gap-1 text-center text-xs font-medium leading-tight text-gray-700 dark:text-gray-200">
+                        <svg class="h-5 w-5 shrink-0 text-gray-900 dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M7 5v14m10-14v14M7 12h10M12 5v7" /><circle cx="7" cy="5" r="2" stroke-width="1.9" /><circle cx="17" cy="5" r="2" stroke-width="1.9" /><circle cx="7" cy="19" r="2" stroke-width="1.9" /><circle cx="17" cy="19" r="2" stroke-width="1.9" /></svg>
+                        {{ $gearbox }}
                     </div>
                 </div>
             </div>
@@ -220,7 +221,7 @@
                         </svg>
                     </button>
                     
-                    <a href="{{ $service->public_url }}" class="hidden md:inline-flex items-center justify-center px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-bold uppercase tracking-wide rounded-lg hover:bg-[#C81424] dark:hover:bg-gray-200 transition-colors shadow-sm">
+                    <a href="{{ $service->public_url }}" class="hidden md:inline-flex items-center justify-center px-4 py-2 bg-[#C81424] text-white text-xs font-bold uppercase tracking-wide rounded-lg shadow-sm shadow-red-700/20 transition-colors hover:bg-[#94111B]">
                         Vezi anunț
                     </a>
                 </div>

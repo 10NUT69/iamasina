@@ -48,13 +48,14 @@ class ServiceController extends Controller
     }
 
     $isHomepage = $request->routeIs('services.index');
-    $page = (int) $request->get('page', 1);
+    $page = max(1, (int) $request->get('page', 1));
+    $perPageHomepage = 12;
     $perPageFirst = 10;
     $perPageNext  = 8;
 
     if ($isHomepage) {
-        $limit = 4;
-        $offset = 0;
+        $limit = $perPageHomepage;
+        $offset = ($page - 1) * $perPageHomepage;
     } elseif ($page === 1) {
         $limit  = $perPageFirst;
         $offset = 0;
@@ -228,11 +229,11 @@ class ServiceController extends Controller
         ->get();
 
     $loadedSoFar = $offset + $services->count();
-    $hasMore     = $isHomepage ? false : $loadedSoFar < $totalCount;
+    $hasMore     = $loadedSoFar < $totalCount;
 
-    if ($request->ajax()) {
+    if ($request->ajax() || (string) $request->input('ajax') === '1') {
         $cardsView = $request->routeIs('services.index')
-            ? 'services.partials.service_cards'
+            ? 'services.partials.service_cards_home'
             : 'services.partials.service_cards_horizontal';
         $html = view($cardsView, ['services' => $services])->render();
 

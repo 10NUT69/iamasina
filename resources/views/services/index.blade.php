@@ -198,7 +198,7 @@
     </div>
 
     {{-- GRID CARDURI VERTICALE --}}
-    <div id="services-container" class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 pb-20 relative z-0">
+    <div id="services-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 pb-20 relative z-0">
         @forelse($services as $service)
             @php
                 $isFav = auth()->check() && $service->isFavoritedBy(auth()->user());
@@ -208,6 +208,12 @@
                 $listingTitle = $service->title ?: trim(($service->brandRel->name ?? '') . ' ' . ($service->modelRel->name ?? ''));
                 $img = $service->main_image_url;
                 $price = $service->price_value ? number_format($service->price_value, 0, ',', '.') : null;
+                $priceBadge = $price ? ($service->price_type === 'negotiable' ? 'NEGOCIABIL' : 'PRET FIX') : null;
+                $priceBadgeClass = 'bg-[#C81424] text-white';
+                $yearLabel = $service->an_fabricatie ?: '-';
+                $kmLabel = $service->km ? number_format($service->km, 0, '.', '.') . ' km' : '-';
+                $fuelLabel = $service->combustibil->nume ?? '-';
+                $gearboxLabel = $service->cutieViteze->nume ?? '-';
             @endphp
 
              <article class="group bg-white dark:bg-[#1E1E1E] border border-gray-100 dark:border-[#333] rounded-2xl overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
@@ -219,7 +225,7 @@
                     <div class="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 flex flex-col items-start z-10">
                         @if($price)
                             <span class="text-base sm:text-xl font-black text-white drop-shadow-lg tracking-tight">{{ $price }} <span class="text-[10px] sm:text-sm font-bold">{{ $service->currency }}</span></span>
-                            @if($service->price_type === 'negotiable') <span class="text-[9px] uppercase font-bold text-white/90 bg-[#C81424] px-1.5 py-0.5 rounded shadow-sm mt-1">Negociabil</span> @endif
+                            <span class="text-[9px] uppercase font-bold {{ $priceBadgeClass }} px-1.5 py-0.5 rounded shadow-sm mt-1">{{ $priceBadge }}</span>
                         @else
                             <span class="text-base sm:text-lg font-bold text-white drop-shadow-md">La cerere</span>
                         @endif
@@ -240,31 +246,35 @@
                     </a>
 
                     {{-- Grid Specificații --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+                    <div class="grid grid-cols-4 gap-x-1 sm:gap-x-2 mb-4">
                         <div class="spec-pill">
-                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                            <span>{{ $service->an_fabricatie ?? '-' }}</span>
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M5 11h14M7 21h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            <span>{{ $yearLabel }}</span>
                         </div>
                         <div class="spec-pill">
-                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                            <span class="truncate">{{ $service->km ? number_format($service->km, 0, '.', '.') : '-' }} km</span>
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15a2 2 0 100-4 2 2 0 000 4z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 13l3.8-4.4M5.6 18.4a9 9 0 1112.8 0" /><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14H6m12 0h-1.5M12 6.5V5" /></svg>
+                            <span>{{ $kmLabel }}</span>
                         </div>
                          <div class="spec-pill">
-                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
-                            <span class="truncate">{{ $service->combustibil->nume ?? '-' }}</span>
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21V5a2 2 0 012-2h5a2 2 0 012 2v16M6 21h11M9 8h5M16 7h1.5L20 9.5V18a2 2 0 01-2 2h-1" /><path stroke-linecap="round" stroke-linejoin="round" d="M20 10h-3" /></svg>
+                            <span>{{ $fuelLabel }}</span>
                         </div>
                         <div class="spec-pill">
-                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-                            <span class="truncate">{{ $service->transmission->nume ?? 'Auto' }}</span>
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7 5v14m10-14v14M7 12h10M12 5v7" /><circle cx="7" cy="5" r="2" /><circle cx="17" cy="5" r="2" /><circle cx="7" cy="19" r="2" /><circle cx="17" cy="19" r="2" /></svg>
+                            <span>{{ $gearboxLabel }}</span>
                         </div>
                     </div>
 
-                    <div class="mt-auto pt-4 border-t border-gray-100 dark:border-[#333] flex items-center justify-between text-xs text-gray-500">
-                        <div class="flex items-center">
-                            <svg class="w-3.5 h-3.5 mr-1.5 text-[#C81424]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            <span class="truncate max-w-[80px] sm:max-w-[140px]">{{ $locationLabel }}</span>
+                    <div class="mt-auto pt-4 border-t border-gray-100 dark:border-[#333] flex items-start justify-between gap-3 text-xs text-gray-500">
+                        <div class="flex min-w-0 flex-1 items-start">
+                            <svg class="w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0 text-[#C81424]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <span class="leading-snug">{{ $locationLabel }}</span>
                         </div>
-                        <span class="hidden sm:inline text-gray-400 font-medium">Vezi detalii &rarr;</span>
+                        <a href="{{ $service->public_url }}"
+                           class="inline-flex shrink-0 items-center gap-1 font-bold text-[#C81424] transition hover:text-[#94111B] hover:underline dark:text-red-300 dark:hover:text-red-200"
+                           aria-label="Vezi detalii pentru {{ $listingTitle }}">
+                            Vezi detalii &rarr;
+                        </a>
                     </div>
                 </div>
             </article>
@@ -278,13 +288,27 @@
             </div>
         @endforelse
     </div>
+
+    <div id="loading-indicator" class="text-center py-8 hidden">
+        <svg class="animate-spin h-8 w-8 text-[#C81424] mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3.003 7.91l2.997-2.619z"></path>
+        </svg>
+        <p class="text-sm text-gray-500 mt-2">Se incarca...</p>
+    </div>
+
+    <div id="load-more-trigger" data-next-page="2" data-has-more="{{ $hasMore ? 'true' : 'false' }}" style="height: 1px;"></div>
 </div>
 
 <script>
     const baseUrl = "{{ url('/') }}";
+    const homepageListUrl = "{{ route('services.index') }}";
     const carData = @json($carData ?? []);
     const localityBaseUrl = "{{ url('/api/localities') }}";
     const initialLocalityId = @json(optional($currentLocality)->id);
+    let isLoadingMore = false;
+    let currentPage = 2;
+    let hasMore = document.getElementById('load-more-trigger')?.dataset.hasMore === 'true';
 
     const domElements = {
         brand: document.getElementById('brand-filter'),
@@ -299,6 +323,9 @@
         resetBtn: document.getElementById('reset-btn'),
         vehicleType: document.getElementById('vehicle-type'),
         sellerType: document.getElementById('seller-type'),
+        container: document.getElementById('services-container'),
+        loader: document.getElementById('loading-indicator'),
+        trigger: document.getElementById('load-more-trigger'),
     };
 
     function resetSelect(el, placeholder) {
@@ -573,10 +600,82 @@
         return `${baseUrl}${path}${queryString ? `?${queryString}` : ''}`;
     }
 
+    function getGridColumnCount() {
+        if (!domElements.container) return 1;
+
+        const columns = window.getComputedStyle(domElements.container).gridTemplateColumns;
+        return Math.max(1, columns.split(' ').filter(Boolean).length);
+    }
+
+    function getNextLoadTarget() {
+        if (!domElements.container) return null;
+
+        const cards = Array.from(domElements.container.children).filter(child => !child.classList.contains('col-span-full'));
+        if (!cards.length) return null;
+
+        const columnCount = getGridColumnCount();
+        return cards[Math.max(cards.length - columnCount, 0)];
+    }
+
+    function observeNextLoadTarget() {
+        const target = getNextLoadTarget() || domElements.trigger;
+        if (!target || !hasMore) return;
+
+        infiniteScrollObserver.disconnect();
+        infiniteScrollObserver.observe(target);
+    }
+
+    function loadHomepageServices(page) {
+        if (isLoadingMore || !hasMore) return;
+
+        isLoadingMore = true;
+        domElements.loader?.classList.remove('hidden');
+
+        const params = new URLSearchParams(window.location.search);
+        params.set('page', page);
+        params.set('ajax', '1');
+
+        fetch(`${homepageListUrl}?${params.toString()}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (domElements.container && data.html) {
+                    domElements.container.insertAdjacentHTML('beforeend', data.html);
+                }
+
+                hasMore = !!data.hasMore;
+                currentPage = hasMore ? page + 1 : page;
+
+                if (domElements.trigger) {
+                    domElements.trigger.dataset.hasMore = hasMore ? 'true' : 'false';
+                    domElements.trigger.dataset.nextPage = String(currentPage);
+                }
+
+                if (hasMore) {
+                    window.requestAnimationFrame(observeNextLoadTarget);
+                } else {
+                    infiniteScrollObserver.disconnect();
+                }
+            })
+            .catch(error => console.error(error))
+            .finally(() => {
+                isLoadingMore = false;
+                domElements.loader?.classList.add('hidden');
+            });
+    }
+
+    const infiniteScrollObserver = new IntersectionObserver((entries) => {
+        if (entries[0]?.isIntersecting && hasMore && !isLoadingMore) {
+            loadHomepageServices(currentPage);
+        }
+    }, { rootMargin: '0px 0px 160px 0px', threshold: 0.1 });
+
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('select.autovit-select').forEach(enhanceSelect);
 
         window.checkResetVisibility();
+        observeNextLoadTarget();
 
         const sellerTabs = document.querySelectorAll('.seller-tab');
         const sellerInput = domElements.sellerType;
@@ -650,6 +749,12 @@
     document.addEventListener('click', (event) => {
         if (!event.target.closest('.custom-select')) {
             closeCustomSelects();
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        if (hasMore) {
+            observeNextLoadTarget();
         }
     });
 
@@ -886,18 +991,35 @@
     }
 
     .spec-pill {
-        display: flex; align-items: center; gap: 0.375rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 0.35rem;
         min-width: 0;
-        background-color: #f9fafb;
-        padding: 0.375rem 0.5rem;
-        border-radius: 0.5rem;
-        border: 1px solid #f3f4f6;
+        padding: 0.125rem;
         font-size: 0.75rem;
-        font-weight: 600;
-        color: #374151;
+        font-weight: 500;
+        line-height: 1.2;
+        text-align: center;
+        color: #2d3138;
     }
-    .spec-pill span { min-width: 0; }
-    .dark .spec-pill { background-color: #252525; border-color: #333; color: #d1d5db; }
+    .spec-pill svg {
+        width: 1.25rem;
+        height: 1.25rem;
+        flex-shrink: 0;
+        color: #16181d;
+        stroke-width: 1.9;
+    }
+    .spec-pill span {
+        min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .dark .spec-pill { color: #e5e7eb; }
+    .dark .spec-pill svg { color: #f4f4f5; }
     optgroup { font-weight: 700; color: #C81424; background-color: #f9fafb; }
 </style>
 @endsection

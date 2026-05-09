@@ -50,12 +50,12 @@
 
             {{-- 1. LOGO --}}
             <a href="{{ route('services.index') }}" class="flex items-center shrink-0 gap-1 group decoration-0">
-                <img src="/images/iaauto-logo.svg"
+                <img src="{{ asset('images/iaauto-logo-nav.svg') }}"
                      alt="iaAuto.ro"
-                     width="184"
-                     height="48"
+                     width="214"
+                     height="54"
                      id="logo-img"
-                     class="max-h-7 sm:max-h-8 md:max-h-10 w-auto object-contain select-none transition-all duration-500">
+                     class="h-8 max-w-[132px] sm:h-9 sm:max-w-[166px] md:h-11 md:max-w-[210px] w-auto object-contain select-none transition-all duration-500">
             </a>
 
             {{-- 2. MENIU DREAPTA --}}
@@ -148,9 +148,18 @@
             {{-- Rând 1: Brand + slogan --}}
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div class="text-center md:text-left space-y-1">
-                    <span class="text-sm font-extrabold tracking-tight text-[#C81424]">
-                        iaAuto.ro
-                    </span>
+                    <a href="{{ route('services.index') }}" class="inline-flex justify-center md:justify-start">
+                        <img src="{{ asset('images/iaauto-logo.svg') }}"
+                             alt="iaAuto.ro"
+                             width="214"
+                             height="54"
+                             class="h-8 w-auto object-contain dark:hidden">
+                        <img src="{{ asset('images/iaauto-logo-nav.svg') }}"
+                             alt="iaAuto.ro"
+                             width="214"
+                             height="54"
+                             class="hidden h-8 w-auto object-contain dark:block">
+                    </a>
                     <p class="text-[11px] text-gray-500 dark:text-gray-500 leading-tight">
                         Anunțuri auto curate, ușor de filtrat, de la proprietari și parcuri auto din toată țara.
                     </p>
@@ -225,20 +234,20 @@
                 nav.classList.remove('md:h-[72px]');
                 nav.classList.add('md:h-14', 'shadow-xl');
 
-                // Logo devine și mai mic (md:max-h-9)
+                // Logo devine mai compact pe desktop.
                 if (logo) {
-                    logo.classList.remove('md:max-h-10');
-                    logo.classList.add('md:max-h-9');
+                    logo.classList.remove('md:h-11');
+                    logo.classList.add('md:h-9');
                 }
             } else {
                 // Desktop Sus -> Mare (h-18)
                 nav.classList.add('md:h-[72px]');
                 nav.classList.remove('md:h-14', 'shadow-xl');
 
-                // Logo revine la mărimea medie (md:max-h-11)
+                // Logo revine la marimea normala.
                 if (logo) {
-                    logo.classList.remove('md:max-h-9');
-                    logo.classList.add('md:max-h-10');
+                    logo.classList.remove('md:h-9');
+                    logo.classList.add('md:h-11');
                 }
             }
         }

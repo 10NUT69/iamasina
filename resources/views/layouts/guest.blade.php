@@ -17,8 +17,12 @@
     <body class="font-sans text-gray-900 antialiased">
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
             <div>
-                <a href="/">
-                    <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
+                <a href="/" class="inline-flex items-center justify-center">
+                    <img src="{{ asset('images/iaauto-logo.svg') }}"
+                         alt="iaAuto.ro"
+                         width="214"
+                         height="54"
+                         class="h-12 w-auto max-w-[190px] object-contain sm:h-14">
                 </a>
             </div>
 
