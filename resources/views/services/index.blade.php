@@ -3,12 +3,104 @@
 @section('title', 'Anunțuri auto de vânzare')
 
 @section('hero')
-{{-- HERO SECTION: Split Screen --}}
-<div class="w-full bg-[radial-gradient(circle_at_top_left,rgba(200,20,36,0.10),transparent_34%),linear-gradient(180deg,#fff7f8_0%,#ffffff_66%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(200,20,36,0.18),transparent_36%),linear-gradient(180deg,#171112_0%,#121212_72%)] pt-14 md:pt-20 lg:pt-24 pb-5 md:pb-6 lg:pb-8">
-    <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col-reverse lg:flex-row items-center justify-between gap-5 md:gap-6 lg:gap-8 xl:gap-10">
+{{-- HERO SECTION --}}
+<div class="w-full bg-[linear-gradient(180deg,#fff7f8_0%,#ffffff_72%)] dark:bg-[linear-gradient(180deg,#171112_0%,#121212_76%)] pt-14 md:pt-20 lg:pt-20 pb-5 md:pb-6 lg:pb-5">
+    <div class="homepage-hero-layout max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
+
+        <div class="homepage-hero-visual relative isolate flex min-h-[248px] items-center overflow-hidden rounded-none bg-white/70 px-4 py-6 sm:min-h-[292px] sm:px-6 sm:py-8 md:min-h-[318px] md:py-9 lg:min-h-[300px] lg:rounded-3xl lg:px-10 lg:py-8 lg:shadow-[0_22px_70px_rgba(200,20,36,0.10)] xl:min-h-[320px]"
+             style="--homepage-hero-image: url('{{ asset('images/homepage-hero-car.webp') }}');">
+            <div class="relative z-10 max-w-[20rem] sm:max-w-[26rem] md:max-w-[31rem] lg:max-w-[28rem]">
+                <h1 class="text-[1.75rem] min-[360px]:text-[1.9rem] min-[430px]:text-[2rem] sm:text-[2.35rem] md:text-[2.9rem] lg:text-[2rem] xl:text-[2.35rem] 2xl:text-[2.6rem] font-black text-gray-950 tracking-tight leading-[0.98]">
+                    Găsește mașina potrivită pentru tine
+                </h1>
+                <p class="homepage-hero-subtitle max-w-none whitespace-nowrap text-gray-500 dark:text-gray-400 mt-4 text-[0.82rem] min-[360px]:text-sm min-[430px]:text-[0.95rem] sm:text-base md:text-lg lg:text-base xl:text-lg font-bold leading-snug">
+                    <span>Publică GRATUIT —</span>
+                    <span>o mașină sau 100.</span>
+                </p>
+                <a href="{{ route('services.create') }}"
+                   class="mt-5 inline-flex min-h-[48px] items-center justify-center rounded-lg bg-[#C81424] px-6 py-3 text-sm sm:text-base lg:min-h-[42px] lg:px-5 lg:py-2.5 lg:text-xs xl:text-sm font-black uppercase tracking-wide text-white shadow-lg shadow-red-700/20 transition hover:bg-[#94111B] active:scale-[0.98]">
+                    PUBLICĂ ANUNȚ
+                </a>
+            </div>
+        </div>
+
+        <div class="homepage-filter-wrap -mt-3 md:-mt-5 lg:-mt-10 lg:px-8">
 
         {{-- 1. ZONA FILTRE (STÂNGA - aprox 60% - MAI LATĂ) --}}
-        <div class="w-full max-w-[920px] min-w-0 lg:max-w-none lg:w-7/12 bg-white/95 dark:bg-[#181516] rounded-xl shadow-[0_24px_70px_rgba(15,23,42,0.12)] dark:shadow-black/50 border border-red-100/70 dark:border-white/10 relative z-40 backdrop-blur">
+        <div id="homepage-filter-panel" class="homepage-filter-panel w-full max-w-[920px] min-w-0 mx-auto bg-white/95 dark:bg-[#181516] rounded-xl shadow-[0_24px_70px_rgba(15,23,42,0.12)] dark:shadow-black/50 border border-red-100/70 dark:border-white/10 relative z-40 backdrop-blur">
+
+            @php
+                $populareNume = ['Audi', 'BMW', 'Dacia', 'Ford', 'Opel', 'Renault', 'Volkswagen', 'Mercedes-Benz', 'Skoda'];
+                $brandsPopulare = $brands->whereIn('name', $populareNume)->sortBy('name');
+                $toateMarcile = $brands->sortBy('name');
+                $currentBrandId = isset($currentBrand) ? $currentBrand->id : null;
+            @endphp
+
+            <div class="homepage-quick-filters lg:hidden p-3">
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="min-w-0">
+                        <label for="homepage-quick-brand-filter" class="mb-1 block text-xs font-bold text-gray-900 dark:text-gray-100">Marcă</label>
+                        <select id="homepage-quick-brand-filter" class="autovit-select homepage-quick-select w-full">
+                            <option value="">Toate mărcile</option>
+                            @if($brandsPopulare->isNotEmpty())
+                                <optgroup label="Populari">
+                                    @foreach($brandsPopulare as $brand)
+                                        <option value="{{ $brand->id }}" @selected((string) $currentBrandId === (string) $brand->id)>{{ $brand->name }}</option>
+                                    @endforeach
+                                </optgroup>
+                            @endif
+                            <optgroup label="A-Z">
+                                @foreach($toateMarcile as $brand)
+                                    <option value="{{ $brand->id }}" @selected((string) $currentBrandId === (string) $brand->id)>{{ $brand->name }}</option>
+                                @endforeach
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="min-w-0">
+                        <label for="homepage-quick-model-filter" class="mb-1 block text-xs font-bold text-gray-900 dark:text-gray-100">Model</label>
+                        <select id="homepage-quick-model-filter" class="autovit-select homepage-quick-select w-full bg-gray-50 text-gray-400 cursor-not-allowed" disabled>
+                            <option value="">Toate modelele</option>
+                        </select>
+                    </div>
+
+                    <div class="min-w-0">
+                        <label for="homepage-quick-county-filter" class="mb-1 block text-xs font-bold text-gray-900 dark:text-gray-100">Județ</label>
+                        <select id="homepage-quick-county-filter" class="autovit-select homepage-quick-select w-full">
+                            <option value="">Toată țara</option>
+                            @foreach($counties as $county)
+                                <option value="{{ $county->id }}" @selected((string) request('county_id') === (string) $county->id)>{{ $county->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-3 grid grid-cols-[0.9fr_1.1fr] gap-2">
+                    <button type="button" id="homepage-more-filters-toggle"
+                        class="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-2 text-sm font-bold text-gray-800 shadow-sm transition hover:border-[#C81424] hover:bg-[#fff4f5] hover:text-[#C81424] dark:border-white/10 dark:bg-[#201d1e] dark:text-gray-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 7h10" />
+                            <path d="M18 7h2" />
+                            <path d="M16 5v4" />
+                            <path d="M4 17h2" />
+                            <path d="M10 17h10" />
+                            <path d="M8 15v4" />
+                        </svg>
+                        <span class="homepage-more-filters-label truncate">Mai multe filtre</span>
+                    </button>
+
+                    <button type="button" id="homepage-quick-submit"
+                        class="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-lg bg-[#C81424] px-2 text-sm font-extrabold uppercase tracking-wide text-white shadow-md shadow-red-700/20 transition hover:bg-[#94111B] active:scale-[0.98]">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="7" />
+                            <path d="m20 20-3.5-3.5" />
+                        </svg>
+                        <span class="truncate">Afișează<span class="homepage-quick-submit-extra"> rezultatele</span></span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="homepage-advanced-filters">
 
             {{-- HEADER FILTRE: Sursă Anunț --}}
             <div class="search-panel-header flex flex-col sm:flex-row sm:items-stretch sm:justify-between border-b border-red-100/70 dark:border-white/10">
@@ -46,12 +138,6 @@
 
                         {{-- RÂNDUL 1 --}}
                         <div class="col-span-2 lg:col-span-1">
-                            @php
-                                $populareNume = ['Audi', 'BMW', 'Dacia', 'Ford', 'Opel', 'Renault', 'Volkswagen', 'Mercedes-Benz', 'Skoda'];
-                                $brandsPopulare = $brands->whereIn('name', $populareNume)->sortBy('name');
-                                $toateMarcile = $brands->sortBy('name');
-                                $currentBrandId = isset($currentBrand) ? $currentBrand->id : null;
-                            @endphp
                             <label class="autovit-label">Marca</label>
                             <select id="brand-filter" name="brand_id" class="autovit-select">
                                 <option value="">Toate mărcile</option>
@@ -166,20 +252,8 @@
                     </div>
                 </form>
             </div>
+            </div>
         </div>
-
-        {{-- 2. ZONA TEXT (DREAPTA - aprox 40%) --}}
-        <div class="w-full lg:w-5/12 flex flex-col items-center justify-center text-center">
-            <h1 class="max-w-[20rem] text-[1.85rem] sm:max-w-[34rem] sm:text-[2.5rem] md:max-w-[46rem] md:text-[2.75rem] lg:max-w-none lg:whitespace-nowrap lg:text-[1.65rem] xl:text-[1.9rem] font-black text-gray-900 dark:text-white tracking-tight leading-[1.08]">
-                Găsește mașina potrivită pentru tine
-            </h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-3 text-base md:text-lg lg:text-xl font-medium max-w-[20rem] sm:max-w-none">
-                Publică GRATUIT — o mașină sau 100.
-            </p>
-            <a href="{{ route('services.create') }}"
-               class="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-lg bg-[#C81424] px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-white shadow-md shadow-red-700/20 transition hover:bg-[#94111B] active:scale-[0.98] md:px-6 md:py-3">
-                PUBLICĂ ANUNȚ
-            </a>
         </div>
 
     </div>
@@ -326,6 +400,13 @@
         container: document.getElementById('services-container'),
         loader: document.getElementById('loading-indicator'),
         trigger: document.getElementById('load-more-trigger'),
+        quickBrand: document.getElementById('homepage-quick-brand-filter'),
+        quickModel: document.getElementById('homepage-quick-model-filter'),
+        quickCounty: document.getElementById('homepage-quick-county-filter'),
+        quickSubmit: document.getElementById('homepage-quick-submit'),
+        quickToggle: document.getElementById('homepage-more-filters-toggle'),
+        quickToggleLabel: document.querySelector('.homepage-more-filters-label'),
+        homepageFilterPanel: document.getElementById('homepage-filter-panel'),
     };
 
     function resetSelect(el, placeholder) {
@@ -508,6 +589,83 @@
         });
     }
 
+    function setHomepageQuickModelEnabled(enabled) {
+        if (!domElements.quickModel) return;
+        domElements.quickModel.disabled = !enabled;
+        domElements.quickModel.classList.toggle('bg-gray-50', !enabled);
+        domElements.quickModel.classList.toggle('text-gray-400', !enabled);
+        domElements.quickModel.classList.toggle('cursor-not-allowed', !enabled);
+        syncCustomSelect(domElements.quickModel);
+    }
+
+    function populateHomepageQuickModels(selectedId = '') {
+        if (!domElements.quickModel) return;
+
+        const brandId = domElements.quickBrand?.value || domElements.brand?.value || '';
+        domElements.quickModel.innerHTML = '<option value="">Toate modelele</option>';
+
+        if (!brandId || !carData[brandId]?.length) {
+            domElements.quickModel.value = '';
+            setHomepageQuickModelEnabled(false);
+            return;
+        }
+
+        carData[brandId].forEach((model) => {
+            const option = document.createElement('option');
+            option.value = model.id;
+            option.textContent = model.name;
+            domElements.quickModel.appendChild(option);
+        });
+
+        if (selectedId && Array.from(domElements.quickModel.options).some(option => String(option.value) === String(selectedId))) {
+            domElements.quickModel.value = selectedId;
+        }
+
+        setHomepageQuickModelEnabled(true);
+        syncCustomSelect(domElements.quickModel);
+    }
+
+    function syncHomepageQuickFiltersFromMain() {
+        if (domElements.quickBrand && domElements.brand) {
+            domElements.quickBrand.value = domElements.brand.value || '';
+            syncCustomSelect(domElements.quickBrand);
+        }
+
+        populateHomepageQuickModels(domElements.model?.value || '');
+
+        if (domElements.quickCounty && domElements.county) {
+            domElements.quickCounty.value = domElements.county.value || '';
+            syncCustomSelect(domElements.quickCounty);
+        }
+    }
+
+    function applyHomepageQuickFiltersToMain() {
+        const previousCounty = domElements.county?.value || '';
+
+        if (domElements.brand && domElements.quickBrand && domElements.brand.value !== domElements.quickBrand.value) {
+            domElements.brand.value = domElements.quickBrand.value || '';
+            domElements.brand.dispatchEvent(new Event('change', { bubbles: true }));
+            syncCustomSelect(domElements.brand);
+        }
+
+        if (domElements.model && domElements.quickModel && domElements.model.value !== domElements.quickModel.value) {
+            domElements.model.value = domElements.quickModel.value || '';
+            domElements.model.dispatchEvent(new Event('change', { bubbles: true }));
+            syncCustomSelect(domElements.model);
+        }
+
+        if (domElements.county && domElements.quickCounty && domElements.county.value !== domElements.quickCounty.value) {
+            domElements.county.value = domElements.quickCounty.value || '';
+            if (previousCounty !== domElements.county.value) {
+                resetLocalities();
+            }
+            domElements.county.dispatchEvent(new Event('change', { bubbles: true }));
+            syncCustomSelect(domElements.county);
+        }
+
+        window.checkResetVisibility();
+    }
+
     function resetLocalities() {
         if(domElements.locality) {
             domElements.locality.innerHTML = '<option value="">Oraș</option>';
@@ -558,6 +716,7 @@
         ['body','fuel','gear','county'].forEach(k => { if(domElements[k]) domElements[k].value = ''; });
         resetLocalities();
         syncAllCustomSelects();
+        syncHomepageQuickFiltersFromMain();
         window.checkResetVisibility();
     };
 
@@ -700,12 +859,54 @@
             }));
         }
 
-        if (domElements.county) domElements.county.addEventListener('change', () => { loadLocalities(domElements.county.value); window.checkResetVisibility(); });
+        if (domElements.county) domElements.county.addEventListener('change', () => {
+            loadLocalities(domElements.county.value);
+            syncHomepageQuickFiltersFromMain();
+            window.checkResetVisibility();
+        });
         // Am eliminat listener-ul care activa radius
         if (domElements.locality) domElements.locality.addEventListener('change', () => { window.checkResetVisibility(); });
 
         const searchForm = document.getElementById('search-form');
         if (searchForm) searchForm.addEventListener('submit', (e) => { e.preventDefault(); window.location.href = buildSearchUrl(); });
+
+        if (domElements.quickToggle && domElements.homepageFilterPanel) {
+            domElements.quickToggle.addEventListener('click', () => {
+                const isOpen = domElements.homepageFilterPanel.classList.toggle('is-expanded');
+                if (domElements.quickToggleLabel) {
+                    domElements.quickToggleLabel.textContent = isOpen ? 'Ascunde filtrele' : 'Mai multe filtre';
+                }
+                if (!isOpen) {
+                    syncHomepageQuickFiltersFromMain();
+                }
+            });
+        }
+
+        if (domElements.quickBrand) {
+            domElements.quickBrand.addEventListener('change', () => {
+                populateHomepageQuickModels('');
+                applyHomepageQuickFiltersToMain();
+            });
+        }
+
+        if (domElements.quickModel) {
+            domElements.quickModel.addEventListener('change', () => {
+                applyHomepageQuickFiltersToMain();
+            });
+        }
+
+        if (domElements.quickCounty) {
+            domElements.quickCounty.addEventListener('change', () => {
+                applyHomepageQuickFiltersToMain();
+            });
+        }
+
+        if (domElements.quickSubmit) {
+            domElements.quickSubmit.addEventListener('click', () => {
+                applyHomepageQuickFiltersToMain();
+                window.location.href = buildSearchUrl();
+            });
+        }
 
         const handleBrandChange = () => {
             const brandId = domElements.brand.value;
@@ -715,6 +916,7 @@
                 enableSelect(domElements.model);
                 carData[brandId].forEach(m => domElements.model.innerHTML += `<option value="${m.id}" data-slug="${m.slug}">${m.name}</option>`);
             }
+            syncHomepageQuickFiltersFromMain();
             window.checkResetVisibility();
         };
 
@@ -735,6 +937,7 @@
                         modelObj.generations.forEach(g => domElements.gen.innerHTML += `<option value="${g.id}">${g.name} (${g.start}-${g.end||'Prezent'})</option>`);
                     }
                 }
+                syncHomepageQuickFiltersFromMain();
                 window.checkResetVisibility();
             });
         }
@@ -744,6 +947,8 @@
         if (domElements.county && domElements.county.value) {
             loadLocalities(domElements.county.value, initialLocalityId);
         }
+
+        syncHomepageQuickFiltersFromMain();
     });
 
     document.addEventListener('click', (event) => {
@@ -776,6 +981,202 @@
     }
 </script>
 <style>
+    .homepage-hero-visual {
+        background-image:
+            linear-gradient(90deg, rgba(255, 255, 255, 0.99) 0%, rgba(255, 255, 255, 0.97) 36%, rgba(255, 255, 255, 0.82) 48%, rgba(255, 255, 255, 0.24) 70%, rgba(255, 255, 255, 0.02) 100%),
+            var(--homepage-hero-image);
+        background-repeat: no-repeat;
+        background-size: cover, cover;
+        background-position: center, center right;
+    }
+
+    .dark .homepage-hero-visual {
+        background-image:
+            linear-gradient(90deg, rgba(23, 17, 18, 0.96) 0%, rgba(23, 17, 18, 0.86) 40%, rgba(23, 17, 18, 0.52) 60%, rgba(23, 17, 18, 0.12) 100%),
+            var(--homepage-hero-image);
+    }
+
+    @media (max-width: 1023px) {
+        .homepage-hero-visual {
+            background-size: cover, auto 100%;
+            background-position: center, 38% center;
+        }
+
+        .homepage-hero-subtitle {
+            text-shadow: 0 1px 12px rgba(255, 255, 255, 0.92);
+        }
+
+        .homepage-filter-panel {
+            border-radius: 1.25rem;
+            box-shadow: 0 16px 44px rgba(15, 23, 42, 0.10);
+        }
+
+        .homepage-filter-panel:not(.is-expanded) .homepage-advanced-filters {
+            display: none;
+        }
+
+        .homepage-filter-panel.is-expanded .homepage-advanced-filters {
+            display: block;
+            border-top: 1px solid rgba(229, 231, 235, 0.85);
+        }
+
+        .homepage-filter-panel.is-expanded .search-panel-header {
+            border-bottom-color: rgba(229, 231, 235, 0.85);
+        }
+
+        .homepage-filter-panel .homepage-advanced-filters > .px-6 {
+            padding: 0.85rem;
+        }
+
+        .homepage-quick-filters .custom-select-trigger {
+            height: 42px;
+            gap: 0.35rem;
+            padding: 0 0.55rem 0 0.65rem;
+            border-color: #d6dbe3;
+            border-radius: 0.7rem;
+            font-size: 0.78rem;
+            font-weight: 800;
+            box-shadow: none;
+        }
+
+        .homepage-quick-filters .custom-select-menu {
+            z-index: 240;
+            min-width: 100%;
+            max-width: calc(100vw - 2rem);
+        }
+
+        .homepage-quick-filters .custom-select-label {
+            font-size: inherit;
+        }
+    }
+
+    @media (min-width: 640px) and (max-width: 1023px) {
+        .homepage-hero-visual {
+            background-position: center, 40% center;
+        }
+
+        .homepage-quick-filters {
+            padding: 1rem;
+        }
+
+        .homepage-quick-filters .custom-select-trigger {
+            font-size: 0.88rem;
+            height: 46px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .homepage-hero-visual {
+            background-position: center, 22% center;
+        }
+
+        .homepage-quick-submit-extra {
+            display: none;
+        }
+    }
+
+    @media (max-width: 390px) {
+        .homepage-hero-visual {
+            background-position: center, 16% center;
+        }
+
+        .homepage-quick-filters {
+            padding: 0.65rem;
+        }
+
+        .homepage-quick-filters label {
+            font-size: 0.68rem;
+        }
+
+        .homepage-quick-filters .custom-select-trigger {
+            height: 40px;
+            padding-left: 0.45rem;
+            padding-right: 0.35rem;
+            font-size: 0.72rem;
+        }
+
+        .homepage-quick-filters button {
+            font-size: 0.75rem;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .homepage-hero-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+            align-items: start;
+            gap: 2rem;
+        }
+
+        .homepage-filter-wrap {
+            grid-column: 1;
+            grid-row: 1;
+            margin-top: 0 !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+
+        .homepage-hero-visual {
+            grid-column: 2;
+            grid-row: 1;
+            align-items: flex-start;
+            min-width: 0;
+            border-radius: 0.85rem;
+            box-shadow: none !important;
+            background-color: transparent;
+            background-size: cover, auto 100%;
+            background-position: center, center right;
+            padding-top: 1.75rem;
+        }
+
+        .homepage-hero-visual > div {
+            max-width: 28rem;
+        }
+
+        .homepage-filter-panel {
+            max-width: none;
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        .homepage-filter-panel .search-panel-header > .flex {
+            padding-left: 1.5rem;
+            padding-right: 1rem;
+        }
+
+        .homepage-filter-panel .search-panel-header span {
+            white-space: nowrap;
+            font-size: 0.78rem;
+        }
+
+        .homepage-filter-panel .seller-tabs {
+            width: min(390px, 62%);
+        }
+
+        .homepage-filter-panel .homepage-advanced-filters > .px-6 {
+            padding: 1.1rem 1.5rem 0.95rem;
+        }
+
+        .homepage-filter-panel .autovit-select,
+        .homepage-filter-panel .custom-select-trigger {
+            height: 42px;
+            border-radius: 0.65rem;
+            font-size: 0.82rem;
+        }
+
+        .homepage-filter-panel button[type="submit"] {
+            height: 38px;
+        }
+
+        .homepage-quick-filters {
+            display: none !important;
+        }
+
+        .homepage-advanced-filters {
+            display: block !important;
+        }
+    }
+
     .autovit-label {
         display: block;
         font-size: 0.65rem;

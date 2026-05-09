@@ -5,14 +5,26 @@
 @section('meta_image', asset('images/social-share.webp'))
 
 @section('content')
-<div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12">
-    <div class="flex flex-col lg:flex-row gap-6">
+<div class="listing-page-shell max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 pt-0 lg:pt-6 pb-12">
+    <div class="flex flex-col gap-0 lg:flex-row lg:gap-6">
         {{-- Sidebar filtre (desktop) --}}
         <aside class="lg:w-[300px]">
-            <div class="hidden lg:block mb-4">
-                <p class="text-sm text-gray-500">Prima pagină · Autoturisme</p>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">Autoturisme</h1>
-                <p class="text-sm text-gray-500 mt-1">Număr de anunțuri: {{ number_format($totalCount, 0, ',', '.') }}</p>
+            <div class="hidden lg:block mb-5">
+                <nav class="flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">
+                    <a href="{{ route('services.index') }}"
+                       class="rounded bg-blue-50 px-2 py-1 font-medium text-gray-800 transition hover:bg-blue-100 hover:text-[#C81424]">
+                        Acasă
+                    </a>
+                    <span class="text-gray-400">/</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100">Autoturisme</span>
+                </nav>
+                <h1 class="mt-4 text-3xl font-extrabold leading-tight text-gray-950 dark:text-white">Autoturisme</h1>
+                <p class="mt-1 text-sm leading-snug text-gray-600 dark:text-gray-300">
+                    Autoturisme de vânzare - Găsește mașina potrivită pentru tine
+                </p>
+                <p class="mt-2 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                    {{ number_format($totalCount, 0, ',', '.') }} anunțuri disponibile
+                </p>
             </div>
 
             <div id="filters-overlay" class="fixed inset-0 bg-black/40 z-[1000] hidden lg:hidden"></div>
@@ -169,16 +181,17 @@
         </aside>
 
         <div class="flex-1">
-            <div class="lg:hidden mb-4">
+            <div class="listing-mobile-heading lg:hidden mb-3">
                 <nav class="flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">
                     <a href="{{ route('services.index') }}"
                        class="rounded bg-blue-50 px-2 py-1 font-medium text-gray-800 transition hover:bg-blue-100 hover:text-[#C81424]">
                         Acasă
                     </a>
-                    <span class="px-1 font-medium text-gray-900">Autoturisme</span>
+                    <span class="text-gray-400">/</span>
+                    <span class="px-1 font-medium text-gray-900 dark:text-gray-100">Autoturisme</span>
                 </nav>
 
-                <h1 class="mt-4 text-3xl font-extrabold leading-tight text-gray-950 dark:text-white">Autoturisme</h1>
+                <h1 class="mt-3 text-3xl font-extrabold leading-tight text-gray-950 dark:text-white">Autoturisme</h1>
                 <p class="mt-1 max-w-2xl text-base leading-snug text-gray-700 dark:text-gray-300">
                     Autoturisme de vânzare - Găsește mașina potrivită pentru tine
                 </p>
@@ -237,7 +250,6 @@
 </div>
 
 <script>
-    const isHomepage = false;
     const homeUrl = "{{ route('cars.index') }}";
     const listUrl = "{{ url()->current() }}";
     const baseUrl = "{{ url('/') }}";
@@ -669,6 +681,14 @@
             const navHeight = nav ? Math.ceil(nav.getBoundingClientRect().height) : 56;
             document.documentElement.style.setProperty('--mobile-filters-top', `${navHeight}px`);
         };
+        let mobileFiltersOffsetFrame = null;
+        const scheduleMobileFiltersOffset = () => {
+            if (mobileFiltersOffsetFrame) return;
+            mobileFiltersOffsetFrame = window.requestAnimationFrame(() => {
+                mobileFiltersOffsetFrame = null;
+                setMobileFiltersOffset();
+            });
+        };
 
         const closeMobileFilters = () => {
             filterOverlay?.classList.add('hidden');
@@ -715,6 +735,7 @@
         });
 
         window.addEventListener('resize', setMobileFiltersOffset);
+        window.addEventListener('scroll', scheduleMobileFiltersOffset, { passive: true });
         setMobileFiltersOffset();
 
         const searchForm = document.getElementById('search-form');
@@ -935,17 +956,23 @@
     }
 
     @media (max-width: 1023px) {
+        .listing-page-shell {
+            margin-top: -0.25rem;
+        }
+
         #listing-actions-bar {
             position: sticky;
             top: var(--mobile-filters-top);
             z-index: 40;
-            margin-right: -1rem;
-            margin-left: -1rem;
+            width: auto;
+            max-width: none;
+            margin-right: -2rem;
+            margin-left: -2rem;
             padding: 0.625rem 1rem;
-            background: rgba(246, 247, 251, 0.96);
+            background: rgba(255, 255, 255, 0.98);
             border-top: 1px solid rgba(229, 231, 235, 0.85);
             border-bottom: 1px solid rgba(229, 231, 235, 0.85);
-            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.07);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
             backdrop-filter: blur(10px);
         }
 
@@ -1000,10 +1027,16 @@
 
     @media (min-width: 640px) and (max-width: 1023px) {
         #listing-actions-bar {
-            margin-right: -1.5rem;
-            margin-left: -1.5rem;
+            margin-right: -3rem;
+            margin-left: -3rem;
             padding-right: 1.5rem;
             padding-left: 1.5rem;
+        }
+    }
+
+    @media (min-width: 768px) and (max-width: 1023px) {
+        #listing-actions-bar {
+            top: 56px;
         }
     }
 
