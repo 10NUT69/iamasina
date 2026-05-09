@@ -9,13 +9,9 @@
     <div class="flex flex-col lg:flex-row gap-6">
         {{-- Sidebar filtre (desktop) --}}
         <aside class="lg:w-[300px]">
-            <div class="lg:hidden flex items-center justify-between mb-4">
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Anunțuri auto</h1>
-            </div>
-
             <div class="hidden lg:block mb-4">
-                <p class="text-sm text-gray-500">Prima pagină · Anunțuri auto</p>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">Anunțuri auto</h1>
+                <p class="text-sm text-gray-500">Prima pagină · Autoturisme</p>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">Autoturisme</h1>
                 <p class="text-sm text-gray-500 mt-1">Număr de anunțuri: {{ number_format($totalCount, 0, ',', '.') }}</p>
             </div>
 
@@ -173,33 +169,53 @@
         </aside>
 
         <div class="flex-1">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-                <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 w-full sm:w-auto">
+            <div class="lg:hidden mb-4">
+                <nav class="flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">
+                    <a href="{{ route('services.index') }}"
+                       class="rounded bg-blue-50 px-2 py-1 font-medium text-gray-800 transition hover:bg-blue-100 hover:text-[#C81424]">
+                        Acasă
+                    </a>
+                    <span class="px-1 font-medium text-gray-900">Autoturisme</span>
+                </nav>
+
+                <h1 class="mt-4 text-3xl font-extrabold leading-tight text-gray-950 dark:text-white">Autoturisme</h1>
+                <p class="mt-1 max-w-2xl text-base leading-snug text-gray-700 dark:text-gray-300">
+                    Autoturisme de vânzare - Găsește mașina potrivită pentru tine
+                </p>
+            </div>
+
+            <div id="listing-actions-bar" class="sticky z-40 -mx-4 mb-4 bg-[#f6f7fb]/95 px-4 py-2.5 shadow-sm ring-1 ring-gray-200/80 backdrop-blur dark:bg-[#121212]/95 dark:ring-gray-800 sm:-mx-6 sm:px-6 lg:static lg:top-auto lg:z-auto lg:mx-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:ring-0 lg:backdrop-blur-0">
+                <div class="listing-actions-row grid grid-cols-[0.72fr_1fr_1.18fr] items-stretch gap-2 lg:flex lg:items-center lg:justify-between lg:gap-3">
                     <button type="button" id="open-filters"
-                        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 shadow-sm lg:hidden">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M2 4a1 1 0 011-1h14a1 1 0 01.8 1.6L12 12.333V16a1 1 0 01-1.447.894l-2-1A1 1 0 018 15V12.333L2.2 4.6A1 1 0 012 4z" />
+                        class="listing-action-button inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 text-[13px] font-semibold text-[#C81424] shadow-sm transition hover:border-[#C81424] hover:bg-[#fff4f5] lg:hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 7h10" />
+                            <path d="M18 7h2" />
+                            <path d="M16 5v4" />
+                            <path d="M4 17h2" />
+                            <path d="M10 17h10" />
+                            <path d="M8 15v4" />
                         </svg>
-                        Filtrează
+                        <span class="truncate">Filtre</span>
                     </button>
                     <button type="button"
-                        class="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-[#0F5CC0] border border-[#0F5CC0] rounded-lg bg-white hover:bg-[#fff4f5] transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        class="listing-action-button inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 text-[13px] font-semibold text-gray-700 shadow-sm transition hover:border-[#C81424] hover:bg-[#fff4f5] hover:text-[#C81424] lg:w-auto lg:px-3 lg:text-sm lg:text-[#0F5CC0] lg:border-[#0F5CC0]">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0h6z"/>
                         </svg>
-                        Salvează căutarea
+                        <span class="truncate">Salvează<span class="save-search-extra"> căutare</span></span>
                     </button>
-                </div>
 
-                <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
-                    <label for="sort-select" class="text-sm font-semibold text-gray-600">Sortare</label>
-                    <select id="sort-select" class="autovit-select listing-filter w-full sm:w-56">
-                        <option value="newest" @selected(request('sort', 'newest') === 'newest')>Anunțuri noi</option>
-                        <option value="price_asc" @selected(request('sort') === 'price_asc')>Ieftine</option>
-                        <option value="price_desc" @selected(request('sort') === 'price_desc')>Scumpe</option>
-                        <option value="km_asc" @selected(request('sort') === 'km_asc')>Km crescător</option>
-                        <option value="power_asc" @selected(request('sort') === 'power_asc')>Putere crescător</option>
-                    </select>
+                    <div class="listing-sort-compact min-w-0 lg:ml-auto lg:flex lg:w-auto lg:items-center lg:gap-2">
+                        <label for="sort-select" class="sr-only text-sm font-semibold text-gray-600 lg:not-sr-only">Sortare</label>
+                        <select id="sort-select" class="autovit-select listing-filter w-full lg:w-56">
+                            <option value="newest" @selected(request('sort', 'newest') === 'newest')>Sortare recomandată</option>
+                            <option value="price_asc" @selected(request('sort') === 'price_asc')>Ieftine</option>
+                            <option value="price_desc" @selected(request('sort') === 'price_desc')>Scumpe</option>
+                            <option value="km_asc" @selected(request('sort') === 'km_asc')>Km crescător</option>
+                            <option value="power_asc" @selected(request('sort') === 'power_asc')>Putere crescător</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -919,6 +935,54 @@
     }
 
     @media (max-width: 1023px) {
+        #listing-actions-bar {
+            position: sticky;
+            top: var(--mobile-filters-top);
+            z-index: 40;
+            margin-right: -1rem;
+            margin-left: -1rem;
+            padding: 0.625rem 1rem;
+            background: rgba(246, 247, 251, 0.96);
+            border-top: 1px solid rgba(229, 231, 235, 0.85);
+            border-bottom: 1px solid rgba(229, 231, 235, 0.85);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.07);
+            backdrop-filter: blur(10px);
+        }
+
+        .dark #listing-actions-bar {
+            background: rgba(18, 18, 18, 0.96);
+            border-color: rgba(31, 41, 55, 0.85);
+        }
+
+        .listing-actions-row {
+            display: grid;
+            grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr) minmax(0, 1.18fr);
+            align-items: stretch;
+            gap: 0.5rem;
+        }
+
+        .listing-action-button {
+            line-height: 1.1;
+            white-space: nowrap;
+        }
+
+        .listing-sort-compact .custom-select-trigger {
+            height: 44px;
+            gap: 0.35rem;
+            padding: 0 0.45rem 0 0.55rem;
+            border-color: #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+        }
+
+        .listing-sort-compact .custom-select-menu {
+            left: auto;
+            right: 0;
+            min-width: min(220px, calc(100vw - 2rem));
+        }
+
         #filters-overlay,
         #filters-panel {
             top: var(--mobile-filters-top);
@@ -931,6 +995,59 @@
             max-height: calc(100dvh - var(--mobile-filters-top));
             border-top-left-radius: 0;
             border-top-right-radius: 0;
+        }
+    }
+
+    @media (min-width: 640px) and (max-width: 1023px) {
+        #listing-actions-bar {
+            margin-right: -1.5rem;
+            margin-left: -1.5rem;
+            padding-right: 1.5rem;
+            padding-left: 1.5rem;
+        }
+    }
+
+    @media (max-width: 390px) {
+        .listing-action-button {
+            gap: 0.3rem;
+            padding-left: 0.35rem;
+            padding-right: 0.35rem;
+            font-size: 0.75rem;
+        }
+
+        .save-search-extra {
+            display: none;
+        }
+
+        .listing-sort-compact .custom-select-trigger {
+            padding-left: 0.4rem;
+            padding-right: 0.35rem;
+            font-size: 0.72rem;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        #listing-actions-bar {
+            position: static;
+            z-index: auto;
+            margin-right: 0;
+            margin-left: 0;
+            padding: 0;
+            background: transparent;
+            border: 0;
+            box-shadow: none;
+            backdrop-filter: none;
+        }
+
+        .listing-actions-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .listing-sort-compact .custom-select {
+            width: 14rem;
         }
     }
 
