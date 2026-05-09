@@ -7,7 +7,7 @@
 <div class="w-full bg-[linear-gradient(180deg,#fff7f8_0%,#ffffff_72%)] dark:bg-[linear-gradient(180deg,#171112_0%,#121212_76%)] pt-14 md:pt-20 lg:pt-20 pb-5 md:pb-6 lg:pb-5">
     <div class="homepage-hero-layout max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
 
-        <div class="homepage-hero-visual relative isolate flex min-h-[248px] items-center overflow-hidden rounded-none bg-white/70 px-4 py-6 sm:min-h-[292px] sm:px-6 sm:py-8 md:min-h-[318px] md:py-9 lg:min-h-[300px] lg:rounded-3xl lg:px-10 lg:py-8 lg:shadow-[0_22px_70px_rgba(200,20,36,0.10)] xl:min-h-[320px]"
+        <div class="homepage-hero-visual relative isolate -mx-4 flex min-h-[248px] items-center overflow-hidden rounded-none bg-white/70 px-4 py-6 sm:-mx-6 sm:min-h-[292px] sm:px-6 sm:py-8 md:min-h-[318px] md:py-9 lg:mx-0 lg:min-h-[300px] lg:rounded-3xl lg:px-10 lg:py-8 lg:shadow-[0_22px_70px_rgba(200,20,36,0.10)] xl:min-h-[320px]"
              style="--homepage-hero-image: url('{{ asset('images/homepage-hero-car.webp') }}');">
             <div class="relative z-10 max-w-[20rem] sm:max-w-[26rem] md:max-w-[31rem] lg:max-w-[28rem]">
                 <h1 class="text-[1.75rem] min-[360px]:text-[1.9rem] min-[430px]:text-[2rem] sm:text-[2.35rem] md:text-[2.9rem] lg:text-[2rem] xl:text-[2.35rem] 2xl:text-[2.6rem] font-black text-gray-950 tracking-tight leading-[0.98]">
