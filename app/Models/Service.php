@@ -137,53 +137,58 @@ class Service extends Model
     // PUBLIC URL: /anunturi-auto-de-vanzare/{brand}/{model}/{county}/{city}/{slug}-{id}
    public function getPublicUrlAttribute()
 {
-    $countySlug = $this->locality?->county?->slug
-        ?: ($this->county?->slug ?? 'romania');
+    $locality = $this->relationLoaded('locality') ? $this->getRelation('locality') : $this->locality;
+    $county = $this->relationLoaded('county') ? $this->getRelation('county') : $this->county;
 
-    $citySlug = $this->locality?->slug
+    if (!$county && $locality) {
+        $county = $locality->relationLoaded('county') ? $locality->getRelation('county') : $locality->county;
+    }
+
+    $countySlug = $county?->slug ?? 'romania';
+
+    $citySlug = $locality?->slug
         ?: (!empty($this->city) ? Str::slug($this->city) : null)
         ?: $countySlug;
 
-    // Anul – ce ai în anunț (sau anul curent dacă lipsește)
     $brandSlug = null;
     $modelSlug = null;
 
-    // 1. ÎNCERCI VARIANTA CU GENERAȚIE (relații complete)
-    if ($this->car_generation_id && $this->generation) {
-        $generation = $this->generation;
-        $model      = $generation ? $generation->model : null;
-        $brand      = $model ? $model->brand : null;
+    $generation = null;
+    if ($this->car_generation_id) {
+        $generation = $this->relationLoaded('generation') ? $this->getRelation('generation') : $this->generation;
+    }
+
+    if ($generation) {
+        $model = $generation->relationLoaded('model') ? $generation->getRelation('model') : $generation->model;
+        $brand = $model
+            ? ($model->relationLoaded('brand') ? $model->getRelation('brand') : $model->brand)
+            : null;
 
         if ($brand && $model) {
-            $brandSlug = $brand->slug;
-            $modelSlug = $model->slug;
+            $brandSlug = $brand->slug ?: Str::slug($brand->name);
+            $modelSlug = $model->slug ?: Str::slug($model->name);
         }
     }
-	
 
-// 2. FALLBACK: dacă nu avem generație → folosim brand_id + model_id
-if ((!$brandSlug || !$modelSlug) && $this->brand_id && $this->model_id) {
-    $brand = CarBrand::select('slug', 'name')->find($this->brand_id);
-    $model = CarModel::select('slug', 'name')->find($this->model_id);
+    if ((!$brandSlug || !$modelSlug) && $this->brand_id && $this->model_id) {
+        $brand = $this->relationLoaded('brandRel') ? $this->getRelation('brandRel') : $this->brandRel;
+        $model = $this->relationLoaded('modelRel') ? $this->getRelation('modelRel') : $this->modelRel;
 
-    if ($brand && $model) {
-        $brandSlug = $brand->slug ?: Str::slug($brand->name);
-        $modelSlug = $model->slug ?: Str::slug($model->name);
+        if ($brand && $model) {
+            $brandSlug = $brand->slug ?: Str::slug($brand->name);
+            $modelSlug = $model->slug ?: Str::slug($model->name);
+        }
     }
-}
 
-// 2.1 fallback EXTRA (opțional): dacă ai și text
-if (!$brandSlug || !$modelSlug) {
-    if (!empty($this->brand)) {
-        $brandSlug = Str::slug($this->brand);
+    if (!$brandSlug || !$modelSlug) {
+        if (!empty($this->brand)) {
+            $brandSlug = Str::slug($this->brand);
+        }
+        if (!empty($this->model)) {
+            $modelSlug = Str::slug($this->model);
+        }
     }
-    if (!empty($this->model)) {
-        $modelSlug = Str::slug($this->model);
-    }
-}
 
-
-    // 3. Dacă tot avem brand + model + județ → construim URL-ul frumos
     if ($brandSlug && $modelSlug && $citySlug) {
         return route('service.show.car', [
             'brandSlug'  => $brandSlug,
@@ -195,7 +200,6 @@ if (!$brandSlug || !$modelSlug) {
         ]);
     }
 
-    // 4. Fallback final (dacă chiar nu avem nimic)
     return url('/');
 }
 

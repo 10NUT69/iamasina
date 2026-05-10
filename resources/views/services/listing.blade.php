@@ -172,7 +172,7 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
-                                Vezi rezultatele
+                                Afișează rezultatele
                             </button>
                         </div>
                     </form>
@@ -258,7 +258,6 @@
     let isLoading = false;
     let currentPage = 2;
     let hasMore = document.getElementById('load-more-trigger')?.dataset.hasMore === 'true';
-    let debounceTimer;
 
     const carData = @json($carData ?? []);
     const localityBaseUrl = "{{ url('/api/localities') }}";
@@ -659,12 +658,6 @@
         });
     };
 
-    function debounceLoad() {
-        if (isMobileView()) return;
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => window.loadServices(1), 400);
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('select.autovit-select').forEach(enhanceSelect);
 
@@ -751,31 +744,24 @@
 
         if (domElements.county) {
             domElements.county.addEventListener('change', () => {
-                if (!isMobileView()) {
-                    resetLocalities();
-                    window.location.href = buildSearchUrl();
-                    return;
-                }
                 loadLocalities(domElements.county.value);
-                debounceLoad();
                 window.checkResetVisibility();
             });
         }
 
         if (domElements.locality) {
             domElements.locality.addEventListener('change', () => {
-                if (!isMobileView() && domElements.locality.value) {
-                    window.location.href = buildSearchUrl();
-                    return;
-                }
-                debounceLoad();
                 window.checkResetVisibility();
             });
         }
 
         if (domElements.sort) {
             domElements.sort.addEventListener('change', () => {
-                window.location.href = buildSearchUrl();
+                if (isMobileView()) {
+                    window.location.href = buildSearchUrl();
+                    return;
+                }
+                window.checkResetVisibility();
             });
         }
 
@@ -784,11 +770,7 @@
                 if (domElements.sellerType) {
                     domElements.sellerType.value = sellerSelect.value || 'all';
                 }
-                if (!isMobileView()) {
-                    window.location.href = buildSearchUrl();
-                } else {
-                    window.checkResetVisibility();
-                }
+                window.checkResetVisibility();
             });
         }
 
@@ -814,26 +796,16 @@
         if (domElements.brand) {
             domElements.brand.addEventListener('change', function () {
                 const brandId = this.value;
-                const selectedOption = this.options[this.selectedIndex];
-                const slug = selectedOption ? selectedOption.getAttribute('data-slug') : null;
 
                 if (!brandId) {
                     resetSelect(domElements.model, 'Model');
                     resetSelect(domElements.gen, 'Generație');
-                    if (!isMobileView()) {
-                        window.location.href = homeUrl;
-                        return;
-                    }
+                    window.checkResetVisibility();
                     return;
                 }
 
                 resetSelect(domElements.model, 'Model');
                 resetSelect(domElements.gen, 'Generație');
-
-                if (slug && !isMobileView()) {
-                    window.location.href = buildSearchUrl();
-                    return;
-                }
 
                 if (carData[brandId]) {
                     enableSelect(domElements.model);
@@ -848,11 +820,6 @@
 
         if (domElements.model) {
             domElements.model.addEventListener('change', function () {
-                const brandOption = domElements.brand?.selectedOptions?.[0];
-                const modelOption = this.selectedOptions?.[0];
-                const brandSlug = brandOption?.dataset?.slug;
-                const modelSlug = modelOption?.dataset?.slug;
-
                 resetSelect(domElements.gen, 'Generație');
 
                 const brandId = domElements.brand.value;
@@ -870,13 +837,6 @@
                     }
                 }
 
-                if (brandSlug && modelSlug) {
-                    if (!isMobileView()) {
-                        window.location.href = buildSearchUrl();
-                        return;
-                    }
-                }
-
                 window.checkResetVisibility();
             });
         }
@@ -890,7 +850,6 @@
         [domElements.gen, domElements.body, domElements.fuel, domElements.gear].forEach(el => {
             if (el) {
                 el.addEventListener('change', () => {
-                    debounceLoad();
                     window.checkResetVisibility();
                 });
             }
@@ -899,7 +858,6 @@
         [domElements.priceMin, domElements.priceMax, domElements.kmMin, domElements.kmMax, domElements.yearMin, domElements.yearMax].forEach(el => {
             if (el) {
                 el.addEventListener('input', () => {
-                    debounceLoad();
                     window.checkResetVisibility();
                 });
             }

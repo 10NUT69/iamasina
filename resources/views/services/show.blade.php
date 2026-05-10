@@ -82,14 +82,125 @@
         $fullImageUrls = [asset('images/defaults/placeholder.png')];
     }
 
-    $seoLocation  = $service->locality
+    // --- SEO / SHARE ---
+    $currentUrl = url()->current();
+
+    $seoLocation = $service->locality
         ? trim($service->locality->name . ', ' . ($service->county->name ?? ''))
         : ($service->county->name ?? 'România');
-    $fullSeoTitle = ($isDeleted ? 'INDISPONIBIL - ' : '') . $service->title;
-    $currentUrl   = url()->current();
+
+    $cleanTitleString = preg_replace('/[^\p{L}\p{N}\s]/u', ' ', (string) $service->title);
+    $cleanTitleString = trim(preg_replace('/\s+/', ' ', $cleanTitleString));
+    $titleWords = array_values(array_filter(explode(' ', $cleanTitleString), fn ($word) => $word !== ''));
+    $shortUserTitle = trim(implode(' ', array_slice($titleWords, 0, 3)));
+
+    $currencyUpper = strtoupper((string) $currency);
+    $currencyLabel = $currencyUpper === 'EUR' ? '€' : $currencyUpper;
+    $hasPriceForSeo = $service->price_value !== null && (float) $service->price_value > 0;
+    $seoPrice = $hasPriceForSeo ? trim($formattedPrice . ' ' . $currencyLabel) : null;
+
+    $seoVehicleTitle = trim(implode(' ', array_filter([$brandName, $modelName, $year])));
+    $seoVehicleTitle = $seoVehicleTitle ?: ($shortUserTitle ?: 'Autoturism');
+
+    $seoVehicleDescription = trim(implode(' ', array_filter([$brandName, $modelName, $generationName, $year])));
+    $seoVehicleDescription = $seoVehicleDescription ?: $seoVehicleTitle;
+
+    $fullSeoTitle = $seoVehicleTitle . ' de vânzare';
+    if ($seoLocation) {
+        $fullSeoTitle .= ' în ' . $seoLocation;
+    }
+    if ($seoPrice) {
+        $fullSeoTitle .= ' - ' . $seoPrice;
+    }
+    if ($isDeleted) {
+        $fullSeoTitle = 'INDISPONIBIL - ' . $fullSeoTitle;
+    }
+    if (mb_strlen($fullSeoTitle . ' | ' . $siteBrand) <= 70) {
+        $fullSeoTitle .= ' | ' . $siteBrand;
+    }
+
+    $seoSpecs = [];
+    if ($seoPrice) {
+        $seoSpecs[] = $seoPrice;
+    }
+    if ($km) {
+        $seoSpecs[] = number_format((float) $km, 0, ',', '.') . ' km';
+    }
+    if ($fuelName) {
+        $seoSpecs[] = mb_strtolower($fuelName, 'UTF-8');
+    }
+    if ($transName) {
+        $seoSpecs[] = 'cutie ' . mb_strtolower($transName, 'UTF-8');
+    }
+
+    $seoDescription = $seoVehicleDescription . ' de vânzare';
+    if ($seoLocation && $seoLocation !== 'România') {
+        $seoDescription .= ' în ' . $seoLocation;
+    }
+    $seoDescription .= '.';
+    if (!empty($seoSpecs)) {
+        $seoDescription .= ' Detalii: ' . implode(', ', $seoSpecs) . '.';
+    }
+    $seoDescription .= ' Vezi poze și contactează vânzătorul pe iaAuto.ro.';
+    $seoDescription = Str::limit(strip_tags($seoDescription), 160, '');
+
+    $rawShareImages = is_string($service->images)
+        ? (json_decode($service->images, true) ?: [])
+        : ($service->images ?? []);
+    $rawShareImages = array_values(array_filter((array) $rawShareImages));
+
+    $seoImage = asset('images/social-share.webp');
+    if (!$isDeleted && !empty($rawShareImages)) {
+        $firstShareImage = $rawShareImages[0];
+        if (Str::startsWith($firstShareImage, ['http://', 'https://'])) {
+            $seoImage = $firstShareImage;
+        } elseif (Str::startsWith($firstShareImage, ['/storage/', 'storage/', '/images/', 'images/'])) {
+            $seoImage = asset(ltrim($firstShareImage, '/'));
+        } else {
+            $seoImage = asset('storage/services/' . ltrim($firstShareImage, '/'));
+        }
+    }
+
+    $schemaData = [
+        '@context' => 'https://schema.org',
+        '@type' => 'Car',
+        'name' => $fullSeoTitle,
+        'description' => $seoDescription,
+        'image' => $seoImage,
+        'url' => $currentUrl,
+        'brand' => $brandName ? ['@type' => 'Brand', 'name' => $brandName] : null,
+        'model' => $modelName,
+        'vehicleModelDate' => $year,
+        'mileageFromOdometer' => $km ? [
+            '@type' => 'QuantitativeValue',
+            'value' => (int) $km,
+            'unitCode' => 'KMT',
+        ] : null,
+        'offers' => (!$isDeleted && $hasPriceForSeo) ? [
+            '@type' => 'Offer',
+            'priceCurrency' => $currencyUpper,
+            'price' => $service->price_value,
+            'availability' => 'https://schema.org/InStock',
+            'url' => $currentUrl,
+        ] : null,
+    ];
+    $schemaData = array_filter($schemaData, fn ($value) => $value !== null && $value !== '');
 @endphp
 
 @section('title', $fullSeoTitle)
+@section('meta_title', $fullSeoTitle)
+@section('meta_description', $seoDescription)
+@section('meta_image', $seoImage)
+
+@section('canonical')
+    <link rel="canonical" href="{{ $currentUrl }}" />
+@endsection
+
+@section('schema')
+<script type="application/ld+json">
+{!! json_encode($schemaData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+</script>
+@endsection
 
 @section('content')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />

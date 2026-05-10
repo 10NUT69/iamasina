@@ -50,10 +50,10 @@
 
             {{-- 1. LOGO --}}
             <a href="{{ route('services.index') }}" class="flex items-center shrink-0 gap-1 group decoration-0">
-                <img src="{{ asset('images/iaauto-logo-nav.svg') }}"
+                <img src="{{ asset('images/iaauto-logo-nav.svg') }}?v=modern-20260510e"
                      alt="iaAuto.ro"
-                     width="214"
-                     height="54"
+                     width="240"
+                     height="64"
                      id="logo-img"
                      class="h-8 max-w-[114px] min-[375px]:max-w-[132px] sm:h-9 sm:max-w-[166px] md:h-11 md:max-w-[210px] w-auto object-contain select-none transition-all duration-500">
             </a>
@@ -149,15 +149,15 @@
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div class="text-center md:text-left space-y-1">
                     <a href="{{ route('services.index') }}" class="inline-flex justify-center md:justify-start">
-                        <img src="{{ asset('images/iaauto-logo.svg') }}"
+                        <img src="{{ asset('images/iaauto-logo.svg') }}?v=modern-20260510e"
                              alt="iaAuto.ro"
-                             width="214"
-                             height="54"
+                             width="240"
+                             height="64"
                              class="h-8 w-auto object-contain dark:hidden">
-                        <img src="{{ asset('images/iaauto-logo-nav.svg') }}"
+                        <img src="{{ asset('images/iaauto-logo-nav.svg') }}?v=modern-20260510e"
                              alt="iaAuto.ro"
-                             width="214"
-                             height="54"
+                             width="240"
+                             height="64"
                              class="hidden h-8 w-auto object-contain dark:block">
                     </a>
                     <p class="text-[11px] text-gray-500 dark:text-gray-500 leading-tight">

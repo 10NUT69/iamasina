@@ -232,11 +232,24 @@
 
 @empty
     {{-- Empty State Modern --}}
-    <div class="col-span-full py-20 text-center">
+    <div class="col-span-full py-16 md:py-24 px-4 text-center">
         <div class="inline-block p-6 rounded-full bg-gray-50 dark:bg-[#27272a] mb-5 shadow-inner">
             <svg class="w-12 h-12 text-gray-300 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
         </div>
-        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Nu s-au găsit anunțuri</h3>
-        <p class="text-gray-500 dark:text-gray-400">Încearcă să ștergi filtrele sau să cauți alt model.</p>
+        <h3 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-3">Nu am găsit încă anunțuri potrivite</h3>
+        <p class="mx-auto max-w-2xl text-sm md:text-base leading-relaxed text-gray-500 dark:text-gray-400">
+            iaAuto.ro este în continuă creștere, iar oferta se actualizează constant. Încearcă să lărgești căutarea sau să elimini câteva filtre.
+        </p>
+
+        <div class="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <a href="{{ route('cars.index') }}" onclick="if (typeof resetFilters === 'function') { event.preventDefault(); resetFilters(); }"
+               class="inline-flex w-full max-w-xs items-center justify-center rounded-xl bg-[#C81424] px-5 py-3 text-sm font-black text-white shadow-sm shadow-red-700/20 transition hover:bg-[#94111B] active:scale-[0.98] sm:w-auto">
+                Șterge filtrele
+            </a>
+            <a href="{{ route('cars.index') }}" onclick="if (typeof resetFilters === 'function') { event.preventDefault(); resetFilters(); }"
+               class="inline-flex w-full max-w-xs items-center justify-center rounded-xl border border-[#C81424]/40 bg-white px-5 py-3 text-sm font-black text-[#C81424] transition hover:border-[#C81424] hover:bg-[#fff4f5] dark:border-red-900/50 dark:bg-[#18181b] dark:text-red-200 dark:hover:bg-[#2a1013] sm:w-auto">
+                Vezi toate anunțurile
+            </a>
+        </div>
     </div>
 @endforelse
