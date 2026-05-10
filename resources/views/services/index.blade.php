@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Anunțuri auto de vânzare')
+@section('title', 'Anunturi Auto Second Hand & Noi - Masini de Vanzare')
+@section('meta_title', 'Anunturi Auto Second Hand & Noi - Masini de Vanzare | iaAuto.ro')
+@section('meta_description', 'Descopera mii de anunturi auto verificate. Cumpara masini second hand sau noi de la proprietari si parcuri auto din toata Romania. Filtreaza inteligent si gaseste-ti masina ideala pe iaAuto.ro!')
+@section('meta_image', asset('images/social-share.webp'))
 
 @section('hero')
 {{-- HERO SECTION --}}

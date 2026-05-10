@@ -1,7 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'Anunțuri auto – autoturisme și servicii auto')
-@section('meta_description', 'Caută autoturisme după marcă, model, generație, caroserie, combustibil, cutie de viteze și locație. Publică sau găsește rapid anunțuri auto.')
+@php
+    $listingMetaTitle = isset($totalCount) && (int) $totalCount > 0
+        ? 'Masini de Vanzare - Peste ' . number_format((int) $totalCount, 0, ',', '.') . ' Anunturi Auto Second Hand | iaAuto.ro'
+        : 'Masini de Vanzare - Anunturi Auto Second Hand | iaAuto.ro';
+@endphp
+
+@section('title', 'Masini de Vanzare - Anunturi Auto Second Hand')
+@section('meta_title', $listingMetaTitle)
+@section('meta_description', 'Cauti o masina? Vezi oferta completa de autoturisme second hand: filtrata dupa marca, model, pret sau locatie. Contact direct vanzator, poze detaliate si istoric auto pe iaAuto.ro.')
 @section('meta_image', asset('images/social-share.webp'))
 
 @section('content')
