@@ -55,7 +55,7 @@
                      width="214"
                      height="54"
                      id="logo-img"
-                     class="h-8 max-w-[132px] sm:h-9 sm:max-w-[166px] md:h-11 md:max-w-[210px] w-auto object-contain select-none transition-all duration-500">
+                     class="h-8 max-w-[114px] min-[375px]:max-w-[132px] sm:h-9 sm:max-w-[166px] md:h-11 md:max-w-[210px] w-auto object-contain select-none transition-all duration-500">
             </a>
 
             {{-- 2. MENIU DREAPTA --}}
@@ -114,11 +114,11 @@
 
                 {{-- BUTON ADAUGĂ --}}
                 <a href="{{ route('services.create') }}"
-                   class="ml-0.5 sm:ml-1 bg-white text-[#8f111a] font-bold rounded-lg shadow hover:bg-[#fff4f5] transition-all duration-500 active:scale-95 flex items-center justify-center gap-0 sm:gap-1
-                          px-2 py-2 text-sm md:text-base sm:px-3 md:px-4 md:py-2"
+                   class="ml-0.5 sm:ml-1 bg-white text-[#8f111a] font-bold rounded-lg shadow hover:bg-[#fff4f5] transition-all duration-500 active:scale-95 flex items-center justify-center gap-1 whitespace-nowrap
+                          px-2 py-2 text-[11px] leading-none min-[375px]:px-2.5 min-[375px]:text-xs sm:px-3 sm:text-sm md:px-4 md:py-2 md:text-base"
                    id="add-btn">
-                    <span class="text-lg md:text-xl leading-none font-black">+</span>
-                    <span class="hidden sm:inline">Adaugă</span>
+                    <span class="hidden min-[390px]:inline text-base md:text-xl leading-none font-black">+</span>
+                    <span>Publică anunț</span>
                 </a>
 
             </div>

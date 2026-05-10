@@ -96,12 +96,12 @@
             {{-- Navigare Slider (Doar la Hover) --}}
             @if($imgCount > 1)
                 <div class="absolute inset-y-0 left-0 flex items-center pl-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
-                    <button @click.prevent="prev()" class="pointer-events-auto p-1.5 rounded-full bg-white/90 text-black hover:bg-white shadow-lg transition-transform hover:scale-110">
+                    <button @click.prevent="prev()" class="pointer-events-auto p-1.5 rounded-full bg-white/90 text-black hover:bg-white shadow-lg transition-transform hover:scale-110 dark:bg-black/60 dark:text-white dark:hover:bg-black/80">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
                     </button>
                 </div>
                 <div class="absolute inset-y-0 right-0 flex items-center pr-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
-                    <button @click.prevent="next()" class="pointer-events-auto p-1.5 rounded-full bg-white/90 text-black hover:bg-white shadow-lg transition-transform hover:scale-110">
+                    <button @click.prevent="next()" class="pointer-events-auto p-1.5 rounded-full bg-white/90 text-black hover:bg-white shadow-lg transition-transform hover:scale-110 dark:bg-black/60 dark:text-white dark:hover:bg-black/80">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                     </button>
                 </div>

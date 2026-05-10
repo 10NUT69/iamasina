@@ -61,7 +61,7 @@
                 </div>
             </div>
 
-            <div class="mt-auto pt-4 border-t border-gray-100 dark:border-[#333] flex items-start justify-between gap-3 text-xs text-gray-500">
+            <div class="mt-auto pt-4 border-t border-gray-100 dark:border-[#333] flex items-start justify-between gap-3 text-xs text-gray-500 dark:text-gray-400">
                 <div class="flex min-w-0 flex-1 items-start">
                     <svg class="w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0 text-[#C81424]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     <span class="leading-snug">{{ $locationLabel }}</span>
@@ -80,6 +80,6 @@
             <svg class="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
         </div>
         <h3 class="text-xl font-bold text-gray-900 dark:text-white">Nu am gasit anunturi</h3>
-        <p class="text-gray-500 mt-2">Incearca sa resetezi filtrele pentru a vedea mai multe rezultate.</p>
+        <p class="text-gray-500 dark:text-gray-400 mt-2">Incearca sa resetezi filtrele pentru a vedea mai multe rezultate.</p>
     </div>
 @endforelse

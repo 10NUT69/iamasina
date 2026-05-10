@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600">
+    <div class="mb-4 text-sm text-gray-600 dark:text-gray-300">
         {{ __('Aceasta este o zonă securizată a aplicației. Vă rugăm să vă confirmați parola înainte de a continua.') }}
     </div>
 

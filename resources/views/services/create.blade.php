@@ -42,7 +42,7 @@
                     {{-- STANGA: SELECTOARE CASCADATE --}}
                     <div class="lg:col-span-5 space-y-5">
                         <div class="bg-gray-50 dark:bg-[#252525] p-5 rounded-xl border border-gray-100 dark:border-[#333]">
-                            <label class="text-xs font-bold text-gray-500 uppercase mb-3 block">Identificare</label>
+                            <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-3 block">Identificare</label>
                             
                             <div class="space-y-4">
                                 {{-- Brand (FK) + fallback text --}}
@@ -208,28 +208,28 @@
 
                 {{-- VIN CODE --}}
                 <div class="mb-6">
-                    <label class="text-xs font-bold text-gray-500 uppercase mb-1">Serie Șasiu (VIN)</label>
+                    <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Serie Șasiu (VIN)</label>
                     <input type="text" name="vin" placeholder="Ex: WBA..." maxlength="17" class="w-full pl-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-gray-900 dark:text-white uppercase font-mono">
                     <p class="text-xs text-gray-400 mt-1">Recomandat pentru verificare.</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase mb-1">Rulaj (km)</label>
+                        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Rulaj (km)</label>
                         <div class="relative">
                             <input type="number" name="km" placeholder="150000" class="w-full pl-3 pr-8 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-gray-900 dark:text-white focus:ring-2 focus:ring-[#C81424] outline-none transition-all font-mono" required>
                             <span class="absolute right-3 top-2.5 text-xs font-bold text-gray-400">km</span>
                         </div>
                     </div>
                     <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase mb-1">Putere</label>
+                        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Putere</label>
                         <div class="relative">
                             <input type="number" name="putere" placeholder="190" class="w-full pl-3 pr-8 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-gray-900 dark:text-white focus:ring-2 focus:ring-[#C81424] outline-none transition-all font-mono" required>
                             <span class="absolute right-3 top-2.5 text-xs font-bold text-gray-400">CP</span>
                         </div>
                     </div>
                     <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase mb-1">Capacitate</label>
+                        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Capacitate</label>
                         <div class="relative">
                             <input type="number" name="capacitate_cilindrica" placeholder="1995" class="w-full pl-3 pr-8 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-gray-900 dark:text-white focus:ring-2 focus:ring-[#C81424] outline-none transition-all font-mono">
                             <span class="absolute right-3 top-2.5 text-xs font-bold text-gray-400">cm³</span>
@@ -237,9 +237,9 @@
                     </div>
 					{{-- NORMA POLUARE --}}
 <div class="mb-6">
-    <label class="text-xs font-bold text-gray-500 uppercase mb-1">Normă poluare</label>
+    <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Normă poluare</label>
     <select name="norma_poluare_id"
-        class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm">
+        class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm text-gray-900 dark:text-white">
         <option value="">Alege norma</option>
         @foreach($normePoluare as $norma)
             <option value="{{ $norma->id }}">{{ $norma->nume }}</option>
@@ -250,8 +250,8 @@
 {{-- USI + LOCURI --}}
 <div class="grid grid-cols-2 gap-6 mb-6">
     <div>
-        <label class="text-xs font-bold text-gray-500 uppercase mb-1">Număr uși</label>
-        <select name="numar_usi" class="w-full px-4 py-2.5 rounded-lg border bg-white dark:bg-[#252525]">
+        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Număr uși</label>
+        <select name="numar_usi" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-gray-900 dark:text-white">
             <option value="">—</option>
             @foreach([2,3,4,5] as $usi)
                 <option value="{{ $usi }}">{{ $usi }}</option>
@@ -260,8 +260,8 @@
     </div>
 
     <div>
-        <label class="text-xs font-bold text-gray-500 uppercase mb-1">Număr locuri</label>
-        <select name="numar_locuri" class="w-full px-4 py-2.5 rounded-lg border bg-white dark:bg-[#252525]">
+        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Număr locuri</label>
+        <select name="numar_locuri" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-gray-900 dark:text-white">
             <option value="">—</option>
             @foreach(range(2,9) as $locuri)
                 <option value="{{ $locuri }}">{{ $locuri }}</option>
@@ -279,7 +279,7 @@
     ] as $name => $label)
         <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
             <input type="checkbox" name="{{ $name }}" value="1"
-                class="rounded border-gray-300 text-[#C81424] focus:ring-[#C81424]">
+                class="rounded border-gray-300 dark:border-[#404040] text-[#C81424] focus:ring-[#C81424]">
             {{ $label }}
         </label>
     @endforeach
@@ -326,7 +326,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                     {{-- PRET --}}
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Preț Vânzare</label>
+                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Preț Vânzare</label>
                         <div class="flex items-center gap-3">
                             <div class="relative flex-1">
                                 <input type="number" name="price_value" step="0.01" placeholder="0" class="w-full pl-4 pr-16 py-3 rounded-xl bg-gray-50 dark:bg-[#252525] border-none text-2xl font-bold text-gray-900 dark:text-white outline-none ring-1 ring-gray-200 dark:ring-[#444] focus:ring-2 focus:ring-green-500" required>
@@ -339,7 +339,7 @@
                         </div>
                         <div class="mt-3 flex gap-2">
                              <input type="hidden" name="price_type" id="inputPriceType" value="fixed">
-                             <button type="button" onclick="selectPill('inputPriceType', 'negotiable', this)" class="pill-btn px-3 py-1 text-xs border rounded-md border-gray-200 dark:border-[#444] text-gray-500 hover:border-green-500 hover:text-green-600 transition-colors">Negociabil</button>
+                             <button type="button" onclick="selectPill('inputPriceType', 'negotiable', this)" class="pill-btn px-3 py-1 text-xs border rounded-md border-gray-200 dark:border-[#444] text-gray-500 dark:text-gray-400 hover:border-green-500 hover:text-green-600 transition-colors">Negociabil</button>
                              <button type="button" onclick="selectPill('inputPriceType', 'fixed', this)" class="pill-btn px-3 py-1 text-xs border rounded-md border-green-500 bg-green-50 text-green-700 selected">Preț Fix</button>
                         </div>
                     </div>
@@ -347,12 +347,12 @@
                     {{-- CONTACT --}}
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Telefon</label>
-                            <input type="text" name="phone" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm" placeholder="07xx xxx xxx" required>
+                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Telefon</label>
+                            <input type="text" name="phone" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm text-gray-900 dark:text-white" placeholder="07xx xxx xxx" required>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Județ</label>
-                            <select id="county-select" name="county_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm" required>
+                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Județ</label>
+                            <select id="county-select" name="county_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm text-gray-900 dark:text-white" required>
                                 <option value="">Alege județ</option>
                                 @foreach ($counties as $county)
                                     <option value="{{ $county->id }}" @selected((string)old('county_id') === (string)$county->id)>{{ $county->name }}</option>
@@ -360,8 +360,8 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Oraș</label>
-                            <select id="locality-select" name="locality_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm" disabled required>
+                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Oraș</label>
+                            <select id="locality-select" name="locality_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm text-gray-900 dark:text-white" disabled required>
                                 <option value="">Selectează orașul</option>
                             </select>
                         </div>
@@ -381,16 +381,16 @@
 					<input type="hidden" name="user_type" value="individual">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div class="md:col-span-2">
-                             <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nume</label>
-                             <input type="text" name="name" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm">
+                             <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Nume</label>
+                             <input type="text" name="name" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm text-gray-900 dark:text-white">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Email</label>
-                            <input type="email" name="email" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm">
+                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Email</label>
+                            <input type="email" name="email" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm text-gray-900 dark:text-white">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Parolă</label>
-                            <input type="password" name="password" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm">
+                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Parolă</label>
+                            <input type="password" name="password" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm text-gray-900 dark:text-white">
                         </div>
                     </div>
                 </div>
@@ -407,7 +407,7 @@
 
             {{-- FOOTER NAVIGARE --}}
             <div class="mt-auto p-5 bg-gray-50 dark:bg-[#252525] border-t border-gray-100 dark:border-[#333] flex justify-between items-center">
-                <button type="button" id="prevBtn" class="hidden text-gray-500 font-bold text-sm px-4 py-2 hover:bg-gray-200 dark:hover:bg-[#333] rounded-lg transition-colors">
+                <button type="button" id="prevBtn" class="hidden text-gray-500 dark:text-gray-400 font-bold text-sm px-4 py-2 hover:bg-gray-200 dark:hover:bg-[#333] rounded-lg transition-colors">
                     ← Înapoi
                 </button>
                 <button type="button" id="nextBtn" class="ml-auto bg-gray-900 dark:bg-white text-white dark:text-black font-bold text-sm px-8 py-3 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all">

@@ -4,13 +4,13 @@
 
 @section('hero')
 {{-- HERO SECTION --}}
-<div class="w-full bg-[linear-gradient(180deg,#fff7f8_0%,#ffffff_72%)] dark:bg-[linear-gradient(180deg,#171112_0%,#121212_76%)] pt-14 md:pt-20 lg:pt-20 pb-5 md:pb-6 lg:pb-5">
+<div class="w-full bg-[linear-gradient(180deg,#fff7f8_0%,#ffffff_72%)] dark:bg-[linear-gradient(180deg,#171112_0%,#121212_76%)] pt-14 md:pt-20 lg:pt-20 pb-3 md:pb-4 lg:pb-3">
     <div class="homepage-hero-layout max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
 
-        <div class="homepage-hero-visual relative isolate -mx-4 flex min-h-[248px] items-center overflow-hidden rounded-none bg-white/70 px-4 py-6 sm:-mx-6 sm:min-h-[292px] sm:px-6 sm:py-8 md:min-h-[318px] md:py-9 lg:mx-0 lg:min-h-[300px] lg:rounded-3xl lg:px-10 lg:py-8 lg:shadow-[0_22px_70px_rgba(200,20,36,0.10)] xl:min-h-[320px]"
-             style="--homepage-hero-image: url('{{ asset('images/homepage-hero-car.webp') }}');">
+        <div class="homepage-hero-visual relative isolate -mx-4 flex min-h-[248px] items-center overflow-hidden rounded-none bg-white/70 px-4 py-6 sm:-mx-6 sm:min-h-[292px] sm:px-6 sm:py-8 md:min-h-[318px] md:py-9 lg:mx-0 lg:min-h-[300px] lg:rounded-3xl lg:px-10 lg:py-8 lg:shadow-[0_22px_70px_rgba(200,20,36,0.10)] dark:bg-[#171112] dark:lg:shadow-black/40 xl:min-h-[320px]"
+             style="--homepage-hero-image: url('{{ asset('images/homepage-hero-car.webp') }}'); --homepage-hero-dark-image: url('{{ asset('images/homepage-hero-car-dark.webp') }}');">
             <div class="relative z-10 max-w-[20rem] sm:max-w-[26rem] md:max-w-[31rem] lg:max-w-[28rem]">
-                <h1 class="text-[1.75rem] min-[360px]:text-[1.9rem] min-[430px]:text-[2rem] sm:text-[2.35rem] md:text-[2.9rem] lg:text-[2rem] xl:text-[2.35rem] 2xl:text-[2.6rem] font-black text-gray-950 tracking-tight leading-[0.98]">
+                <h1 class="text-[1.75rem] min-[360px]:text-[1.9rem] min-[430px]:text-[2rem] sm:text-[2.35rem] md:text-[2.9rem] lg:text-[2rem] xl:text-[2.35rem] 2xl:text-[2.6rem] font-black text-gray-950 dark:text-white tracking-tight leading-[0.98]">
                     Găsește mașina potrivită pentru tine
                 </h1>
                 <p class="homepage-hero-subtitle max-w-none whitespace-nowrap text-gray-500 dark:text-gray-400 mt-4 text-[0.82rem] min-[360px]:text-sm min-[430px]:text-[0.95rem] sm:text-base md:text-lg lg:text-base xl:text-lg font-bold leading-snug">
@@ -39,7 +39,7 @@
             <div class="homepage-quick-filters lg:hidden p-3">
                 <div class="grid grid-cols-3 gap-2">
                     <div class="min-w-0">
-                        <label for="homepage-quick-brand-filter" class="mb-1 block text-xs font-bold text-gray-900 dark:text-gray-100">Marcă</label>
+                        <label for="homepage-quick-brand-filter" class="mb-1 block text-[13px] font-bold text-gray-900 dark:text-gray-100 sm:text-sm">Marcă</label>
                         <select id="homepage-quick-brand-filter" class="autovit-select homepage-quick-select w-full">
                             <option value="">Toate mărcile</option>
                             @if($brandsPopulare->isNotEmpty())
@@ -58,14 +58,14 @@
                     </div>
 
                     <div class="min-w-0">
-                        <label for="homepage-quick-model-filter" class="mb-1 block text-xs font-bold text-gray-900 dark:text-gray-100">Model</label>
+                        <label for="homepage-quick-model-filter" class="mb-1 block text-[13px] font-bold text-gray-900 dark:text-gray-100 sm:text-sm">Model</label>
                         <select id="homepage-quick-model-filter" class="autovit-select homepage-quick-select w-full bg-gray-50 text-gray-400 cursor-not-allowed" disabled>
                             <option value="">Toate modelele</option>
                         </select>
                     </div>
 
                     <div class="min-w-0">
-                        <label for="homepage-quick-county-filter" class="mb-1 block text-xs font-bold text-gray-900 dark:text-gray-100">Județ</label>
+                        <label for="homepage-quick-county-filter" class="mb-1 block text-[13px] font-bold text-gray-900 dark:text-gray-100 sm:text-sm">Județ</label>
                         <select id="homepage-quick-county-filter" class="autovit-select homepage-quick-select w-full">
                             <option value="">Toată țara</option>
                             @foreach($counties as $county)
@@ -262,17 +262,23 @@
 
 @section('content')
 
-<div class="w-full mt-4">
-    <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-100 dark:border-[#2C2C2C]">
+<div class="w-full mt-0">
+    <div class="flex items-center justify-between mb-5 pb-3 border-b border-gray-100 dark:border-[#2C2C2C] md:mb-6">
         <div class="flex items-center gap-3">
              <div class="w-1.5 h-8 bg-[#C81424] rounded-full shadow-sm"></div>
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Anunțuri recente</h2>
         </div>
 
+        <a href="{{ url('/anunturi-auto-de-vanzare') }}"
+           class="inline-flex shrink-0 items-center gap-1.5 text-base font-extrabold text-[#C81424] transition hover:text-[#94111B] hover:underline sm:text-sm"
+           aria-label="Vezi toate anunțurile auto">
+            Vezi toate
+            <span aria-hidden="true">&rarr;</span>
+        </a>
     </div>
 
     {{-- GRID CARDURI VERTICALE --}}
-    <div id="services-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 pb-20 relative z-0">
+    <div id="services-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 pb-6 relative z-0">
         @forelse($services as $service)
             @php
                 $isFav = auth()->check() && $service->isFavoritedBy(auth()->user());
@@ -298,16 +304,16 @@
                     {{-- Preț --}}
                     <div class="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 flex flex-col items-start z-10">
                         @if($price)
-                            <span class="text-base sm:text-xl font-black text-white drop-shadow-lg tracking-tight">{{ $price }} <span class="text-[10px] sm:text-sm font-bold">{{ $service->currency }}</span></span>
-                            <span class="text-[9px] uppercase font-bold {{ $priceBadgeClass }} px-1.5 py-0.5 rounded shadow-sm mt-1">{{ $priceBadge }}</span>
+                            <span class="text-xl font-black text-white drop-shadow-lg tracking-tight sm:text-xl">{{ $price }} <span class="text-sm font-bold sm:text-sm">{{ $service->currency }}</span></span>
+                            <span class="text-[10px] uppercase font-bold {{ $priceBadgeClass }} px-2 py-0.5 rounded shadow-sm mt-1 sm:text-[9px] sm:px-1.5">{{ $priceBadge }}</span>
                         @else
-                            <span class="text-base sm:text-lg font-bold text-white drop-shadow-md">La cerere</span>
+                            <span class="text-xl font-bold text-white drop-shadow-md sm:text-lg">La cerere</span>
                         @endif
                     </div>
 
                     {{-- Favorite --}}
-                    <button onclick="event.preventDefault(); toggleHeart(this, {{ $service->id }})" class="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 rounded-full bg-black/20 hover:bg-white backdrop-blur-md transition-all duration-300 group/heart shadow-lg">
-                        <svg class="w-4 h-4 sm:w-5 sm:h-5 transition-colors {{ $isFav ? 'text-[#C81424] fill-[#C81424]' : 'text-white fill-none group-hover/heart:text-[#C81424]' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <button onclick="event.preventDefault(); toggleHeart(this, {{ $service->id }})" class="absolute top-2 right-2 sm:top-3 sm:right-3 p-2.5 sm:p-2 rounded-full bg-black/20 hover:bg-white backdrop-blur-md transition-all duration-300 group/heart shadow-lg">
+                        <svg class="w-6 h-6 sm:w-5 sm:h-5 transition-colors {{ $isFav ? 'text-[#C81424] fill-[#C81424]' : 'text-white fill-none group-hover/heart:text-[#C81424]' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733C11.285 4.876 9.623 3.75 7.688 3.75 5.099 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                         </svg>
                     </button>
@@ -315,8 +321,8 @@
 
                 <div class="p-3 sm:p-5 flex-1 flex flex-col">
                     <a href="{{ $service->public_url }}" class="block mb-4">
-                        <h3 class="text-sm sm:text-lg font-bold text-gray-900 dark:text-white leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-[#C81424] transition-colors">{{ $listingTitle }}</h3>
-                         <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mt-1 truncate uppercase tracking-wide">{{ $service->putere ?? '-' }} CP • {{ $service->capacitate_cilindrica ? number_format($service->capacitate_cilindrica, 0, '', '.') : '-' }} cm³</p>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-[#C81424] transition-colors">{{ $listingTitle }}</h3>
+                         <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 mt-1 truncate uppercase tracking-wide sm:text-xs">{{ $service->putere ?? '-' }} CP • {{ $service->capacitate_cilindrica ? number_format($service->capacitate_cilindrica, 0, '', '.') : '-' }} cm³</p>
                     </a>
 
                     {{-- Grid Specificații --}}
@@ -339,7 +345,7 @@
                         </div>
                     </div>
 
-                    <div class="mt-auto pt-4 border-t border-gray-100 dark:border-[#333] flex items-start justify-between gap-3 text-xs text-gray-500">
+                    <div class="mt-auto pt-4 border-t border-gray-100 dark:border-[#333] flex items-start justify-between gap-3 text-sm text-gray-500 dark:text-gray-400 sm:text-xs">
                         <div class="flex min-w-0 flex-1 items-start">
                             <svg class="w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0 text-[#C81424]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             <span class="leading-snug">{{ $locationLabel }}</span>
@@ -358,31 +364,28 @@
                     <svg class="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
                 </div>
                 <h3 class="text-xl font-bold text-gray-900 dark:text-white">Nu am găsit anunțuri</h3>
-                <p class="text-gray-500 mt-2">Încearcă să resetezi filtrele pentru a vedea mai multe rezultate.</p>
+                <p class="text-gray-500 dark:text-gray-400 mt-2">Încearcă să resetezi filtrele pentru a vedea mai multe rezultate.</p>
             </div>
         @endforelse
     </div>
 
-    <div id="loading-indicator" class="text-center py-8 hidden">
-        <svg class="animate-spin h-8 w-8 text-[#C81424] mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3.003 7.91l2.997-2.619z"></path>
-        </svg>
-        <p class="text-sm text-gray-500 mt-2">Se incarca...</p>
-    </div>
-
-    <div id="load-more-trigger" data-next-page="2" data-has-more="{{ $hasMore ? 'true' : 'false' }}" style="height: 1px;"></div>
+    @if($services->isNotEmpty())
+        <div class="flex justify-center pb-12">
+            <a href="{{ url('/anunturi-auto-de-vanzare') }}"
+               class="inline-flex items-center gap-2 text-lg font-extrabold text-[#C81424] transition hover:text-[#94111B] hover:underline sm:text-base"
+               aria-label="Vezi toate anunțurile auto">
+                Vezi toate
+                <span aria-hidden="true">&rarr;</span>
+            </a>
+        </div>
+    @endif
 </div>
 
 <script>
     const baseUrl = "{{ url('/') }}";
-    const homepageListUrl = "{{ route('services.index') }}";
     const carData = @json($carData ?? []);
     const localityBaseUrl = "{{ url('/api/localities') }}";
     const initialLocalityId = @json(optional($currentLocality)->id);
-    let isLoadingMore = false;
-    let currentPage = 2;
-    let hasMore = document.getElementById('load-more-trigger')?.dataset.hasMore === 'true';
 
     const domElements = {
         brand: document.getElementById('brand-filter'),
@@ -397,9 +400,6 @@
         resetBtn: document.getElementById('reset-btn'),
         vehicleType: document.getElementById('vehicle-type'),
         sellerType: document.getElementById('seller-type'),
-        container: document.getElementById('services-container'),
-        loader: document.getElementById('loading-indicator'),
-        trigger: document.getElementById('load-more-trigger'),
         quickBrand: document.getElementById('homepage-quick-brand-filter'),
         quickModel: document.getElementById('homepage-quick-model-filter'),
         quickCounty: document.getElementById('homepage-quick-county-filter'),
@@ -413,8 +413,8 @@
         if (!el) return;
         el.innerHTML = `<option value="">${placeholder}</option>`;
         el.disabled = true;
-        el.classList.add('bg-gray-50', 'text-gray-400', 'cursor-not-allowed');
-        el.classList.remove('bg-white', 'text-gray-900');
+        el.classList.add('bg-gray-50', 'text-gray-400', 'cursor-not-allowed', 'dark:bg-[#1a1a1a]', 'dark:text-gray-500');
+        el.classList.remove('bg-white', 'text-gray-900', 'dark:bg-[#2d2d2d]', 'dark:text-gray-100');
         el.value = "";
         syncCustomSelect(el);
     }
@@ -422,8 +422,8 @@
     function enableSelect(el) {
         if (!el) return;
         el.disabled = false;
-        el.classList.remove('bg-gray-50', 'text-gray-400', 'cursor-not-allowed');
-        el.classList.add('bg-white', 'text-gray-900');
+        el.classList.remove('bg-gray-50', 'text-gray-400', 'cursor-not-allowed', 'dark:bg-[#1a1a1a]', 'dark:text-gray-500');
+        el.classList.add('bg-white', 'text-gray-900', 'dark:bg-[#2d2d2d]', 'dark:text-gray-100');
         syncCustomSelect(el);
     }
 
@@ -759,82 +759,10 @@
         return `${baseUrl}${path}${queryString ? `?${queryString}` : ''}`;
     }
 
-    function getGridColumnCount() {
-        if (!domElements.container) return 1;
-
-        const columns = window.getComputedStyle(domElements.container).gridTemplateColumns;
-        return Math.max(1, columns.split(' ').filter(Boolean).length);
-    }
-
-    function getNextLoadTarget() {
-        if (!domElements.container) return null;
-
-        const cards = Array.from(domElements.container.children).filter(child => !child.classList.contains('col-span-full'));
-        if (!cards.length) return null;
-
-        const columnCount = getGridColumnCount();
-        return cards[Math.max(cards.length - columnCount, 0)];
-    }
-
-    function observeNextLoadTarget() {
-        const target = getNextLoadTarget() || domElements.trigger;
-        if (!target || !hasMore) return;
-
-        infiniteScrollObserver.disconnect();
-        infiniteScrollObserver.observe(target);
-    }
-
-    function loadHomepageServices(page) {
-        if (isLoadingMore || !hasMore) return;
-
-        isLoadingMore = true;
-        domElements.loader?.classList.remove('hidden');
-
-        const params = new URLSearchParams(window.location.search);
-        params.set('page', page);
-        params.set('ajax', '1');
-
-        fetch(`${homepageListUrl}?${params.toString()}`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (domElements.container && data.html) {
-                    domElements.container.insertAdjacentHTML('beforeend', data.html);
-                }
-
-                hasMore = !!data.hasMore;
-                currentPage = hasMore ? page + 1 : page;
-
-                if (domElements.trigger) {
-                    domElements.trigger.dataset.hasMore = hasMore ? 'true' : 'false';
-                    domElements.trigger.dataset.nextPage = String(currentPage);
-                }
-
-                if (hasMore) {
-                    window.requestAnimationFrame(observeNextLoadTarget);
-                } else {
-                    infiniteScrollObserver.disconnect();
-                }
-            })
-            .catch(error => console.error(error))
-            .finally(() => {
-                isLoadingMore = false;
-                domElements.loader?.classList.add('hidden');
-            });
-    }
-
-    const infiniteScrollObserver = new IntersectionObserver((entries) => {
-        if (entries[0]?.isIntersecting && hasMore && !isLoadingMore) {
-            loadHomepageServices(currentPage);
-        }
-    }, { rootMargin: '0px 0px 160px 0px', threshold: 0.1 });
-
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('select.autovit-select').forEach(enhanceSelect);
 
         window.checkResetVisibility();
-        observeNextLoadTarget();
 
         const sellerTabs = document.querySelectorAll('.seller-tab');
         const sellerInput = domElements.sellerType;
@@ -957,12 +885,6 @@
         }
     });
 
-    window.addEventListener('resize', () => {
-        if (hasMore) {
-            observeNextLoadTarget();
-        }
-    });
-
     window.toggleHeart = function(btn, serviceId) {
         @if(!auth()->check()) window.location.href = "{{ route('login') }}"; return; @endif
         const icon = btn.querySelector('svg');
@@ -988,12 +910,6 @@
         background-repeat: no-repeat;
         background-size: cover, cover;
         background-position: center, center right;
-    }
-
-    .dark .homepage-hero-visual {
-        background-image:
-            linear-gradient(90deg, rgba(23, 17, 18, 0.96) 0%, rgba(23, 17, 18, 0.86) 40%, rgba(23, 17, 18, 0.52) 60%, rgba(23, 17, 18, 0.12) 100%),
-            var(--homepage-hero-image);
     }
 
     @media (max-width: 1023px) {
@@ -1034,7 +950,7 @@
             padding: 0 0.55rem 0 0.65rem;
             border-color: #d6dbe3;
             border-radius: 0.7rem;
-            font-size: 0.78rem;
+            font-size: 0.86rem;
             font-weight: 800;
             box-shadow: none;
         }
@@ -1060,7 +976,7 @@
         }
 
         .homepage-quick-filters .custom-select-trigger {
-            font-size: 0.88rem;
+            font-size: 0.9rem;
             height: 46px;
         }
     }
@@ -1085,18 +1001,18 @@
         }
 
         .homepage-quick-filters label {
-            font-size: 0.68rem;
+            font-size: 0.8rem;
         }
 
         .homepage-quick-filters .custom-select-trigger {
             height: 40px;
             padding-left: 0.45rem;
             padding-right: 0.35rem;
-            font-size: 0.72rem;
+            font-size: 0.8rem;
         }
 
         .homepage-quick-filters button {
-            font-size: 0.75rem;
+            font-size: 0.82rem;
         }
     }
 
@@ -1188,10 +1104,6 @@
         letter-spacing: 0.05em;
     }
 
-    .dark .autovit-label {
-        color: #a3a3a3;
-    }
-
     .autovit-select {
         display: block; width: 100%; height: 48px; padding: 0 2rem 0 1rem;
         font-size: 0.9rem; font-weight: 600; color: #1f2937;
@@ -1204,8 +1116,6 @@
 
     .autovit-select:hover { border-color: #C81424; }
     .autovit-select:focus { outline: none; border-color: #C81424; box-shadow: 0 0 0 3px rgba(200, 20, 36, 0.12); }
-    .dark .autovit-select { background-color: #2d2d2d; border-color: #404040; color: #e5e7eb; }
-    .dark .autovit-select:disabled { background-color: #1a1a1a; color: #555; }
 
     .native-select-hidden {
         display: none !important;
@@ -1355,41 +1265,6 @@
         cursor: not-allowed;
     }
 
-    .dark .custom-select-trigger {
-        border-color: #404040;
-        background: #2d2d2d;
-        color: #e5e7eb;
-    }
-
-    .dark .custom-select.is-disabled .custom-select-trigger {
-        background: #1a1a1a;
-        color: #555555;
-    }
-
-    .dark .custom-select-menu {
-        border-color: rgba(200, 20, 36, 0.38);
-        background: #252525;
-        box-shadow: 0 18px 36px rgba(0, 0, 0, 0.36);
-    }
-
-    .dark .custom-select-group + .custom-select-group {
-        border-top-color: #333333;
-    }
-
-    .dark .custom-select-option {
-        color: #e5e7eb;
-    }
-
-    .dark .custom-select-option:hover,
-    .dark .custom-select-option:focus-visible {
-        background: rgba(200, 20, 36, 0.18);
-        color: #ffffff;
-    }
-
-    .dark .custom-select-option.is-selected {
-        background: #C81424;
-        color: #ffffff;
-    }
 
     .spec-pill {
         display: flex;
@@ -1399,15 +1274,15 @@
         gap: 0.35rem;
         min-width: 0;
         padding: 0.125rem;
-        font-size: 0.75rem;
-        font-weight: 500;
+        font-size: 0.875rem;
+        font-weight: 600;
         line-height: 1.2;
         text-align: center;
         color: #2d3138;
     }
     .spec-pill svg {
-        width: 1.25rem;
-        height: 1.25rem;
+        width: 1.4rem;
+        height: 1.4rem;
         flex-shrink: 0;
         color: #16181d;
         stroke-width: 1.9;
@@ -1419,8 +1294,102 @@
         text-overflow: ellipsis;
         white-space: nowrap;
     }
-    .dark .spec-pill { color: #e5e7eb; }
-    .dark .spec-pill svg { color: #f4f4f5; }
+
+    @media (min-width: 640px) {
+        .spec-pill {
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .spec-pill svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+    }
     optgroup { font-weight: 700; color: #C81424; background-color: #f9fafb; }
+
+    @media (prefers-color-scheme: dark) {
+        .homepage-hero-visual {
+            background-image:
+                linear-gradient(90deg, rgba(18, 18, 18, 0.99) 0%, rgba(18, 18, 18, 0.94) 34%, rgba(18, 18, 18, 0.72) 52%, rgba(18, 18, 18, 0.18) 78%, rgba(18, 18, 18, 0.02) 100%),
+                var(--homepage-hero-dark-image);
+        }
+
+        .autovit-label {
+            color: #a3a3a3;
+        }
+
+        .autovit-select {
+            background-color: #2d2d2d;
+            border-color: #404040;
+            color: #e5e7eb;
+        }
+
+        .autovit-select:disabled {
+            background-color: #1a1a1a;
+            color: #6b7280;
+        }
+
+        .custom-select-trigger {
+            border-color: #404040;
+            background: #2d2d2d;
+            color: #e5e7eb;
+        }
+
+        .custom-select.is-disabled .custom-select-trigger {
+            background: #1a1a1a;
+            color: #6b7280;
+        }
+
+        .custom-select-menu {
+            border-color: rgba(200, 20, 36, 0.38);
+            background: #252525;
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.36);
+        }
+
+        .custom-select-group + .custom-select-group {
+            border-top-color: #333333;
+        }
+
+        .custom-select-option {
+            color: #e5e7eb;
+        }
+
+        .custom-select-option:hover,
+        .custom-select-option:focus-visible {
+            background: rgba(200, 20, 36, 0.18);
+            color: #ffffff;
+        }
+
+        .custom-select-option.is-selected {
+            background: #C81424;
+            color: #ffffff;
+        }
+
+        .spec-pill {
+            color: #e5e7eb;
+        }
+
+        .spec-pill svg {
+            color: #f4f4f5;
+        }
+
+        optgroup,
+        option {
+            background-color: #252525;
+            color: #e5e7eb;
+        }
+    }
+
+    @media (prefers-color-scheme: dark) and (max-width: 1023px) {
+        .homepage-hero-subtitle {
+            text-shadow: 0 1px 12px rgba(0, 0, 0, 0.68);
+        }
+
+        .homepage-filter-panel.is-expanded .homepage-advanced-filters,
+        .homepage-filter-panel.is-expanded .search-panel-header {
+            border-color: rgba(255, 255, 255, 0.10);
+        }
+    }
 </style>
 @endsection

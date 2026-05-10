@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600">
+    <div class="mb-4 text-sm text-gray-600 dark:text-gray-300">
         {{ __('Mulțumim pentru înregistrare! Înainte de a începe, te rugăm să îți verifici adresa de email făcând clic pe linkul pe care ți l-am trimis. Dacă nu ai primit emailul, îți vom trimite cu plăcere un altul.') }}
     </div>
 
@@ -23,7 +23,7 @@
         <form method="POST" action="{{ route('logout') }}">
             @csrf
 
-            <button type="submit" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <button type="submit" class="underline text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-[#121212] focus:ring-indigo-500">
                 {{ __('Deconectare') }}
             </button>
         </form>

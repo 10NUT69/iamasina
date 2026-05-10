@@ -12,7 +12,7 @@
             <div class="hidden lg:block mb-5">
                 <nav class="flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">
                     <a href="{{ route('services.index') }}"
-                       class="rounded bg-blue-50 px-2 py-1 font-medium text-gray-800 transition hover:bg-blue-100 hover:text-[#C81424]">
+                       class="rounded bg-blue-50 px-2 py-1 font-medium text-gray-800 transition hover:bg-blue-100 hover:text-[#C81424] dark:bg-[#1f2937] dark:text-gray-100 dark:hover:bg-[#2d3748] dark:hover:text-red-200">
                         Acasă
                     </a>
                     <span class="text-gray-400">/</span>
@@ -45,7 +45,7 @@
                         <input type="hidden" name="seller_type" id="seller-type" value="{{ request('seller_type', 'all') }}">
 
                         <div>
-                            <p class="text-sm font-semibold text-gray-700 mb-2">De unde vrei să cumperi?</p>
+                            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">De unde vrei să cumperi?</p>
                             <select id="seller-type-select" class="autovit-select listing-filter">
                                 <option value="all" @selected(request('seller_type', 'all') === 'all')>Parcuri + Proprietari</option>
                                 <option value="individual" @selected(request('seller_type') === 'individual')>Proprietari</option>
@@ -98,7 +98,7 @@
                         </select>
 
                         <div>
-                            <p class="text-sm font-semibold text-gray-700 mb-2">An fabricație</p>
+                            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">An fabricație</p>
                             <div class="grid grid-cols-2 gap-2">
                                 <input type="number" id="year-min" name="year_min" placeholder="Min" value="{{ request('year_min', request('an_min')) }}"
                                     class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
@@ -108,7 +108,7 @@
                         </div>
 
                         <div>
-                            <p class="text-sm font-semibold text-gray-700 mb-2">Km</p>
+                            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Km</p>
                             <div class="grid grid-cols-2 gap-2">
                                 <input type="number" id="km-min" name="km_min" placeholder="Min" value="{{ request('km_min') }}"
                                     class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
@@ -118,7 +118,7 @@
                         </div>
 
                         <div>
-                            <p class="text-sm font-semibold text-gray-700 mb-2">Preț (EUR)</p>
+                            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Preț (EUR)</p>
                             <div class="grid grid-cols-2 gap-2">
                                 <input type="number" id="price-min" name="price_min" placeholder="Min" value="{{ request('price_min', request('pret_min')) }}"
                                     class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
@@ -161,7 +161,7 @@
 
                         <div class="flex gap-2">
                             <button type="button" id="reset-btn" onclick="resetFilters()" disabled
-                                    class="h-[46px] w-[46px] flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-300 transition-all duration-200 cursor-not-allowed"
+                                    class="h-[46px] w-[46px] flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-300 transition-all duration-200 cursor-not-allowed dark:border-[#333333] dark:bg-[#252525] dark:text-gray-600"
                                     title="Șterge toate filtrele">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -184,7 +184,7 @@
             <div class="listing-mobile-heading lg:hidden mb-3">
                 <nav class="flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">
                     <a href="{{ route('services.index') }}"
-                       class="rounded bg-blue-50 px-2 py-1 font-medium text-gray-800 transition hover:bg-blue-100 hover:text-[#C81424]">
+                       class="rounded bg-blue-50 px-2 py-1 font-medium text-gray-800 transition hover:bg-blue-100 hover:text-[#C81424] dark:bg-[#1f2937] dark:text-gray-100 dark:hover:bg-[#2d3748] dark:hover:text-red-200">
                         Acasă
                     </a>
                     <span class="text-gray-400">/</span>
@@ -200,7 +200,7 @@
             <div id="listing-actions-bar" class="sticky z-40 -mx-4 mb-4 bg-[#f6f7fb]/95 px-4 py-2.5 shadow-sm ring-1 ring-gray-200/80 backdrop-blur dark:bg-[#121212]/95 dark:ring-gray-800 sm:-mx-6 sm:px-6 lg:static lg:top-auto lg:z-auto lg:mx-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:ring-0 lg:backdrop-blur-0">
                 <div class="listing-actions-row grid grid-cols-[0.72fr_1fr_1.18fr] items-stretch gap-2 lg:flex lg:items-center lg:justify-between lg:gap-3">
                     <button type="button" id="open-filters"
-                        class="listing-action-button inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 text-[13px] font-semibold text-[#C81424] shadow-sm transition hover:border-[#C81424] hover:bg-[#fff4f5] lg:hidden">
+                        class="listing-action-button inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 text-[13px] font-semibold text-[#C81424] shadow-sm transition hover:border-[#C81424] hover:bg-[#fff4f5] dark:border-[#333333] dark:bg-[#1E1E1E] dark:text-red-200 dark:hover:border-red-700 dark:hover:bg-[#2a1013] lg:hidden">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M4 7h10" />
                             <path d="M18 7h2" />
@@ -212,7 +212,7 @@
                         <span class="truncate">Filtre</span>
                     </button>
                     <button type="button"
-                        class="listing-action-button inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 text-[13px] font-semibold text-gray-700 shadow-sm transition hover:border-[#C81424] hover:bg-[#fff4f5] hover:text-[#C81424] lg:w-auto lg:px-3 lg:text-sm lg:text-[#0F5CC0] lg:border-[#0F5CC0]">
+                        class="listing-action-button inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 text-[13px] font-semibold text-gray-700 shadow-sm transition hover:border-[#C81424] hover:bg-[#fff4f5] hover:text-[#C81424] dark:border-[#333333] dark:bg-[#1E1E1E] dark:text-gray-100 dark:hover:border-red-700 dark:hover:bg-[#2a1013] dark:hover:text-red-200 lg:w-auto lg:px-3 lg:text-sm lg:text-[#0F5CC0] lg:border-[#0F5CC0] lg:dark:text-red-200 lg:dark:border-red-900/50">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0h6z"/>
                         </svg>
@@ -220,7 +220,7 @@
                     </button>
 
                     <div class="listing-sort-compact min-w-0 lg:ml-auto lg:flex lg:w-auto lg:items-center lg:gap-2">
-                        <label for="sort-select" class="sr-only text-sm font-semibold text-gray-600 lg:not-sr-only">Sortare</label>
+                        <label for="sort-select" class="sr-only text-sm font-semibold text-gray-600 dark:text-gray-300 lg:not-sr-only">Sortare</label>
                         <select id="sort-select" class="autovit-select listing-filter w-full lg:w-56">
                             <option value="newest" @selected(request('sort', 'newest') === 'newest')>Sortare recomandată</option>
                             <option value="price_asc" @selected(request('sort') === 'price_asc')>Ieftine</option>
@@ -241,7 +241,7 @@
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3.003 7.91l2.997-2.619z"></path>
                 </svg>
-                <p class="text-sm text-gray-500 mt-2">Se încarcă...</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Se încarcă...</p>
             </div>
 
             <div id="load-more-trigger" data-next-page="2" data-has-more="{{ $hasMore ? 'true' : 'false' }}" style="height: 1px;"></div>
@@ -576,12 +576,12 @@
 
         if (hasAnyFilter) {
             btn.disabled = false;
-            btn.classList.remove('bg-gray-50', 'text-gray-300', 'cursor-not-allowed');
-            btn.classList.add('bg-white', 'text-[#C81424]', 'border-[#C81424]', 'hover:bg-red-50', 'cursor-pointer', 'shadow-sm');
+            btn.classList.remove('bg-gray-50', 'text-gray-300', 'cursor-not-allowed', 'dark:bg-[#252525]', 'dark:text-gray-600');
+            btn.classList.add('bg-white', 'text-[#C81424]', 'border-[#C81424]', 'hover:bg-red-50', 'cursor-pointer', 'shadow-sm', 'dark:bg-[#1E1E1E]', 'dark:text-red-200', 'dark:hover:bg-[#2a1013]');
         } else {
             btn.disabled = true;
-            btn.classList.remove('bg-white', 'text-[#C81424]', 'border-[#C81424]', 'hover:bg-red-50', 'cursor-pointer', 'shadow-sm');
-            btn.classList.add('bg-gray-50', 'text-gray-300', 'cursor-not-allowed');
+            btn.classList.remove('bg-white', 'text-[#C81424]', 'border-[#C81424]', 'hover:bg-red-50', 'cursor-pointer', 'shadow-sm', 'dark:bg-[#1E1E1E]', 'dark:text-red-200', 'dark:hover:bg-[#2a1013]');
+            btn.classList.add('bg-gray-50', 'text-gray-300', 'cursor-not-allowed', 'dark:bg-[#252525]', 'dark:text-gray-600');
         }
     };
 
@@ -976,11 +976,6 @@
             backdrop-filter: blur(10px);
         }
 
-        .dark #listing-actions-bar {
-            background: rgba(18, 18, 18, 0.96);
-            border-color: rgba(31, 41, 55, 0.85);
-        }
-
         .listing-actions-row {
             display: grid;
             grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr) minmax(0, 1.18fr);
@@ -1110,19 +1105,6 @@
         outline: none;
         border-color: #C81424;
         box-shadow: 0 0 0 3px rgba(200, 20, 36, 0.1);
-    }
-
-    .dark .autovit-select {
-        background-color: #2d2d2d;
-        border-color: #404040;
-        color: #e5e7eb;
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-    }
-
-    .dark .autovit-select:disabled {
-        background-color: #1a1a1a;
-        color: #555;
-        cursor: not-allowed;
     }
 
     .autovit-select.listing-filter {
@@ -1273,42 +1255,6 @@
         cursor: not-allowed;
     }
 
-    .dark .custom-select-trigger {
-        border-color: #404040;
-        background: #2d2d2d;
-        color: #e5e7eb;
-    }
-
-    .dark .custom-select.is-disabled .custom-select-trigger {
-        background: #1a1a1a;
-        color: #555555;
-    }
-
-    .dark .custom-select-menu {
-        border-color: rgba(200, 20, 36, 0.35);
-        background: #252525;
-        box-shadow: 0 18px 36px rgba(0, 0, 0, 0.36);
-    }
-
-    .dark .custom-select-group + .custom-select-group {
-        border-top-color: #333333;
-    }
-
-    .dark .custom-select-option {
-        color: #e5e7eb;
-    }
-
-    .dark .custom-select-option:hover,
-    .dark .custom-select-option:focus-visible {
-        background: rgba(200, 20, 36, 0.16);
-        color: #ffffff;
-    }
-
-    .dark .custom-select-option.is-selected {
-        background: #C81424;
-        color: #ffffff;
-    }
-
     optgroup {
         font-weight: 700;
         color: #C81424;
@@ -1319,6 +1265,70 @@
         color: #1f2937;
         padding: 4px;
         background-color: #fff;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .autovit-select {
+            background-color: #2d2d2d;
+            border-color: #404040;
+            color: #e5e7eb;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        }
+
+        .autovit-select:disabled {
+            background-color: #1a1a1a;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+
+        .custom-select-trigger {
+            border-color: #404040;
+            background: #2d2d2d;
+            color: #e5e7eb;
+        }
+
+        .custom-select.is-disabled .custom-select-trigger {
+            background: #1a1a1a;
+            color: #6b7280;
+        }
+
+        .custom-select-menu {
+            border-color: rgba(200, 20, 36, 0.35);
+            background: #252525;
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.36);
+        }
+
+        .custom-select-group + .custom-select-group {
+            border-top-color: #333333;
+        }
+
+        .custom-select-option {
+            color: #e5e7eb;
+        }
+
+        .custom-select-option:hover,
+        .custom-select-option:focus-visible {
+            background: rgba(200, 20, 36, 0.16);
+            color: #ffffff;
+        }
+
+        .custom-select-option.is-selected {
+            background: #C81424;
+            color: #ffffff;
+        }
+
+        optgroup,
+        option {
+            background-color: #252525;
+            color: #e5e7eb;
+        }
+    }
+
+    @media (prefers-color-scheme: dark) and (max-width: 1023px) {
+        #listing-actions-bar {
+            background: rgba(18, 18, 18, 0.96);
+            border-color: rgba(31, 41, 55, 0.85);
+        }
     }
 </style>
 @endsection

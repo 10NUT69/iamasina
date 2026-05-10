@@ -112,6 +112,9 @@
 
     /* Glass Effect */
     .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+    @media (prefers-color-scheme: dark) {
+        .glass { background: rgba(24, 24, 27, 0.94); }
+    }
 
     /* Custom Scrollbar */
     .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -266,7 +269,7 @@
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
                     WhatsApp
                 </a>
-                <button onclick="copyLink()" class="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-bold transition shadow-sm hover:shadow-md">
+                <button onclick="copyLink()" class="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-bold transition shadow-sm hover:shadow-md dark:bg-[#252525] dark:text-gray-100 dark:hover:bg-[#333333]">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                     <span id="copy-text">Copiază Link</span>
                 </button>
@@ -275,7 +278,7 @@
             {{-- Mobile Title & Price (Vizibil doar pe mobil) --}}
             <div class="md:hidden space-y-2 mt-4">
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white leading-tight">{{ $service->title }}</h1>
-                <div class="flex items-center gap-2 text-gray-500 text-sm">
+                <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 111.314 0z"/></svg>
                     {{ $seoLocation }}
                 </div>
@@ -308,10 +311,10 @@
             @if($service->vin)
                 <div class="mt-4 bg-white dark:bg-[#1E1E1E] p-4 rounded-xl border border-gray-100 dark:border-[#333] shadow-sm flex flex-wrap items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 flex items-center justify-center bg-gray-50 dark:bg-[#333] rounded-lg text-gray-500">
+                        <div class="w-10 h-10 flex items-center justify-center bg-gray-50 dark:bg-[#333] rounded-lg text-gray-500 dark:text-gray-300">
                              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5l5 5v11a2 2 0 01-2 2z"/></svg>
                         </div>
-                        <span class="font-bold text-gray-500 text-sm uppercase tracking-wide">Serie Șasiu (VIN)</span>
+                        <span class="font-bold text-gray-500 dark:text-gray-400 text-sm uppercase tracking-wide">Serie Șasiu (VIN)</span>
                     </div>
                     <span class="font-mono font-bold text-lg text-gray-900 dark:text-white select-all break-all text-right">
                         {{ $service->vin }}
@@ -354,7 +357,7 @@
                         @foreach($specs1 as $k => $v)
                             @if(!is_null($v) && $v !== '')
                                 <div class="flex justify-between px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#252525] transition">
-                                    <span class="text-gray-500">{{ $k }}</span>
+                                    <span class="text-gray-500 dark:text-gray-400">{{ $k }}</span>
                                     <span class="font-semibold text-gray-900 dark:text-white">{{ $v }}</span>
                                 </div>
                             @endif
@@ -381,7 +384,7 @@
                         @foreach($specs2 as $k => $v)
                             @if(!is_null($v) && $v !== '')
                                 <div class="flex justify-between px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#252525] transition">
-                                    <span class="text-gray-500">{{ $k }}</span>
+                                    <span class="text-gray-500 dark:text-gray-400">{{ $k }}</span>
                                     <span class="font-semibold text-gray-900 dark:text-white">{{ $v }}</span>
                                 </div>
                             @endif
@@ -393,17 +396,17 @@
                 @if($isImported || $isDamaged || $hasDpf)
                     <div class="px-6 py-4 border-t border-gray-100 dark:border-[#333] flex flex-wrap gap-2 bg-white dark:bg-[#1E1E1E]">
                         @if($isImported)
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-[#fff4f5] text-[#8f111a] border border-red-100">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-[#fff4f5] text-[#8f111a] border border-red-100 dark:bg-[#2a1013] dark:text-red-200 dark:border-red-900/40">
                                 Importată
                             </span>
                         @endif
                         @if($isDamaged)
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-100">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-100 dark:bg-red-900/20 dark:text-red-200 dark:border-red-900/40">
                                 Avariată
                             </span>
                         @endif
                         @if($hasDpf)
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-100">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-100 dark:bg-green-900/20 dark:text-green-200 dark:border-green-900/40">
                                 Filtru particule (DPF)
                             </span>
                         @endif
@@ -422,17 +425,17 @@
                 {{-- CARD TITLU & PRET (Doar Desktop) --}}
                 <div class="bg-white dark:bg-[#1E1E1E] p-6 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-gray-100 dark:border-[#333] hidden md:block">
                     <h1 class="text-xl font-bold text-gray-900 dark:text-white mb-2 leading-snug">{{ $service->title }}</h1>
-                    <div class="text-sm text-gray-500 mb-6 flex items-center gap-1">
+                    <div class="text-sm text-gray-500 dark:text-gray-400 mb-6 flex items-center gap-1">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 111.314 0z"/></svg>
                         {{ $seoLocation }}
                     </div>
 
                     <div class="flex items-baseline gap-2 mb-2">
                         <span class="text-4xl font-extrabold text-gray-900 dark:text-white">{{ $formattedPrice }}</span>
-                        <span class="text-xl font-bold text-gray-500">{{ $currency }}</span>
+                        <span class="text-xl font-bold text-gray-500 dark:text-gray-400">{{ $currency }}</span>
                     </div>
                     @if($service->price_type === 'negotiable')
-                        <span class="inline-block px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded uppercase">Negociabil</span>
+                        <span class="inline-block px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded uppercase dark:bg-green-900/20 dark:text-green-200">Negociabil</span>
                     @endif
                 </div>
 
@@ -450,14 +453,14 @@
                             </div>
 
                             <div class="flex items-center gap-4 mb-5">
-                                <div class="w-14 h-14 shrink-0 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-xl font-black text-[#E03E2D]">
+                                <div class="w-14 h-14 shrink-0 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-xl font-black text-[#E03E2D] dark:border-[#333] dark:bg-[#252525]">
                                     {{ strtoupper(substr(($sellerUser->company_name ?? 'D'), 0, 1)) }}
                                 </div>
                                 <div class="overflow-hidden">
                                     <h4 class="font-bold text-lg text-gray-900 dark:text-white leading-tight truncate">
                                         {{ $sellerUser->company_name ?? 'Parc Auto' }}
                                     </h4>
-                                    <p class="text-xs text-gray-500 mt-0.5 truncate">Dealer Auto • Înregistrat {{ optional($sellerUser->created_at)->format('Y') }}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">Dealer Auto • Înregistrat {{ optional($sellerUser->created_at)->format('Y') }}</p>
                                 </div>
                             </div>
 
@@ -519,7 +522,7 @@
                         {{-- ACTION BUTTONS DESKTOP --}}
                         <div class="mt-4 space-y-3 hidden md:block">
                             @if($isDeleted)
-                                <button disabled class="w-full bg-gray-200 text-gray-500 py-3.5 rounded-xl font-bold">Anunț Dezactivat</button>
+                                <button disabled class="w-full bg-gray-200 text-gray-500 py-3.5 rounded-xl font-bold dark:bg-[#333333] dark:text-gray-400">Anunț Dezactivat</button>
                                 @if($isDealer && !empty($sellerUser->dealer_public_url))
                                     <a href="{{ $sellerUser->dealer_public_url }}"
                                        class="inline-flex w-full items-center justify-center rounded-xl border border-[#C81424]/20 bg-[#fff4f5] px-4 py-3 text-sm font-bold text-[#C81424] transition hover:border-[#C81424] hover:bg-white dark:border-red-900/40 dark:bg-[#2a1013] dark:text-red-200 dark:hover:bg-[#18181B]">
@@ -531,7 +534,7 @@
                                     <svg class="w-5 h-5 group-hover:animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                                     <span id="txt-phone-desktop">Arată Numărul</span>
                                 </button>
-                                <button class="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3.5 rounded-xl transition">
+                                <button class="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3.5 rounded-xl transition dark:border-[#333333] dark:bg-[#252525] dark:text-gray-100 dark:hover:bg-[#333333]">
                                     Trimite Mesaj
                                 </button>
                                 @if($isDealer && !empty($sellerUser->dealer_public_url))
@@ -560,12 +563,12 @@
 </div>
 
 {{-- MOBILE BOTTOM BAR --}}
-<div class="fixed bottom-0 left-0 right-0 z-40 lg:hidden glass border-t border-gray-200 px-4 py-3 safe-area-pb">
+<div class="fixed bottom-0 left-0 right-0 z-40 lg:hidden glass border-t border-gray-200 dark:border-[#333333] px-4 py-3 safe-area-pb">
     <div class="flex gap-3">
         @if($isDeleted)
-            <button class="w-full bg-gray-200 py-3 rounded-lg font-bold text-gray-500" disabled>Indisponibil</button>
+            <button class="w-full bg-gray-200 py-3 rounded-lg font-bold text-gray-500 dark:bg-[#333333] dark:text-gray-400" disabled>Indisponibil</button>
         @else
-            <button class="flex-1 bg-white border border-gray-300 text-gray-800 font-bold py-3 rounded-xl">Mesaj</button>
+            <button class="flex-1 bg-white border border-gray-300 text-gray-800 font-bold py-3 rounded-xl dark:border-[#333333] dark:bg-[#252525] dark:text-gray-100">Mesaj</button>
             <button onclick="revealPhone('mobile', '{{ $rawPhone }}', '{{ $formattedPhone }}')" id="btn-phone-mobile" class="flex-[2] bg-[#E03E2D] active:bg-[#c92a1b] text-white font-bold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                 <span id="txt-phone-mobile">Sună</span>

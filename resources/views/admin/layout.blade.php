@@ -6,14 +6,65 @@
     <title>Admin - iaAuto.ro</title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <style>
+        @media (prefers-color-scheme: dark) {
+            .admin-theme {
+                background: #121212;
+                color: #e5e7eb;
+            }
+
+            .admin-theme [class*="bg-[#F8FAFC]"] {
+                background: #121212 !important;
+            }
+
+            .admin-theme .bg-white,
+            .admin-theme [class*="bg-slate-50"] {
+                background: #1e1e1e !important;
+            }
+
+            .admin-theme .bg-gray-100,
+            .admin-theme .bg-gray-200 {
+                background: #252525 !important;
+            }
+
+            .admin-theme [class*="text-slate-800"],
+            .admin-theme [class*="text-slate-700"] {
+                color: #f4f4f5 !important;
+            }
+
+            .admin-theme [class*="text-slate-600"],
+            .admin-theme [class*="text-slate-500"],
+            .admin-theme [class*="text-slate-400"] {
+                color: #a1a1aa !important;
+            }
+
+            .admin-theme [class*="border-slate-"],
+            .admin-theme [class*="border-gray-"] {
+                border-color: #333333 !important;
+            }
+
+            .admin-theme input:not([type="checkbox"]),
+            .admin-theme select,
+            .admin-theme textarea {
+                background: #252525 !important;
+                border-color: #404040 !important;
+                color: #f4f4f5 !important;
+            }
+
+            .admin-theme a:hover {
+                background-color: rgba(255, 255, 255, 0.06);
+            }
+        }
+    </style>
 </head>
 
-<body class="bg-gray-100">
+<body class="admin-theme bg-gray-100 dark:bg-[#121212] dark:text-gray-100">
 
 <div class="flex">
 
     <!-- SIDEBAR -->
-    <aside class="w-64 bg-white shadow h-screen p-6">
+    <aside class="w-64 bg-white dark:bg-[#1E1E1E] shadow h-screen p-6 border-r border-transparent dark:border-[#333333]">
         <h1 class="text-2xl font-bold mb-6">Admin Panel</h1>
 
         <nav class="space-y-3">

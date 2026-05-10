@@ -263,7 +263,7 @@
 
                 <div class="space-y-4">
                     <div>
-                        <label for="brand-filter" class="mb-2 block text-xs font-bold uppercase tracking-wide text-gray-500">Marca</label>
+                        <label for="brand-filter" class="mb-2 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Marca</label>
                         <select id="brand-filter" name="brand_id" class="h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-900 transition hover:border-[#C81424] focus:border-[#C81424] focus:outline-none focus:ring-2 focus:ring-[#C81424]/20 dark:border-[#333] dark:bg-[#202024] dark:text-white">
                             <option value="">Toate mărcile</option>
                             @foreach($brands as $brand)
@@ -275,7 +275,7 @@
                     </div>
 
                     <div>
-                        <label for="model-filter" class="mb-2 block text-xs font-bold uppercase tracking-wide text-gray-500">Model</label>
+                        <label for="model-filter" class="mb-2 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Model</label>
                         <select id="model-filter" name="model_id" @disabled($modelSelectDisabled) @class([
                             'h-11 w-full rounded-lg border border-gray-200 px-3 text-sm font-semibold transition focus:border-[#C81424] focus:outline-none focus:ring-2 focus:ring-[#C81424]/20 dark:border-[#333] dark:bg-[#202024]',
                             'cursor-not-allowed bg-gray-50 text-gray-400 dark:text-gray-500' => $modelSelectDisabled,

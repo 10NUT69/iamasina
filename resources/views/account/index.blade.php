@@ -88,7 +88,7 @@
                          alt="{{ $service->title }}">
 
                     <span class="absolute top-2 right-2 px-2 py-1 text-xs font-bold rounded-md shadow-sm
-                        {{ $service->status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600' }}">
+                        {{ $service->status === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300' : 'bg-gray-100 text-gray-600 dark:bg-[#333333] dark:text-gray-300' }}">
                         {{ ucfirst($service->status ?? 'Activ') }}
                     </span>
                 </a>
