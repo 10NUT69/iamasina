@@ -112,9 +112,6 @@
     if ($seoPrice) {
         $fullSeoTitle .= ' - ' . $seoPrice;
     }
-    if ($isDeleted) {
-        $fullSeoTitle = 'INDISPONIBIL - ' . $fullSeoTitle;
-    }
     if (mb_strlen($fullSeoTitle . ' | ' . $siteBrand) <= 70) {
         $fullSeoTitle .= ' | ' . $siteBrand;
     }
@@ -277,15 +274,6 @@
 
 {{-- ===================== 2. PAGINA PROPRIU-ZISĂ ===================== --}}
 <div class="bg-[#F8F9FA] dark:bg-[#121212] min-h-screen font-sans text-gray-800 dark:text-gray-200 pb-32 lg:pb-12 pt-6">
-
-    @if($isDeleted)
-        <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-4">
-            <div class="bg-red-50 text-red-600 px-4 py-3 rounded-xl border border-red-100 flex items-center gap-3 font-semibold shadow-sm">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                Anunț Indisponibil
-            </div>
-        </div>
-    @endif
 
     <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
 
@@ -633,7 +621,7 @@
                         {{-- ACTION BUTTONS DESKTOP --}}
                         <div class="mt-4 space-y-3 hidden md:block">
                             @if($isDeleted)
-                                <button disabled class="w-full bg-gray-200 text-gray-500 py-3.5 rounded-xl font-bold dark:bg-[#333333] dark:text-gray-400">Anunț Dezactivat</button>
+                                <button disabled class="w-full bg-gray-200 text-gray-500 py-3.5 rounded-xl font-bold dark:bg-[#333333] dark:text-gray-400">Contact dezactivat</button>
                                 @if($isDealer && !empty($sellerUser->dealer_public_url))
                                     <a href="{{ $sellerUser->dealer_public_url }}"
                                        class="inline-flex w-full items-center justify-center rounded-xl border border-[#C81424]/20 bg-[#fff4f5] px-4 py-3 text-sm font-bold text-[#C81424] transition hover:border-[#C81424] hover:bg-white dark:border-red-900/40 dark:bg-[#2a1013] dark:text-red-200 dark:hover:bg-[#18181B]">
@@ -677,7 +665,7 @@
 <div class="fixed bottom-0 left-0 right-0 z-40 lg:hidden glass border-t border-gray-200 dark:border-[#333333] px-4 py-3 safe-area-pb">
     <div class="flex gap-3">
         @if($isDeleted)
-            <button class="w-full bg-gray-200 py-3 rounded-lg font-bold text-gray-500 dark:bg-[#333333] dark:text-gray-400" disabled>Indisponibil</button>
+            <button class="w-full bg-gray-200 py-3 rounded-lg font-bold text-gray-500 dark:bg-[#333333] dark:text-gray-400" disabled>Contact dezactivat</button>
         @else
             <button class="flex-1 bg-white border border-gray-300 text-gray-800 font-bold py-3 rounded-xl dark:border-[#333333] dark:bg-[#252525] dark:text-gray-100">Mesaj</button>
             <button onclick="revealPhone('mobile', '{{ $rawPhone }}', '{{ $formattedPhone }}')" id="btn-phone-mobile" class="flex-[2] bg-[#E03E2D] active:bg-[#c92a1b] text-white font-bold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2">

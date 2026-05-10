@@ -5,6 +5,7 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CarController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminServiceController;
@@ -184,6 +185,9 @@ Route::view('/contact', 'services.contact')->name('page.contact');
 Route::view('/blog', 'services.blog')->name('page.blog');
 Route::view('/termeni-si-conditii', 'services.terms')->name('page.terms');
 Route::view('/politica-confidentialitate', 'services.privacy')->name('page.privacy');
+
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])
+    ->name('sitemap');
 
 /*
 |--------------------------------------------------------------------------
