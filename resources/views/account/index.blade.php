@@ -293,8 +293,13 @@
 
                     $activeConversationMessages = $activeConversation->messages()
                         ->with('sender')
-                        ->orderBy('created_at')
+                        ->latest('id')
+                        ->limit(50)
                         ->get();
+
+                    $activeConversationMessages = $activeConversationMessages
+                        ->sortBy('id')
+                        ->values();
                 }
             }
 
@@ -1546,7 +1551,7 @@ function deleteMessage(messageId) {
 
 if (conversationMessages) {
     conversationMessages.scrollTop = conversationMessages.scrollHeight;
-    setInterval(pollConversation, 7000);
+    setInterval(pollConversation, 60000);
 }
 </script>
 
