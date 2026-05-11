@@ -51,13 +51,13 @@
             {{-- 1. LOGO --}}
             <a href="{{ route('services.index') }}" class="flex items-center shrink-0 gap-1 group decoration-0">
                 <picture>
-                    <source media="(max-width: 639px)" srcset="{{ asset('images/iaauto-logo-nav-mobile.svg') }}?v=modern-20260511d">
+                    <source media="(max-width: 639px)" srcset="{{ asset('images/iaauto-logo-nav-mobile.svg') }}?v=modern-20260511g">
                     <img src="{{ asset('images/iaauto-logo-nav.svg') }}?v=modern-20260511c"
                          alt="iaAuto.ro"
                          width="240"
                          height="64"
                          id="logo-img"
-                         class="h-8 max-w-[116px] min-[375px]:max-w-[132px] sm:h-9 sm:max-w-[166px] md:h-11 md:max-w-[210px] w-auto object-contain select-none transition-all duration-500">
+                         class="h-8 max-w-[124px] min-[375px]:max-w-[140px] sm:h-9 sm:max-w-[166px] md:h-11 md:max-w-[210px] w-auto object-contain select-none transition-all duration-500">
                 </picture>
             </a>
 
