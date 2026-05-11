@@ -27,16 +27,6 @@
 
     @yield('schema')
 
-    @if(app()->environment('production') && config('services.google.analytics_id'))
-        <script async src="https://www.googletagmanager.com/gtag/js?id={{ config('services.google.analytics_id') }}"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '{{ config('services.google.analytics_id') }}');
-        </script>
-    @endif
-
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
@@ -226,6 +216,15 @@
                        class="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-[#18181B] text-[11px] hover:bg-[#C81424] hover:text-white transition">
                         Termeni &amp; condiții
                     </a>
+                    <a href="{{ route('page.cookies') }}"
+                       class="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-[#18181B] text-[11px] hover:bg-[#C81424] hover:text-white transition">
+                        Politica cookies
+                    </a>
+                    <button type="button"
+                            onclick="window.openCookieSettings && window.openCookieSettings()"
+                            class="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-[#18181B] text-[11px] hover:bg-[#C81424] hover:text-white transition">
+                        Setari cookies
+                    </button>
                     <a href="{{ route('page.privacy') }}"
                        class="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-[#18181B] text-[11px] hover:bg-[#C81424] hover:text-white transition">
                         Confidențialitate
@@ -245,6 +244,7 @@
         </div>
     </footer>
 
+    <x-cookie-consent />
 
     {{-- SCRIPTURI --}}
     <script>

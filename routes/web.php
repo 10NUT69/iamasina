@@ -204,6 +204,7 @@ Route::view('/contact', 'services.contact')->name('page.contact');
 Route::view('/blog', 'services.blog')->name('page.blog');
 Route::view('/termeni-si-conditii', 'services.terms')->name('page.terms');
 Route::view('/politica-confidentialitate', 'services.privacy')->name('page.privacy');
+Route::view('/politica-cookies', 'services.cookies')->name('page.cookies');
 
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])
     ->name('sitemap');

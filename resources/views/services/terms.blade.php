@@ -307,7 +307,12 @@
                         personaliza preferințele. Preferințele pot fi modificate ulterior din secțiunea Setări cookies,
                         disponibilă în site.
                     </p>
-                    <p>Mai multe detalii sunt disponibile în Politica de cookies.</p>
+                    <p>
+                        Mai multe detalii sunt disponibile în
+                        <a href="{{ route('page.cookies') }}" class="font-semibold text-[#C81424] hover:underline">
+                            Politica de cookies
+                        </a>.
+                    </p>
                 </div>
             </article>
 
