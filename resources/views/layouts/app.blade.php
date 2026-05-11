@@ -356,7 +356,13 @@
         });
     }
 
+    let unreadMessagesCountRequestInFlight = false;
+
     function refreshUnreadMessagesCount() {
+        if (unreadMessagesCountRequestInFlight) return;
+
+        unreadMessagesCountRequestInFlight = true;
+
         fetch("{{ route('messages.unreadCount') }}", {
             headers: { 'Accept': 'application/json' }
         })
@@ -365,13 +371,15 @@
                 if (!data) return;
                 updateGlobalUnreadBadges(data.unread_count || 0);
             })
-            .catch(() => {});
+            .catch(() => {})
+            .then(() => {
+                unreadMessagesCountRequestInFlight = false;
+            });
     }
 
-    const shouldPollUnreadMessages = @json(!$isServiceShowPage);
-    if (shouldPollUnreadMessages) {
+    const shouldRefreshUnreadMessagesOnce = @json(request()->routeIs('account.index'));
+    if (shouldRefreshUnreadMessagesOnce) {
         refreshUnreadMessagesCount();
-        setInterval(refreshUnreadMessagesCount, 10000);
     }
     @endauth
     </script>
