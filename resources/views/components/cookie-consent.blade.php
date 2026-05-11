@@ -87,7 +87,7 @@
     <script>
         (function () {
             const storageKey = 'iaauto_cookie_consent';
-            const analyticsId = @json(app()->environment('production') ? config('services.google.analytics_id') : null);
+            const analyticsId = @json(config('services.google.analytics_id'));
             let analyticsLoaded = false;
             let marketingLoaded = false;
 
