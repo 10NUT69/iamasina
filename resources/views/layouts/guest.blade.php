@@ -18,7 +18,7 @@
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100 dark:bg-[#121212]">
             <div>
                 <a href="/" class="inline-flex items-center justify-center">
-                    <img src="{{ asset('images/iaauto-logo.svg') }}?v=modern-20260511a"
+                    <img src="{{ asset('images/iaauto-logo.svg') }}?v=modern-20260511c"
                          alt="iaAuto.ro"
                          width="240"
                          height="64"

@@ -50,12 +50,15 @@
 
             {{-- 1. LOGO --}}
             <a href="{{ route('services.index') }}" class="flex items-center shrink-0 gap-1 group decoration-0">
-                <img src="{{ asset('images/iaauto-logo-nav.svg') }}?v=modern-20260511a"
-                     alt="iaAuto.ro"
-                     width="240"
-                     height="64"
-                     id="logo-img"
-                     class="h-8 max-w-[114px] min-[375px]:max-w-[132px] sm:h-9 sm:max-w-[166px] md:h-11 md:max-w-[210px] w-auto object-contain select-none transition-all duration-500">
+                <picture>
+                    <source media="(max-width: 639px)" srcset="{{ asset('images/iaauto-logo-nav-mobile.svg') }}?v=modern-20260511d">
+                    <img src="{{ asset('images/iaauto-logo-nav.svg') }}?v=modern-20260511c"
+                         alt="iaAuto.ro"
+                         width="240"
+                         height="64"
+                         id="logo-img"
+                         class="h-8 max-w-[116px] min-[375px]:max-w-[132px] sm:h-9 sm:max-w-[166px] md:h-11 md:max-w-[210px] w-auto object-contain select-none transition-all duration-500">
+                </picture>
             </a>
 
             {{-- 2. MENIU DREAPTA --}}
@@ -149,12 +152,12 @@
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div class="text-center md:text-left space-y-1">
                     <a href="{{ route('services.index') }}" class="inline-flex justify-center md:justify-start">
-                        <img src="{{ asset('images/iaauto-logo.svg') }}?v=modern-20260511a"
+                        <img src="{{ asset('images/iaauto-logo.svg') }}?v=modern-20260511c"
                              alt="iaAuto.ro"
                              width="240"
                              height="64"
                              class="h-8 w-auto object-contain dark:hidden">
-                        <img src="{{ asset('images/iaauto-logo-nav.svg') }}?v=modern-20260511a"
+                        <img src="{{ asset('images/iaauto-logo-nav.svg') }}?v=modern-20260511c"
                              alt="iaAuto.ro"
                              width="240"
                              height="64"
