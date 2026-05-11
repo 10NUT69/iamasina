@@ -50,7 +50,7 @@
 
             {{-- 1. LOGO --}}
             <a href="{{ route('services.index') }}" class="flex items-center shrink-0 gap-1 group decoration-0">
-                <img src="{{ asset('images/iaauto-logo-nav.svg') }}?v=modern-20260510e"
+                <img src="{{ asset('images/iaauto-logo-nav.svg') }}?v=modern-20260511a"
                      alt="iaAuto.ro"
                      width="240"
                      height="64"
@@ -149,12 +149,12 @@
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div class="text-center md:text-left space-y-1">
                     <a href="{{ route('services.index') }}" class="inline-flex justify-center md:justify-start">
-                        <img src="{{ asset('images/iaauto-logo.svg') }}?v=modern-20260510e"
+                        <img src="{{ asset('images/iaauto-logo.svg') }}?v=modern-20260511a"
                              alt="iaAuto.ro"
                              width="240"
                              height="64"
                              class="h-8 w-auto object-contain dark:hidden">
-                        <img src="{{ asset('images/iaauto-logo-nav.svg') }}?v=modern-20260510e"
+                        <img src="{{ asset('images/iaauto-logo-nav.svg') }}?v=modern-20260511a"
                              alt="iaAuto.ro"
                              width="240"
                              height="64"

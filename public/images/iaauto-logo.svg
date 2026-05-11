@@ -11,11 +11,11 @@
     <text x="4" y="48" fill="#6b7078" font-family="Inter, Arial, Helvetica, sans-serif" font-size="43" font-style="italic" font-weight="900" letter-spacing="-.4">ia</text>
     <path fill="#C81424" mask="url(#iaautoACut)" d="M72.2 11.5h13.5L112.6 48H97.5l-4.2-6.4H66.1L62 48H47.7L72.2 11.5Zm15.9 20.8-8.5-13.4-8.4 13.4h16.9Z"/>
     <text x="106.5" y="48" fill="#C81424" font-family="Inter, Arial, Helvetica, sans-serif" font-size="43" font-weight="900" letter-spacing="-.2">ut</text>
-    <g transform="translate(166.8 36.5)">
+    <g transform="translate(164.5 36.5)">
       <circle r="9.1" fill="none" stroke="#C81424" stroke-width="6"/>
       <circle r="2.15" fill="#C81424"/>
       <path d="M0-6.7v4.1M5.8-3.35 2.1-1.25M5.8 3.35 2.1 1.25M0 6.7V2.6M-5.8 3.35l3.7-2.1M-5.8-3.35l3.7 2.1" stroke="#C81424" stroke-width="2.1" stroke-linecap="round"/>
     </g>
-    <text x="180.8" y="48" fill="#6b7078" font-family="Inter, Arial, Helvetica, sans-serif" font-size="38" font-weight="900" letter-spacing="-.5">.ro</text>
+    <text x="177.6" y="48" fill="#6b7078" font-family="Inter, Arial, Helvetica, sans-serif" font-size="38" font-weight="900" letter-spacing="-.5">.ro</text>
   </g>
 </svg>
