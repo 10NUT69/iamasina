@@ -86,8 +86,12 @@
                                 ->where('sender_id', '!=', auth()->id())
                                 ->whereNull('read_at')
                                 ->whereHas('conversation', fn ($query) => $query
-                                    ->where('buyer_id', auth()->id())
-                                    ->orWhere('seller_id', auth()->id()))
+                                    ->where(fn ($participantQuery) => $participantQuery
+                                        ->where('buyer_id', auth()->id())
+                                        ->whereNull('buyer_deleted_at'))
+                                    ->orWhere(fn ($participantQuery) => $participantQuery
+                                        ->where('seller_id', auth()->id())
+                                        ->whereNull('seller_deleted_at')))
                                 ->count()
                             : 0;
                     @endphp
@@ -109,20 +113,20 @@
                         </button>
 
                         <div id="account-menu"
-                             class="absolute right-0 top-full z-[80] mt-2 hidden w-48 max-w-[calc(100vw-1rem)] overflow-hidden rounded-xl border border-gray-200 bg-white py-1 text-gray-800 shadow-xl dark:border-[#333] dark:bg-[#1E1E1E] dark:text-gray-100 md:w-52">
-                            <a href="{{ route('account.index', ['tab' => 'anunturi']) }}" class="block px-3 py-2 text-[13px] font-bold hover:bg-gray-50 dark:hover:bg-[#252525]">Anunțurile mele</a>
-                            <a href="{{ route('account.index', ['tab' => 'mesaje']) }}" class="flex items-center justify-between px-3 py-2 text-[13px] font-bold hover:bg-gray-50 dark:hover:bg-[#252525]">
+                             class="absolute left-0 top-full z-[80] mt-2 hidden w-max max-w-[calc(100vw-1rem)] overflow-hidden rounded-xl border border-gray-200 bg-white py-1 text-gray-800 shadow-xl dark:border-[#333] dark:bg-[#1E1E1E] dark:text-gray-100">
+                            <a href="{{ route('account.index', ['tab' => 'anunturi']) }}" class="block whitespace-nowrap px-3 py-2 text-[13px] font-bold hover:bg-gray-50 dark:hover:bg-[#252525]">Anunțurile mele</a>
+                            <a href="{{ route('account.index', ['tab' => 'mesaje']) }}" class="flex items-center justify-between gap-4 whitespace-nowrap px-3 py-2 text-[13px] font-bold hover:bg-gray-50 dark:hover:bg-[#252525]">
                                 <span>Mesaje</span>
                                 <span data-unread-badge class="{{ $unreadMessagesCount > 0 ? 'inline-flex' : 'hidden' }} min-w-5 items-center justify-center rounded-full bg-[#C81424] px-1.5 text-[10px] font-black leading-5 text-white">
                                     {{ $unreadMessagesCount > 99 ? '99+' : ($unreadMessagesCount ?: '') }}
                                 </span>
                             </a>
-                            <a href="{{ route('account.index', ['tab' => 'favorite']) }}" class="block px-3 py-2 text-[13px] font-bold hover:bg-gray-50 dark:hover:bg-[#252525]">Favorite</a>
-                            <a href="{{ route('account.index', ['tab' => 'profil']) }}" class="block px-3 py-2 text-[13px] font-bold hover:bg-gray-50 dark:hover:bg-[#252525]">Setări</a>
+                            <a href="{{ route('account.index', ['tab' => 'favorite']) }}" class="block whitespace-nowrap px-3 py-2 text-[13px] font-bold hover:bg-gray-50 dark:hover:bg-[#252525]">Favorite</a>
+                            <a href="{{ route('account.index', ['tab' => 'profil']) }}" class="block whitespace-nowrap px-3 py-2 text-[13px] font-bold hover:bg-gray-50 dark:hover:bg-[#252525]">Setări</a>
                             <div class="my-1 border-t border-gray-100 dark:border-[#333]"></div>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <button class="block w-full px-3 py-2 text-left text-[13px] font-bold text-[#C81424] hover:bg-red-50 dark:hover:bg-[#2a1013]">
+                                <button class="block w-full whitespace-nowrap px-3 py-2 text-left text-[13px] font-bold text-[#C81424] hover:bg-red-50 dark:hover:bg-[#2a1013]">
                                     Delogare
                                 </button>
                             </form>

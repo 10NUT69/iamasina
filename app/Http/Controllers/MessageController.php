@@ -26,6 +26,7 @@ class MessageController extends Controller
     {
         $user = $request->user();
         abort_unless($conversation->isParticipant($user), 403);
+        abort_if($conversation->isHiddenFor($user), 404);
 
         $afterId = max(0, (int) $request->query('after_id', 0));
 
@@ -92,6 +93,8 @@ class MessageController extends Controller
 
             $conversation->forceFill([
                 'last_message_at' => $message->created_at,
+                'buyer_deleted_at' => null,
+                'seller_deleted_at' => null,
             ])->save();
 
             return $conversation;
@@ -106,6 +109,7 @@ class MessageController extends Controller
     {
         $user = $request->user();
         abort_unless($conversation->isParticipant($user), 403);
+        abort_if($conversation->isHiddenFor($user), 404);
 
         $validated = $request->validate([
             'body' => ['required', 'string', 'max:2000'],
@@ -126,6 +130,8 @@ class MessageController extends Controller
 
             $conversation->forceFill([
                 'last_message_at' => $message->created_at,
+                'buyer_deleted_at' => null,
+                'seller_deleted_at' => null,
             ])->save();
         });
 
@@ -152,14 +158,33 @@ class MessageController extends Controller
         return back();
     }
 
+    public function destroyConversation(Request $request, Conversation $conversation)
+    {
+        abort_unless($conversation->isParticipant($request->user()), 403);
+
+        $conversation->hideFor($request->user());
+
+        if ($request->expectsJson()) {
+            return response()->json(['deleted' => true]);
+        }
+
+        return redirect()
+            ->route('account.index', ['tab' => 'mesaje'])
+            ->with('success', 'Conversația a fost ștearsă din contul tău.');
+    }
+
     private function unreadMessagesCount(int $userId): int
     {
         return Message::query()
             ->where('sender_id', '!=', $userId)
             ->whereNull('read_at')
             ->whereHas('conversation', fn ($query) => $query
-                ->where('buyer_id', $userId)
-                ->orWhere('seller_id', $userId))
+                ->where(fn ($participantQuery) => $participantQuery
+                    ->where('buyer_id', $userId)
+                    ->whereNull('buyer_deleted_at'))
+                ->orWhere(fn ($participantQuery) => $participantQuery
+                    ->where('seller_id', $userId)
+                    ->whereNull('seller_deleted_at')))
             ->count();
     }
 }

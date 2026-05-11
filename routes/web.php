@@ -124,6 +124,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/mesaje/{conversation}', [MessageController::class, 'store'])
         ->whereNumber('conversation')
         ->name('messages.store');
+    Route::delete('/mesaje/conversatie/{conversation}', [MessageController::class, 'destroyConversation'])
+        ->whereNumber('conversation')
+        ->name('messages.destroyConversation');
     Route::delete('/mesaje/mesaj/{message}', [MessageController::class, 'destroyMessage'])
         ->whereNumber('message')
         ->name('messages.destroyMessage');

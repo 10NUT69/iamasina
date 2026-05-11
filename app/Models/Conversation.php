@@ -14,10 +14,14 @@ class Conversation extends Model
         'buyer_id',
         'seller_id',
         'last_message_at',
+        'buyer_deleted_at',
+        'seller_deleted_at',
     ];
 
     protected $casts = [
         'last_message_at' => 'datetime',
+        'buyer_deleted_at' => 'datetime',
+        'seller_deleted_at' => 'datetime',
     ];
 
     public function service()
@@ -61,5 +65,38 @@ class Conversation extends Model
         }
 
         return null;
+    }
+
+    public function isHiddenFor(User $user): bool
+    {
+        if ($this->buyer_id === $user->id) {
+            return $this->buyer_deleted_at !== null;
+        }
+
+        if ($this->seller_id === $user->id) {
+            return $this->seller_deleted_at !== null;
+        }
+
+        return true;
+    }
+
+    public function hideFor(User $user): void
+    {
+        if ($this->buyer_id === $user->id) {
+            $this->forceFill(['buyer_deleted_at' => now()])->save();
+            return;
+        }
+
+        if ($this->seller_id === $user->id) {
+            $this->forceFill(['seller_deleted_at' => now()])->save();
+        }
+    }
+
+    public function restoreForParticipants(): void
+    {
+        $this->forceFill([
+            'buyer_deleted_at' => null,
+            'seller_deleted_at' => null,
+        ])->save();
     }
 }
