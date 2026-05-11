@@ -49,7 +49,7 @@ class ServiceController extends Controller
 
     $isHomepage = $request->routeIs('services.index');
     $page = max(1, (int) $request->get('page', 1));
-    $perPageHomepage = 4;
+    $perPageHomepage = 12;
     $perPageFirst = 10;
     $perPageNext  = 8;
 
