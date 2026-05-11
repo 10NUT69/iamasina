@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\CarController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\Admin\AdminDashboardController;
@@ -112,6 +113,21 @@ Route::delete('/profile/dealer-gallery/{index}', [ProfileController::class, 'del
 */
 
 Route::middleware('auth')->group(function () {
+    Route::get('/mesaje', [MessageController::class, 'index'])->name('messages.index');
+    Route::get('/mesaje/status/necitite', [MessageController::class, 'unreadCount'])->name('messages.unreadCount');
+    Route::get('/mesaje/{conversation}/poll', [MessageController::class, 'poll'])
+        ->whereNumber('conversation')
+        ->name('messages.poll');
+    Route::post('/mesaje/anunt/{service}', [MessageController::class, 'startFromService'])
+        ->whereNumber('service')
+        ->name('messages.startFromService');
+    Route::post('/mesaje/{conversation}', [MessageController::class, 'store'])
+        ->whereNumber('conversation')
+        ->name('messages.store');
+    Route::delete('/mesaje/mesaj/{message}', [MessageController::class, 'destroyMessage'])
+        ->whereNumber('message')
+        ->name('messages.destroyMessage');
+
     Route::put('/anunturi-auto-de-vanzare/{id}', [ServiceController::class, 'update'])
         ->whereNumber('id')
         ->name('services.update');

@@ -991,7 +991,7 @@ public function edit($id)
     // ==========================================
     // 9. DESTROY
     // ==========================================
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         try {
             $service = Service::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
@@ -1017,8 +1017,16 @@ public function edit($id)
             $service->save();
             $service->delete();
 
-            return response()->json(['status' => 'deleted']);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['status' => 'deleted']);
+            }
+
+            return back()->with('success', 'Anunțul a fost șters.');
         } catch (\Exception $e) {
+            if (!($request->expectsJson() || $request->ajax())) {
+                return back()->with('error', 'Anunțul nu a putut fi șters.');
+            }
+
             return response()->json([
                 'status'  => 'error',
                 'message' => $e->getMessage(),

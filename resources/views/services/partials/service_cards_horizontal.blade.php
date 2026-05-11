@@ -50,6 +50,7 @@
         } else {
             $dateLabel = '-';
         }
+        $canDeleteService = auth()->check() && (int) $service->user_id === auth()->id();
     @endphp
 
     {{-- CARD ANUNȚ (DESIGN 2025-2026) --}}
@@ -124,6 +125,20 @@
                 </div>
             @endif
             
+            @if($canDeleteService)
+                <form method="POST"
+                      action="{{ route('services.destroy', $service->id) }}"
+                      onsubmit="return confirm('Sigur ștergi acest anunț?')"
+                      class="absolute left-3 z-20 {{ $isPromoted ? 'top-12' : 'top-3' }}">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit"
+                            class="inline-flex items-center justify-center rounded-full bg-white/90 px-3 py-1.5 text-[11px] font-black text-[#C81424] shadow-lg backdrop-blur-md transition hover:bg-[#C81424] hover:text-white dark:bg-black/60 dark:text-red-200 dark:hover:bg-[#C81424]">
+                        Șterge
+                    </button>
+                </form>
+            @endif
+
             {{-- Buton Favorite Mobile (Peste poză) --}}
             <button onclick="toggleHeart(this, {{ $service->id }})" 
                     class="md:hidden absolute top-3 right-3 z-20 p-2 rounded-full bg-black/30 backdrop-blur-md border border-white/20 text-white hover:bg-red-500 hover:border-red-500 transition-all">

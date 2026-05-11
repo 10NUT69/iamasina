@@ -90,6 +90,7 @@ class Service extends Model
     public function locality() { return $this->belongsTo(Locality::class); }
     public function user() { return $this->belongsTo(User::class); }
     public function favorites() { return $this->hasMany(Favorite::class); }
+    public function conversations() { return $this->hasMany(Conversation::class); }
 
     public function isFavoritedBy($user)
     {

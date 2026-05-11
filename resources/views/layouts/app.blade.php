@@ -79,23 +79,54 @@
                 </button>
 
                 @auth
+                    @php
+                        $isServiceShowPage = request()->routeIs('service.show.car');
+                        $unreadMessagesCount = !$isServiceShowPage && \Illuminate\Support\Facades\Schema::hasTable('messages')
+                            ? \App\Models\Message::query()
+                                ->where('sender_id', '!=', auth()->id())
+                                ->whereNull('read_at')
+                                ->whereHas('conversation', fn ($query) => $query
+                                    ->where('buyer_id', auth()->id())
+                                    ->orWhere('seller_id', auth()->id()))
+                                ->count()
+                            : 0;
+                    @endphp
                     {{-- LOGAT --}}
-                    <a href="{{ route('account.index') }}"
-                       aria-label="Contul meu"
-                       class="md:hidden flex items-center justify-center w-8 h-8 rounded-full bg-white/20 border border-white/30 text-sm font-bold text-white">
-                        {{ substr(auth()->user()->name, 0, 1) }}
-                    </a>
+                    <div class="relative" id="account-menu-wrap">
+                        <button type="button"
+                                onclick="toggleAccountMenu()"
+                                aria-label="Contul meu"
+                                aria-expanded="false"
+                                id="account-menu-button"
+                                class="relative flex items-center justify-center gap-1.5 rounded-full bg-white/15 px-2 py-1 text-xs font-bold text-white transition hover:bg-white/25 md:px-2.5">
+                            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 border border-white/30 text-xs font-bold text-white">
+                                {{ substr(auth()->user()->name, 0, 1) }}
+                            </span>
+                            <span class="hidden md:inline max-w-[96px] truncate">{{ auth()->user()->name }}</span>
+                            <span data-unread-badge class="absolute -right-1 -top-1 {{ $unreadMessagesCount > 0 ? 'inline-flex' : 'hidden' }} min-w-4 items-center justify-center rounded-full bg-white px-1 text-[10px] font-black leading-4 text-[#C81424]">
+                                {{ $unreadMessagesCount > 99 ? '99+' : ($unreadMessagesCount ?: '') }}
+                            </span>
+                        </button>
 
-                    <div class="hidden md:flex items-center gap-4 text-white transition-all duration-300" id="auth-links">
-                        <a href="{{ route('account.index') }}" class="font-bold hover:opacity-80 transition text-sm md:text-base">
-                            {{ auth()->user()->name }}
-                        </a>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button class="font-medium hover:underline transition text-xs md:text-sm bg-white/10 px-3 py-1.5 rounded">
-                                DELOGARE
-                            </button>
-                        </form>
+                        <div id="account-menu"
+                             class="absolute right-0 top-full z-[80] mt-2 hidden w-48 max-w-[calc(100vw-1rem)] overflow-hidden rounded-xl border border-gray-200 bg-white py-1 text-gray-800 shadow-xl dark:border-[#333] dark:bg-[#1E1E1E] dark:text-gray-100 md:w-52">
+                            <a href="{{ route('account.index', ['tab' => 'anunturi']) }}" class="block px-3 py-2 text-[13px] font-bold hover:bg-gray-50 dark:hover:bg-[#252525]">Anunțurile mele</a>
+                            <a href="{{ route('account.index', ['tab' => 'mesaje']) }}" class="flex items-center justify-between px-3 py-2 text-[13px] font-bold hover:bg-gray-50 dark:hover:bg-[#252525]">
+                                <span>Mesaje</span>
+                                <span data-unread-badge class="{{ $unreadMessagesCount > 0 ? 'inline-flex' : 'hidden' }} min-w-5 items-center justify-center rounded-full bg-[#C81424] px-1.5 text-[10px] font-black leading-5 text-white">
+                                    {{ $unreadMessagesCount > 99 ? '99+' : ($unreadMessagesCount ?: '') }}
+                                </span>
+                            </a>
+                            <a href="{{ route('account.index', ['tab' => 'favorite']) }}" class="block px-3 py-2 text-[13px] font-bold hover:bg-gray-50 dark:hover:bg-[#252525]">Favorite</a>
+                            <a href="{{ route('account.index', ['tab' => 'profil']) }}" class="block px-3 py-2 text-[13px] font-bold hover:bg-gray-50 dark:hover:bg-[#252525]">Setări</a>
+                            <div class="my-1 border-t border-gray-100 dark:border-[#333]"></div>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button class="block w-full px-3 py-2 text-left text-[13px] font-bold text-[#C81424] hover:bg-red-50 dark:hover:bg-[#2a1013]">
+                                    Delogare
+                                </button>
+                            </form>
+                        </div>
                     </div>
 
                 @else
@@ -137,6 +168,11 @@
         @if(session('success'))
             <div class="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800 shadow-sm dark:border-green-900/50 dark:bg-green-950/40 dark:text-green-200">
                 {{ session('success') }}
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800 shadow-sm dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
+                {{ session('error') }}
             </div>
         @endif
 
@@ -277,6 +313,63 @@
 
         lastScrollY = currentScrollY;
     });
+
+    @auth
+    function toggleAccountMenu() {
+        const menu = document.getElementById('account-menu');
+        const button = document.getElementById('account-menu-button');
+        if (!menu) return;
+
+        const isHidden = menu.classList.contains('hidden');
+        menu.classList.toggle('hidden', !isHidden);
+        button?.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+    }
+
+    document.addEventListener('click', function(event) {
+        const wrap = document.getElementById('account-menu-wrap');
+        const menu = document.getElementById('account-menu');
+        const button = document.getElementById('account-menu-button');
+
+        if (!wrap || !menu || wrap.contains(event.target)) return;
+        menu.classList.add('hidden');
+        button?.setAttribute('aria-expanded', 'false');
+    });
+
+    function updateGlobalUnreadBadges(count) {
+        document.querySelectorAll('[data-unread-badge]').forEach((badge) => {
+            if (!badge) return;
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.classList.remove('hidden');
+                if (!badge.classList.contains('inline-flex')) {
+                    badge.classList.add('inline-flex');
+                }
+            } else {
+                badge.textContent = '';
+                badge.classList.add('hidden');
+                badge.classList.remove('inline-flex');
+            }
+        });
+    }
+
+    function refreshUnreadMessagesCount() {
+        fetch("{{ route('messages.unreadCount') }}", {
+            headers: { 'Accept': 'application/json' }
+        })
+            .then((response) => response.ok ? response.json() : null)
+            .then((data) => {
+                if (!data) return;
+                updateGlobalUnreadBadges(data.unread_count || 0);
+            })
+            .catch(() => {});
+    }
+
+    const shouldPollUnreadMessages = @json(!$isServiceShowPage);
+    if (shouldPollUnreadMessages) {
+        refreshUnreadMessagesCount();
+        setInterval(refreshUnreadMessagesCount, 10000);
+    }
+    @endauth
     </script>
 
     <style>

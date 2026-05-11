@@ -101,6 +101,21 @@ class User extends Authenticatable
         return $this->hasMany(Service::class);
     }
 
+    public function buyerConversations()
+    {
+        return $this->hasMany(Conversation::class, 'buyer_id');
+    }
+
+    public function sellerConversations()
+    {
+        return $this->hasMany(Conversation::class, 'seller_id');
+    }
+
+    public function sentMessages()
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
     public static function findDealerByRouteSlug(string $dealerSlug): ?self
     {
         $dealerQuery = static::query()->where('user_type', 'dealer');

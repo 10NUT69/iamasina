@@ -4,6 +4,17 @@
 
 @section('content')
 
+@php
+    $accountTab = request('tab', 'anunturi');
+    $accountUnreadMessagesCount = \App\Models\Message::query()
+        ->where('sender_id', '!=', auth()->id())
+        ->whereNull('read_at')
+        ->whereHas('conversation', fn ($query) => $query
+            ->where('buyer_id', auth()->id())
+            ->orWhere('seller_id', auth()->id()))
+        ->count();
+@endphp
+
 <div id="accountFloatingMsg" class="fixed left-1/2 top-24 z-[90] hidden w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 rounded-2xl px-4 py-3 text-sm font-bold shadow-2xl ring-1 backdrop-blur transition-all sm:px-5"></div>
 
 <div class="max-w-[1536px] mx-auto mt-10 mb-20 px-4 sm:px-6 lg:px-8">
@@ -33,16 +44,28 @@
             <li>
                 <a href="?tab=anunturi"
                    class="pb-3 inline-block transition-colors whitespace-nowrap
-                   {{ request('tab') === 'anunturi' || !request('tab')
+                   {{ $accountTab === 'anunturi'
                        ? 'text-[#C81424] border-b-2 border-[#C81424]'
                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200' }}">
                    Anunțurile mele
                 </a>
             </li>
             <li>
+                <a href="?tab=mesaje"
+                   class="pb-3 inline-flex items-center gap-2 transition-colors whitespace-nowrap
+                   {{ $accountTab === 'mesaje'
+                       ? 'text-[#C81424] border-b-2 border-[#C81424]'
+                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200' }}">
+                   <span>Mesaje</span>
+                   <span data-unread-badge class="{{ $accountUnreadMessagesCount > 0 ? 'inline-flex' : 'hidden' }} min-w-5 items-center justify-center rounded-full bg-[#C81424] px-1.5 text-[11px] font-black leading-5 text-white">
+                       {{ $accountUnreadMessagesCount > 99 ? '99+' : ($accountUnreadMessagesCount ?: '') }}
+                   </span>
+                </a>
+            </li>
+            <li>
                 <a href="?tab=favorite"
                    class="pb-3 inline-block transition-colors whitespace-nowrap
-                   {{ request('tab') === 'favorite'
+                   {{ $accountTab === 'favorite'
                        ? 'text-[#C81424] border-b-2 border-[#C81424]'
                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200' }}">
                    Favorite
@@ -51,17 +74,17 @@
             <li>
                 <a href="?tab=profil"
                    class="pb-3 inline-block transition-colors whitespace-nowrap
-                   {{ request('tab') === 'profil'
+                   {{ $accountTab === 'profil'
                        ? 'text-[#C81424] border-b-2 border-[#C81424]'
                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200' }}">
-                   Setări Profil
+                   Setări
                 </a>
             </li>
         </ul>
     </div>
 
     {{-- TAB 1: ANUNȚURILE MELE --}}
-    @if(request('tab') === 'anunturi' || !request('tab'))
+    @if($accountTab === 'anunturi')
 
         @php
             $myServices = \App\Models\Service::where('user_id', auth()->id())
@@ -184,7 +207,7 @@
 
 
     {{-- TAB 2: FAVORITE --}}
-    @if(request('tab') === 'favorite')
+    @if($accountTab === 'favorite')
 
         @php
             $favorites = auth()->user()
@@ -237,9 +260,234 @@
         @endif
     @endif
 
+    {{-- TAB 3: MESAJE --}}
+    @if($accountTab === 'mesaje')
+
+        @php
+            $activeConversation = null;
+            $activeConversationMessages = collect();
+            $activeConversationId = (int) request('conversation', 0);
+
+            if ($activeConversationId > 0) {
+                $activeConversation = \App\Models\Conversation::query()
+                    ->with(['buyer', 'seller', 'service'])
+                    ->where(fn ($query) => $query
+                        ->where('buyer_id', auth()->id())
+                        ->orWhere('seller_id', auth()->id()))
+                    ->find($activeConversationId);
+
+                if ($activeConversation) {
+                    \App\Models\Message::query()
+                        ->where('conversation_id', $activeConversation->id)
+                        ->where('sender_id', '!=', auth()->id())
+                        ->whereNull('read_at')
+                        ->update(['read_at' => now()]);
+
+                    $activeConversationMessages = $activeConversation->messages()
+                        ->with('sender')
+                        ->orderBy('created_at')
+                        ->get();
+                }
+            }
+
+            $conversations = \App\Models\Conversation::query()
+                ->with(['buyer', 'seller', 'service', 'latestMessage.sender'])
+                ->withCount([
+                    'messages as unread_count' => fn ($query) => $query
+                        ->where('sender_id', '!=', auth()->id())
+                        ->whereNull('read_at'),
+                ])
+                ->where(fn ($query) => $query
+                    ->where('buyer_id', auth()->id())
+                    ->orWhere('seller_id', auth()->id()))
+                ->orderByDesc(\Illuminate\Support\Facades\DB::raw('COALESCE(last_message_at, updated_at)'))
+                ->paginate(12)
+                ->withQueryString();
+        @endphp
+
+        @if(session('success'))
+            <div class="mb-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold text-green-800 dark:border-green-900/50 dark:bg-green-950/40 dark:text-green-200">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if($activeConversation)
+            @php
+                $other = $activeConversation->otherParticipant(auth()->user());
+                $service = $activeConversation->service;
+            @endphp
+
+            <div class="mb-5 flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-[#333] dark:bg-[#1E1E1E] sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex min-w-0 items-center gap-4">
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-100 text-lg font-black text-slate-700 dark:bg-slate-800 dark:text-slate-100">
+                        {{ strtoupper(substr($other?->name ?? 'U', 0, 1)) }}
+                    </div>
+                    <div class="min-w-0">
+                        <h2 class="truncate text-lg font-black text-gray-900 dark:text-white">{{ $other?->name ?? 'Utilizator' }}</h2>
+                        <p class="truncate text-sm text-gray-500 dark:text-gray-400">
+                            @if($service)
+                                Conversatie despre {{ $service->title }}
+                            @else
+                                Anunt indisponibil
+                            @endif
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex shrink-0 gap-2">
+                    <a href="{{ route('account.index', ['tab' => 'mesaje']) }}"
+                       class="inline-flex items-center justify-center rounded-xl border border-gray-200 px-4 py-2 text-sm font-bold text-gray-700 transition hover:border-[#C81424] hover:text-[#C81424] dark:border-[#333] dark:text-gray-200">
+                        Inbox
+                    </a>
+                    @if($service)
+                        <a href="{{ $service->public_url }}"
+                           class="inline-flex items-center justify-center rounded-xl bg-slate-800 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600">
+                            Vezi anuntul
+                        </a>
+                    @endif
+                </div>
+            </div>
+
+            @if($service)
+                <a href="{{ $service->public_url }}"
+                   class="mb-5 flex gap-4 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm transition hover:border-[#C81424]/40 hover:bg-gray-50 dark:border-[#333] dark:bg-[#1E1E1E] dark:hover:bg-[#252525]">
+                    <img src="{{ $service->main_image_url }}"
+                         alt="{{ $service->title }}"
+                         class="h-20 w-28 shrink-0 rounded-xl object-cover bg-gray-100 dark:bg-[#252525]">
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">Anunt asociat conversatiei</p>
+                        <h3 class="mt-1 line-clamp-2 text-base font-black text-gray-900 dark:text-white">{{ $service->title }}</h3>
+                        <p class="mt-1 text-sm font-bold text-gray-600 dark:text-gray-300">
+                            @if($service->price_value)
+                                {{ number_format($service->price_value, 0, ',', '.') }} {{ $service->currency }}
+                            @else
+                                Cere oferta
+                            @endif
+                        </p>
+                    </div>
+                </a>
+            @endif
+
+            <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-[#333] dark:bg-[#181818] sm:p-6">
+                <div id="conversationMessages" class="space-y-4" data-last-message-id="{{ $activeConversationMessages->last()?->id ?? 0 }}">
+                    @foreach($activeConversationMessages as $message)
+                        @include('messages.partials.message', ['message' => $message, 'currentUserId' => auth()->id()])
+                    @endforeach
+                </div>
+            </div>
+
+            <form method="POST" action="{{ route('messages.store', $activeConversation) }}" class="mt-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-[#333] dark:bg-[#1E1E1E]">
+                @csrf
+                <label for="messageBody" class="mb-2 block text-xs font-black uppercase tracking-wide text-gray-500 dark:text-gray-400">Raspuns</label>
+                <textarea id="messageBody"
+                          name="body"
+                          rows="4"
+                          maxlength="2000"
+                          required
+                          class="w-full resize-none rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/20 dark:border-[#404040] dark:bg-[#252525] dark:text-white"
+                          placeholder="Scrie mesajul tau...">{{ old('body') }}</textarea>
+                @error('body')
+                    <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
+                @enderror
+                <div class="mt-3 flex justify-end">
+                    <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-slate-800 px-6 py-3 text-sm font-black text-white shadow-lg shadow-slate-900/10 transition hover:bg-slate-900 active:scale-95 dark:bg-slate-700 dark:hover:bg-slate-600">
+                        Trimite mesaj
+                    </button>
+                </div>
+            </form>
+
+            <script>
+                window.activeConversationPollUrl = @json(route('messages.poll', $activeConversation));
+                window.activeConversationDeleteBaseUrl = @json(url('/mesaje/mesaj'));
+                window.activeConversationCsrfToken = @json(csrf_token());
+            </script>
+        @elseif($conversations->isEmpty())
+            <div class="text-center py-16 bg-gray-50 dark:bg-[#1E1E1E] rounded-2xl border border-dashed border-gray-300 dark:border-[#333333]">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Nu ai mesaje inca.</h2>
+                <p class="mt-2 text-gray-500 dark:text-gray-400">Cand contactezi un vanzator sau primesti intrebari la un anunt, conversatiile apar aici.</p>
+            </div>
+        @else
+            <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-[#333333] dark:bg-[#1E1E1E]">
+                @foreach($conversations as $conversation)
+                    @php
+                        $other = $conversation->otherParticipant(auth()->user());
+                        $latest = $conversation->latestMessage;
+                        $service = $conversation->service;
+                    @endphp
+
+                    <a href="{{ route('account.index', ['tab' => 'mesaje', 'conversation' => $conversation->id]) }}"
+                       class="grid gap-4 border-b border-gray-100 p-4 transition last:border-b-0 hover:bg-gray-50 dark:border-[#333333] dark:hover:bg-[#252525] md:grid-cols-[minmax(0,1fr)_320px]">
+                        <div class="flex min-w-0 gap-4">
+                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#fff4f5] text-lg font-black text-[#C81424] dark:bg-[#2a1013] dark:text-red-200">
+                                {{ strtoupper(substr($other?->name ?? 'U', 0, 1)) }}
+                            </div>
+
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <p class="truncate text-sm font-black text-gray-900 dark:text-white">{{ $other?->name ?? 'Utilizator' }}</p>
+                                        <p class="mt-0.5 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                                            {{ $conversation->buyer_id === auth()->id() ? 'Discutie cu vanzatorul' : 'Intrebare de la cumparator' }}
+                                        </p>
+                                    </div>
+                                    <div class="shrink-0 text-right">
+                                        @if($conversation->unread_count)
+                                            <span class="inline-flex min-w-6 items-center justify-center rounded-full bg-[#C81424] px-2 py-0.5 text-xs font-black text-white">{{ $conversation->unread_count }}</span>
+                                        @endif
+                                        <p class="mt-1 text-[11px] font-semibold text-gray-400">
+                                            {{ optional($conversation->last_message_at ?? $conversation->updated_at)->diffForHumans() }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <p class="mt-3 line-clamp-2 text-sm text-gray-600 dark:text-gray-300">
+                                    @if($latest)
+                                        <span class="font-bold">{{ $latest->sender_id === auth()->id() ? 'Tu:' : ($latest->sender?->name . ':') }}</span>
+                                        {{ $latest->body }}
+                                    @else
+                                        Conversatie noua
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="rounded-xl border border-gray-100 bg-gray-50 p-2 dark:border-[#333333] dark:bg-[#181818]">
+                            @if($service)
+                                <div class="flex gap-3">
+                                    <img src="{{ $service->main_image_url }}"
+                                         alt="{{ $service->title }}"
+                                         class="h-16 w-20 shrink-0 rounded-lg object-cover bg-gray-100 dark:bg-[#252525]">
+                                    <div class="min-w-0">
+                                        <p class="line-clamp-2 text-sm font-black text-gray-900 dark:text-white">{{ $service->title }}</p>
+                                        <p class="mt-1 text-xs font-bold text-gray-600 dark:text-gray-300">
+                                            @if($service->price_value)
+                                                {{ number_format($service->price_value, 0, ',', '.') }} {{ $service->currency }}
+                                            @else
+                                                Cere oferta
+                                            @endif
+                                        </p>
+                                        <span class="mt-1 inline-flex text-[11px] font-bold text-[#C81424]">Anuntul asociat</span>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="flex h-full min-h-16 items-center rounded-lg px-3 text-sm font-semibold text-gray-500 dark:text-gray-400">
+                                    Anunt indisponibil
+                                </div>
+                            @endif
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+
+            <div class="mt-6">
+                {{ $conversations->links() }}
+            </div>
+        @endif
+    @endif
+
 
    {{-- TAB 3: PROFIL --}}
-   @if(request('tab') === 'profil')
+   @if($accountTab === 'profil')
 
    <div class="w-full">
 
@@ -1188,6 +1436,72 @@ function useCompanySuggestion(val) {
             </span>`;
     }
     if (sugEl) sugEl.innerHTML = "";
+}
+
+const conversationMessages = document.getElementById('conversationMessages');
+
+function updateUnreadBadges(count) {
+    document.querySelectorAll('[data-unread-badge]').forEach((badge) => {
+        if (!badge) return;
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.classList.remove('hidden');
+            badge.classList.add('inline-flex');
+        } else {
+            badge.textContent = '';
+            badge.classList.add('hidden');
+            badge.classList.remove('inline-flex');
+        }
+    });
+}
+
+function appendNewMessages(messages) {
+    if (!conversationMessages || !messages.length) return;
+
+    messages.forEach((message) => {
+        if (document.querySelector(`[data-message-id="${message.id}"]`)) return;
+        conversationMessages.insertAdjacentHTML('beforeend', message.html);
+        conversationMessages.dataset.lastMessageId = message.id;
+    });
+
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
+
+function pollConversation() {
+    if (!conversationMessages || !window.activeConversationPollUrl) return;
+
+    const afterId = conversationMessages.dataset.lastMessageId || 0;
+    fetch(`${window.activeConversationPollUrl}?after_id=${afterId}`, {
+        headers: { 'Accept': 'application/json' }
+    })
+        .then((response) => response.ok ? response.json() : null)
+        .then((data) => {
+            if (!data) return;
+            appendNewMessages(data.messages || []);
+            updateUnreadBadges(data.unread_count || 0);
+        })
+        .catch(() => {});
+}
+
+function deleteMessage(messageId) {
+    if (!confirm('Stergi acest mesaj?')) return;
+
+    fetch(`${window.activeConversationDeleteBaseUrl}/${messageId}`, {
+        method: 'DELETE',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': window.activeConversationCsrfToken,
+        },
+    })
+        .then((response) => response.ok ? response.json() : Promise.reject())
+        .then(() => {
+            document.querySelector(`[data-message-id="${messageId}"]`)?.remove();
+        })
+        .catch(() => alert('Mesajul nu a putut fi sters.'));
+}
+
+if (conversationMessages) {
+    setInterval(pollConversation, 7000);
 }
 </script>
 

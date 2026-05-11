@@ -9,6 +9,8 @@
     // --- DEALER DETECT ---
     $sellerUser = $service->user;
     $isDealer   = $sellerUser && ($sellerUser->user_type === 'dealer');
+    $isOwnListing = auth()->check() && $sellerUser && auth()->id() === $sellerUser->id;
+    $canMessageSeller = !$isDeleted && $sellerUser && auth()->check() && !$isOwnListing;
 
     // --- PHONE LOGIC ---
     $phoneSource = $isDealer ? ($sellerUser->phone ?? '') : ($service->phone ?? '');
@@ -633,9 +635,23 @@
                                     <svg class="w-5 h-5 group-hover:animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                                     <span id="txt-phone-desktop">Arată Numărul</span>
                                 </button>
-                                <button class="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3.5 rounded-xl transition dark:border-[#333333] dark:bg-[#252525] dark:text-gray-100 dark:hover:bg-[#333333]">
-                                    Trimite Mesaj
-                                </button>
+                                @if($canMessageSeller)
+                                    <button type="button" onclick="openSellerMessageModal()" class="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3.5 rounded-xl transition dark:border-[#333333] dark:bg-[#252525] dark:text-gray-100 dark:hover:bg-[#333333]">
+                                        Trimite Mesaj
+                                    </button>
+                                @elseif(!auth()->check())
+                                    <a href="{{ route('login') }}" class="inline-flex w-full items-center justify-center bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3.5 rounded-xl transition dark:border-[#333333] dark:bg-[#252525] dark:text-gray-100 dark:hover:bg-[#333333]">
+                                        Autentifica-te pentru mesaj
+                                    </a>
+                                @elseif($isOwnListing)
+                                    <button disabled class="w-full bg-gray-100 border border-gray-200 text-gray-400 font-bold py-3.5 rounded-xl dark:border-[#333333] dark:bg-[#252525]">
+                                        Este anuntul tau
+                                    </button>
+                                @else
+                                    <button disabled class="w-full bg-gray-100 border border-gray-200 text-gray-400 font-bold py-3.5 rounded-xl dark:border-[#333333] dark:bg-[#252525]">
+                                        Mesaj indisponibil
+                                    </button>
+                                @endif
                                 @if($isDealer && !empty($sellerUser->dealer_public_url))
                                     <a href="{{ $sellerUser->dealer_public_url }}"
                                        class="inline-flex w-full items-center justify-center rounded-xl border border-[#C81424]/20 bg-[#fff4f5] px-4 py-3 text-sm font-bold text-[#C81424] transition hover:border-[#C81424] hover:bg-white dark:border-red-900/40 dark:bg-[#2a1013] dark:text-red-200 dark:hover:bg-[#18181B]">
@@ -667,7 +683,13 @@
         @if($isDeleted)
             <button class="w-full bg-gray-200 py-3 rounded-lg font-bold text-gray-500 dark:bg-[#333333] dark:text-gray-400" disabled>Contact dezactivat</button>
         @else
-            <button class="flex-1 bg-white border border-gray-300 text-gray-800 font-bold py-3 rounded-xl dark:border-[#333333] dark:bg-[#252525] dark:text-gray-100">Mesaj</button>
+            @if($canMessageSeller)
+                <button type="button" onclick="openSellerMessageModal()" class="flex-1 bg-white border border-gray-300 text-gray-800 font-bold py-3 rounded-xl dark:border-[#333333] dark:bg-[#252525] dark:text-gray-100">Mesaj</button>
+            @elseif(!auth()->check())
+                <a href="{{ route('login') }}" class="flex-1 bg-white border border-gray-300 text-gray-800 font-bold py-3 rounded-xl text-center dark:border-[#333333] dark:bg-[#252525] dark:text-gray-100">Mesaj</a>
+            @else
+                <button class="flex-1 bg-gray-100 border border-gray-200 text-gray-400 font-bold py-3 rounded-xl dark:border-[#333333] dark:bg-[#252525]" disabled>Mesaj</button>
+            @endif
             <button onclick="revealPhone('mobile', '{{ $rawPhone }}', '{{ $formattedPhone }}')" id="btn-phone-mobile" class="flex-[2] bg-[#E03E2D] active:bg-[#c92a1b] text-white font-bold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                 <span id="txt-phone-mobile">Sună</span>
@@ -676,9 +698,71 @@
     </div>
 </div>
 
+@if($canMessageSeller)
+<div id="seller-message-modal"
+     class="fixed inset-0 z-[2147483639] {{ $errors->has('body') ? 'flex' : 'hidden' }} items-center justify-center bg-black/60 px-4 py-8 backdrop-blur-sm"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="seller-message-title">
+    <div class="w-full max-w-lg rounded-2xl bg-white shadow-2xl dark:bg-[#1E1E1E]">
+        <div class="flex items-start justify-between gap-4 border-b border-gray-100 p-5 dark:border-[#333]">
+            <div>
+                <h2 id="seller-message-title" class="text-lg font-black text-gray-900 dark:text-white">Trimite mesaj</h2>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Catre {{ $isDealer ? ($sellerUser->company_name ?? $sellerUser->name) : ($service->author_name ?? $sellerUser->name) }}
+                </p>
+            </div>
+            <button type="button" onclick="closeSellerMessageModal()" class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition hover:bg-gray-200 hover:text-gray-900 dark:bg-[#252525] dark:text-gray-300 dark:hover:bg-[#333]">
+                <span class="sr-only">Inchide</span>
+                &times;
+            </button>
+        </div>
+
+        <form method="POST" action="{{ route('messages.startFromService', $service) }}" class="p-5">
+            @csrf
+            <label for="seller-message-body" class="mb-2 block text-xs font-black uppercase tracking-wide text-gray-500 dark:text-gray-400">Mesajul tau</label>
+            <textarea id="seller-message-body"
+                      name="body"
+                      rows="5"
+                      maxlength="2000"
+                      required
+                      class="w-full resize-none rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/20 dark:border-[#404040] dark:bg-[#252525] dark:text-white"
+                      placeholder="Scrie intrebarea ta despre anunt...">{{ old('body') }}</textarea>
+            @error('body')
+                <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
+            @enderror
+
+            <div class="mt-4 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <button type="button" onclick="closeSellerMessageModal()" class="inline-flex items-center justify-center rounded-xl border border-gray-200 px-5 py-3 text-sm font-bold text-gray-700 transition hover:bg-gray-50 dark:border-[#333] dark:text-gray-200 dark:hover:bg-[#252525]">
+                    Renunta
+                </button>
+                <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-[#C81424] px-6 py-3 text-sm font-black text-white shadow-lg shadow-red-600/20 transition hover:bg-[#94111B] active:scale-95">
+                    Trimite mesajul
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+
 {{-- SCRIPTS --}}
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script>
+    function openSellerMessageModal() {
+        const modal = document.getElementById('seller-message-modal');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => document.getElementById('seller-message-body')?.focus(), 50);
+    }
+
+    function closeSellerMessageModal() {
+        const modal = document.getElementById('seller-message-modal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
     function copyLink() {
         navigator.clipboard.writeText(window.location.href).then(function() {
             let txt = document.getElementById('copy-text');
