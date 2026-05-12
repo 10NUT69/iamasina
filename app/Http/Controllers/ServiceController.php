@@ -790,7 +790,8 @@ public function indexAutoPath(
     }
 
     $service->slug   = $uniqueSlug;
-    $service->status = 'pending';
+    $service->status = 'active';
+    $service->published_at = $service->published_at ?: now();
 
     $service->images = [];
     $service->save();
@@ -798,11 +799,8 @@ public function indexAutoPath(
     $primaryPendingIndex = $this->validPrimaryPendingIndex($request);
     $pendingImages = $this->storePendingServiceImages($service, $request);
     if ($pendingImages) {
-        ProcessServiceImages::dispatch($service->id, $pendingImages, true, $primaryPendingIndex)
-            ->onQueue('services');
+        $this->dispatchServiceImageProcessing($service->id, $pendingImages, true, $primaryPendingIndex);
     } else {
-        $service->status = 'active';
-        $service->published_at = $service->published_at ?: now();
         $service->save();
     }
 
@@ -992,11 +990,7 @@ public function edit($id)
     $primaryPendingIndex = $request->filled('primary_existing_image') ? null : $this->validPrimaryPendingIndex($request);
     $pendingImages = $this->storePendingServiceImages($service, $request, max(0, 10 - count($currentImages)));
     if ($pendingImages) {
-        $service->status = 'pending';
-        $service->save();
-
-        ProcessServiceImages::dispatch($service->id, $pendingImages, false, $primaryPendingIndex)
-            ->onQueue('services');
+        $this->dispatchServiceImageProcessing($service->id, $pendingImages, false, $primaryPendingIndex);
     }
 
     return redirect('/contul-meu?tab=anunturi')
@@ -1248,6 +1242,20 @@ public function edit($id)
         }
 
         return $storedPaths;
+    }
+
+    private function dispatchServiceImageProcessing(
+        int $serviceId,
+        array $pendingImages,
+        bool $replaceExisting,
+        ?int $primaryPendingIndex = null
+    ): void {
+        $dispatch = ProcessServiceImages::dispatch($serviceId, $pendingImages, $replaceExisting, $primaryPendingIndex);
+        $queue = config('queue.service_images_queue');
+
+        if (is_string($queue) && trim($queue) !== '') {
+            $dispatch->onQueue(trim($queue));
+        }
     }
 
     private function normalizeServiceImages(mixed $images): array

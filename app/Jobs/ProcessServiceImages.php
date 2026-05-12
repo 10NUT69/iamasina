@@ -113,8 +113,9 @@ class ProcessServiceImages implements ShouldQueue
         }
 
         $service->images = array_values(array_slice($images, 0, 10));
-        $service->status = 'active';
-        $service->published_at = $service->published_at ?: now();
+        if ($service->status === 'active') {
+            $service->published_at = $service->published_at ?: now();
+        }
         $service->save();
     }
 
