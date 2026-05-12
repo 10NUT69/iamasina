@@ -430,14 +430,21 @@
                         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                             @foreach($gallery as $img)
                                 <div class="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525]"
+                                     data-server-image-card
+                                     data-server-image="{{ $img }}"
                                      id="server-img-{{ $loop->index }}">
                                     <img src="{{ asset('storage/services/' . $img) }}" class="w-full h-full object-cover">
 
                                     <div class="absolute top-2 left-2 bg-gray-900/60 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded pointer-events-none">
-                                        Existent
+                                        {{ $loop->first ? 'Principală' : 'Existent' }}
                                     </div>
 
-                                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 px-2">
+                                        <button type="button"
+                                                onclick="setExistingPrimaryImage('{{ $img }}')"
+                                                class="bg-white hover:bg-gray-100 text-gray-900 px-3 py-1.5 rounded-lg shadow-lg transition-all text-xs font-bold">
+                                            Principală
+                                        </button>
                                         <button type="button"
                                                 onclick="deleteServerImage('{{ $img }}', {{ $service->id }}, 'server-img-{{ $loop->index }}')"
                                                 class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg shadow-lg transition-all flex items-center gap-1 text-xs font-bold">
@@ -459,14 +466,17 @@
                     <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Adaugă imagini noi</label>
                     <div class="relative w-full group">
                         <input type="file" id="imageInput" name="images[]" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
+                        <input type="hidden" id="primaryImageIndex" name="primary_image_index" value="">
+                        <input type="hidden" id="primaryExistingImage" name="primary_existing_image" value="{{ $gallery[0] ?? '' }}">
                         <div class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 dark:border-[#444] rounded-xl bg-gray-50 dark:bg-[#252525] group-hover:bg-[#fff4f5] dark:group-hover:bg-[#2a2a2a] group-hover:border-[#C81424] transition-all">
                             <div class="p-3 bg-white dark:bg-[#333] rounded-full shadow-sm mb-2">
                                 <svg class="w-6 h-6 text-[#C81424]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                             </div>
                             <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">Click sau trage poze aici</p>
-                            <p class="text-xs text-gray-400 mt-1">Maxim 10 imagini</p>
+                            <p class="text-xs text-gray-400 mt-1">Maxim 10 imagini total, 15MB fiecare. Poți seta poza principală.</p>
                         </div>
                     </div>
+                    <p id="imageError" class="hidden mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"></p>
                     <div id="previewContainer" class="grid grid-cols-4 sm:grid-cols-6 gap-2 mt-4"></div>
                 </div>
 
@@ -544,6 +554,16 @@
 
         </div>
     </form>
+</div>
+
+<div id="submitOverlay" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+    <div class="max-w-md rounded-2xl bg-white p-6 text-center shadow-2xl dark:bg-[#1E1E1E]">
+        <div class="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-[#C81424]"></div>
+        <h2 class="text-lg font-extrabold text-gray-900 dark:text-white">Se salvează anunțul</h2>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+            Te rugăm să aștepți până se finalizează încărcarea pozelor și salvarea modificărilor. Nu închide pagina și nu apăsa înapoi.
+        </p>
+    </div>
 </div>
 
 <style>
@@ -865,22 +885,141 @@ document.addEventListener('DOMContentLoaded', function() {
     // ================== 5) IMAGE PREVIEW (max 10) ==================
     const imageInput = document.getElementById('imageInput');
     const previewContainer = document.getElementById('previewContainer');
+    const imageError = document.getElementById('imageError');
+    const primaryImageIndex = document.getElementById('primaryImageIndex');
+    const primaryExistingImage = document.getElementById('primaryExistingImage');
+    const wizardForm = document.getElementById('wizardForm');
+    const submitOverlay = document.getElementById('submitOverlay');
+    const maxImages = 10;
+    const maxImageBytes = 15 * 1024 * 1024;
+    let selectedImages = [];
+    let primaryIndex = null;
+
+    function existingImageCount() {
+        return document.querySelectorAll('[data-server-image-card]').length;
+    }
+
+    function showImageError(message) {
+        if (!imageError) return;
+        imageError.textContent = message;
+        imageError.classList.remove('hidden');
+    }
+
+    function clearImageError() {
+        if (!imageError) return;
+        imageError.textContent = '';
+        imageError.classList.add('hidden');
+    }
+
+    function syncImageInput() {
+        const dataTransfer = new DataTransfer();
+        selectedImages.forEach(file => dataTransfer.items.add(file));
+        imageInput.files = dataTransfer.files;
+        primaryImageIndex.value = primaryIndex === null ? '' : String(primaryIndex);
+    }
+
+    function updateExistingPrimaryBadges(selectedImage) {
+        document.querySelectorAll('[data-server-image-card]').forEach((card, index) => {
+            const badge = card.querySelector('.absolute.top-2.left-2');
+            if (!badge) return;
+            const isPrimary = selectedImage
+                ? card.dataset.serverImage === selectedImage
+                : index === 0 && primaryIndex === null;
+            badge.textContent = isPrimary ? 'Principală' : 'Existent';
+        });
+    }
+
+    window.setExistingPrimaryImage = function(imageName) {
+        primaryExistingImage.value = imageName;
+        primaryIndex = null;
+        syncImageInput();
+        updateExistingPrimaryBadges(imageName);
+        renderImagePreview();
+    };
+
+    function renderImagePreview() {
+        previewContainer.innerHTML = '';
+
+        selectedImages.forEach((file, index) => {
+            const div = document.createElement('div');
+            div.className = 'aspect-square rounded-lg overflow-hidden border border-gray-200 shadow-sm relative bg-white dark:bg-[#252525]';
+            div.innerHTML = `
+                <img src="" class="w-full h-full object-cover" alt="">
+                ${primaryIndex === index ? '<span class="absolute left-1 top-1 rounded bg-[#C81424] px-2 py-0.5 text-[10px] font-bold text-white">Principală</span>' : ''}
+                <div class="absolute inset-x-1 bottom-1 flex gap-1">
+                    <button type="button" data-primary-index="${index}" class="flex-1 rounded bg-white/90 px-1 py-1 text-[10px] font-bold text-gray-800 shadow hover:bg-white">Principală</button>
+                    <button type="button" data-remove-index="${index}" class="rounded bg-red-600 px-2 py-1 text-[10px] font-bold text-white shadow hover:bg-red-700">×</button>
+                </div>
+            `;
+            previewContainer.appendChild(div);
+
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const img = div.querySelector('img');
+                if (img) img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
     if (imageInput && previewContainer) {
         imageInput.addEventListener('change', function() {
-            previewContainer.innerHTML = '';
-            if (this.files) {
-                Array.from(this.files).slice(0, 10).forEach(file => {
-                    if (file.type.match('image.*')) {
-                        const reader = new FileReader();
-                        reader.onload = function(ev) {
-                            const div = document.createElement('div');
-                            div.className = 'aspect-square rounded-lg overflow-hidden border border-gray-200 shadow-sm relative';
-                            div.innerHTML = `<img src="${ev.target.result}" class="w-full h-full object-cover">`;
-                            previewContainer.appendChild(div);
-                        }
-                        reader.readAsDataURL(file);
-                    }
-                });
+            clearImageError();
+            const incomingFiles = Array.from(this.files || []);
+
+            if (existingImageCount() + selectedImages.length + incomingFiles.length > maxImages) {
+                showImageError('Poți avea maxim 10 poze în total. Șterge poze existente sau alege mai puține imagini noi.');
+                this.value = '';
+                syncImageInput();
+                return;
+            }
+
+            const oversized = incomingFiles.find(file => file.size > maxImageBytes);
+            if (oversized) {
+                showImageError(`Imaginea "${oversized.name}" este prea mare. Limita este 15MB per imagine.`);
+                this.value = '';
+                syncImageInput();
+                return;
+            }
+
+            const invalid = incomingFiles.find(file => !file.type.match('image.*'));
+            if (invalid) {
+                showImageError(`Fișierul "${invalid.name}" nu este o imagine validă.`);
+                this.value = '';
+                syncImageInput();
+                return;
+            }
+
+            selectedImages = selectedImages.concat(incomingFiles);
+            syncImageInput();
+            renderImagePreview();
+        });
+
+        previewContainer.addEventListener('click', function(event) {
+            const primaryButton = event.target.closest('[data-primary-index]');
+            const removeButton = event.target.closest('[data-remove-index]');
+
+            if (primaryButton) {
+                primaryIndex = Number(primaryButton.dataset.primaryIndex);
+                primaryExistingImage.value = '';
+                syncImageInput();
+                updateExistingPrimaryBadges(null);
+                renderImagePreview();
+            }
+
+            if (removeButton) {
+                const removeIndex = Number(removeButton.dataset.removeIndex);
+                selectedImages.splice(removeIndex, 1);
+                if (selectedImages.length === 0) {
+                    primaryIndex = null;
+                } else if (primaryIndex === removeIndex) {
+                    primaryIndex = 0;
+                } else if (primaryIndex !== null && primaryIndex > removeIndex) {
+                    primaryIndex--;
+                }
+                clearImageError();
+                syncImageInput();
+                renderImagePreview();
             }
         });
     }
@@ -904,7 +1043,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const el = document.getElementById(containerId);
                 if (el) {
                     el.style.opacity = '0';
-                    setTimeout(() => el.remove(), 250);
+                    setTimeout(() => {
+                        const removedPrimary = primaryExistingImage?.value === imageName;
+                        el.remove();
+                        if (removedPrimary) {
+                            primaryExistingImage.value = document.querySelector('[data-server-image-card]')?.dataset.serverImage || '';
+                            updateExistingPrimaryBadges(primaryExistingImage.value);
+                        }
+                    }, 250);
                 }
             } else {
                 alert('Eroare la ștergere.');
@@ -912,6 +1058,21 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(() => alert('Eroare la ștergere.'));
     };
+
+    if (wizardForm) {
+        wizardForm.addEventListener('submit', function(event) {
+            if (!validateCurrentStep()) {
+                event.preventDefault();
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
+            submitBtn.textContent = 'Se salvează...';
+            submitOverlay?.classList.remove('hidden');
+            submitOverlay?.classList.add('flex');
+        });
+    }
 
     // init
     initCascadeFromSaved();
