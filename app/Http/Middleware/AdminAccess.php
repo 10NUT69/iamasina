@@ -19,14 +19,9 @@ class AdminAccess
             return redirect('/login');
         }
 
-        // 2. LISTA DE EMAIL-URI PERMISE (Adaugă aici alte email-uri dacă e nevoie)
-        $admins = [
-            'ionut.pirlogea@yahoo.com',
-        ];
-
-        // 3. Verificăm dacă email-ul utilizatorului curent este în listă
-        if (!in_array(Auth::user()->email, $admins)) {
-            // Dacă nu e Ionuț, aruncăm eroare 404 (Not Found) pentru discreție
+        // 2. Verificăm rolul din baza de date, nu o listă hardcodată de emailuri.
+        if (!Auth::user()->is_admin) {
+            // Dacă nu este admin, aruncăm eroare 404 (Not Found) pentru discreție.
             abort(404);
         }
 

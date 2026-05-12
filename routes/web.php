@@ -155,7 +155,7 @@ Route::middleware('auth')->group(function () {
 */
 
 Route::middleware(['auth', 'admin.access'])
-    ->prefix('admin')
+    ->prefix('panou-secret')
     ->name('admin.')
     ->group(function () {
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');

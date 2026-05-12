@@ -31,16 +31,21 @@ class TrackVisit
         }
 
         // 2. Nu logăm rutele de admin (pentru siguranță, în caz că nu e logat dar încearcă URL-uri)
-        if ($request->is('admin') || $request->is('admin/*')) {
+        if ($request->is('panou-secret') || $request->is('panou-secret/*')) {
             return $response;
         }
 
-        // 3. Nu logăm AJAX
+        // 3. Nu logăm rute interne sau de cont care poluează statisticile publice.
+        if ($this->isInternalRoute($request)) {
+            return $response;
+        }
+
+        // 4. Nu logăm AJAX
         if ($request->ajax()) {
             return $response;
         }
 
-        // 4. Nu logăm asset-uri sau fișiere statice
+        // 5. Nu logăm asset-uri sau fișiere statice
         if (
             $request->is('images/*') ||
             $request->is('storage/*') ||
@@ -52,7 +57,7 @@ class TrackVisit
             return $response;
         }
 
-        // 5. Nu logăm boți cunoscuți
+        // 6. Nu logăm boți cunoscuți
         $ua = $request->userAgent() ?? '';
         if ($this->isBot($ua)) {
             return $response;
@@ -113,6 +118,27 @@ class TrackVisit
             if (strpos($ua, $bot) !== false) return true;
         }
         return false;
+    }
+
+    private function isInternalRoute($request): bool
+    {
+        return $request->is(
+            'login',
+            'logout',
+            'register',
+            'forgot-password',
+            'reset-password',
+            'verify-email',
+            'confirm-password',
+            'dashboard',
+            'contul-meu',
+            'profile/*',
+            'mesaje',
+            'mesaje/*',
+            'mesaje/status/*',
+            'api/*',
+            'ajax/*'
+        );
     }
 
     private function detectDevice(string $ua): string
