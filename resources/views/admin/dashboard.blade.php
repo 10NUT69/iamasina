@@ -83,7 +83,7 @@
                class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 hover:border-amber-200 hover:shadow-md transition">
                 <div class="flex items-start justify-between gap-3">
                     <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase">Pending</p>
+                        <p class="text-xs font-bold text-slate-400 uppercase">Inactive</p>
                         <p class="mt-2 text-2xl font-bold text-slate-800">{{ number_format($pendingServices) }}</p>
                     </div>
                     <div class="h-9 w-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
