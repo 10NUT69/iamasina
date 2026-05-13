@@ -27,7 +27,8 @@ class ProcessServiceImages implements ShouldQueue
     public function __construct(
         public int $serviceId,
         public array $pendingImages,
-        public bool $replaceExisting = false
+        public bool $replaceExisting = false,
+        public ?int $primaryPendingIndex = null
     ) {
     }
 
@@ -57,7 +58,16 @@ class ProcessServiceImages implements ShouldQueue
         $baseName = $this->baseImageName($service);
         $nextNumber = count($existingImages) + 1;
 
-        foreach (array_slice($this->pendingImages, 0, max(0, 10 - count($existingImages))) as $pendingPath) {
+        $pendingImages = array_values($this->pendingImages);
+        $availableSlots = max(0, 10 - count($existingImages));
+        $processableImages = array_slice($pendingImages, 0, $availableSlots);
+        $skippedImages = array_slice($pendingImages, $availableSlots);
+
+        foreach ($skippedImages as $pendingPath) {
+            Storage::delete($pendingPath);
+        }
+
+        foreach ($processableImages as $pendingPath) {
             $sourcePath = Storage::path($pendingPath);
 
             if (!is_file($sourcePath)) {
@@ -93,9 +103,19 @@ class ProcessServiceImages implements ShouldQueue
             }
         }
 
-        $service->images = array_values(array_slice(array_merge($existingImages, $processedImages), 0, 10));
-        $service->status = 'active';
-        $service->published_at = $service->published_at ?: now();
+        $images = array_values(array_slice(array_merge($existingImages, $processedImages), 0, 10));
+
+        $primaryPendingIndex = $this->primaryPendingIndex();
+
+        if ($primaryPendingIndex !== null && isset($processedImages[$primaryPendingIndex])) {
+            $primaryImage = $processedImages[$primaryPendingIndex];
+            $images = array_values(array_unique(array_merge([$primaryImage], $images)));
+        }
+
+        $service->images = array_values(array_slice($images, 0, 10));
+        if ($service->status === 'active') {
+            $service->published_at = $service->published_at ?: now();
+        }
         $service->save();
     }
 
@@ -111,6 +131,11 @@ class ProcessServiceImages implements ShouldQueue
     private function targetExtension(): string
     {
         return function_exists('imagewebp') ? 'webp' : 'jpg';
+    }
+
+    private function primaryPendingIndex(): ?int
+    {
+        return isset($this->primaryPendingIndex) ? $this->primaryPendingIndex : null;
     }
 
     private function availableImageName(string $baseName, int $serviceId, int &$number, string $extension): string

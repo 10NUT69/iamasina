@@ -61,6 +61,14 @@
 
 <body class="admin-theme bg-gray-100 dark:bg-[#121212] dark:text-gray-100">
 
+@php
+    $sidebarStats = $adminSidebarStats ?? [
+        'pending_services' => 0,
+        'active_services' => 0,
+        'new_users_today' => 0,
+    ];
+@endphp
+
 <div class="flex">
 
     <!-- SIDEBAR -->
@@ -74,13 +82,28 @@
             </a>
 
             <a href="{{ route('admin.services.index') }}"
-               class="block p-2 rounded hover:bg-gray-200 {{ request()->routeIs('admin.services.*') ? 'bg-gray-200 font-bold' : '' }}">
-                Anunțuri
+               class="flex items-center justify-between p-2 rounded hover:bg-gray-200 {{ request()->routeIs('admin.services.*') ? 'bg-gray-200 font-bold' : '' }}">
+                <span>Anunțuri</span>
+                <span class="inline-flex items-center gap-1">
+                    @if(($sidebarStats['pending_services'] ?? 0) > 0)
+                        <span class="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700" title="Anunțuri în așteptare">
+                            {{ $sidebarStats['pending_services'] }}
+                        </span>
+                    @endif
+                    <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700" title="Anunțuri active">
+                        {{ $sidebarStats['active_services'] ?? 0 }}
+                    </span>
+                </span>
             </a>
 
             <a href="{{ route('admin.users.index') }}"
-               class="block p-2 rounded hover:bg-gray-200 {{ request()->routeIs('admin.users.*') ? 'bg-gray-200 font-bold' : '' }}">
-                Utilizatori
+               class="flex items-center justify-between p-2 rounded hover:bg-gray-200 {{ request()->routeIs('admin.users.*') ? 'bg-gray-200 font-bold' : '' }}">
+                <span>Utilizatori</span>
+                @if(($sidebarStats['new_users_today'] ?? 0) > 0)
+                    <span class="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700" title="Utilizatori noi azi">
+                        +{{ $sidebarStats['new_users_today'] }}
+                    </span>
+                @endif
             </a>
 
             <a href="{{ route('admin.categories.index') }}"

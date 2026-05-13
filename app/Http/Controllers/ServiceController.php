@@ -32,9 +32,13 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class ServiceController extends Controller
 {
+    private const MAX_SERVICE_IMAGES = 10;
+    private const MAX_SERVICE_IMAGE_KB = 15360;
+
     // ==========================================
     // 1. INDEX (NESCHIMBAT)
     // ==========================================
@@ -621,7 +625,9 @@ public function indexAutoPath(
         'price_type'  => 'required|in:fixed,negotiable',
         'currency'    => 'required|in:RON,EUR',
         'name'        => 'nullable|string|max:255',
-        'images.*'    => 'image|mimes:jpeg,png,jpg,webp|max:15360',
+        'images'      => ['nullable', 'array', 'max:' . self::MAX_SERVICE_IMAGES],
+        'images.*'    => 'image|mimes:jpeg,png,jpg,webp|max:' . self::MAX_SERVICE_IMAGE_KB,
+        'primary_image_index' => 'nullable|integer|min:0|max:9',
 
         // ✅ dacă vrei parc/proprietar la creare anunț (guest)
         // dacă NU trimiți user_type din form, rămâne individual
@@ -666,11 +672,13 @@ public function indexAutoPath(
     }
 
     $messages = [
+        'images.max'        => 'Poți încărca maxim 10 imagini.',
         'images.*.max'      => 'Una dintre imagini este prea mare (max 15MB).',
         'images.*.uploaded' => 'Eroare la încărcare server.',
     ];
 
     $validated = $request->validate($rules, $messages);
+    $this->validateImageUploadLimits($request);
 
     // 1) CALCULARE NUME UTILIZATOR (VISITOR)
     $calculatedName = $request->input('name');
@@ -784,17 +792,17 @@ public function indexAutoPath(
     }
 
     $service->slug   = $uniqueSlug;
-    $service->status = 'pending';
+    $service->status = 'active';
+    $service->published_at = $service->published_at ?: now();
 
     $service->images = [];
     $service->save();
 
+    $primaryPendingIndex = $this->validPrimaryPendingIndex($request);
     $pendingImages = $this->storePendingServiceImages($service, $request);
     if ($pendingImages) {
-        ProcessServiceImages::dispatch($service->id, $pendingImages, true);
+        $this->dispatchServiceImageProcessing($service->id, $pendingImages, true, $primaryPendingIndex);
     } else {
-        $service->status = 'active';
-        $service->published_at = $service->published_at ?: now();
         $service->save();
     }
 
@@ -889,7 +897,10 @@ public function edit($id)
         'price_value' => 'nullable|numeric',
         'price_type'  => 'required|in:fixed,negotiable',
         'currency'    => 'required|in:RON,EUR',
-        'images.*'    => 'image|mimes:jpeg,png,jpg,webp|max:15360',
+        'images'      => ['nullable', 'array', 'max:' . self::MAX_SERVICE_IMAGES],
+        'images.*'    => 'image|mimes:jpeg,png,jpg,webp|max:' . self::MAX_SERVICE_IMAGE_KB,
+        'primary_image_index' => 'nullable|integer|min:0|max:9',
+        'primary_existing_image' => 'nullable|string',
 
         // FK-uri (pe care le trimite create.blade)
         'brand_id'          => 'nullable|exists:car_brands,id',
@@ -920,6 +931,10 @@ public function edit($id)
         'importata'         => 'nullable|boolean',
         'avariata'          => 'nullable|boolean',
         'filtru_particule'  => 'nullable|boolean',
+    ], [
+        'images.max'        => 'Poți avea maxim 10 imagini în total.',
+        'images.*.max'      => 'Una dintre imagini este prea mare (max 15MB).',
+        'images.*.uploaded' => 'Eroare la încărcare server.',
     ]);
 
     // Standard
@@ -967,23 +982,17 @@ public function edit($id)
     $service->filtru_particule  = $request->boolean('filtru_particule');
 
     // IMAGINI (păstrezi ce aveai)
-    $currentImages = $service->images;
-    if (is_string($currentImages)) {
-        $currentImages = json_decode($currentImages, true);
-    }
-    if (!is_array($currentImages)) {
-        $currentImages = [];
-    }
+    $currentImages = $this->normalizeServiceImages($service->images);
+    $this->validateImageUploadLimits($request, count($currentImages));
+    $currentImages = $this->moveExistingImageToFront($currentImages, $request->input('primary_existing_image'));
 
     $service->images = $currentImages;
     $service->save();
 
+    $primaryPendingIndex = $request->filled('primary_existing_image') ? null : $this->validPrimaryPendingIndex($request);
     $pendingImages = $this->storePendingServiceImages($service, $request, max(0, 10 - count($currentImages)));
     if ($pendingImages) {
-        $service->status = 'pending';
-        $service->save();
-
-        ProcessServiceImages::dispatch($service->id, $pendingImages, false);
+        $this->dispatchServiceImageProcessing($service->id, $pendingImages, false, $primaryPendingIndex);
     }
 
     return redirect('/contul-meu?tab=anunturi')
@@ -1235,6 +1244,73 @@ public function edit($id)
         }
 
         return $storedPaths;
+    }
+
+    private function dispatchServiceImageProcessing(
+        int $serviceId,
+        array $pendingImages,
+        bool $replaceExisting,
+        ?int $primaryPendingIndex = null
+    ): void {
+        $dispatch = ProcessServiceImages::dispatch($serviceId, $pendingImages, $replaceExisting, $primaryPendingIndex);
+        $queue = config('queue.service_images_queue');
+
+        if (is_string($queue) && trim($queue) !== '') {
+            $dispatch->onQueue(trim($queue));
+        }
+    }
+
+    private function normalizeServiceImages(mixed $images): array
+    {
+        if (is_string($images)) {
+            $images = json_decode($images, true) ?: [];
+        }
+
+        return is_array($images) ? array_values(array_filter($images)) : [];
+    }
+
+    private function validateImageUploadLimits(Request $request, int $existingCount = 0): void
+    {
+        $files = $request->file('images', []);
+        $files = is_array($files) ? array_values(array_filter($files)) : [$files];
+
+        if ($existingCount + count($files) > self::MAX_SERVICE_IMAGES) {
+            throw ValidationException::withMessages([
+                'images' => 'Poți avea maxim 10 imagini în total.',
+            ]);
+        }
+
+        foreach ($files as $file) {
+            if ($file && $file->getSize() > self::MAX_SERVICE_IMAGE_KB * 1024) {
+                throw ValidationException::withMessages([
+                    'images' => 'Una dintre imagini este prea mare (max 15MB).',
+                ]);
+            }
+        }
+    }
+
+    private function validPrimaryPendingIndex(Request $request): ?int
+    {
+        if (!$request->hasFile('images') || !$request->filled('primary_image_index')) {
+            return null;
+        }
+
+        $index = (int) $request->input('primary_image_index');
+        $files = $request->file('images', []);
+
+        return isset($files[$index]) ? $index : null;
+    }
+
+    private function moveExistingImageToFront(array $images, ?string $primaryImage): array
+    {
+        if (!$primaryImage || !in_array($primaryImage, $images, true)) {
+            return $images;
+        }
+
+        return array_values(array_unique(array_merge(
+            [$primaryImage],
+            array_filter($images, fn ($image) => $image !== $primaryImage)
+        )));
     }
 
     private function redirectToCleanAutoListingUrl(Request $request)

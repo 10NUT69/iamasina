@@ -72,6 +72,98 @@
         </form>
     </div>
 
+    <div class="mb-6">
+        <div class="mb-3 flex items-center justify-between">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500">De rezolvat</h2>
+            <span class="text-xs text-slate-400">Snapshot operațional pentru astăzi</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-4">
+            <a href="{{ route('admin.services.index', ['status' => 'inactive']) }}"
+               class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 hover:border-amber-200 hover:shadow-md transition">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase">Inactive</p>
+                        <p class="mt-2 text-2xl font-bold text-slate-800">{{ number_format($pendingServices) }}</p>
+                    </div>
+                    <div class="h-9 w-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                </div>
+                <p class="mt-3 text-xs text-slate-500">Anunțuri de verificat</p>
+            </a>
+
+            <a href="{{ route('admin.services.index', ['status' => 'inactive']) }}"
+               class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 hover:border-red-200 hover:shadow-md transition">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase">Expirate</p>
+                        <p class="mt-2 text-2xl font-bold text-slate-800">{{ number_format($expiredServices) }}</p>
+                    </div>
+                    <div class="h-9 w-9 rounded-lg bg-red-50 text-red-600 flex items-center justify-center">
+                        <i class="fas fa-calendar-times"></i>
+                    </div>
+                </div>
+                <p class="mt-3 text-xs text-slate-500">Necesită decizie</p>
+            </a>
+
+            <a href="{{ route('admin.services.index') }}"
+               class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 hover:border-blue-200 hover:shadow-md transition">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase">Fără poze</p>
+                        <p class="mt-2 text-2xl font-bold text-slate-800">{{ number_format($servicesWithoutImages) }}</p>
+                    </div>
+                    <div class="h-9 w-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <i class="fas fa-image"></i>
+                    </div>
+                </div>
+                <p class="mt-3 text-xs text-slate-500">Calitate listări</p>
+            </a>
+
+            <a href="{{ route('admin.users.index') }}"
+               class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 hover:border-emerald-200 hover:shadow-md transition">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase">Useri noi</p>
+                        <p class="mt-2 text-2xl font-bold text-slate-800">{{ number_format($newUsersToday) }}</p>
+                    </div>
+                    <div class="h-9 w-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                </div>
+                <p class="mt-3 text-xs text-slate-500">Înregistrați azi</p>
+            </a>
+
+            <a href="{{ route('admin.users.index') }}"
+               class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 hover:border-indigo-200 hover:shadow-md transition">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase">Dealeri noi</p>
+                        <p class="mt-2 text-2xl font-bold text-slate-800">{{ number_format($newDealersToday) }}</p>
+                    </div>
+                    <div class="h-9 w-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <i class="fas fa-store"></i>
+                    </div>
+                </div>
+                <p class="mt-3 text-xs text-slate-500">Conturi dealer azi</p>
+            </a>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase">Mesaje</p>
+                        <p class="mt-2 text-2xl font-bold text-slate-800">{{ number_format($newMessagesToday) }}</p>
+                    </div>
+                    <div class="h-9 w-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                </div>
+                <p class="mt-3 text-xs text-slate-500">{{ number_format($newConversationsToday) }} conversații noi</p>
+            </div>
+        </div>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         
         <div class="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-5 relative overflow-hidden group">
@@ -171,7 +263,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
             <div class="px-5 py-4 border-b border-slate-100 bg-slate-50">
                 <h3 class="font-bold text-slate-700 flex items-center gap-2">
-                    <i class="fas fa-chart-area text-purple-500"></i> Trafic {{ request('range') == 'today' ? 'Orar' : 'Zilnic' }}
+                    <i class="fas fa-chart-area text-purple-500"></i> Trafic {{ in_array(request('range', 'today'), ['today', 'yesterday'], true) ? 'Orar' : 'Zilnic' }}
                 </h3>
             </div>
             <div class="p-4 flex-1 flex flex-col justify-end">
@@ -199,7 +291,7 @@
                                     {{ Str::limit($page->url, 40) }}
                                 </a>
                                 <div class="w-full bg-slate-100 rounded-full h-1 mt-1.5">
-                                    <div class="bg-blue-500 h-1 rounded-full" style="width: {{ ($page->total / $totalVisits) * 100 }}%"></div>
+                                    <div class="bg-blue-500 h-1 rounded-full" style="width: {{ $totalVisits > 0 ? ($page->total / $totalVisits) * 100 : 0 }}%"></div>
                                 </div>
                             </td>
                             <td class="px-4 py-3 text-right font-bold text-slate-700">
@@ -231,7 +323,7 @@
                                     {{ $source->source }}
                                 </span>
                                 <div class="w-full bg-slate-100 rounded-full h-1">
-                                    <div class="bg-green-500 h-1 rounded-full" style="width: {{ ($source->total / $totalVisits) * 100 }}%"></div>
+                                    <div class="bg-green-500 h-1 rounded-full" style="width: {{ $totalVisits > 0 ? ($source->total / $totalVisits) * 100 : 0 }}%"></div>
                                 </div>
                             </td>
                             <td class="px-4 py-3 text-right font-bold text-slate-700">
@@ -267,7 +359,7 @@
                                 <div>
                                     <span class="font-medium text-slate-700 block">{{ $browser->browser }}</span>
                                     <div class="w-24 bg-slate-100 rounded-full h-1 mt-1">
-                                        <div class="bg-slate-400 h-1 rounded-full" style="width: {{ ($browser->total / $totalVisits) * 100 }}%"></div>
+                                        <div class="bg-slate-400 h-1 rounded-full" style="width: {{ $totalVisits > 0 ? ($browser->total / $totalVisits) * 100 : 0 }}%"></div>
                                     </div>
                                 </div>
                             </td>
@@ -288,15 +380,16 @@
             <h3 class="font-bold text-slate-700 flex items-center gap-2">
                 <i class="far fa-clock text-slate-400"></i> Jurnal Vizite
             </h3>
-            <span class="text-xs font-mono bg-white border border-slate-200 px-2 py-1 rounded text-slate-500">Live Feed</span>
+            <span class="text-xs font-mono bg-white border border-slate-200 px-2 py-1 rounded text-slate-500">Sumar IP</span>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-xs text-left">
                 <thead class="bg-slate-50 text-slate-500 uppercase font-bold border-b border-slate-200">
                     <tr>
-                        <th class="px-6 py-3">Timp</th>
+                        <th class="px-6 py-3">Ultima vizită</th>
                         <th class="px-6 py-3">IP / Locație</th>
-                        <th class="px-6 py-3">Pagină</th>
+                        <th class="px-6 py-3">Ultima pagină</th>
+                        <th class="px-6 py-3 text-center">Pagini</th>
                         <th class="px-6 py-3">Referrer</th>
                     </tr>
                 </thead>
@@ -318,6 +411,11 @@
                         <td class="px-6 py-3">
                             <span class="text-slate-600 truncate max-w-[250px] block" title="{{ $visit->url }}">
                                 {{ Str::limit($visit->url, 50) }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-3 text-center">
+                            <span class="inline-flex items-center justify-center min-w-8 rounded-full border border-blue-100 bg-blue-50 px-2 py-1 text-xs font-bold text-blue-700">
+                                {{ number_format($visit->page_views ?? 1) }}
                             </span>
                         </td>
                         <td class="px-6 py-3 text-slate-500 truncate max-w-[150px]">

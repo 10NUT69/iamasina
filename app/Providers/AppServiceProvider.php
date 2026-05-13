@@ -2,9 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\Service;
+use App\Models\User;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Support\Facades\View;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,6 +24,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        View::composer('admin.*', function ($view) {
+            $view->with('adminSidebarStats', [
+                'pending_services' => Service::whereNull('deleted_at')->where('status', 'pending')->count(),
+                'active_services' => Service::whereNull('deleted_at')->where('status', 'active')->count(),
+                'new_users_today' => User::whereDate('created_at', now()->toDateString())->count(),
+            ]);
+        });
+
         // Customizăm emailul de resetare parolă
         ResetPassword::toMailUsing(function ($notifiable, $token) {
             $url = url(route('password.reset', [

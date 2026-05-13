@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Conversation;
+use App\Models\Message;
 use App\Models\User;
 use App\Models\Service;
 use App\Models\Visit;
@@ -57,8 +59,9 @@ class AdminDashboardController extends Controller
         // 3. STATISTICI FILTRATE (Respectă Data Selectată)
         // =========================================================
         
-        // Query de bază pentru perioada selectată
-        $periodVisits = Visit::whereBetween('created_at', [$startDate, $endDate]);
+        // Query de bază pentru perioada selectată, curățată de rute interne.
+        $periodVisits = $this->cleanVisitsQuery()
+            ->whereBetween('created_at', [$startDate, $endDate]);
 
         // A. Totale pe perioada aleasă
         $totalVisits    = (clone $periodVisits)->count();
@@ -66,14 +69,48 @@ class AdminDashboardController extends Controller
 
         // B. Date pentru comparație (Săgețile roșii/verzi din Widget-uri)
         // Calculăm fix ziua de azi vs ziua de ieri pentru Widget-ul 1
-        $todayVisits     = Visit::whereDate('created_at', now()->toDateString())->count();
-        $yesterdayVisits = Visit::whereDate('created_at', now()->subDay()->toDateString())->count();
+        $todayVisits     = $this->cleanVisitsQuery()->whereDate('created_at', now()->toDateString())->count();
+        $yesterdayVisits = $this->cleanVisitsQuery()->whereDate('created_at', now()->subDay()->toDateString())->count();
 
         // C. ONLINE ACUM (Utilizatori activi în ultimele 5 minute)
         // Independent de filtre, mereu arată realitatea curentă
-        $onlineNow = Visit::where('created_at', '>=', now()->subMinutes(5))
+        $onlineNow = $this->cleanVisitsQuery()
+                          ->where('created_at', '>=', now()->subMinutes(5))
                           ->distinct('ip')
                           ->count('ip');
+
+        // C2. OPERATIONAL: lucruri care cer atenție în admin.
+        $pendingServices = Service::whereNull('deleted_at')
+            ->where('status', 'pending')
+            ->count();
+
+        $expiredServices = Service::whereNull('deleted_at')
+            ->where(function ($query) {
+                $query->where('status', 'expired')
+                    ->orWhere(function ($query) {
+                        $query->whereNotNull('expires_at')
+                            ->where('expires_at', '<', now());
+                    });
+            })
+            ->count();
+
+        $servicesWithoutImages = Service::whereNull('deleted_at')
+            ->where(function ($query) {
+                $query->whereNull('images')
+                    ->orWhere('images', '[]')
+                    ->orWhereJsonLength('images', 0);
+            })
+            ->count();
+
+        $newUsersToday = User::whereDate('created_at', now()->toDateString())->count();
+        $newDealersToday = User::where('user_type', 'dealer')
+            ->whereDate('created_at', now()->toDateString())
+            ->count();
+        $newConversationsToday = Conversation::whereDate('created_at', now()->toDateString())->count();
+        $newMessagesToday = Message::whereDate('created_at', now()->toDateString())->count();
+        $activeServices = Service::whereNull('deleted_at')
+            ->where('status', 'active')
+            ->count();
 
         // =========================================================
         // 4. GRAFICE & TABELE (Filtrate)
@@ -85,17 +122,26 @@ class AdminDashboardController extends Controller
         
         if ($groupBy == 'hour') {
             $dailyStats = Visit::selectRaw('HOUR(created_at) as date, COUNT(*) as visits, COUNT(DISTINCT ip) as unique_ips')
+                ->tap(fn ($query) => $this->applyCleanVisitFilters($query))
                 ->whereBetween('created_at', [$startDate, $endDate])
                 ->groupBy('date')
                 ->orderBy('date')
                 ->get()
-                // Formatăm ora pentru afișare (ex: "14" devine "14:00") pentru a fi detectată corect în JS
-                ->map(function ($item) {
-                    $item->date = $item->date . ':00'; 
-                    return $item;
-                });
+                ->keyBy('date');
+
+            // Zero-fill 00:00 - 23:00 ca graficul "Azi/Ieri" să nu aibă un singur punct plutitor.
+            $dailyStats = collect(range(0, 23))->map(function ($hour) use ($dailyStats) {
+                $item = $dailyStats->get($hour);
+
+                return (object) [
+                    'date' => str_pad((string) $hour, 2, '0', STR_PAD_LEFT) . ':00',
+                    'visits' => $item?->visits ?? 0,
+                    'unique_ips' => $item?->unique_ips ?? 0,
+                ];
+            });
         } else {
             $dailyStats = Visit::selectRaw('DATE(created_at) as date, COUNT(*) as visits, COUNT(DISTINCT ip) as unique_ips')
+                ->tap(fn ($query) => $this->applyCleanVisitFilters($query))
                 ->whereBetween('created_at', [$startDate, $endDate])
                 ->groupBy('date')
                 ->orderBy('date')
@@ -104,6 +150,7 @@ class AdminDashboardController extends Controller
 
         // E. Top Pagini
         $topPages = Visit::select('url', DB::raw('count(*) as total'))
+            ->tap(fn ($query) => $this->applyCleanVisitFilters($query))
             ->whereBetween('created_at', [$startDate, $endDate])
             ->groupBy('url')
             ->orderByDesc('total')
@@ -113,6 +160,7 @@ class AdminDashboardController extends Controller
         // F. Top Țări (Pentru Hartă și Tabel)
         // whereNotNull('country') asigură că harta nu primește date invalide
         $topCountries = Visit::select('country', DB::raw('count(*) as total'))
+            ->tap(fn ($query) => $this->applyCleanVisitFilters($query))
             ->whereBetween('created_at', [$startDate, $endDate])
             ->whereNotNull('country')
             ->groupBy('country')
@@ -121,6 +169,7 @@ class AdminDashboardController extends Controller
 
         // G. Browsere
         $browsers = Visit::select('browser', DB::raw('count(*) as total'))
+            ->tap(fn ($query) => $this->applyCleanVisitFilters($query))
             ->whereBetween('created_at', [$startDate, $endDate])
             ->whereNotNull('browser')
             ->groupBy('browser')
@@ -130,6 +179,7 @@ class AdminDashboardController extends Controller
 
         // H. Dispozitive
         $devices = Visit::select('device', DB::raw('count(*) as total'))
+            ->tap(fn ($query) => $this->applyCleanVisitFilters($query))
             ->whereBetween('created_at', [$startDate, $endDate])
             ->whereNotNull('device')
             ->groupBy('device')
@@ -139,6 +189,7 @@ class AdminDashboardController extends Controller
         // I. Surse Trafic (Referrers) - Logică PHP pentru curățare URL
         // Pas 1: Luăm datele brute
         $trafficSourcesRaw = Visit::select('referer', DB::raw('count(*) as total'))
+            ->tap(fn ($query) => $this->applyCleanVisitFilters($query))
             ->whereBetween('created_at', [$startDate, $endDate])
             ->groupBy('referer')
             ->orderByDesc('total')
@@ -162,8 +213,26 @@ class AdminDashboardController extends Controller
             ];
         })->sortByDesc('total')->take(8); // Păstrăm top 8 surse curate
 
-        // J. Jurnal Live (Ultimii 20 vizitatori)
-        $recentVisits = Visit::latest()->limit(20)->get();
+        // J. Jurnal Live sumarizat: un rând per IP, ultima pagină + număr pagini în perioada aleasă.
+        $recentVisitSubquery = $this->cleanVisitsQuery()
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->selectRaw('MAX(id) as id')
+            ->groupBy('ip');
+
+        $recentVisits = Visit::query()
+            ->joinSub($recentVisitSubquery, 'latest_visits', function ($join) {
+                $join->on('visits.id', '=', 'latest_visits.id');
+            })
+            ->select('visits.*')
+            ->selectSub(function ($query) use ($startDate, $endDate) {
+                $this->applyCleanVisitFilters($query->from('visits as visit_counts'))
+                    ->whereColumn('visit_counts.ip', 'visits.ip')
+                    ->whereBetween('visit_counts.created_at', [$startDate, $endDate])
+                    ->selectRaw('COUNT(*)');
+            }, 'page_views')
+            ->orderByDesc('visits.created_at')
+            ->limit(20)
+            ->get();
 
         // =========================================================
         // 5. RETURN VIEW
@@ -171,9 +240,45 @@ class AdminDashboardController extends Controller
         return view('admin.dashboard', compact(
             'userCount', 'serviceCount', 
             'totalVisits', 'uniqueVisitors', 'onlineNow',
+            'pendingServices', 'expiredServices', 'servicesWithoutImages',
+            'newUsersToday', 'newDealersToday', 'newConversationsToday', 'newMessagesToday',
+            'activeServices',
             'todayVisits', 'yesterdayVisits', 
             'dailyStats', 'topPages', 'topCountries', 
             'browsers', 'devices', 'trafficSources', 'recentVisits'
         ));
+    }
+
+    private function cleanVisitsQuery()
+    {
+        return $this->applyCleanVisitFilters(Visit::query());
+    }
+
+    private function applyCleanVisitFilters($query)
+    {
+        $exactUrls = [
+            '/login',
+            '/logout',
+            '/register',
+            '/forgot-password',
+            '/reset-password',
+            '/verify-email',
+            '/confirm-password',
+            '/dashboard',
+            '/contul-meu',
+        ];
+
+        return $query
+            ->whereNotIn('url', $exactUrls)
+            ->where(function ($query) {
+                $query->whereNull('user_id')
+                    ->orWhereNotIn('user_id', User::query()->select('id')->where('is_admin', true));
+            })
+            ->where('url', 'not like', '/panou-secret%')
+            ->where('url', 'not like', '/profile/%')
+            ->where('url', 'not like', '/mesaje%')
+            ->where('url', 'not like', '/mesaje/status/%')
+            ->where('url', 'not like', '/api/%')
+            ->where('url', 'not like', '/ajax/%');
     }
 }

@@ -17,6 +17,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Service Image Processing Queue
+    |--------------------------------------------------------------------------
+    |
+    | Leave this empty to use the default queue configured for the connection.
+    | Set SERVICE_IMAGES_QUEUE=services only on environments where the worker
+    | explicitly listens to that queue.
+    |
+    */
+
+    'service_images_queue' => env('SERVICE_IMAGES_QUEUE'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Queue Connections
     |--------------------------------------------------------------------------
     |
