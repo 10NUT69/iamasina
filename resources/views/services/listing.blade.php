@@ -270,7 +270,7 @@
     <strong class="font-extrabold text-gray-900 dark:text-white">fără taxe ascunse</strong>.
     Dacă vinzi
     <strong class="font-extrabold text-gray-900 dark:text-white">o mașină sau 1000</strong>,
-    pune-o aici și fii unul dintre
+    pune anunțuri aici și fii unul dintre
     <strong class="font-extrabold text-gray-900 dark:text-white">pionierii iaAuto</strong>!
 </p>
                             </div>
