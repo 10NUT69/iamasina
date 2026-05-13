@@ -2,8 +2,8 @@
 
 @php
     $listingMetaTitle = isset($totalCount) && (int) $totalCount > 0
-        ? 'Masini de Vanzare - Peste ' . number_format((int) $totalCount, 0, ',', '.') . ' Anunturi Auto Second Hand | iaAuto.ro'
-        : 'Masini de Vanzare - Anunturi Auto Second Hand | iaAuto.ro';
+        ? 'Anunțuri Auto - Peste ' . number_format((int) $totalCount, 0, ',', '.') . ' Anunturi Auto Second Hand | iaAuto.ro'
+        : 'Anunțuri Auto - Anunturi Auto Second Hand | iaAuto.ro';
     $showEarlyStageBanners = $showEarlyStageBanners ?? true; // TEMP: seteaza false cand site-ul are suficiente anunturi.
     $earlyStageTotalListings = isset($totalCount)
         ? (int) $totalCount
@@ -12,9 +12,9 @@
             : (isset($services) && method_exists($services, 'count') ? (int) $services->count() : 0));
 @endphp
 
-@section('title', 'Masini de Vanzare - Anunturi Auto Second Hand')
+@section('title', 'Anunțuri Auto - Anunturi Auto Second Hand')
 @section('meta_title', $listingMetaTitle)
-@section('meta_description', 'Cauti o masina? Vezi oferta completa de autoturisme second hand: filtrata dupa marca, model, pret sau locatie. Contact direct vanzator, poze detaliate si istoric auto pe iaAuto.ro.')
+@section('meta_description', 'Cauti o masina? Descoperă oferta de mașini de vânzare second hand, verifică istoricul și contactează vânzătorul. Publică GRATUIT!')
 @section('meta_image', asset('images/social-share.webp'))
 
 @section('content')
