@@ -255,11 +255,13 @@ class ServiceController extends Controller
     $carData       = $this->buildCarData();
 
     $view = $request->routeIs('services.index') ? 'services.index' : 'services.listing';
+    $showEarlyStageBanners = true; // TEMP: Seteaza false cand site-ul are suficiente anunturi.
 
     return view($view, [
         'services'        => $services,
         'hasMore'         => $hasMore,
         'totalCount'      => $totalCount,
+        'showEarlyStageBanners' => $showEarlyStageBanners,
         'counties'        => $counties,
         'categories'      => $categories,
         'currentCategory' => $request->attributes->get('currentCategory'),

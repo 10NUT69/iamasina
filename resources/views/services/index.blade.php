@@ -5,6 +5,13 @@
 @section('meta_description', 'Descopera mii de anunturi auto verificate. Cumpara masini second hand sau noi de la proprietari si parcuri auto din toata Romania. Filtreaza inteligent si gaseste-ti masina ideala pe iaAuto.ro!')
 @section('meta_image', asset('images/social-share.webp'))
 
+@php
+    $showEarlyStageBanners = $showEarlyStageBanners ?? true; // TEMP: seteaza false cand site-ul are suficiente anunturi.
+    $earlyStageTotalListings = isset($totalCount)
+        ? (int) $totalCount
+        : (isset($services) && method_exists($services, 'count') ? (int) $services->count() : 0);
+@endphp
+
 @section('hero')
 {{-- HERO SECTION --}}
 <div class="w-full bg-[linear-gradient(180deg,#fff7f8_0%,#ffffff_72%)] dark:bg-[linear-gradient(180deg,#171112_0%,#121212_76%)] pt-14 md:pt-20 lg:pt-20 pb-3 md:pb-4 lg:pb-3">
@@ -386,6 +393,29 @@
             </div>
         @endforelse
     </div>
+
+    @if($showEarlyStageBanners && $earlyStageTotalListings < 50)
+        {{-- EARLY STAGE BANNER START --}}
+        <section class="mb-8 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-[#333] dark:bg-[#18181B] sm:p-6 lg:flex lg:items-center lg:justify-between lg:gap-8">
+            <div class="min-w-0">
+                <span class="inline-flex items-center rounded-full bg-red-50 px-3 py-1 text-xs font-black uppercase tracking-wide text-[#C81424] dark:bg-[#2a1013] dark:text-red-200">
+                    Mesaj iaAuto.ro
+                </span>
+                <h3 class="mt-3 text-xl font-black leading-tight text-gray-950 dark:text-white sm:text-2xl">
+                    Cauți mai multe mașini? 🚗 Suntem la început de drum și creștem organic!
+                </h3>
+                <p class="mt-2 max-w-3xl text-sm font-semibold leading-relaxed text-gray-600 dark:text-gray-300 sm:text-base">
+                    Momentan avem puține anunțuri pentru că refuzăm să taxăm utilizatorii. Pe iaAuto.ro publici GRATUIT și NELIMITAT, mereu. Ajută-ne să umplem această pagină!
+                </p>
+            </div>
+
+            <a href="{{ route('services.create') }}"
+               class="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-[#C81424] px-5 py-3 text-sm font-black uppercase tracking-wide text-white shadow-lg shadow-red-700/20 transition hover:bg-[#94111B] active:scale-[0.98] lg:mt-0 lg:w-auto lg:shrink-0">
+                + Publică anunțul tău acum
+            </a>
+        </section>
+        {{-- EARLY STAGE BANNER END --}}
+    @endif
 
     @if($services->isNotEmpty())
         <div class="flex justify-center pb-12">

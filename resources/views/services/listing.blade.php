@@ -4,6 +4,12 @@
     $listingMetaTitle = isset($totalCount) && (int) $totalCount > 0
         ? 'Masini de Vanzare - Peste ' . number_format((int) $totalCount, 0, ',', '.') . ' Anunturi Auto Second Hand | iaAuto.ro'
         : 'Masini de Vanzare - Anunturi Auto Second Hand | iaAuto.ro';
+    $showEarlyStageBanners = $showEarlyStageBanners ?? true; // TEMP: seteaza false cand site-ul are suficiente anunturi.
+    $earlyStageTotalListings = isset($totalCount)
+        ? (int) $totalCount
+        : (isset($services) && method_exists($services, 'total')
+            ? (int) $services->total()
+            : (isset($services) && method_exists($services, 'count') ? (int) $services->count() : 0));
 @endphp
 
 @section('title', 'Masini de Vanzare - Anunturi Auto Second Hand')
@@ -240,6 +246,39 @@
             </div>
 
             <div id="services-container" class="flex flex-col gap-4">
+                @if($showEarlyStageBanners && $earlyStageTotalListings < 50)
+                    {{-- EARLY STAGE BANNER START --}}
+                    <article class="relative flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-[#27272a] dark:bg-[#18181B] md:flex-row">
+                        <div class="flex w-full items-center justify-center bg-red-50 p-5 text-[#C81424] dark:bg-[#2a1013] md:min-h-[220px] md:w-[320px] lg:w-[340px]">
+                            <div class="flex h-24 w-24 items-center justify-center rounded-2xl border border-red-100 bg-white text-5xl shadow-sm dark:border-[#333] dark:bg-[#202024] sm:h-28 sm:w-28">
+                                🚗
+                            </div>
+                        </div>
+
+                        <div class="flex min-w-0 flex-1 flex-col p-5 sm:p-6">
+                            <div>
+                                <span class="inline-flex w-fit items-center rounded-full bg-red-50 px-3 py-1 text-[11px] font-black uppercase tracking-wide text-[#C81424] dark:bg-[#2a1013] dark:text-red-200">
+                                    Mesaj iaAuto.ro
+                                </span>
+                                <h2 class="mt-3 text-xl font-black leading-tight text-gray-950 dark:text-white sm:text-2xl">
+                                    De ce sunt doar {{ number_format($earlyStageTotalListings, 0, ',', '.') }} mașini aici?
+                                </h2>
+                                <p class="mt-2 max-w-3xl text-sm font-semibold leading-relaxed text-gray-600 dark:text-gray-300 sm:text-base">
+                                    Pentru că am lansat platforma recent și am ales să fim 100% GRATUIȚI. Fără taxe ascunse și fără limite la numărul de poze. Dacă vinzi o mașină, pune-o aici și fii unul dintre pionierii iaAuto!
+                                </p>
+                            </div>
+
+                            <div class="mt-5 border-t border-gray-100 pt-4 dark:border-[#333]">
+                                <a href="{{ route('services.create') }}"
+                                   class="inline-flex w-full items-center justify-center rounded-xl bg-[#C81424] px-5 py-3 text-sm font-black uppercase tracking-wide text-white shadow-lg shadow-red-700/20 transition hover:bg-[#94111B] active:scale-[0.98] sm:w-auto">
+                                    + Publică anunțul tău acum
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                    {{-- EARLY STAGE BANNER END --}}
+                @endif
+
                 @include('services.partials.service_cards_horizontal', ['services' => $services])
             </div>
 
