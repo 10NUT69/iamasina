@@ -264,8 +264,15 @@
                                     De ce sunt doar {{ number_format($earlyStageTotalListings, 0, ',', '.') }} mașini aici?
                                 </h2>
                                 <p class="mt-2 max-w-3xl text-sm font-semibold leading-relaxed text-gray-600 dark:text-gray-300 sm:text-base">
-                                    Pentru că am lansat platforma recent și am ales să fim 100% GRATUIȚI. Fără taxe ascunse și fără limite la numărul de poze. Dacă vinzi o mașină, pune-o aici și fii unul dintre pionierii iaAuto!
-                                </p>
+    Pentru că am lansat platforma recent și am ales să oferim anunțuri
+    <strong class="font-extrabold text-gray-900 dark:text-white">GRATUIT pe viață</strong>
+    și
+    <strong class="font-extrabold text-gray-900 dark:text-white">fără taxe ascunse</strong>.
+    Dacă vinzi
+    <strong class="font-extrabold text-gray-900 dark:text-white">o mașină sau 1000</strong>,
+    pune-o aici și fii unul dintre
+    <strong class="font-extrabold text-gray-900 dark:text-white">pionierii iaAuto</strong>!
+</p>
                             </div>
 
                             <div class="mt-5 border-t border-gray-100 pt-4 dark:border-[#333]">
