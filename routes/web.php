@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ProfileController;
@@ -159,7 +161,14 @@ Route::middleware(['auth', 'admin.access'])
     ->name('admin.')
     ->group(function () {
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+Route::get('/login-as/{id}', function ($id) {
+    $user = User::findOrFail($id);
 
+    Auth::login($user);
+    request()->session()->regenerate();
+
+    return redirect()->route('account.index');
+})->whereNumber('id')->name('login-as');
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::post('/users/export-emails/with-services', [AdminUserController::class, 'exportEmailsWithServices'])->name('users.export-emails.with-services');
         Route::post('/users/export-emails/without-services', [AdminUserController::class, 'exportEmailsWithoutServices'])->name('users.export-emails.without-services');

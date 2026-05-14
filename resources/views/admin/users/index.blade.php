@@ -198,24 +198,31 @@
                                 </td>
 
                                 <td class="p-4 text-right">
-                                    <div class="flex items-center justify-end gap-2">
-                                        @if($user->id !== auth()->id())
-                                            <button type="button"
-                                                    onclick="toggleUser({{ $user->id }})"
-                                                    class="p-2 border rounded-lg transition shadow-sm {{ $user->is_active ? 'text-amber-500 hover:bg-amber-50 hover:border-amber-200' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200' }}"
-                                                    title="{{ $user->is_active ? 'Blocheaza accesul' : 'Deblocheaza accesul' }}">
-                                                <i class="fas {{ $user->is_active ? 'fa-ban' : 'fa-check' }}"></i>
-                                            </button>
+    <div class="flex items-center justify-end gap-2">
+        @if($user->id !== auth()->id())
+            <a href="{{ route('admin.login-as', $user->id) }}"
+               onclick="return confirm('Sigur vrei sa intri in contul acestui utilizator? Vei fi delogat din contul de admin.')"
+               class="p-2 border border-blue-200 text-blue-600 rounded-lg hover:bg-blue-50 transition shadow-sm"
+               title="Intra ca utilizator">
+                <i class="fas fa-right-to-bracket"></i>
+            </a>
 
-                                            <button type="button"
-                                                    onclick="deleteUser({{ $user->id }})"
-                                                    class="p-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition shadow-sm"
-                                                    title="Sterge contul">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        @endif
-                                    </div>
-                                </td>
+            <button type="button"
+                    onclick="toggleUser({{ $user->id }})"
+                    class="p-2 border rounded-lg transition shadow-sm {{ $user->is_active ? 'text-amber-500 hover:bg-amber-50 hover:border-amber-200' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200' }}"
+                    title="{{ $user->is_active ? 'Blocheaza accesul' : 'Deblocheaza accesul' }}">
+                <i class="fas {{ $user->is_active ? 'fa-ban' : 'fa-check' }}"></i>
+            </button>
+
+            <button type="button"
+                    onclick="deleteUser({{ $user->id }})"
+                    class="p-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition shadow-sm"
+                    title="Sterge contul">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        @endif
+    </div>
+</td>
                             </tr>
 
                             @if($user->all_services_count > 0)
