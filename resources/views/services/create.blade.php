@@ -458,9 +458,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const presetLocalityId = "{{ old('locality_id') }}";
     const serverValidationErrors = @json($errors->messages());
 
-    function updateStep() {
+    function scrollToStepStart(stepEl) {
+        if (!stepEl) return;
+
+        const target = stepEl.querySelector('h2') || stepEl;
+        const top = target.getBoundingClientRect().top + window.pageYOffset - 110;
+
+        window.scrollTo({
+            top: Math.max(0, top),
+            behavior: 'smooth',
+        });
+    }
+
+    function updateStep({ scrollToStart = false } = {}) {
+        let activeStep = null;
+
         steps.forEach(s => {
             if(parseInt(s.dataset.step) === currentStep) {
+                activeStep = s;
                 s.classList.remove('hidden');
                 setTimeout(() => s.classList.remove('opacity-0'), 50);
             } else {
@@ -484,6 +499,10 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             nextBtn.classList.remove('hidden');
             submitBtn.classList.add('hidden');
+        }
+
+        if (scrollToStart && activeStep) {
+            setTimeout(() => scrollToStepStart(activeStep), 80);
         }
     }
 
@@ -802,10 +821,10 @@ document.addEventListener('DOMContentLoaded', function() {
     nextBtn.addEventListener('click', () => {
         if(validateCurrentStep()) {
             currentStep++;
-            updateStep();
+            updateStep({ scrollToStart: true });
         }
     });
-    prevBtn.addEventListener('click', () => { currentStep--; updateStep(); });
+    prevBtn.addEventListener('click', () => { currentStep--; updateStep({ scrollToStart: true }); });
 
     if (countySelect) {
         countySelect.addEventListener('change', () => {
