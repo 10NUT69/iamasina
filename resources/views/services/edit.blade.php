@@ -477,7 +477,7 @@
                         </div>
                     </div>
                     <p id="imageError" class="hidden mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"></p>
-                    <div id="previewContainer" class="grid grid-cols-4 sm:grid-cols-6 gap-2 mt-4"></div>
+                    <div id="previewContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-4"></div>
                 </div>
 
                 <hr class="border-gray-100 dark:border-[#333] mb-8">
