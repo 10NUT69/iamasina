@@ -249,9 +249,36 @@
                 @if($showEarlyStageBanners && $earlyStageTotalListings < 50)
                     {{-- EARLY STAGE BANNER START --}}
                     <article class="relative flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-[#27272a] dark:bg-[#18181B] md:flex-row">
-                        <div class="flex w-full items-center justify-center bg-red-50 p-5 text-[#C81424] dark:bg-[#2a1013] md:min-h-[220px] md:w-[320px] lg:w-[340px]">
-                            <div class="flex h-24 w-24 items-center justify-center rounded-2xl border border-red-100 bg-white text-5xl shadow-sm dark:border-[#333] dark:bg-[#202024] sm:h-28 sm:w-28">
-                                🚗
+                        <div class="relative hidden w-full overflow-hidden bg-gradient-to-br from-[#fff4f5] via-white to-[#f4f6f8] p-5 dark:from-[#2a1013] dark:via-[#18181B] dark:to-[#111113] md:flex md:min-h-[220px] md:w-[320px] lg:w-[340px]">
+                            <div class="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#C81424]/12 to-transparent"></div>
+                            <div class="relative flex min-h-[190px] w-full flex-col justify-between rounded-2xl border border-white/70 bg-white/70 p-4 shadow-[0_18px_50px_rgba(15,23,42,0.10)] backdrop-blur-sm dark:border-white/10 dark:bg-white/5">
+                                <div class="flex items-center justify-between gap-3">
+                                    <span class="rounded-full bg-[#C81424] px-3 py-1 text-[10px] font-black uppercase tracking-wide text-white shadow-sm">
+                                        Start gratuit
+                                    </span>
+                                    <span class="rounded-full border border-red-100 bg-white px-3 py-1 text-[10px] font-black uppercase tracking-wide text-[#C81424] dark:border-white/10 dark:bg-white/10 dark:text-red-100">
+                                        IaAuto.ro
+                                    </span>
+                                </div>
+
+                                <div class="relative mt-4 flex flex-1 items-end justify-center">
+                                    <div class="absolute bottom-2 h-10 w-4/5 rounded-full bg-slate-900/10 blur-xl dark:bg-black/40"></div>
+                                    <img src="{{ asset('images/homepage-hero-car.webp') }}"
+                                         alt="Autoturism de vanzare pe iaAuto.ro"
+                                         class="relative z-10 max-h-32 w-full object-contain drop-shadow-2xl"
+                                         loading="lazy">
+                                </div>
+
+                                <div class="mt-4 grid grid-cols-2 gap-2 text-[11px] font-extrabold text-slate-700 dark:text-slate-200">
+                                    <div class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 dark:border-white/10 dark:bg-white/10">
+                                        0 lei
+                                        <span class="block text-[10px] font-bold text-slate-400 dark:text-slate-400">taxa anunt</span>
+                                    </div>
+                                    <div class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 dark:border-white/10 dark:bg-white/10">
+                                        Pe viata
+                                        <span class="block text-[10px] font-bold text-slate-400 dark:text-slate-400">anunturi gratuite</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
