@@ -304,24 +304,9 @@
                 $kmLabel = $service->km ? number_format($service->km, 0, '.', '.') . ' km' : '-';
                 $fuelLabel = $service->combustibil->nume ?? '-';
                 $gearboxLabel = $service->cutieViteze->nume ?? '-';
-                $canDeleteService = auth()->check() && (int) $service->user_id === auth()->id();
             @endphp
 
              <article class="group relative bg-white dark:bg-[#1E1E1E] border border-gray-100 dark:border-[#333] rounded-2xl overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
-                @if($canDeleteService)
-                    <form method="POST"
-                          action="{{ route('services.destroy', $service->id) }}"
-                          onsubmit="return confirm('Sigur ștergi acest anunț?')"
-                          class="absolute top-2 left-2 z-30 sm:top-3 sm:left-3">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit"
-                                class="inline-flex items-center justify-center rounded-full bg-white/90 px-3 py-1.5 text-[11px] font-black text-[#C81424] shadow-lg backdrop-blur-md transition hover:bg-[#C81424] hover:text-white dark:bg-black/60 dark:text-red-200 dark:hover:bg-[#C81424]">
-                            Șterge
-                        </button>
-                    </form>
-                @endif
-
                 <a href="{{ $service->public_url }}" class="block relative w-full aspect-[4/3] overflow-hidden bg-gray-200 dark:bg-[#121212]">
                     <img src="{{ $img }}" alt="{{ $listingTitle }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-in-out" loading="lazy">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-80"></div>

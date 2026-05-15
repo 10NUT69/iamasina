@@ -64,17 +64,29 @@
     $images = [];
     if (!$isDeleted) {
         $images = is_string($service->images) ? json_decode($service->images, true) : ($service->images ?? []);
-        if ($service->main_image_url) {
-            $images = is_array($images) ? $images : [];
-            array_unshift($images, basename($service->main_image_url));
-            $images = array_values(array_unique($images));
-        }
     }
+    $images = is_array($images) ? array_values(array_filter($images)) : [];
 
     // URL-uri complete
     $fullImageUrls = array_map(function($img) {
-        return Str::startsWith($img, ['http://', 'https://']) ? $img : asset('storage/services/'.$img);
+        $path = is_string($img) ? $img : ($img['path'] ?? $img['url'] ?? $img->path ?? '');
+        $path = ltrim((string) $path, '/');
+
+        if ($path === '') {
+            return null;
+        }
+
+        if (Str::startsWith($path, ['http://', 'https://'])) {
+            return $path;
+        }
+
+        if (Str::startsWith($path, ['storage/', 'images/'])) {
+            return asset($path);
+        }
+
+        return asset('storage/services/' . $path);
     }, $images);
+    $fullImageUrls = array_values(array_filter($fullImageUrls));
 
     // fallback dacă nu sunt imagini (nu crăpăm swiper/mozaic)
     if (empty($fullImageUrls) && $service->main_image_url) {
@@ -148,7 +160,9 @@
         : ($service->images ?? []);
     $rawShareImages = array_values(array_filter((array) $rawShareImages));
 
-    $seoImage = asset('images/social-share.webp');
+    $seoImage = (!$isDeleted && $service->main_image_url)
+        ? $service->main_image_url
+        : asset('images/social-share.webp');
     if (!$isDeleted && !empty($rawShareImages)) {
         $firstShareImage = $rawShareImages[0];
         if (Str::startsWith($firstShareImage, ['http://', 'https://'])) {

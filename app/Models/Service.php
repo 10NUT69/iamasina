@@ -14,6 +14,9 @@ class Service extends Model
 {
     use HasFactory, SoftDeletes;
 
+    private const DEFAULT_AUTO_IMAGE = 'images/defaults/auto-de-vanzare-iaauto-default.webp';
+    private const AUTO_DEFAULT_CATEGORY_SLUGS = ['autoturisme', 'servicii-auto'];
+
     protected $fillable = [
         'user_id',
         'category_id',
@@ -210,19 +213,39 @@ class Service extends Model
     // ==========================================
     public function getMainImageUrlAttribute()
     {
+        $images = $this->images;
+        if (is_string($images)) {
+            $images = json_decode($images, true) ?: [];
+        }
+
         // 1. Dacă utilizatorul a încărcat poze, o afișăm pe prima
-        if (!empty($this->images) && is_array($this->images) && isset($this->images[0])) {
-            return asset('storage/services/' . $this->images[0]);
+        if (is_array($images) && !empty($images[0])) {
+            $firstImage = ltrim((string) $images[0], '/');
+
+            if (Str::startsWith($firstImage, ['http://', 'https://'])) {
+                return $firstImage;
+            }
+
+            if (Str::startsWith($firstImage, ['storage/', 'images/'])) {
+                return asset($firstImage);
+            }
+
+            return asset('storage/services/' . $firstImage);
+        }
+
+        $categorySlug = $this->category?->slug;
+        if ($categorySlug && in_array($categorySlug, self::AUTO_DEFAULT_CATEGORY_SLUGS, true)) {
+            return asset(self::DEFAULT_AUTO_IMAGE);
         }
 
         // 2. Dacă NU are poze (sau au fost șterse), căutăm poza categoriei
         // Logica ta: images/defaults/{category-slug}.webp
-        if ($this->category) {
-            return asset('images/defaults/' . $this->category->slug . '.webp');
+        if ($categorySlug) {
+            return asset('images/defaults/' . $categorySlug . '.webp');
         }
 
         // 3. Fallback absolut (dacă nu are nici categorie)
-        return asset('images/defaults/placeholder.png');
+        return asset(self::DEFAULT_AUTO_IMAGE);
     }
 	// Legătura critică: Anunț -> Generație
     public function generation()

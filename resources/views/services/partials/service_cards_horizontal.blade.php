@@ -38,6 +38,11 @@
         if (is_object($imagesList) && method_exists($imagesList, 'all')) $imagesList = $imagesList->all();
         $imagesList = is_array($imagesList) ? $imagesList : [];
         $imgCount = count($imagesList);
+        $sliderImages = $imagesList;
+        if ($imgCount === 0 && $service->main_image_url) {
+            $sliderImages = [$service->main_image_url];
+        }
+        $slideCount = count($sliderImages);
 
         // 6. Data afisata ramane data publicarii/reactualizarii, nu data editarii.
         $listingDate = $service->published_at ?: $service->created_at;
@@ -50,7 +55,6 @@
         } else {
             $dateLabel = '-';
         }
-        $canDeleteService = auth()->check() && (int) $service->user_id === auth()->id();
     @endphp
 
     {{-- CARD ANUNȚ (DESIGN 2025-2026) --}}
@@ -60,18 +64,25 @@
         <div class="relative w-full md:w-[320px] lg:w-[340px] shrink-0 aspect-[4/3] md:aspect-auto md:min-h-[240px] overflow-hidden bg-gray-100 dark:bg-[#09090b]"
              x-data="{ 
                 activeSlide: 0, 
-                slides: {{ $imgCount > 0 ? $imgCount : 1 }},
+                slides: {{ $slideCount > 0 ? $slideCount : 1 }},
                 next() { this.activeSlide = (this.activeSlide === this.slides - 1) ? 0 : this.activeSlide + 1 },
                 prev() { this.activeSlide = (this.activeSlide === 0) ? this.slides - 1 : this.activeSlide - 1 }
              }">
 
             {{-- Link principal pe imagine --}}
             <a href="{{ $service->public_url }}" class="block w-full h-full relative group/img">
-                @if($imgCount > 0)
-                    @foreach($imagesList as $index => $img)
+                @if($slideCount > 0)
+                    @foreach($sliderImages as $index => $img)
                         @php
                             $path = is_string($img) ? $img : ($img['path'] ?? $img['url'] ?? $img->path ?? '');
-                            $imageUrl = $path ? (\Illuminate\Support\Str::startsWith($path, ['http', 'https']) ? $path : asset('storage/services/' . ltrim($path, '/'))) : '';
+                            $path = ltrim((string) $path, '/');
+                            if (\Illuminate\Support\Str::startsWith($path, ['http://', 'https://'])) {
+                                $imageUrl = $path;
+                            } elseif (\Illuminate\Support\Str::startsWith($path, ['storage/', 'images/'])) {
+                                $imageUrl = asset($path);
+                            } else {
+                                $imageUrl = $path ? asset('storage/services/' . $path) : '';
+                            }
                         @endphp
                         @if($imageUrl)
                             <img src="{{ $imageUrl }}" 
@@ -125,20 +136,6 @@
                 </div>
             @endif
             
-            @if($canDeleteService)
-                <form method="POST"
-                      action="{{ route('services.destroy', $service->id) }}"
-                      onsubmit="return confirm('Sigur ștergi acest anunț?')"
-                      class="absolute left-3 z-20 {{ $isPromoted ? 'top-12' : 'top-3' }}">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit"
-                            class="inline-flex items-center justify-center rounded-full bg-white/90 px-3 py-1.5 text-[11px] font-black text-[#C81424] shadow-lg backdrop-blur-md transition hover:bg-[#C81424] hover:text-white dark:bg-black/60 dark:text-red-200 dark:hover:bg-[#C81424]">
-                        Șterge
-                    </button>
-                </form>
-            @endif
-
             {{-- Buton Favorite Mobile (Peste poză) --}}
             <button onclick="toggleHeart(this, {{ $service->id }})" 
                     class="md:hidden absolute top-3 right-3 z-20 p-2 rounded-full bg-black/30 backdrop-blur-md border border-white/20 text-white hover:bg-red-500 hover:border-red-500 transition-all">

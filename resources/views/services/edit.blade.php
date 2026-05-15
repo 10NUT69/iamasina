@@ -435,24 +435,24 @@
                                      id="server-img-{{ $loop->index }}">
                                     <img src="{{ asset('storage/services/' . $img) }}" class="w-full h-full object-cover">
 
-                                    <div class="absolute top-2 left-2 bg-gray-900/60 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded pointer-events-none">
-                                        {{ $loop->first ? 'Principală' : 'Existent' }}
+                                    <div class="absolute top-2 left-2 rounded bg-[#C81424] px-2 py-0.5 text-[10px] font-bold text-white pointer-events-none {{ $loop->first ? '' : 'hidden' }}" data-primary-badge>
+                                        Principală
                                     </div>
 
-                                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 px-2">
+                                    <div class="absolute inset-x-1 bottom-1 flex gap-1">
                                         <button type="button"
                                                 onclick="setExistingPrimaryImage('{{ $img }}')"
-                                                class="bg-white hover:bg-gray-100 text-gray-900 px-3 py-1.5 rounded-lg shadow-lg transition-all text-xs font-bold">
-                                            Principală
+                                                class="flex-1 rounded bg-white/90 px-2 py-1 text-[10px] font-bold text-gray-800 shadow hover:bg-white {{ $loop->first ? 'hidden' : '' }}"
+                                                data-existing-primary-action>
+                                            Setează ca principală
                                         </button>
                                         <button type="button"
                                                 onclick="deleteServerImage('{{ $img }}', {{ $service->id }}, 'server-img-{{ $loop->index }}')"
-                                                class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg shadow-lg transition-all flex items-center gap-1 text-xs font-bold">
+                                                class="ml-auto rounded bg-red-600 px-2 py-1 text-[10px] font-bold text-white shadow hover:bg-red-700">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                       d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                             </svg>
-                                            Șterge
                                         </button>
                                     </div>
                                 </div>
@@ -920,12 +920,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateExistingPrimaryBadges(selectedImage) {
         document.querySelectorAll('[data-server-image-card]').forEach((card, index) => {
-            const badge = card.querySelector('.absolute.top-2.left-2');
-            if (!badge) return;
+            const badge = card.querySelector('[data-primary-badge]');
+            const primaryAction = card.querySelector('[data-existing-primary-action]');
             const isPrimary = selectedImage
                 ? card.dataset.serverImage === selectedImage
                 : index === 0 && primaryIndex === null;
-            badge.textContent = isPrimary ? 'Principală' : 'Existent';
+            badge?.classList.toggle('hidden', !isPrimary);
+            primaryAction?.classList.toggle('hidden', isPrimary);
         });
     }
 
@@ -947,8 +948,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <img src="" class="w-full h-full object-cover" alt="">
                 ${primaryIndex === index ? '<span class="absolute left-1 top-1 rounded bg-[#C81424] px-2 py-0.5 text-[10px] font-bold text-white">Principală</span>' : ''}
                 <div class="absolute inset-x-1 bottom-1 flex gap-1">
-                    <button type="button" data-primary-index="${index}" class="flex-1 rounded bg-white/90 px-1 py-1 text-[10px] font-bold text-gray-800 shadow hover:bg-white">Principală</button>
-                    <button type="button" data-remove-index="${index}" class="rounded bg-red-600 px-2 py-1 text-[10px] font-bold text-white shadow hover:bg-red-700">×</button>
+                    ${primaryIndex === index ? '' : '<button type="button" data-primary-index="' + index + '" class="flex-1 rounded bg-white/90 px-1 py-1 text-[10px] font-bold text-gray-800 shadow hover:bg-white">Setează ca principală</button>'}
+                    <button type="button" data-remove-index="${index}" class="ml-auto rounded bg-red-600 px-2 py-1 text-[10px] font-bold text-white shadow hover:bg-red-700">×</button>
                 </div>
             `;
             previewContainer.appendChild(div);
@@ -1020,6 +1021,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 clearImageError();
                 syncImageInput();
                 renderImagePreview();
+                updateExistingPrimaryBadges(primaryExistingImage.value || null);
             }
         });
     }

@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    <form action="{{ route('services.store') }}" method="POST" enctype="multipart/form-data" id="wizardForm">
+    <form action="{{ route('services.store') }}" method="POST" enctype="multipart/form-data" id="wizardForm" novalidate>
         @csrf
 
         {{-- CONTAINER PRINCIPAL --}}
@@ -67,7 +67,7 @@
                                     {{-- fallback pentru compatibilitate veche --}}
                                     <input type="hidden" name="model" id="modelText" value="">
 
-                                    <select name="model_id" id="modelSelect" disabled class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-[#222] disabled:cursor-not-allowed focus:ring-2 focus:ring-[#C81424] outline-none transition-all appearance-none">
+                                    <select name="model_id" id="modelSelect" disabled required class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-[#222] disabled:cursor-not-allowed focus:ring-2 focus:ring-[#C81424] outline-none transition-all appearance-none">
                                         <option value="">Model</option>
                                     </select>
                                 </div>
@@ -456,6 +456,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const localitySelect = document.getElementById('locality-select');
     const localityBaseUrl = "{{ url('/api/localities') }}";
     const presetLocalityId = "{{ old('locality_id') }}";
+    const serverValidationErrors = @json($errors->messages());
 
     function updateStep() {
         steps.forEach(s => {
@@ -533,45 +534,269 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const err = document.getElementById('err-' + inputId.replace('input','').toLowerCase());
         if(err) err.classList.add('hidden');
-        if(inputId === 'inputBodyType') document.getElementById('err-body').classList.add('hidden');
-        if(inputId === 'inputFuel') document.getElementById('err-fuel').classList.add('hidden');
-        if(inputId === 'inputTrans') document.getElementById('err-trans').classList.add('hidden');
-		if(inputId === 'inputTractiune') document.getElementById('err-tractiune')?.classList.add('hidden');
+        if(inputId === 'inputBodyType') clearCustomPillError('inputBodyType', 'err-body');
+        if(inputId === 'inputFuel') clearCustomPillError('inputFuel', 'err-fuel');
+        if(inputId === 'inputTrans') clearCustomPillError('inputTrans', 'err-trans');
+		if(inputId === 'inputTractiune') clearCustomPillError('inputTractiune', 'err-tractiune');
 
     }
 
     // === 3. VALIDATION ===
-    function validateCurrentStep() {
-        let valid = true;
-        const currentEl = document.querySelector(`.step-content[data-step="${currentStep}"]`);
-        const inputs = currentEl.querySelectorAll('input[required], select[required], textarea[required]');
-        
-        inputs.forEach(inp => {
-            if(!inp.value) {
-                valid = false;
-                inp.classList.add('ring-2', 'ring-red-500', 'border-red-500');
-                inp.addEventListener('change', () => inp.classList.remove('ring-2', 'ring-red-500', 'border-red-500'), {once:true});
+    function ensureStepErrorBox(stepEl) {
+        let box = stepEl.querySelector('[data-step-error]');
+        if (box) return box;
+
+        box = document.createElement('div');
+        box.dataset.stepError = 'true';
+        box.className = 'hidden mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-100';
+        box.setAttribute('role', 'alert');
+        box.setAttribute('tabindex', '-1');
+
+        const heading = stepEl.querySelector('h2');
+        if (heading) {
+            heading.insertAdjacentElement('afterend', box);
+        } else {
+            stepEl.prepend(box);
+        }
+
+        return box;
+    }
+
+    function hideStepError(stepEl) {
+        const box = stepEl?.querySelector('[data-step-error]');
+        if (!box) return;
+        box.textContent = '';
+        box.classList.add('hidden');
+    }
+
+    function showStepError(stepEl, messages) {
+        const box = ensureStepErrorBox(stepEl);
+        const uniqueMessages = [...new Set(messages.filter(Boolean))];
+        box.textContent = uniqueMessages.length > 1
+            ? `Verifică aceste câmpuri: ${uniqueMessages.join(', ')}.`
+            : (uniqueMessages[0] || 'Verifică câmpurile evidențiate înainte să continui.');
+        box.classList.remove('hidden');
+    }
+
+    function fieldLabel(input) {
+        const fieldLabels = {
+            brand_id: 'marca',
+            model_id: 'modelul',
+            an_fabricatie: 'anul',
+            culoare_id: 'culoarea',
+            km: 'rulajul',
+            putere: 'puterea',
+            title: 'titlul anunțului',
+            description: 'descrierea',
+            price_value: 'prețul',
+            phone: 'telefonul',
+            county_id: 'județul',
+            locality_id: 'orașul',
+            email: 'emailul',
+            password: 'parola',
+        };
+
+        if (fieldLabels[input.name]) {
+            return fieldLabels[input.name];
+        }
+
+        const explicitLabel = input.id ? document.querySelector(`label[for="${input.id}"]`) : null;
+        let nearbyLabel = null;
+        let parent = input.parentElement;
+
+        while (parent && !parent.classList.contains('step-content')) {
+            nearbyLabel = Array.from(parent.children).find(child => child.tagName === 'LABEL');
+            if (nearbyLabel) break;
+            parent = parent.parentElement;
+        }
+
+        const selectPlaceholder = input.tagName === 'SELECT' ? input.options?.[0]?.textContent : '';
+        const text = (explicitLabel?.textContent || nearbyLabel?.textContent || selectPlaceholder || input.placeholder || input.name || 'acest câmp')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        return text.replace(/[:*]+$/, '').toLowerCase();
+    }
+
+    function validationMessageFor(input) {
+        const label = fieldLabel(input);
+
+        if (input.validity?.valueMissing || !input.value) {
+            return `Completează ${label}.`;
+        }
+
+        if (input.validity?.typeMismatch && input.type === 'email') {
+            return 'Introdu o adresă de email validă.';
+        }
+
+        return input.validationMessage || `Verifică ${label}.`;
+    }
+
+    function markInvalidInput(input) {
+        input.classList.add('ring-2', 'ring-red-500', 'border-red-500');
+        input.setAttribute('aria-invalid', 'true');
+
+        const clear = () => {
+            if (input.checkValidity()) {
+                input.classList.remove('ring-2', 'ring-red-500', 'border-red-500');
+                input.removeAttribute('aria-invalid');
+            }
+        };
+
+        input.addEventListener('input', clear);
+        input.addEventListener('change', clear);
+    }
+
+    function clearCustomPillError(inputId, errorId) {
+        const input = document.getElementById(inputId);
+        const wrapper = input?.closest('div');
+        wrapper?.querySelectorAll('.pill-btn').forEach(btn => {
+            btn.classList.remove('ring-2', 'ring-red-500', 'border-red-500');
+        });
+        document.getElementById(errorId)?.classList.add('hidden');
+    }
+
+    function markCustomPillInvalid(inputId, errorId, message) {
+        const input = document.getElementById(inputId);
+        const wrapper = input?.closest('div');
+        const error = document.getElementById(errorId);
+
+        error?.classList.remove('hidden');
+        wrapper?.querySelectorAll('.pill-btn').forEach(btn => {
+            btn.classList.add('ring-2', 'ring-red-500', 'border-red-500');
+        });
+
+        return {
+            target: wrapper?.querySelector('.pill-btn') || error || input,
+            message,
+        };
+    }
+
+    function scrollToValidationTarget(target) {
+        if (!target) return;
+
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => {
+            if (typeof target.focus === 'function') {
+                target.focus({ preventScroll: true });
+            }
+        }, 350);
+    }
+
+    function validateStep(stepNumber, { reveal = true } = {}) {
+        const stepEl = document.querySelector(`.step-content[data-step="${stepNumber}"]`);
+        if (!stepEl) return { valid: true, messages: [], firstTarget: null };
+
+        const invalidItems = [];
+        const inputs = stepEl.querySelectorAll('input, select, textarea');
+
+        inputs.forEach(input => {
+            if (input.disabled || input.type === 'hidden') return;
+
+            if (!input.checkValidity()) {
+                const message = validationMessageFor(input);
+                invalidItems.push({ target: input, message });
+                if (reveal) markInvalidInput(input);
             }
         });
 
-        if(currentStep === 1) {
-             const genSel = document.getElementById('generationSelect');
-             if (!genSel.disabled && !genSel.value) {
-                valid = false;
-                genSel.classList.add('ring-2', 'ring-red-500', 'border-red-500');
-                genSel.addEventListener('change', () => genSel.classList.remove('ring-2', 'ring-red-500', 'border-red-500'), {once:true});
-             }
+        if (stepNumber === 1) {
+            const genSel = document.getElementById('generationSelect');
+            if (genSel && !genSel.disabled && !genSel.value) {
+                invalidItems.push({ target: genSel, message: 'Alege generația.' });
+                if (reveal) markInvalidInput(genSel);
+            }
 
-            if(!document.getElementById('inputBodyType').value) { document.getElementById('err-body').classList.remove('hidden'); valid = false; }
-            if(!document.getElementById('inputFuel').value) { document.getElementById('err-fuel').classList.remove('hidden'); valid = false; }
-            if(!document.getElementById('inputTrans').value) { document.getElementById('err-trans').classList.remove('hidden'); valid = false; }
-			if(!document.getElementById('inputTractiune').value) {
-    document.getElementById('err-tractiune').classList.remove('hidden');
-    valid = false;
-}
-
+            [
+                ['inputBodyType', 'err-body', 'Selectează caroseria'],
+                ['inputFuel', 'err-fuel', 'Alege combustibilul'],
+                ['inputTrans', 'err-trans', 'Alege transmisia'],
+                ['inputTractiune', 'err-tractiune', 'Alege tracțiunea'],
+            ].forEach(([inputId, errorId, message]) => {
+                if (!document.getElementById(inputId)?.value) {
+                    const item = reveal
+                        ? markCustomPillInvalid(inputId, errorId, message + '.')
+                        : { target: document.getElementById(inputId), message: message + '.' };
+                    invalidItems.push(item);
+                }
+            });
         }
-        return valid;
+
+        if (invalidItems.length) {
+            if (reveal) showStepError(stepEl, invalidItems.map(item => item.message));
+            return {
+                valid: false,
+                messages: invalidItems.map(item => item.message),
+                firstTarget: invalidItems[0]?.target || stepEl,
+            };
+        }
+
+        if (reveal) hideStepError(stepEl);
+        return { valid: true, messages: [], firstTarget: null };
+    }
+
+    function validateCurrentStep() {
+        const result = validateStep(currentStep);
+        if (!result.valid) {
+            scrollToValidationTarget(result.firstTarget);
+        }
+
+        return result.valid;
+    }
+
+    function validateAllSteps() {
+        for (let stepNumber = 1; stepNumber <= totalSteps; stepNumber++) {
+            const result = validateStep(stepNumber, { reveal: stepNumber === currentStep });
+
+            if (!result.valid) {
+                currentStep = stepNumber;
+                updateStep();
+
+                setTimeout(() => {
+                    const visibleResult = validateStep(stepNumber);
+                    scrollToValidationTarget(visibleResult.firstTarget);
+                }, 80);
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function findFieldForError(fieldName) {
+        const normalizedName = String(fieldName).replace(/\.\d+$/, '');
+        const allFields = wizardForm ? Array.from(wizardForm.querySelectorAll('[name]')) : [];
+
+        return allFields.find(field => {
+            return field.name === normalizedName || field.name === `${normalizedName}[]`;
+        }) || null;
+    }
+
+    function applyServerValidationErrors(errors) {
+        const entries = Object.entries(errors || {});
+        if (!entries.length) return false;
+
+        const firstField = findFieldForError(entries[0][0]);
+        const firstStep = firstField?.closest('.step-content');
+        currentStep = Number(firstStep?.dataset.step || 1);
+        updateStep();
+
+        setTimeout(() => {
+            const stepEl = document.querySelector(`.step-content[data-step="${currentStep}"]`);
+            const messages = entries.flatMap(([, fieldMessages]) => Array.isArray(fieldMessages) ? fieldMessages : [String(fieldMessages)]);
+            const target = firstField || stepEl;
+
+            if (stepEl) {
+                showStepError(stepEl, messages);
+            }
+            if (firstField) {
+                markInvalidInput(firstField);
+            }
+            scrollToValidationTarget(target);
+        }, 100);
+
+        return true;
     }
 
     nextBtn.addEventListener('click', () => {
@@ -719,8 +944,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <img src="" class="w-full h-full object-cover" alt="">
                 ${primaryIndex === index ? '<span class="absolute left-1 top-1 rounded bg-[#C81424] px-2 py-0.5 text-[10px] font-bold text-white">Principală</span>' : ''}
                 <div class="absolute inset-x-1 bottom-1 flex gap-1">
-                    <button type="button" data-primary-index="${index}" class="flex-1 rounded bg-white/90 px-1 py-1 text-[10px] font-bold text-gray-800 shadow hover:bg-white">Principală</button>
-                    <button type="button" data-remove-index="${index}" class="rounded bg-red-600 px-2 py-1 text-[10px] font-bold text-white shadow hover:bg-red-700">×</button>
+                    ${primaryIndex === index ? '' : '<button type="button" data-primary-index="' + index + '" class="flex-1 rounded bg-white/90 px-1 py-1 text-[10px] font-bold text-gray-800 shadow hover:bg-white">Setează ca principală</button>'}
+                    <button type="button" data-remove-index="${index}" class="ml-auto rounded bg-red-600 px-2 py-1 text-[10px] font-bold text-white shadow hover:bg-red-700">×</button>
                 </div>
             `;
             previewContainer.appendChild(div);
@@ -799,7 +1024,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (wizardForm) {
         wizardForm.addEventListener('submit', function(event) {
-            if (!validateCurrentStep()) {
+            if (!validateAllSteps()) {
                 event.preventDefault();
                 return;
             }
@@ -812,7 +1037,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    updateStep();
+    if (!applyServerValidationErrors(serverValidationErrors)) {
+        updateStep();
+    }
 });
 </script>
 

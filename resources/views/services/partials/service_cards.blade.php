@@ -12,7 +12,6 @@
         $km = $service->km ? number_format($service->km, 0, ',', '.') . ' km' : '-';
         $fuel = optional($service->combustibil)->nume ?? '-';
         $transmission = optional($service->cutieViteze)->nume ?? '-';
-        $canDeleteService = auth()->check() && (int) $service->user_id === auth()->id();
     @endphp
 
     {{-- CARD INDIVIDUAL --}}
@@ -35,20 +34,6 @@
                     d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733C11.285 4.876 9.623 3.75 7.688 3.75 5.099 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
             </svg>
         </button>
-
-        @if($canDeleteService)
-            <form method="POST"
-                  action="{{ route('services.destroy', $service->id) }}"
-                  onsubmit="return confirm('Sigur ștergi acest anunț?')"
-                  class="absolute top-2 left-2 z-30 md:top-3 md:left-3">
-                @csrf
-                @method('DELETE')
-                <button type="submit"
-                        class="inline-flex items-center justify-center rounded-full bg-white/90 px-3 py-1.5 text-[11px] font-black text-[#C81424] shadow-sm backdrop-blur-md transition hover:bg-[#C81424] hover:text-white dark:bg-black/60 dark:text-red-200 dark:hover:bg-[#C81424]">
-                    Șterge
-                </button>
-            </form>
-        @endif
 
         {{-- Link Către Anunț --}}
         <a href="{{ $service->public_url }}" class="block flex-grow flex flex-col">
