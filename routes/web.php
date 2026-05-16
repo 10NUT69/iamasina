@@ -209,6 +209,7 @@ require __DIR__.'/auth.php';
 */
 
 Route::view('/despre-noi', 'services.about')->name('page.about');
+Route::view('/de-ce-dealerii-auto-aleg-iaauto', 'services.dealer-landing')->name('page.dealers');
 Route::view('/contact', 'services.contact')->name('page.contact');
 Route::view('/blog', 'services.blog')->name('page.blog');
 Route::view('/termeni-si-conditii', 'services.terms')->name('page.terms');
