@@ -9,11 +9,11 @@
     $registerUrl = route('register');
     $createUrl = route('services.create');
     $assetBase = 'images/landing/dealeri/';
-    $heroMockup = asset($assetBase.'dealer-hero-mockup.png');
-    $previewPage = asset($assetBase.'dealer-preview-page.png');
-    $bmwCard = asset($assetBase.'dealer-bmw-card.png');
-    $audiCard = asset($assetBase.'dealer-audi-card.png');
-    $stockLink = asset($assetBase.'dealer-stock-link.png');
+    $heroMockup = asset($assetBase.'dealer-hero-mockup.webp');
+    $previewPage = asset($assetBase.'dealer-preview-page.webp');
+    $bmwCard = asset($assetBase.'dealer-bmw-card.webp');
+    $audiCard = asset($assetBase.'dealer-audi-card.webp');
+    $stockLink = asset($assetBase.'dealer-stock-link.webp');
 @endphp
 
 <div class="dealer-landing-page mx-auto space-y-12 pb-10 pt-2 md:space-y-14 md:pb-14">
