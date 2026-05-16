@@ -248,7 +248,7 @@
             </p>
 
             <p class="mt-4 max-w-2xl rounded-2xl border border-red-100 bg-white/70 px-4 py-3 text-sm font-bold leading-6 text-gray-800 shadow-sm dark:border-red-900/40 dark:bg-[#18181b]/70 dark:text-red-100">
-                După ce prinzi gustul, contactează-ne și automatizăm noi totul:
+                După ce prinzi gustul, contactează-ne și automatizăm noi totul GRATUIT:
                 <a href="mailto:contact@iaauto.ro" class="font-black text-[#C81424] underline decoration-red-300 underline-offset-4 hover:text-[#94111B] dark:text-red-200">
                     contact@iaauto.ro
                 </a>
