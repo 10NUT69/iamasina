@@ -53,7 +53,7 @@
                         <select id="homepage-quick-brand-filter" class="autovit-select homepage-quick-select w-full">
                             <option value="">Toate mărcile</option>
                             @if($brandsPopulare->isNotEmpty())
-                                <optgroup label="Populari">
+                                <optgroup label="Populare">
                                     @foreach($brandsPopulare as $brand)
                                         <option value="{{ $brand->id }}" @selected((string) $currentBrandId === (string) $brand->id)>{{ $brand->name }}</option>
                                     @endforeach
@@ -152,7 +152,7 @@
                             <select id="brand-filter" name="brand_id" class="autovit-select">
                                 <option value="">Toate mărcile</option>
                                 @if($brandsPopulare->isNotEmpty())
-                                    <optgroup label="Populari">
+                                    <optgroup label="Populare">
                                         @foreach($brandsPopulare as $brand)
                                             <option value="{{ $brand->id }}" data-slug="{{ $brand->slug }}" @selected($currentBrandId === $brand->id)>
                                                 {{ $brand->name }}
