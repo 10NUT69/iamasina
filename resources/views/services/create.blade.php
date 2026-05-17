@@ -104,7 +104,7 @@
                                 <input type="hidden" name="brand" id="brandText" value="">
 
                                 <select name="brand_id" id="brandSelect" class="wizard-big-select w-full cursor-pointer appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white" required>
-                                    <option value="">Marca</option>
+                                    <option value="">Marcă</option>
                                     @if($brandsPopulare->isNotEmpty())
                                         <optgroup label="Populare">
                                             @foreach($brandsPopulare as $brand)
@@ -133,14 +133,14 @@
                             {{-- Generation (Trimite car_generation_id) --}}
                             <div class="relative group">
                                 <select name="car_generation_id" id="generationSelect" disabled class="wizard-big-select w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white dark:disabled:bg-[#222]">
-                                    <option value="">Gen</option>
+                                    <option value="">Generație</option>
                                 </select>
                             </div>
 
                             {{-- Year --}}
                             <div class="relative group">
                                 <select name="an_fabricatie" id="yearSelect" disabled class="wizard-big-select w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white dark:disabled:bg-[#222]" required>
-                                    <option value="">An</option>
+                                    <option value="">An fabricație</option>
                                 </select>
                             </div>
                         </div>
@@ -155,7 +155,7 @@
                             <select name="culoare_id"
                                 class="color-select-compact rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white"
                                 required>
-                                <option value="">Alege culoare</option>
+                                <option value="">Culoare</option>
                                 @foreach($colors as $color)
                                     <option value="{{ $color->id }}">{{ $color->nume }}</option>
                                 @endforeach
@@ -179,7 +179,7 @@
                         <div>
                             <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-gray-300">Caroserie</label>
                             <select name="caroserie_id" id="inputBodyType" class="choice-select w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 sm:px-4 sm:text-sm dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white">
-                                <option value="">Alege caroserie</option>
+                                <option value="">Selectează</option>
                                 @foreach($orderedBodies as $body)
                                     <option value="{{ $body->id }}">{{ $body->nume }}</option>
                                 @endforeach
@@ -191,7 +191,7 @@
                         <div>
                             <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-gray-300">Combustibil</label>
                             <select name="combustibil_id" id="inputFuel" class="choice-select w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 sm:px-4 sm:text-sm dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white">
-                                <option value="">Alege combustibil</option>
+                                <option value="">Selectează</option>
                                 @foreach($orderedFuels as $fuel)
                                     <option value="{{ $fuel->id }}">{{ $fuel->nume }}</option>
                                 @endforeach
@@ -203,7 +203,7 @@
                         <div>
                             <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-gray-300">Transmisie</label>
                             <select name="cutie_viteze_id" id="inputTrans" class="choice-select w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 sm:px-4 sm:text-sm dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white">
-                                <option value="">Alege transmisie</option>
+                                <option value="">Selectează</option>
                                 @foreach($transmissions as $trans)
                                     <option value="{{ $trans->id }}">{{ $trans->nume }}</option>
                                 @endforeach
@@ -215,7 +215,7 @@
                         <div>
                             <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-gray-300">Tracțiune</label>
                             <select name="tractiune_id" id="inputTractiune" class="choice-select w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 sm:px-4 sm:text-sm dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white">
-                                <option value="">Alege tracțiune</option>
+                                <option value="">Selectează</option>
                                 @foreach($tractiuni as $tr)
                                     <option value="{{ $tr->id }}">{{ $tr->nume }}</option>
                                 @endforeach
@@ -1628,7 +1628,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const yearSel = document.getElementById('yearSelect');
 
     function populateYears(start, end) {
-        yearSel.innerHTML = '<option value="">An</option>';
+        yearSel.innerHTML = '<option value="">An fabricație</option>';
         yearSel.disabled = false;
         for(let i = end; i >= start; i--) {
             yearSel.innerHTML += `<option value="${i}">${i}</option>`;
@@ -1648,8 +1648,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('brandText').value = brandName;
 
         resetSelect(modelSel, 'Model');
-        resetSelect(genSel, 'Gen');
-        resetSelect(yearSel, 'An');
+        resetSelect(genSel, 'Generație');
+        resetSelect(yearSel, 'An fabricație');
 
         if(brandId && carData[brandId]) {
             modelSel.disabled = false;
@@ -1667,8 +1667,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const modelName = this.options[this.selectedIndex]?.dataset?.name || '';
         document.getElementById('modelText').value = modelName;
 
-        resetSelect(genSel, 'Gen');
-        resetSelect(yearSel, 'An');
+        resetSelect(genSel, 'Generație');
+        resetSelect(yearSel, 'An fabricație');
 
         if(brandId && modelId && carData[brandId]) {
             const modelObj = carData[brandId].find(x => String(x.id) === String(modelId));
