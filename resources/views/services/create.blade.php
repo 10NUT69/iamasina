@@ -83,7 +83,7 @@
 
             {{-- ================= PASUL 1: SPECIFICAȚII ================= --}}
             <div class="step-content p-6 md:p-8 animate-fade-in" data-step="1">
-                <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                <h2 class="text-xl font-extrabold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                     <span class="text-slate-500">🚙</span> Detalii Vehicul
                 </h2>
                 
@@ -94,18 +94,16 @@
                 @endphp
 
                 <div class="space-y-8">
-                    <div class="rounded-2xl border border-slate-100 bg-slate-50/70 p-5 dark:border-[#333] dark:bg-[#252525]">
-                        <label class="mb-4 block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">Identificare</label>
+                    <div class="space-y-4">
+                        <label class="block text-[13px] font-extrabold uppercase tracking-[0.16em] text-slate-500 dark:text-gray-400">Identificare</label>
 
-                        <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
+                        <div class="grid grid-cols-2 gap-3 sm:gap-4">
                             {{-- Brand (FK) + fallback text --}}
                             <div class="relative group">
-                                <span class="pointer-events-none absolute left-3 top-2.5 text-slate-400">🏢</span>
-
                                 {{-- fallback pentru compatibilitate veche --}}
                                 <input type="hidden" name="brand" id="brandText" value="">
 
-                                <select name="brand_id" id="brandSelect" class="w-full cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white" required>
+                                <select name="brand_id" id="brandSelect" class="wizard-big-select w-full cursor-pointer appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white" required>
                                     <option value="">Marca</option>
                                     @if($brandsPopulare->isNotEmpty())
                                         <optgroup label="Populare">
@@ -124,26 +122,24 @@
 
                             {{-- Model (FK) + fallback text --}}
                             <div class="relative group">
-                                <span class="pointer-events-none absolute left-3 top-2.5 text-slate-400">🚘</span>
-
                                 {{-- fallback pentru compatibilitate veche --}}
                                 <input type="hidden" name="model" id="modelText" value="">
 
-                                <select name="model_id" id="modelSelect" disabled required class="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-60 dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white dark:disabled:bg-[#222]">
+                                <select name="model_id" id="modelSelect" disabled required class="wizard-big-select w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white dark:disabled:bg-[#222]">
                                     <option value="">Model</option>
                                 </select>
                             </div>
 
                             {{-- Generation (Trimite car_generation_id) --}}
                             <div class="relative group">
-                                <select name="car_generation_id" id="generationSelect" disabled class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-60 dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white dark:disabled:bg-[#222]">
+                                <select name="car_generation_id" id="generationSelect" disabled class="wizard-big-select w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white dark:disabled:bg-[#222]">
                                     <option value="">Gen</option>
                                 </select>
                             </div>
 
                             {{-- Year --}}
                             <div class="relative group">
-                                <select name="an_fabricatie" id="yearSelect" disabled class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-60 dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white dark:disabled:bg-[#222]" required>
+                                <select name="an_fabricatie" id="yearSelect" disabled class="wizard-big-select w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white dark:disabled:bg-[#222]" required>
                                     <option value="">An</option>
                                 </select>
                             </div>
@@ -371,10 +367,22 @@
                             </div>
                         </div>
                         <div class="mt-3 flex gap-2">
-                             <input type="hidden" name="price_type" id="inputPriceType" value="fixed">
-                             <button type="button" onclick="selectPill('inputPriceType', 'negotiable', this)" class="pill-btn rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:border-slate-400 hover:text-slate-900 dark:border-[#444] dark:text-gray-400 dark:hover:text-white">Negociabil</button>
-                             <button type="button" onclick="selectPill('inputPriceType', 'fixed', this)" class="pill-btn rounded-xl border border-slate-900 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white selected dark:border-white dark:bg-white dark:text-slate-950">Preț Fix</button>
-                        </div>
+    <input type="hidden" name="price_type" id="inputPriceType" value="fixed">
+
+    <button
+        type="button"
+        onclick="selectPill('inputPriceType', 'negotiable', this)"
+        class="pill-btn rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:border-slate-400 hover:text-slate-900 dark:border-[#444] dark:bg-[#252525] dark:text-gray-400 dark:hover:text-white">
+        Negociabil
+    </button>
+
+    <button
+        type="button"
+        onclick="selectPill('inputPriceType', 'fixed', this)"
+        class="pill-btn selected rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:border-slate-400 hover:text-slate-900 dark:border-[#444] dark:bg-[#252525] dark:text-gray-400 dark:hover:text-white">
+        Preț Fix
+    </button>
+</div>
                     </div>
 
                     {{-- CONTACT --}}
@@ -711,6 +719,22 @@
     button[onclick*="inputPriceType"].selected, button[onclick*="inputCurrency"].selected { background-color: #0f172a !important; color: white !important; border-color: #0f172a !important; }
     input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 
+    /* Ajustări vizuale doar pentru pasul 1: câmpuri mai mari și fără senzația de formular miniaturizat. */
+    #wizardForm .step-content[data-step="1"] .custom-select-trigger {
+        border-radius: 1rem;
+        font-size: 0.95rem;
+        font-weight: 750;
+        height: 3.15rem;
+        padding-left: 1rem;
+        padding-right: 0.85rem;
+    }
+    #wizardForm .step-content[data-step="1"] .custom-select-label {
+        line-height: 1.15;
+    }
+    #wizardForm .step-content[data-step="1"] label {
+        line-height: 1.2;
+    }
+
     @media (max-width: 640px) {
         #wizardForm select {
             background-position: right 0.55rem center;
@@ -721,13 +745,13 @@
             grid-template-columns: minmax(0, 1fr) repeat(3, max-content);
         }
         .color-select-compact {
-            font-size: 0.75rem;
+            font-size: 0.9rem;
         }
         .color-option-pill {
-            font-size: 0.6875rem;
-            min-height: 2.35rem;
-            padding-left: 0.42rem;
-            padding-right: 0.42rem;
+            font-size: 0.78rem;
+            min-height: 2.55rem;
+            padding-left: 0.55rem;
+            padding-right: 0.55rem;
         }
         #wizardForm .custom-select-trigger {
             font-size: 0.75rem;
@@ -735,6 +759,13 @@
             height: 2.6rem;
             padding-left: 0.65rem;
             padding-right: 0.55rem;
+        }
+        #wizardForm .step-content[data-step="1"] .custom-select-trigger {
+            font-size: 0.9rem;
+            gap: 0.4rem;
+            height: 3rem;
+            padding-left: 0.85rem;
+            padding-right: 0.7rem;
         }
         #wizardForm .custom-select.has-leading-icon .custom-select-trigger {
             padding-left: 2.2rem;
