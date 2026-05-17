@@ -4,7 +4,7 @@
 
 @section('content')
 
-<div class="mx-auto mt-8 mb-20 w-full max-w-3xl px-4 sm:px-6 xl:max-w-[50%] xl:px-0">
+<div class="publish-form-shell mx-auto mt-6 mb-20 w-full max-w-3xl px-2 sm:mt-8 sm:px-6 xl:max-w-[50%] xl:px-0">
 
     {{-- HEADER SIMPLIFICAT --}}
     <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
@@ -79,10 +79,10 @@
         @endphp
 
         {{-- CONTAINER PRINCIPAL --}}
-        <div class="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-xl border border-gray-100 dark:border-[#2A2A2A] overflow-hidden min-h-[500px] flex flex-col relative">
+        <div class="wizard-card bg-white dark:bg-[#1E1E1E] rounded-[1.15rem] sm:rounded-2xl shadow-xl border border-gray-100 dark:border-[#2A2A2A] overflow-hidden min-h-[500px] flex flex-col relative">
 
             {{-- ================= PASUL 1: SPECIFICAȚII ================= --}}
-            <div class="step-content p-6 md:p-8 animate-fade-in" data-step="1">
+            <div class="step-content p-4 sm:p-6 md:p-8 animate-fade-in" data-step="1">
                 <h2 class="text-xl font-extrabold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                     <span class="text-slate-500">🚙</span> Detalii Vehicul
                 </h2>
@@ -97,7 +97,7 @@
                     <div class="space-y-4">
                         <label class="block text-[13px] font-extrabold uppercase tracking-[0.16em] text-slate-500 dark:text-gray-400">Identificare</label>
 
-                        <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                        <div class="grid grid-cols-2 gap-2.5 sm:gap-4">
                             {{-- Brand (FK) + fallback text --}}
                             <div class="relative group">
                                 {{-- fallback pentru compatibilitate veche --}}
@@ -174,7 +174,7 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-2 gap-3 sm:gap-4">
                         {{-- CAROSERIE --}}
                         <div>
                             <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-gray-300">Caroserie</label>
@@ -229,7 +229,7 @@
             </div>
 
             {{-- ================= PASUL 2: ISTORIC & DESCRIERE ================= --}}
-            <div class="step-content p-6 md:p-8 hidden opacity-0" data-step="2">
+            <div class="step-content p-4 sm:p-6 md:p-8 hidden opacity-0" data-step="2">
                 <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                     <span class="text-slate-500">📝</span> Detalii Tehnice & Istoric
                 </h2>
@@ -241,7 +241,7 @@
                     <p class="text-xs text-gray-400 mt-1">Recomandat pentru verificare.</p>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-6">
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-5 sm:mb-6">
                     <div>
                         <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Rulaj</label>
                         <div class="relative">
@@ -265,7 +265,7 @@
                     </div>
                 </div>
 
-                <div class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6">
+                <div class="mb-5 grid grid-cols-2 gap-3 sm:mb-6 sm:gap-4 md:grid-cols-3 md:gap-6">
                     {{-- NORMA POLUARE --}}
                     <div>
                         <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Normă poluare</label>
@@ -328,12 +328,12 @@
             </div>
 
             {{-- ================= PASUL 3: FINALIZARE ================= --}}
-            <div class="step-content p-6 md:p-8 hidden opacity-0" data-step="3">
+            <div class="step-content p-4 sm:p-6 md:p-8 hidden opacity-0" data-step="3">
                 <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                     <span class="text-slate-500">📸</span> Galerie & Preț
                 </h2>
 
-                <div class="mx-auto flex w-full max-w-3xl flex-col gap-6">
+                <div class="mx-auto flex w-full max-w-3xl flex-col gap-5 sm:gap-6">
                 {{-- DRAG & DROP FOTO --}}
                 <div>
                     <div class="relative w-full group">
@@ -348,11 +348,11 @@
                         </div>
                     </div>
                     <p id="imageError" class="hidden mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"></p>
-                    <div id="previewContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-4"></div>
+                    <div id="previewContainer" class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 mt-4"></div>
                 </div>
 
                 {{-- PRET SI CONTACT --}}
-                <div class="grid grid-cols-1 gap-6 border-t border-slate-100 pt-6 md:grid-cols-2 dark:border-[#333]">
+                <div class="grid grid-cols-1 gap-5 border-t border-slate-100 pt-5 sm:gap-6 sm:pt-6 md:grid-cols-2 dark:border-[#333]">
                     {{-- PRET --}}
                     <div>
                         <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Preț Vânzare</label>
@@ -422,7 +422,7 @@
                         </div>
                     </div>
 					<input type="hidden" name="user_type" value="individual">
-                    <div class="grid grid-cols-1 gap-5 md:grid-cols-3">
+                    <div class="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-3">
                         <div>
                              <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Nume</label>
                              <input type="text" name="name" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#252525] dark:text-white">
@@ -450,7 +450,7 @@
             </div>
 
             {{-- FOOTER NAVIGARE --}}
-            <div class="mt-auto p-5 bg-gray-50 dark:bg-[#252525] border-t border-gray-100 dark:border-[#333] flex justify-between items-center">
+            <div class="wizard-footer mt-auto p-4 sm:p-5 bg-gray-50 dark:bg-[#252525] border-t border-gray-100 dark:border-[#333] flex justify-between items-center">
                 <button type="button" id="prevBtn" class="hidden text-gray-500 dark:text-gray-400 font-bold text-sm px-4 py-2 hover:bg-gray-200 dark:hover:bg-[#333] rounded-lg transition-colors">
                     ← Înapoi
                 </button>
@@ -736,6 +736,57 @@
     }
 
     @media (max-width: 640px) {
+        /*
+         * Mobile-only spacing fix pentru toți cei 3 pași.
+         * Reducem spațiul dintre ecran-card și dintre câmpuri-marginea cardului,
+         * fără să schimbăm logica formularului.
+         */
+        .publish-form-shell {
+            padding-left: 0.45rem !important;
+            padding-right: 0.45rem !important;
+        }
+        #wizardForm .wizard-card {
+            border-radius: 1rem;
+        }
+        #wizardForm .step-content {
+            padding: 0.95rem !important;
+        }
+        #wizardForm .step-content > h2 {
+            font-size: 1.35rem;
+            line-height: 1.2;
+            margin-bottom: 1.15rem;
+        }
+        #wizardForm .step-content[data-step="1"] > .space-y-8 > :not([hidden]) ~ :not([hidden]) {
+            margin-top: 1.45rem;
+        }
+        #wizardForm .step-content[data-step="1"] .space-y-6 > :not([hidden]) ~ :not([hidden]),
+        #wizardForm .step-content[data-step="2"] .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+            margin-top: 0.85rem;
+        }
+        #wizardForm .wizard-footer {
+            padding: 0.85rem !important;
+        }
+        #wizardForm .wizard-footer #nextBtn,
+        #wizardForm .wizard-footer #submitBtn {
+            padding-left: 1.35rem;
+            padding-right: 1.35rem;
+        }
+        #wizardForm label {
+            letter-spacing: 0.08em;
+        }
+        #wizardForm input,
+        #wizardForm textarea {
+            font-size: 0.9rem;
+        }
+        #wizardForm input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]) {
+            padding-left: 0.85rem;
+            padding-right: 0.85rem;
+        }
+        #wizardForm textarea {
+            padding-left: 0.85rem;
+            padding-right: 0.85rem;
+        }
+
         #wizardForm select {
             background-position: right 0.55rem center;
             padding-right: 1.75rem;
