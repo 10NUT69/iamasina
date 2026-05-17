@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\County;
 use App\Models\Locality;
 use App\Models\User;
+use App\Notifications\ServicePublishedConfirmation;
 
 // 🔹 MODELE AUTO
 use App\Models\CarBrand;
@@ -804,6 +805,15 @@ public function indexAutoPath(
         $this->dispatchServiceImageProcessing($service->id, $pendingImages, true, $primaryPendingIndex);
     } else {
         $service->save();
+    }
+
+    $serviceOwner = Auth::user();
+    if ($serviceOwner && (int) $serviceOwner->id === (int) $service->user_id) {
+        try {
+            $serviceOwner->notify(new ServicePublishedConfirmation($service));
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     $redirectUrl = $wasAuthenticated

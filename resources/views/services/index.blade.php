@@ -5,13 +5,6 @@
 @section('meta_description', 'Descopera mii de anunturi auto verificate. Cumpara masini second hand sau noi de la proprietari si parcuri auto din toata Romania. Filtreaza inteligent si gaseste-ti masina ideala pe iaAuto.ro!')
 @section('meta_image', asset('images/social-share.webp'))
 
-@php
-    $showEarlyStageBanners = $showEarlyStageBanners ?? true; // TEMP: seteaza false cand site-ul are suficiente anunturi.
-    $earlyStageTotalListings = isset($totalCount)
-        ? (int) $totalCount
-        : (isset($services) && method_exists($services, 'count') ? (int) $services->count() : 0);
-@endphp
-
 @section('hero')
 {{-- HERO SECTION --}}
 <div class="w-full bg-[linear-gradient(180deg,#fff7f8_0%,#ffffff_72%)] dark:bg-[linear-gradient(180deg,#171112_0%,#121212_76%)] pt-14 md:pt-20 lg:pt-20 pb-3 md:pb-4 lg:pb-3">
@@ -273,14 +266,14 @@
 @section('content')
 
 <div class="w-full mt-0">
-    <div class="flex items-center justify-between mb-5 pb-3 border-b border-gray-100 dark:border-[#2C2C2C] md:mb-6">
-        <div class="flex items-center gap-3">
+    <div class="flex items-center justify-between gap-3 mb-5 pb-3 border-b border-gray-100 dark:border-[#2C2C2C] md:mb-6">
+        <div class="flex min-w-0 items-center gap-3">
              <div class="w-1.5 h-8 bg-[#C81424] rounded-full shadow-sm"></div>
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Anunțuri recente</h2>
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">Anunțuri recente</h2>
         </div>
 
         <a href="{{ url('/anunturi-auto-de-vanzare') }}"
-           class="inline-flex shrink-0 items-center gap-1.5 text-base font-extrabold text-[#C81424] transition hover:text-[#94111B] hover:underline sm:text-sm"
+           class="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#C81424] px-3 py-2 text-[11px] font-black uppercase tracking-wide text-white shadow-lg shadow-red-700/20 transition hover:bg-[#94111B] active:scale-[0.98] sm:px-5 sm:py-3 sm:text-sm"
            aria-label="Vezi toate anunțurile auto">
             Vezi toate
             <span aria-hidden="true">&rarr;</span>
@@ -379,33 +372,10 @@
         @endforelse
     </div>
 
-    @if($showEarlyStageBanners && $earlyStageTotalListings < 50)
-        {{-- EARLY STAGE BANNER START --}}
-        <section class="mb-8 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-[#333] dark:bg-[#18181B] sm:p-6 lg:flex lg:items-center lg:justify-between lg:gap-8">
-            <div class="min-w-0">
-                <span class="inline-flex items-center rounded-full bg-red-50 px-3 py-1 text-xs font-black uppercase tracking-wide text-[#C81424] dark:bg-[#2a1013] dark:text-red-200">
-                    Mesaj iaAuto.ro
-                </span>
-                <h3 class="mt-3 text-xl font-black leading-tight text-gray-950 dark:text-white sm:text-2xl">
-                    Cauți mai multe mașini? 🚗 Suntem la început de drum și creștem organic!
-                </h3>
-                <p class="mt-2 max-w-3xl text-sm font-semibold leading-relaxed text-gray-600 dark:text-gray-300 sm:text-base">
-                    Momentan avem puține anunțuri pentru că refuzăm să taxăm utilizatorii. Pe iaAuto.ro publici GRATUIT și NELIMITAT, mereu. Ajută-ne să umplem această pagină!
-                </p>
-            </div>
-
-            <a href="{{ route('services.create') }}"
-               class="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-[#C81424] px-5 py-3 text-sm font-black uppercase tracking-wide text-white shadow-lg shadow-red-700/20 transition hover:bg-[#94111B] active:scale-[0.98] lg:mt-0 lg:w-auto lg:shrink-0">
-                + Publică anunțul tău acum
-            </a>
-        </section>
-        {{-- EARLY STAGE BANNER END --}}
-    @endif
-
     @if($services->isNotEmpty())
         <div class="flex justify-center pb-12">
             <a href="{{ url('/anunturi-auto-de-vanzare') }}"
-               class="inline-flex items-center gap-2 text-lg font-extrabold text-[#C81424] transition hover:text-[#94111B] hover:underline sm:text-base"
+               class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#C81424] px-6 py-3 text-sm font-black uppercase tracking-wide text-white shadow-lg shadow-red-700/20 transition hover:bg-[#94111B] active:scale-[0.98]"
                aria-label="Vezi toate anunțurile auto">
                 Vezi toate
                 <span aria-hidden="true">&rarr;</span>
