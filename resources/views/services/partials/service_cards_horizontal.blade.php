@@ -74,15 +74,7 @@
                 @if($slideCount > 0)
                     @foreach($sliderImages as $index => $img)
                         @php
-                            $path = is_string($img) ? $img : ($img['path'] ?? $img['url'] ?? $img->path ?? '');
-                            $path = ltrim((string) $path, '/');
-                            if (\Illuminate\Support\Str::startsWith($path, ['http://', 'https://'])) {
-                                $imageUrl = $path;
-                            } elseif (\Illuminate\Support\Str::startsWith($path, ['storage/', 'images/'])) {
-                                $imageUrl = asset($path);
-                            } else {
-                                $imageUrl = $path ? asset('storage/services/' . $path) : '';
-                            }
+                            $imageUrl = $service->imageCardUrl($img);
                         @endphp
                         @if($imageUrl)
                             <img src="{{ $imageUrl }}" 

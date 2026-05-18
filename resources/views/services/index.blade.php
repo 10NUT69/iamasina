@@ -289,7 +289,7 @@
                 $jud = $service->county->name ?? '';
                 $locationLabel = $loc ? "$loc, $jud" : $jud;
                 $listingTitle = $service->title ?: trim(($service->brandRel->name ?? '') . ' ' . ($service->modelRel->name ?? ''));
-                $img = $service->main_image_url;
+                $img = $service->card_image_url;
                 $price = $service->price_value ? number_format($service->price_value, 0, ',', '.') : null;
                 $priceBadge = $price ? ($service->price_type === 'negotiable' ? 'NEGOCIABIL' : 'PRET FIX') : null;
                 $priceBadgeClass = 'bg-[#C81424] text-white';

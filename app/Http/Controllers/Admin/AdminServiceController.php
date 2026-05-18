@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Service;
+use App\Support\ServiceImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
@@ -147,10 +148,7 @@ class AdminServiceController extends Controller
 
         $images = array_values(array_filter($images, fn ($image) => $image !== $imageName));
 
-        $path = storage_path('app/public/services/' . $imageName);
-        if (is_file($path)) {
-            @unlink($path);
-        }
+        ServiceImageStorage::deleteImageFiles($imageName);
 
         $service->images = count($images) ? $images : null;
         $service->save();
@@ -275,15 +273,6 @@ class AdminServiceController extends Controller
     // ==========================================================
     private function deleteImages($service)
     {
-        $images = $service->images;
-        if (is_string($images)) $images = json_decode($images, true);
-        
-        if (is_array($images)) {
-            foreach ($images as $img) {
-                if (empty($img)) continue;
-                $path = storage_path("app/public/services/" . $img);
-                if (file_exists($path)) @unlink($path);
-            }
-        }
+        ServiceImageStorage::deleteServiceImages($service->images);
     }
 }

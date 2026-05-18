@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Service;
 use App\Models\User;
+use App\Support\ServiceImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -157,26 +158,7 @@ class AdminUserController extends Controller
 
     private function deleteServiceImages(Service $service): void
     {
-        $images = $service->images;
-
-        if (is_string($images)) {
-            $images = json_decode($images, true);
-        }
-
-        if (!is_array($images)) {
-            return;
-        }
-
-        foreach ($images as $image) {
-            if (empty($image)) {
-                continue;
-            }
-
-            $path = storage_path('app/public/services/' . $image);
-            if (is_file($path)) {
-                @unlink($path);
-            }
-        }
+        ServiceImageStorage::deleteServiceImages($service->images);
     }
 
     private function exportEmails(string $type)

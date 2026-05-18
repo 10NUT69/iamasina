@@ -3,6 +3,7 @@
 namespace App\Models;
 use App\Models\CarBrand;
 use App\Models\CarModel;
+use App\Support\ServiceImageStorage;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -246,6 +247,25 @@ class Service extends Model
 
         // 3. Fallback absolut (dacă nu are nici categorie)
         return asset(self::DEFAULT_AUTO_IMAGE);
+    }
+
+    public function getCardImageUrlAttribute(): string
+    {
+        $images = $this->images;
+        if (is_string($images)) {
+            $images = json_decode($images, true) ?: [];
+        }
+
+        if (is_array($images) && !empty($images[0])) {
+            return $this->imageCardUrl($images[0]);
+        }
+
+        return $this->main_image_url;
+    }
+
+    public function imageCardUrl(mixed $image): string
+    {
+        return ServiceImageStorage::cardImageUrl($image) ?: $this->main_image_url;
     }
 	// Legătura critică: Anunț -> Generație
     public function generation()

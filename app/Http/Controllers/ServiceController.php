@@ -9,6 +9,7 @@ use App\Models\County;
 use App\Models\Locality;
 use App\Models\User;
 use App\Notifications\ServicePublishedConfirmation;
+use App\Support\ServiceImageStorage;
 
 // 🔹 MODELE AUTO
 use App\Models\CarBrand;
@@ -1024,15 +1025,7 @@ public function edit($id)
                 $images = json_decode($images, true) ?? [];
             }
 
-            if (is_array($images)) {
-                foreach ($images as $img) {
-                    if (empty($img)) continue;
-                    $path = storage_path("app/public/services/" . $img);
-                    if (file_exists($path)) {
-                        @unlink($path);
-                    }
-                }
-            }
+            ServiceImageStorage::deleteServiceImages($images);
 
             $service->images = null;
             $service->save();
@@ -1089,10 +1082,7 @@ public function edit($id)
             ], 404);
         }
 
-        $path = storage_path('app/public/services/' . $imageName);
-        if (file_exists($path)) {
-            @unlink($path);
-        }
+        ServiceImageStorage::deleteImageFiles($imageName);
 
         $images = array_values(array_filter($images, function ($img) use ($imageName) {
             return $img !== $imageName;
