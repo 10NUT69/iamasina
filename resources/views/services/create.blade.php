@@ -791,6 +791,207 @@
     .dark #wizardForm input[type="checkbox"].peer:checked + span + span {
         color: #fecdd3 !important;
     }
+
+    /* Dark mode polish pentru formularul de publicare: culori mai calme, fara schimbari de layout/comportament. */
+    @media (prefers-color-scheme: dark) {
+        .publish-form-shell .wizard-card {
+            background: #181b20;
+            border-color: rgba(148, 163, 184, 0.16);
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
+        }
+        .publish-form-shell > .flex:first-child p,
+        #wizardForm label {
+            color: #cbd5e1 !important;
+        }
+        #wizardForm .step-content > h2,
+        .publish-form-shell h1 {
+            color: #f8fafc !important;
+        }
+        .publish-form-shell > .flex:first-child > div:last-child {
+            background: #181b20 !important;
+            border-color: rgba(148, 163, 184, 0.16) !important;
+            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.26);
+        }
+        .publish-form-shell .step-dot {
+            background: #252a31 !important;
+            color: #94a3b8 !important;
+        }
+        .publish-form-shell .step-dot.scale-110 {
+            background: #C81424 !important;
+            color: #ffffff !important;
+            box-shadow: 0 10px 22px rgba(200, 20, 36, 0.28);
+        }
+        #wizardForm input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+        #wizardForm textarea,
+        #wizardForm select {
+            background-color: #20242b !important;
+            border-color: #3a414b !important;
+            color: #f8fafc !important;
+            caret-color: #fb7185;
+        }
+        #wizardForm select {
+            background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.5 7.75L10 12.25L14.5 7.75' stroke='%23cbd5e1' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        }
+        #wizardForm input::placeholder,
+        #wizardForm textarea::placeholder {
+            color: #94a3b8;
+            opacity: 1;
+        }
+        #wizardForm input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):hover,
+        #wizardForm textarea:hover,
+        #wizardForm select:hover {
+            background-color: #252a32 !important;
+            border-color: #4b5563 !important;
+        }
+        #wizardForm input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):focus,
+        #wizardForm textarea:focus,
+        #wizardForm select:focus {
+            background-color: #252a32 !important;
+            border-color: #fb7185 !important;
+            box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.18) !important;
+        }
+        #wizardForm input:disabled,
+        #wizardForm select:disabled,
+        #wizardForm textarea:disabled {
+            background-color: #171a1f !important;
+            border-color: #2b3139 !important;
+            color: #717b89 !important;
+            opacity: 1;
+        }
+        #wizardForm option {
+            background-color: #1b1f25;
+            color: #f8fafc;
+        }
+        #wizardForm .custom-select-trigger {
+            background: #20242b;
+            border-color: #3a414b;
+            color: #f8fafc;
+        }
+        #wizardForm .custom-select-chevron {
+            color: #94a3b8;
+        }
+        #wizardForm .custom-select-trigger:hover {
+            background: #252a32;
+            border-color: #4b5563;
+        }
+        #wizardForm .custom-select.is-open .custom-select-trigger {
+            background: #252a32;
+            border-color: #fb7185;
+            box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.18);
+        }
+        #wizardForm .custom-select.is-disabled .custom-select-trigger {
+            background: #171a1f;
+            border-color: #2b3139;
+            color: #717b89;
+        }
+        #wizardForm .custom-select-menu,
+        body > .custom-select-menu {
+            background: #171a1f;
+            border-color: rgba(148, 163, 184, 0.22);
+            box-shadow: 0 22px 48px rgba(0, 0, 0, 0.52);
+        }
+        #wizardForm .custom-select-group + .custom-select-group,
+        body > .custom-select-menu .custom-select-group + .custom-select-group {
+            border-top-color: rgba(148, 163, 184, 0.12);
+        }
+        #wizardForm .custom-select-group-label,
+        body > .custom-select-menu .custom-select-group-label {
+            color: #fb7185;
+        }
+        #wizardForm .custom-select-option,
+        body > .custom-select-menu .custom-select-option {
+            color: #e5e7eb;
+        }
+        #wizardForm .custom-select-option:hover,
+        #wizardForm .custom-select-option:focus-visible,
+        body > .custom-select-menu .custom-select-option:hover,
+        body > .custom-select-menu .custom-select-option:focus-visible {
+            background: rgba(200, 20, 36, 0.16);
+            color: #fff1f2;
+        }
+        #wizardForm .custom-select-option.is-selected,
+        body > .custom-select-menu .custom-select-option.is-selected {
+            background: rgba(200, 20, 36, 0.24);
+            box-shadow: inset 0 0 0 1px rgba(251, 113, 133, 0.36);
+            color: #ffe4e6;
+        }
+        #wizardForm .pill-btn:not(.selected),
+        #wizardForm .color-option-pill:not(.selected),
+        #wizardForm button[onclick*="inputPriceType"]:not(.selected),
+        #wizardForm button[onclick*="inputCurrency"]:not(.selected) {
+            background-color: #20242b !important;
+            border-color: #3a414b !important;
+            color: #cbd5e1 !important;
+        }
+        #wizardForm .pill-btn:not(.selected):hover,
+        #wizardForm .color-option-pill:not(.selected):hover,
+        #wizardForm button[onclick*="inputPriceType"]:not(.selected):hover,
+        #wizardForm button[onclick*="inputCurrency"]:not(.selected):hover {
+            background-color: #2a2024 !important;
+            border-color: rgba(251, 113, 133, 0.45) !important;
+            color: #ffe4e6 !important;
+        }
+        #wizardForm .pill-btn.selected,
+        #wizardForm .color-option-pill.selected,
+        #wizardForm button[onclick*="inputPriceType"].selected,
+        #wizardForm button[onclick*="inputCurrency"].selected {
+            background-color: rgba(200, 20, 36, 0.24) !important;
+            border-color: rgba(251, 113, 133, 0.40) !important;
+            color: #ffe4e6 !important;
+            box-shadow: 0 10px 24px rgba(200, 20, 36, 0.20);
+        }
+        #wizardForm input[type="checkbox"].peer + span {
+            background: #20242b !important;
+            border-color: #3a414b !important;
+        }
+        #wizardForm input[type="checkbox"].peer + span + span {
+            color: #cbd5e1 !important;
+        }
+        #wizardForm input[type="checkbox"].peer:checked + span {
+            background: rgba(200, 20, 36, 0.24) !important;
+            border-color: rgba(251, 113, 133, 0.40) !important;
+            box-shadow: 0 10px 24px rgba(200, 20, 36, 0.18);
+        }
+        #wizardForm input[type="checkbox"].peer:checked + span + span {
+            color: #ffe4e6 !important;
+        }
+        #wizardForm #imageInput ~ div {
+            background: #20242b !important;
+            border-color: #3a414b !important;
+        }
+        #wizardForm #imageInput ~ div:hover,
+        #wizardForm .group:hover #imageInput ~ div {
+            background: #252a32 !important;
+            border-color: rgba(251, 113, 133, 0.45) !important;
+        }
+        #wizardForm #imageInput ~ div > div {
+            background: #252a31 !important;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+        }
+        #wizardForm input[name="price_value"] {
+            box-shadow: 0 0 0 1px #3a414b !important;
+        }
+        #wizardForm input[name="price_value"]:focus {
+            box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.18) !important;
+        }
+        #wizardForm input[name="price_value"] + div {
+            background: #171a1f !important;
+            border-color: rgba(148, 163, 184, 0.18) !important;
+        }
+        #wizardForm .step-content[data-step="3"] .mb-5.flex.items-start {
+            background: #20242b !important;
+            border-color: #3a414b !important;
+        }
+        #wizardForm .wizard-footer {
+            background: #171a1f !important;
+            border-color: rgba(148, 163, 184, 0.14) !important;
+        }
+        #imageError {
+            background: rgba(127, 29, 29, 0.24);
+            border-color: rgba(248, 113, 113, 0.34);
+            color: #fecaca;
+        }
+    }
     input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 
     /* Ajustări vizuale doar pentru pasul 1: câmpuri mai mari și fără senzația de formular miniaturizat. */

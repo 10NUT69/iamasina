@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('title', 'Anunturi Auto Second Hand & Noi - Masini de Vanzare')
-@section('meta_title', 'Anunturi Auto Second Hand & Noi - Masini de Vanzare | iaAuto.ro')
-@section('meta_description', 'Descopera mii de anunturi auto verificate. Cumpara masini second hand sau noi de la proprietari si parcuri auto din toata Romania. Filtreaza inteligent si gaseste-ti masina ideala pe iaAuto.ro!')
+@section('meta_title', 'Anunturi Auto - Masini de Vanzare Second Hand si Noi | iaAuto.ro')
+@section('meta_description', 'Cauti o masina? Pe iaAuto.ro gasesti masini de vanzare second hand si noi de la proprietari si parcuri auto din Romania. Adauga anuntul tau complet gratuit!')
 @section('meta_image', asset('images/social-share.webp'))
 
 @section('hero')
@@ -373,15 +373,81 @@
     </div>
 
     @if($services->isNotEmpty())
-        <div class="flex justify-center pb-12">
+        <div class="flex justify-center pb-8">
             <a href="{{ url('/anunturi-auto-de-vanzare') }}"
-               class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#C81424] px-6 py-3 text-sm font-black uppercase tracking-wide text-white shadow-lg shadow-red-700/20 transition hover:bg-[#94111B] active:scale-[0.98]"
-               aria-label="Vezi toate anunțurile auto">
-                Vezi toate
+               class="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-lg border border-[#C81424] bg-white px-6 py-3 text-sm font-black text-[#C81424] shadow-sm transition hover:bg-[#C81424] hover:text-white active:scale-[0.98] dark:bg-transparent dark:hover:bg-[#C81424] sm:w-auto sm:max-w-none"
+               aria-label="Vezi toate anunturile auto">
+                Vezi toate anunturile auto
                 <span aria-hidden="true">&rarr;</span>
             </a>
         </div>
     @endif
+
+    <section class="pb-12">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-[#333] dark:bg-[#1E1E1E] sm:p-8 lg:p-10">
+            <p class="mb-4 text-xs font-black uppercase tracking-wide text-[#C81424]">
+                ANUNTURI AUTO IN ROMANIA
+            </p>
+
+            <h2 class="max-w-5xl text-2xl font-black leading-tight text-gray-900 dark:text-white sm:text-3xl">
+                iaAuto.ro - Platforma ta de anunturi auto si masini de vanzare
+            </h2>
+
+            <div class="mt-5 max-w-5xl space-y-4 text-left text-sm leading-6 text-gray-700 dark:text-gray-300 sm:text-base sm:leading-7">
+                <p>
+                    Ai intrat pe iaAuto.ro, locul unde cautarea unei masini devine simpla si rapida. Indiferent daca esti in cautarea unei masini second hand accesibile sau vrei sa achizitionezi un autoturism nou, platforma noastra aduce impreuna cumparatori, proprietari particulari si parcuri auto din intreaga Romania.
+                </p>
+                <p>
+                    Pentru cei care doresc sa isi vanda autoturismul, procesul este simplu. Poti sa adaugi un anunt gratuit in doar cateva minute, oferind mai multa vizibilitate masinii tale in fata potentialilor cumparatori. De la masini de oras economice si SUV-uri spatioase, pana la utilitare sau masini premium, iaAuto.ro este destinatia potrivita pentru anunturi auto din mai multe categorii.
+                </p>
+            </div>
+
+            <div class="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="flex gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-[#333] dark:bg-[#181818]">
+                    <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-red-100 bg-red-50 text-[#C81424] dark:border-red-900/40 dark:bg-[#2a1013]">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 14l2 2 4-4" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h10M7 11h5M5 3h14a2 2 0 012 2v14l-4-3H5a2 2 0 01-2-2V5a2 2 0 012-2z" />
+                        </svg>
+                    </span>
+                    <div>
+                        <h3 class="text-base font-black text-gray-900 dark:text-white">Anunturi gratuite</h3>
+                        <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">Adaugi masina de vanzare fara taxe de publicare.</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-[#333] dark:bg-[#181818]">
+                    <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-red-100 bg-red-50 text-[#C81424] dark:border-red-900/40 dark:bg-[#2a1013]">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.2-5.2" />
+                            <circle cx="10.5" cy="10.5" r="6.5" />
+                        </svg>
+                    </span>
+                    <div>
+                        <h3 class="text-base font-black text-gray-900 dark:text-white">Cautare rapida</h3>
+                        <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">Filtrezi dupa marca, model, pret, judet sau oras.</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-[#333] dark:bg-[#181818] sm:col-span-2 lg:col-span-1">
+                    <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-red-100 bg-red-50 text-[#C81424] dark:border-red-900/40 dark:bg-[#2a1013]">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12c0 4-4 7-9 7a11 11 0 01-4-.7L3 20l1.7-4A6.3 6.3 0 013 12c0-4 4-7 9-7s9 3 9 7z" />
+                        </svg>
+                    </span>
+                    <div>
+                        <h3 class="text-base font-black text-gray-900 dark:text-white">Contact direct</h3>
+                        <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">Discuti direct cu vanzatorul, particular sau parc auto.</p>
+                    </div>
+                </div>
+            </div>
+
+            <p class="mt-7 max-w-5xl text-left text-sm leading-6 text-gray-700 dark:text-gray-300 sm:text-base sm:leading-7">
+                Navigheaza printre ofertele disponibile, compara preturile si gaseste masina ideala pentru nevoile si bugetul tau. Pe iaAuto.ro, piata auto din Romania este mai accesibila ca niciodata.
+            </p>
+        </div>
+    </section>
 </div>
 
 <script>

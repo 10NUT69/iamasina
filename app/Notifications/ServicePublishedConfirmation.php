@@ -23,14 +23,24 @@ class ServicePublishedConfirmation extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Confirmare publicare anunț iaAuto.ro')
+            ->subject('Anunțul tău a fost publicat')
             ->view([
                 'html' => 'emails.service-published',
                 'text' => 'emails.service-published-text',
             ], [
                 'user' => $notifiable,
                 'service' => $this->service,
+                'listingLabel' => $this->listingLabel(),
                 'accountUrl' => route('account.index') . '?tab=anunturi',
             ]);
+    }
+
+    private function listingLabel(): string
+    {
+        $brand = $this->service->brandRel?->name ?: $this->service->brand;
+        $model = $this->service->modelRel?->name ?: $this->service->model;
+        $label = trim(collect([$brand, $model])->filter()->implode(' '));
+
+        return $label !== '' ? $label : $this->service->title;
     }
 }

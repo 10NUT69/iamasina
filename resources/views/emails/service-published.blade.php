@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Confirmare publicare anunț iaAuto.ro</title>
+    <title>Anunțul tău a fost publicat</title>
 </head>
 <body style="margin:0; padding:0; background:#f3f4f6; color:#1f2937; font-family:Arial, Helvetica, sans-serif;">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f4f6; margin:0; padding:24px 12px;">
@@ -19,28 +19,17 @@
                     </tr>
                     <tr>
                         <td style="padding:32px 28px;">
-                            <h1 style="margin:0 0 16px; color:#111827; font-size:22px; line-height:1.3;">
-                                Salut{{ !empty($user->name) ? ', ' . $user->name : '' }}!
+                            <h1 style="margin:0 0 18px; color:#111827; font-size:22px; line-height:1.3;">
+                                Anunțul tău este publicat pe iaAuto.ro
                             </h1>
-                            <p style="margin:0 0 16px; color:#374151; font-size:15px; line-height:1.6;">
-                                Îți confirmăm că anunțul tău a fost primit pe iaAuto.ro.
+                            <p style="margin:0 0 10px; color:#374151; font-size:15px; line-height:1.6;">
+                                Salut{{ !empty($user->name) ? ', ' . $user->name : '' }},
                             </p>
-
-                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 24px; border:1px solid #e5e7eb; border-radius:10px;">
-                                <tr>
-                                    <td style="padding:16px 18px;">
-                                        <p style="margin:0 0 6px; color:#6b7280; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.04em;">
-                                            Anunț publicat
-                                        </p>
-                                        <p style="margin:0; color:#111827; font-size:17px; line-height:1.4; font-weight:700;">
-                                            {{ $service->title }}
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-
                             <p style="margin:0 0 24px; color:#374151; font-size:15px; line-height:1.6;">
-                                Îl poți verifica și administra oricând din contul tău.
+                                Anunțul tău pentru <strong style="font-weight:700; color:#111827;">{{ $listingLabel }}</strong> a fost publicat cu succes pe iaAuto.ro.
+                            </p>
+                            <p style="margin:0 0 24px; color:#374151; font-size:15px; line-height:1.6;">
+                                Îl poți administra oricând din contul tău: poți modifica detaliile, adăuga poze sau reactualiza anunțul pentru o poziționare mai bună în listări.
                             </p>
 
                             <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 24px;">
@@ -52,6 +41,20 @@
                                     </td>
                                 </tr>
                             </table>
+
+                            <h2 style="margin:0 0 8px; color:#111827; font-size:16px; line-height:1.4;">
+                                Reactualizare gratuită
+                            </h2>
+                            <p style="margin:0 0 20px; color:#374151; font-size:15px; line-height:1.6;">
+                                Pe iaAuto.ro poți reactualiza gratuit anunțul pentru a-l aduce din nou mai sus în listă. Recomandăm să faci asta periodic, mai ales dacă anunțul este încă valabil.
+                            </p>
+
+                            <h2 style="margin:0 0 8px; color:#111827; font-size:16px; line-height:1.4;">
+                                Vrei mai multă vizibilitate?
+                            </h2>
+                            <p style="margin:0 0 24px; color:#374151; font-size:15px; line-height:1.6;">
+                                Distribuie linkul anunțului pe Facebook, WhatsApp sau în grupurile auto. Cu cât ajunge la mai mulți oameni, cu atât cresc șansele să fii contactat.
+                            </p>
 
                             <p style="margin:0 0 24px; color:#374151; font-size:15px; line-height:1.6;">
                                 Mulțumim,<br>

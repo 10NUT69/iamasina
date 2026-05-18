@@ -102,7 +102,7 @@ class ServiceController extends Controller
     if ($request->filled('locality_id')) {
         $selectedLocality = Locality::query()
             ->cities()
-            ->select('id', 'county_id')
+            ->select('id', 'county_id', 'name', 'slug')
             ->find($request->locality_id);
 
         if ($selectedLocality) {
@@ -271,7 +271,7 @@ class ServiceController extends Controller
         'categories'      => $categories,
         'currentCategory' => $request->attributes->get('currentCategory'),
         'currentCounty'   => $request->attributes->get('currentCounty'),
-        'currentLocality' => $selectedLocality,
+        'currentLocality' => $request->attributes->get('currentLocality') ?: $selectedLocality,
 
         'brands'          => $brands,
         'bodies'          => $bodies,

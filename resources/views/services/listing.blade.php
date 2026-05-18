@@ -1,9 +1,57 @@
 @extends('layouts.app')
 
 @php
-    $listingMetaTitle = isset($totalCount) && (int) $totalCount > 0
-        ? 'Anunțuri Auto - Peste ' . number_format((int) $totalCount, 0, ',', '.') . ' Anunturi Auto Second Hand | iaAuto.ro'
-        : 'Anunțuri Auto - Anunturi Auto Second Hand | iaAuto.ro';
+    $cleanMetaLabel = static function ($value) {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        return trim(preg_replace('/\s+/', ' ', \Illuminate\Support\Str::ascii($value)));
+    };
+
+    $brandName = $cleanMetaLabel(optional($currentBrand ?? null)->name);
+    $modelName = $cleanMetaLabel(optional($currentModel ?? null)->name);
+    $carLabel = trim(implode(' ', array_filter([$brandName, $modelName])));
+    $carLabel = $carLabel !== '' ? $carLabel : null;
+    $hasBrandModel = $brandName && $modelName;
+
+    $countyName = $cleanMetaLabel(optional($currentCounty ?? null)->name);
+    $localityName = $cleanMetaLabel(optional($currentLocality ?? null)->name);
+    $locationLabel = $localityName && $countyName
+        ? $localityName . ', ' . $countyName
+        : ($localityName ?: $countyName);
+
+    if ($hasBrandModel && $localityName && $countyName) {
+        $listingMetaTitle = 'Anunturi auto ' . $carLabel . ' in ' . $locationLabel . ' | iaAuto.ro';
+        $listingMetaDescription = 'Cauti ' . $carLabel . ' in ' . $locationLabel . '? Vezi anunturi auto cu masini ' . $carLabel . ' de vanzare, second hand sau noi, de la proprietari si parcuri auto.';
+    } elseif ($hasBrandModel && $countyName) {
+        $listingMetaTitle = 'Anunturi auto ' . $carLabel . ' in ' . $countyName . ' - ' . $carLabel . ' de vanzare | iaAuto.ro';
+        $listingMetaDescription = 'Vezi anunturi auto ' . $carLabel . ' de vanzare in judetul ' . $countyName . '. Masini second hand si noi, de la proprietari si parcuri auto.';
+    } elseif ($hasBrandModel) {
+        $listingMetaTitle = 'Anunturi auto ' . $carLabel . ' - ' . $carLabel . ' de vanzare | iaAuto.ro';
+        $listingMetaDescription = 'Cauti ' . $carLabel . ' de vanzare? Vezi anunturi auto cu ' . $carLabel . ' second hand si noi din Romania, de la proprietari si parcuri auto.';
+    } elseif ($brandName && $localityName && $countyName) {
+        $listingMetaTitle = 'Anunturi auto ' . $brandName . ' in ' . $locationLabel . ' | iaAuto.ro';
+        $listingMetaDescription = 'Cauti ' . $brandName . ' in ' . $locationLabel . '? Vezi anunturi auto cu masini ' . $brandName . ' de vanzare, second hand sau noi, de la proprietari si parcuri auto.';
+    } elseif ($brandName && $countyName) {
+        $listingMetaTitle = 'Anunturi auto ' . $brandName . ' in ' . $countyName . ' - Masini ' . $brandName . ' de vanzare | iaAuto.ro';
+        $listingMetaDescription = 'Vezi anunturi auto ' . $brandName . ' de vanzare in judetul ' . $countyName . '. Masini second hand si noi, de la proprietari si parcuri auto.';
+    } elseif ($brandName) {
+        $listingMetaTitle = 'Anunturi auto ' . $brandName . ' - Masini ' . $brandName . ' de vanzare | iaAuto.ro';
+        $listingMetaDescription = 'Vezi anunturi auto ' . $brandName . ' de vanzare in Romania. Masini second hand si noi, de la proprietari si parcuri auto. Filtreaza dupa model, pret si an.';
+    } elseif ($localityName && $countyName) {
+        $listingMetaTitle = 'Anunturi auto ' . $locationLabel . ' - Masini de vanzare | iaAuto.ro';
+        $listingMetaDescription = 'Cauti masini de vanzare in ' . $locationLabel . '? Vezi anunturi auto second hand si noi, de la proprietari si parcuri auto.';
+    } elseif ($countyName) {
+        $listingMetaTitle = 'Anunturi auto ' . $countyName . ' - Masini de vanzare in ' . $countyName . ' | iaAuto.ro';
+        $listingMetaDescription = 'Vezi anunturi auto din ' . $countyName . '. Masini de vanzare second hand si noi, de la proprietari si parcuri auto. Publica gratuit pe iaAuto.ro.';
+    } else {
+        $listingMetaTitle = 'Anunturi auto - Masini de vanzare second hand | iaAuto.ro';
+        $listingMetaDescription = 'Cauti o masina? Vezi anunturi auto cu masini de vanzare second hand si noi din Romania. Filtreaza dupa marca, model, pret, an si kilometri.';
+    }
+
     $showEarlyStageBanners = $showEarlyStageBanners ?? true; // TEMP: seteaza false cand site-ul are suficiente anunturi.
     $earlyStageTotalListings = isset($totalCount)
         ? (int) $totalCount
@@ -13,8 +61,8 @@
 @endphp
 
 @section('title', 'Anunțuri Auto - Anunturi Auto Second Hand')
-@section('meta_title', $listingMetaTitle)
-@section('meta_description', 'Cauti o masina? Descoperă oferta de mașini de vânzare second hand, verifică istoricul și contactează vânzătorul. Publică GRATUIT!')
+@section('meta_title', e($listingMetaTitle))
+@section('meta_description', e($listingMetaDescription))
 @section('meta_image', asset('images/social-share.webp'))
 
 @section('content')
