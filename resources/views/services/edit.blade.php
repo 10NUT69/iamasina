@@ -45,10 +45,6 @@
     $savedDoors       = old('numar_usi', $service->numar_usi);
     $savedSeats       = old('numar_locuri', $service->numar_locuri);
 
-    $savedImportata   = old('importata', $service->importata) ? 1 : 0;
-    $savedAvariata    = old('avariata', $service->avariata) ? 1 : 0;
-    $savedDPF         = old('filtru_particule', $service->filtru_particule) ? 1 : 0;
-
     $savedTitle       = old('title', $service->title);
     $savedDesc        = old('description', $service->description);
 
@@ -379,24 +375,14 @@
                 </div>
 
                 {{-- CHECKBOX-URI --}}
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                    <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                        <input type="checkbox" name="importata" value="1" @checked($savedImportata == 1)
-                               class="rounded border-gray-300 dark:border-[#404040] text-[#C81424] focus:ring-[#C81424]">
-                        Importată
-                    </label>
-
-                    <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                        <input type="checkbox" name="avariata" value="1" @checked($savedAvariata == 1)
-                               class="rounded border-gray-300 dark:border-[#404040] text-[#C81424] focus:ring-[#C81424]">
-                        Avariată
-                    </label>
-
-                    <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                        <input type="checkbox" name="filtru_particule" value="1" @checked($savedDPF == 1)
-                               class="rounded border-gray-300 dark:border-[#404040] text-[#C81424] focus:ring-[#C81424]">
-                        Filtru particule
-                    </label>
+                <div class="grid grid-cols-2 gap-4 mb-6 lg:grid-cols-4">
+                    @foreach(\App\Models\Service::FEATURE_OPTIONS as $name => $label)
+                        <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <input type="checkbox" name="{{ $name }}" value="1" @checked(old($name, $service->{$name}))
+                                   class="rounded border-gray-300 dark:border-[#404040] text-[#C81424] focus:ring-[#C81424]">
+                            {{ $label }}
+                        </label>
+                    @endforeach
                 </div>
 
                 <div class="space-y-4">

@@ -18,6 +18,34 @@ class Service extends Model
     private const DEFAULT_AUTO_IMAGE = 'images/defaults/auto-de-vanzare-iaauto-default.webp';
     private const AUTO_DEFAULT_CATEGORY_SLUGS = ['autoturisme', 'servicii-auto'];
 
+    public const FEATURE_OPTIONS = [
+        'filtru_particule' => 'Filtru particule',
+        'importata' => 'Importată',
+        'avariata' => 'Avariată',
+        'predare_leasing' => 'Predare leasing',
+        'garantie' => 'Garanție',
+        'km_reali' => 'Km reali',
+        'prim_proprietar' => 'Prim proprietar',
+        'carte_service' => 'Carte service',
+        'fiscal_pe_loc' => 'Fiscal pe loc',
+        'accept_schimb' => 'Accept schimb',
+        'tva_deductibil' => 'TVA deductibil',
+    ];
+
+    public const IMPORTANT_DETAIL_OPTIONS = [
+        ['key' => 'km_reali', 'label' => 'Km reali', 'type' => 'positive', 'icon' => 'gauge'],
+        ['key' => 'garantie', 'label' => 'Garanție', 'type' => 'positive', 'icon' => 'shield'],
+        ['key' => 'carte_service', 'label' => 'Carte service', 'type' => 'positive', 'icon' => 'clipboard'],
+        ['key' => 'prim_proprietar', 'label' => 'Prim proprietar', 'type' => 'positive', 'icon' => 'user'],
+        ['key' => 'fiscal_pe_loc', 'label' => 'Fiscal pe loc', 'type' => 'positive', 'icon' => 'receipt'],
+        ['key' => 'accept_schimb', 'label' => 'Accept schimb', 'type' => 'normal', 'icon' => 'arrows'],
+        ['key' => 'predare_leasing', 'label' => 'Predare leasing', 'type' => 'normal', 'icon' => 'key'],
+        ['key' => 'tva_deductibil', 'label' => 'TVA deductibil', 'type' => 'normal', 'icon' => 'file'],
+        ['key' => 'importata', 'label' => 'Importată', 'type' => 'normal', 'icon' => 'globe'],
+        ['key' => 'filtru_particule', 'label' => 'Filtru particule', 'type' => 'normal', 'icon' => 'filter'],
+        ['key' => 'avariata', 'label' => 'Avariată', 'type' => 'warning', 'icon' => 'warning'],
+    ];
+
     protected $fillable = [
         'user_id',
         'category_id',
@@ -60,6 +88,14 @@ class Service extends Model
 'importata',
 'avariata',
 'filtru_particule',
+'predare_leasing',
+'garantie',
+'km_reali',
+'prim_proprietar',
+'carte_service',
+'fiscal_pe_loc',
+'accept_schimb',
+'tva_deductibil',
 'culoare_opt_id',
 'brand_id',
 'model_id',
@@ -85,6 +121,14 @@ class Service extends Model
 		'importata'        => 'boolean',
 'avariata'         => 'boolean',
 'filtru_particule' => 'boolean',
+'predare_leasing'  => 'boolean',
+'garantie'         => 'boolean',
+'km_reali'         => 'boolean',
+'prim_proprietar'  => 'boolean',
+'carte_service'    => 'boolean',
+'fiscal_pe_loc'    => 'boolean',
+'accept_schimb'    => 'boolean',
+'tva_deductibil'   => 'boolean',
 'numar_usi'        => 'integer',
 'numar_locuri'     => 'integer',
     ];
@@ -127,6 +171,21 @@ class Service extends Model
     public function getAuthorInitialAttribute()
     {
         return strtoupper(substr($this->author_name, 0, 1));
+    }
+
+    public function getActiveFeatureOptionsAttribute(): array
+    {
+        return collect(self::FEATURE_OPTIONS)
+            ->filter(fn ($label, $field) => (bool) $this->getAttribute($field))
+            ->all();
+    }
+
+    public function getImportantDetailsAttribute(): array
+    {
+        return collect(self::IMPORTANT_DETAIL_OPTIONS)
+            ->filter(fn ($item) => (bool) $this->getAttribute($item['key']))
+            ->values()
+            ->all();
     }
 
     // SMART SLUG
@@ -207,6 +266,30 @@ class Service extends Model
 
     return url('/');
 }
+
+    public function getListingDateAttribute()
+    {
+        return $this->published_at ?: $this->created_at;
+    }
+
+    public function getListingDateLabelAttribute(): string
+    {
+        $listingDate = $this->listing_date;
+
+        if (!$listingDate) {
+            return '-';
+        }
+
+        if ($listingDate->isToday()) {
+            return 'Astazi ' . $listingDate->format('H:i');
+        }
+
+        if ($listingDate->isYesterday()) {
+            return 'Ieri ' . $listingDate->format('H:i');
+        }
+
+        return $listingDate->translatedFormat('d M Y');
+    }
 
 
     // ==========================================

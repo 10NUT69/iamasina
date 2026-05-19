@@ -66,7 +66,14 @@ class CountiesSeeder extends Seeder
         [
             'id' => 10,
             'name' => 'București',
-            'municipii' => ['Bucuresti' => 179132],
+            'municipii' => [
+                'Sector 1' => 179141,
+                'Sector 2' => 179150,
+                'Sector 3' => 179169,
+                'Sector 4' => 179178,
+                'Sector 5' => 179187,
+                'Sector 6' => 179196,
+            ],
             'orase' => [],
         ],
         [

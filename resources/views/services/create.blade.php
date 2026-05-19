@@ -10,9 +10,11 @@
     <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
         <div>
             <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-                Vinde mașina ta
-            </h1>
-            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Completează detaliile în 3 pași simpli.</p>
+    Publică mașina gratuit
+</h1>
+<p class="text-gray-500 dark:text-gray-400 text-sm mt-1">
+    Fără cont obligatoriu. Completezi 3 pași simpli și publici în 1-2 minute.
+</p>
         </div>
         
         {{-- STEPPER --}}
@@ -230,15 +232,20 @@
 
             {{-- ================= PASUL 2: ISTORIC & DESCRIERE ================= --}}
             <div class="step-content p-4 sm:p-6 md:p-8 hidden opacity-0" data-step="2">
-                <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                    <span class="text-slate-500">📝</span> Detalii Tehnice & Istoric
-                </h2>
+              <div class="mb-6">
+    <h2 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+        <span class="text-slate-500">📝</span> Detalii Tehnice & Istoric
+    </h2>
+    <p class="mt-1 text-sm text-slate-500 dark:text-gray-400">
+        Ai trecut de primul pas. Completează ce știi sigur — detaliile corecte cresc încrederea cumpărătorilor.
+    </p>
+</div>
 
                 {{-- VIN CODE --}}
                 <div class="mb-6">
                     <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Serie Șasiu (VIN)</label>
                     <input type="text" name="vin" placeholder="Ex: WBA..." maxlength="17" class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-4 text-gray-900 font-mono uppercase outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#252525] dark:text-white">
-                    <p class="text-xs text-gray-400 mt-1">Recomandat pentru verificare.</p>
+                    <p class="text-xs text-gray-400 mt-1">Opțional, dar recomandat. VIN-ul ajută cumpărătorul să verifice istoricul mașinii.</p>
                 </div>
 
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-5 sm:mb-6">
@@ -300,14 +307,11 @@
                 </div>
 
                 {{-- CHECKBOX-URI --}}
-                <div class="grid grid-cols-3 gap-2 mb-6">
-                    @foreach([
-                        'importata' => 'Importată',
-                        'avariata' => 'Avariată',
-                        'filtru_particule' => 'Filtru particule'
-                    ] as $name => $label)
+                <div class="grid grid-cols-2 gap-2 mb-6 lg:grid-cols-4">
+                    @foreach(\App\Models\Service::FEATURE_OPTIONS as $name => $label)
                         <label class="relative flex min-h-9 cursor-pointer items-center justify-center overflow-hidden rounded-full text-[10px] font-semibold transition-all sm:min-h-11 sm:text-sm">
                             <input type="checkbox" name="{{ $name }}" value="1"
+                                @checked(old($name))
                                 class="peer sr-only">
                             <span class="absolute inset-0 rounded-full border border-slate-200 bg-white transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-slate-900/10 peer-checked:border-slate-900 peer-checked:bg-slate-900 dark:border-[#404040] dark:bg-[#252525] dark:peer-checked:border-white dark:peer-checked:bg-white"></span>
                             <span class="relative px-1.5 py-1 text-center leading-tight text-slate-600 transition-colors peer-checked:text-white sm:px-4 sm:py-2 dark:text-gray-300 dark:peer-checked:text-slate-950">{{ $label }}</span>
@@ -329,9 +333,14 @@
 
             {{-- ================= PASUL 3: FINALIZARE ================= --}}
             <div class="step-content p-4 sm:p-6 md:p-8 hidden opacity-0" data-step="3">
-                <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                    <span class="text-slate-500">📸</span> Galerie & Preț
-                </h2>
+                <div class="mb-6">
+    <h2 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+        <span class="text-slate-500">📸</span> Galerie & Preț
+    </h2>
+    <p class="mt-1 text-sm text-slate-500 dark:text-gray-400">
+        Ultimul pas. Adaugă prețul și datele de contact, apoi poți publica anunțul.
+    </p>
+</div>
 
                 <div class="mx-auto flex w-full max-w-3xl flex-col gap-5 sm:gap-6">
                 {{-- DRAG & DROP FOTO --}}
@@ -417,8 +426,10 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 11v5m0-8h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <div class="text-sm text-slate-600 dark:text-slate-200">
-                            <p class="font-bold mb-1">Nu ai cont?</p>
-                            <p class="opacity-90">Completează datele de mai jos și îți creăm automat un cont.</p>
+                            <p class="font-bold mb-1">Cont opțional</p>
+<p class="opacity-90">
+    Poți publica și fără cont. Completează datele doar dacă vrei să administrezi mai ușor anunțul mai târziu.
+</p>
                         </div>
                     </div>
 					<input type="hidden" name="user_type" value="individual">

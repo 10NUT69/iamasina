@@ -273,9 +273,9 @@
         </div>
 
         <a href="{{ url('/anunturi-auto-de-vanzare') }}"
-           class="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#C81424] px-3 py-2 text-[11px] font-black uppercase tracking-wide text-white shadow-lg shadow-red-700/20 transition hover:bg-[#94111B] active:scale-[0.98] sm:px-5 sm:py-3 sm:text-sm"
+           class="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-[#C81424] bg-white px-4 py-2.5 text-xs font-black text-[#C81424] shadow-sm transition hover:bg-[#C81424] hover:text-white active:scale-[0.98] dark:bg-transparent dark:hover:bg-[#C81424] sm:px-6 sm:py-3 sm:text-sm"
            aria-label="Vezi toate anunțurile auto">
-            Vezi toate
+            Vezi toate anunturile auto
             <span aria-hidden="true">&rarr;</span>
         </a>
     </div>
@@ -297,6 +297,7 @@
                 $kmLabel = $service->km ? number_format($service->km, 0, '.', '.') . ' km' : '-';
                 $fuelLabel = $service->combustibil->nume ?? '-';
                 $gearboxLabel = $service->cutieViteze->nume ?? '-';
+                $dateLabel = $service->listing_date_label;
             @endphp
 
              <article class="group relative bg-white dark:bg-[#1E1E1E] border border-gray-100 dark:border-[#333] rounded-2xl overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
@@ -349,9 +350,15 @@
                     </div>
 
                     <div class="mt-auto pt-4 border-t border-gray-100 dark:border-[#333] flex items-start justify-between gap-3 text-sm text-gray-500 dark:text-gray-400 sm:text-xs">
-                        <div class="flex min-w-0 flex-1 items-start">
-                            <svg class="w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0 text-[#C81424]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            <span class="leading-snug">{{ $locationLabel }}</span>
+                        <div class="flex min-w-0 flex-1 flex-col gap-1.5">
+                            <div class="flex min-w-0 items-start">
+                                <svg class="w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0 text-[#C81424]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <span class="leading-snug">{{ $locationLabel }}</span>
+                            </div>
+                            <div class="flex items-center text-[11px] text-gray-400 dark:text-gray-500">
+                                <svg class="w-3 h-3 mr-1 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <span>{{ $dateLabel }}</span>
+                            </div>
                         </div>
                         <a href="{{ $service->public_url }}"
                            class="inline-flex shrink-0 items-center gap-1 font-bold text-[#C81424] transition hover:text-[#94111B] hover:underline dark:text-red-300 dark:hover:text-red-200"

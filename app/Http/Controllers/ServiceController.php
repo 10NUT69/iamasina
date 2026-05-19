@@ -262,12 +262,14 @@ class ServiceController extends Controller
 
     $view = $request->routeIs('services.index') ? 'services.index' : 'services.listing';
     $showEarlyStageBanners = true; // TEMP: Seteaza false cand site-ul are suficiente anunturi.
+    $listingHasActiveFilters = !$isHomepage && $this->listingHasActiveFilters($request);
 
     return view($view, [
         'services'        => $services,
         'hasMore'         => $hasMore,
         'totalCount'      => $totalCount,
         'showEarlyStageBanners' => $showEarlyStageBanners,
+        'listingHasActiveFilters' => $listingHasActiveFilters,
         'counties'        => $counties,
         'categories'      => $categories,
         'currentCategory' => $request->attributes->get('currentCategory'),
@@ -663,10 +665,11 @@ public function indexAutoPath(
         'numar_locuri'    => 'nullable|integer|min:1|max:9',
         'culoare_opt_id'  => 'nullable|exists:culoare_opt,id',
 
-        'importata'        => 'nullable|boolean',
-        'avariata'         => 'nullable|boolean',
-        'filtru_particule' => 'nullable|boolean',
     ];
+
+    foreach (array_keys(Service::FEATURE_OPTIONS) as $field) {
+        $rules[$field] = 'nullable|boolean';
+    }
 
     if (!Auth::check() && $request->filled('email') && $request->filled('password')) {
         $rules['email']    = 'required|email|unique:users,email|max:120';
@@ -778,9 +781,9 @@ public function indexAutoPath(
     $service->numar_locuri    = $request->input('numar_locuri');
     $service->culoare_opt_id  = $request->input('culoare_opt_id');
 
-    $service->importata        = $request->boolean('importata');
-    $service->avariata         = $request->boolean('avariata');
-    $service->filtru_particule = $request->boolean('filtru_particule');
+    foreach (array_keys(Service::FEATURE_OPTIONS) as $field) {
+        $service->{$field} = $request->boolean($field);
+    }
 
     // SLUG
     $words      = Str::of($validated['title'])->explode(' ')->take(5)->implode(' ');
@@ -889,7 +892,7 @@ public function edit($id)
     $autoCategoryId = Category::where('slug', 'autoturisme')->value('id')
         ?? Category::where('name', 'Autoturisme')->value('id');
 
-    $validated = $request->validate([
+    $rules = [
         'title'       => 'required|max:255',
         'description' => 'required',
 
@@ -939,10 +942,13 @@ public function edit($id)
         // tu ai zis clar: tabelul e culoare_opt (singular)
         'culoare_opt_id'    => 'nullable|exists:culoare_opt,id',
 
-        'importata'         => 'nullable|boolean',
-        'avariata'          => 'nullable|boolean',
-        'filtru_particule'  => 'nullable|boolean',
-    ], [
+    ];
+
+    foreach (array_keys(Service::FEATURE_OPTIONS) as $field) {
+        $rules[$field] = 'nullable|boolean';
+    }
+
+    $validated = $request->validate($rules, [
         'images.max'        => 'Poți avea maxim 10 imagini în total.',
         'images.*.max'      => 'Una dintre imagini este prea mare (max 15MB).',
         'images.*.uploaded' => 'Eroare la încărcare server.',
@@ -988,9 +994,9 @@ public function edit($id)
     $service->numar_locuri      = $request->input('numar_locuri');
     $service->culoare_opt_id    = $request->input('culoare_opt_id');
 
-    $service->importata         = $request->boolean('importata');
-    $service->avariata          = $request->boolean('avariata');
-    $service->filtru_particule  = $request->boolean('filtru_particule');
+    foreach (array_keys(Service::FEATURE_OPTIONS) as $field) {
+        $service->{$field} = $request->boolean($field);
+    }
 
     // IMAGINI (păstrezi ce aveai)
     $currentImages = $this->normalizeServiceImages($service->images);
@@ -1498,6 +1504,29 @@ public function edit($id)
             array_keys($query->all()),
             ['brand_id', 'model_id', 'county_id', 'locality_id', 'price_min', 'price_max', 'year_min', 'year_max']
         )) > 0;
+    }
+
+    private function listingHasActiveFilters(Request $request): bool
+    {
+        if (
+            $request->attributes->has('currentBrand')
+            || $request->attributes->has('currentModel')
+            || $request->attributes->has('currentCounty')
+            || $request->attributes->has('currentLocality')
+        ) {
+            return true;
+        }
+
+        $originalQuery = $this->originalAutoQuery($request);
+
+        if (!empty($this->cleanAdvancedQuery($request, $originalQuery))) {
+            return true;
+        }
+
+        return collect($originalQuery)
+            ->only(['brand_id', 'model_id', 'county_id', 'locality_id'])
+            ->filter(fn ($value) => $value !== null && $value !== '')
+            ->isNotEmpty();
     }
 
     private function originalAutoQuery(Request $request): array

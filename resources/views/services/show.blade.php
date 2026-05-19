@@ -56,9 +56,7 @@
     $doors = $service->numar_usi;
     $seats = $service->numar_locuri;
 
-    $isImported = (bool) $service->importata;
-    $isDamaged  = (bool) $service->avariata;
-    $hasDpf     = (bool) $service->filtru_particule;
+    $importantDetails = $service->important_details;
 
     // --- IMAGINI ---
     $images = [];
@@ -102,6 +100,21 @@
     $seoLocation = $service->locality
         ? trim($service->locality->name . ', ' . ($service->county->name ?? ''))
         : ($service->county->name ?? 'România');
+
+    $countyName = trim((string) ($service->county->name ?? ''));
+    $localityName = trim((string) ($service->locality->name ?? $service->city ?? ''));
+    $isBucharestCounty = $countyName !== '' && Str::lower(Str::ascii($countyName)) === 'bucuresti';
+    $showLocationLabel = null;
+
+    if ($countyName !== '' && $localityName !== '') {
+        $showLocationLabel = ($isBucharestCounty ? $countyName : 'Judetul ' . $countyName) . ', ' . $localityName;
+    } elseif ($countyName !== '') {
+        $showLocationLabel = $isBucharestCounty ? $countyName : 'Judetul ' . $countyName;
+    } elseif ($localityName !== '') {
+        $showLocationLabel = $localityName;
+    }
+
+    $showPublishedLabel = $service->listing_date_label;
 
     $cleanTitleString = preg_replace('/[^\p{L}\p{N}\s]/u', ' ', (string) $service->title);
     $cleanTitleString = trim(preg_replace('/\s+/', ' ', $cleanTitleString));
@@ -243,6 +256,26 @@
     /* Custom Scrollbar */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .important-details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 180px));
+        gap: 12px;
+        justify-content: start;
+        align-items: stretch;
+    }
+
+    @media (max-width: 429px) {
+        .important-details-grid {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+
+    @media (min-width: 768px) {
+        .important-details-grid {
+            grid-template-columns: repeat(auto-fill, minmax(184px, 184px));
+        }
+    }
 </style>
 
 {{-- ===================== 1. LIGHTBOX MODAL ===================== --}}
@@ -393,9 +426,17 @@
             {{-- Mobile Title & Price (Vizibil doar pe mobil) --}}
             <div class="md:hidden space-y-2 mt-4">
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white leading-tight">{{ $service->title }}</h1>
-                <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 111.314 0z"/></svg>
-                    {{ $seoLocation }}
+                <div class="space-y-1.5 text-sm text-gray-500 dark:text-gray-400">
+                    @if($showLocationLabel)
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 shrink-0 text-[#E03E2D]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <span>{{ $showLocationLabel }}</span>
+                        </div>
+                    @endif
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 shrink-0 text-[#E03E2D]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span>Publicat: {{ $showPublishedLabel }}</span>
+                    </div>
                 </div>
                 <div class="pt-2">
                     <span class="text-3xl font-extrabold text-[#E03E2D]">{{ $formattedPrice }} {{ $currency }}</span>
@@ -434,6 +475,85 @@
                     <span class="font-mono font-bold text-lg text-gray-900 dark:text-white select-all break-all text-right">
                         {{ $service->vin }}
                     </span>
+                </div>
+            @endif
+
+            {{-- TITLU ANUNȚ ÎNAINTE DE DETALII IMPORTANTE --}}
+<div class="hidden md:block pt-1">
+    <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white leading-tight">
+        {{ $service->title }}
+    </h1>
+</div>
+
+@if(!empty($importantDetails))
+    <div class="bg-white dark:bg-[#1E1E1E] p-4 sm:p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-[#333]">
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2">
+            <span class="w-1 h-6 bg-[#E03E2D] rounded-full"></span>
+            Detalii importante
+        </h3>
+
+        <div class="important-details-grid">
+            @foreach($importantDetails as $detail)
+                            @php
+                                $isWarningDetail = $detail['type'] === 'warning';
+                            @endphp
+                            <div @class([
+                                'min-h-16 rounded-xl border px-4 py-3 flex items-center gap-3 transition-colors',
+                                'border-gray-200 bg-white text-gray-900 dark:border-[#333] dark:bg-[#242424] dark:text-white' => !$isWarningDetail,
+                                'border-amber-200 bg-amber-50/70 text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100' => $isWarningDetail,
+                            ])>
+                                <span @class([
+                                    'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+                                    'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300' => !$isWarningDetail,
+                                    'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300' => $isWarningDetail,
+                                ])>
+                                    @switch($detail['icon'])
+                                        @case('gauge')
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l3-3m5 3a8 8 0 10-16 0m16 0a8 8 0 01-1.1 4H5.1A8 8 0 014 14" /></svg>
+                                            @break
+                                        @case('shield')
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3l7 3v5c0 4.5-2.9 8.7-7 10-4.1-1.3-7-5.5-7-10V6l7-3z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" /></svg>
+                                            @break
+                                        @case('clipboard')
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5h6m-7 3h8m-8 4h8m-8 4h5M8 4h8a2 2 0 012 2v13a2 2 0 01-2 2H8a2 2 0 01-2-2V6a2 2 0 012-2z" /></svg>
+                                            @break
+                                        @case('user')
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12a4 4 0 100-8 4 4 0 000 8zM4 20a8 8 0 0116 0" /></svg>
+                                            @break
+                                        @case('receipt')
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3h10a2 2 0 012 2v16l-3-2-3 2-3-2-3 2-3-2V5a2 2 0 012-2z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9h8M8 13h8M8 17h5" /></svg>
+                                            @break
+                                        @case('arrows')
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h11l-3-3m3 3l-3 3M17 17H6l3 3m-3-3l3-3" /></svg>
+                                            @break
+                                        @case('key')
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a4 4 0 11-3.5 6H9l-2 2H5v2H3v-3.5L7.5 9H11a4 4 0 014-2z" /></svg>
+                                            @break
+                                        @case('file')
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 3h6l4 4v14H8a2 2 0 01-2-2V5a2 2 0 012-2z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3v5h5M9 13h6M9 17h4" /></svg>
+                                            @break
+                                        @case('globe')
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9 9 0 100-18 9 9 0 000 18zM3 12h18M12 3c2.2 2.4 3.2 5.4 3.2 9S14.2 18.6 12 21M12 3c-2.2 2.4-3.2 5.4-3.2 9S9.8 18.6 12 21" /></svg>
+                                            @break
+                                        @case('filter')
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h5m4 0h7M4 12h9m4 0h3M4 17h3m4 0h9M9 5v4m8 1v4m-8 1v4" /></svg>
+                                            @break
+                                        @case('warning')
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4l9 16H3L12 4zM12 9v5M12 17h.01" /></svg>
+                                            @break
+                                    @endswitch
+                                </span>
+                                <span class="min-w-0">
+                                    <span class="block break-words text-[13px] font-bold leading-tight text-gray-700 dark:text-gray-200">{{ $detail['label'] }}</span>
+                                    <span @class([
+                                        'mt-1 block text-sm font-extrabold leading-tight',
+                                        'text-gray-950 dark:text-white' => !$isWarningDetail,
+                                        'text-amber-950 dark:text-amber-100' => $isWarningDetail,
+                                    ])>Da</span>
+                                </span>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             @endif
 
@@ -507,27 +627,6 @@
                     </div>
                 </div>
 
-                {{-- BADGES: Importată / Avariată / DPF --}}
-                @if($isImported || $isDamaged || $hasDpf)
-                    <div class="px-6 py-4 border-t border-gray-100 dark:border-[#333] flex flex-wrap gap-2 bg-white dark:bg-[#1E1E1E]">
-                        @if($isImported)
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-[#fff4f5] text-[#8f111a] border border-red-100 dark:bg-[#2a1013] dark:text-red-200 dark:border-red-900/40">
-                                Importată
-                            </span>
-                        @endif
-                        @if($isDamaged)
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-100 dark:bg-red-900/20 dark:text-red-200 dark:border-red-900/40">
-                                Avariată
-                            </span>
-                        @endif
-                        @if($hasDpf)
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-100 dark:bg-green-900/20 dark:text-green-200 dark:border-green-900/40">
-                                Filtru particule (DPF)
-                            </span>
-                        @endif
-                    </div>
-                @endif
-                
                 {{-- VIN Scos de aici --}}
             </div>
 
@@ -540,9 +639,17 @@
                 {{-- CARD TITLU & PRET (Doar Desktop) --}}
                 <div class="bg-white dark:bg-[#1E1E1E] p-6 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-gray-100 dark:border-[#333] hidden md:block">
                     <h1 class="text-xl font-bold text-gray-900 dark:text-white mb-2 leading-snug">{{ $service->title }}</h1>
-                    <div class="text-sm text-gray-500 dark:text-gray-400 mb-6 flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 111.314 0z"/></svg>
-                        {{ $seoLocation }}
+                    <div class="mb-6 space-y-2 text-sm text-gray-500 dark:text-gray-400">
+                        @if($showLocationLabel)
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 shrink-0 text-[#E03E2D]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <span>{{ $showLocationLabel }}</span>
+                            </div>
+                        @endif
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 shrink-0 text-[#E03E2D]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span>Publicat: {{ $showPublishedLabel }}</span>
+                        </div>
                     </div>
 
                     <div class="flex items-baseline gap-2 mb-2">
@@ -868,8 +975,8 @@
                 txtEl.innerText = formatted;
                 if(type === 'mobile') window.location.href = 'tel:' + raw;
                 else {
-                    btnEl.classList.remove('bg-[#E03E2D]', 'text-white');
-                    btnEl.classList.add('bg-white', 'border-2', 'border-green-600', 'text-green-700');
+                    btnEl.classList.remove('bg-white', 'border-2', 'border-green-600', 'text-green-700');
+                    btnEl.classList.add('bg-[#E03E2D]', 'text-white');
                     btnEl.onclick = function() { window.location.href = 'tel:' + raw; };
                 }
             } else {

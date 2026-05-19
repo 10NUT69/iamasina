@@ -17,19 +17,22 @@ class ServicePublishedConfirmationTest extends TestCase
         ]);
         $service = new Service([
             'title' => 'BMW 320d de vanzare',
+            'brand' => 'BMW',
+            'model' => '320d',
         ]);
 
         $notification = new ServicePublishedConfirmation($service);
         $mail = $notification->toMail($user);
 
         $this->assertSame(['mail'], $notification->via($user));
-        $this->assertSame('Confirmare publicare anunț iaAuto.ro', $mail->subject);
+        $this->assertSame('Anunțul tău a fost publicat', $mail->subject);
         $this->assertSame([
             'html' => 'emails.service-published',
             'text' => 'emails.service-published-text',
         ], $mail->view);
         $this->assertSame($user, $mail->viewData['user']);
         $this->assertSame($service, $mail->viewData['service']);
+        $this->assertSame('BMW 320d', $mail->viewData['listingLabel']);
         $this->assertStringContainsString('/contul-meu?tab=anunturi', $mail->viewData['accountUrl']);
     }
 }

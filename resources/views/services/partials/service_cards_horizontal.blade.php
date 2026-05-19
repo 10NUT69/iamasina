@@ -45,16 +45,7 @@
         $slideCount = count($sliderImages);
 
         // 6. Data afisata ramane data publicarii/reactualizarii, nu data editarii.
-        $listingDate = $service->published_at ?: $service->created_at;
-        if ($listingDate && $listingDate->isToday()) {
-            $dateLabel = 'Azi ' . $listingDate->format('H:i');
-        } elseif ($listingDate && $listingDate->isYesterday()) {
-            $dateLabel = 'Ieri ' . $listingDate->format('H:i');
-        } elseif ($listingDate) {
-            $dateLabel = $listingDate->translatedFormat('d M Y');
-        } else {
-            $dateLabel = '-';
-        }
+        $dateLabel = $service->listing_date_label;
     @endphp
 
     {{-- CARD ANUNȚ (DESIGN 2025-2026) --}}

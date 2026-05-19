@@ -53,6 +53,7 @@
     }
 
     $showEarlyStageBanners = $showEarlyStageBanners ?? true; // TEMP: seteaza false cand site-ul are suficiente anunturi.
+    $listingHasActiveFilters = $listingHasActiveFilters ?? false;
     $earlyStageTotalListings = isset($totalCount)
         ? (int) $totalCount
         : (isset($services) && method_exists($services, 'total')
@@ -69,7 +70,7 @@
 <div class="listing-page-shell max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 pt-0 lg:pt-6 pb-12">
     <div class="flex flex-col gap-0 lg:flex-row lg:gap-6">
         {{-- Sidebar filtre (desktop) --}}
-        <aside class="lg:w-[300px]">
+        <aside class="lg:w-[300px] lg:shrink-0">
             <div class="hidden lg:block mb-5">
                 <nav class="flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">
                     <a href="{{ route('services.index') }}"
@@ -241,7 +242,7 @@
             </div>
         </aside>
 
-        <div class="flex-1">
+        <div class="min-w-0 flex-1">
             <div class="listing-mobile-heading lg:hidden mb-3">
                 <nav class="flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">
                     <a href="{{ route('services.index') }}"
@@ -294,7 +295,7 @@
             </div>
 
             <div id="services-container" class="flex flex-col gap-4">
-                @if($showEarlyStageBanners && $earlyStageTotalListings < 50)
+                @if($showEarlyStageBanners && !$listingHasActiveFilters && $earlyStageTotalListings < 50)
                     {{-- EARLY STAGE BANNER START --}}
                     <article class="relative flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-[#27272a] dark:bg-[#18181B] md:flex-row">
                         <div class="relative hidden w-full overflow-hidden bg-gradient-to-br from-[#fff4f5] via-white to-[#f4f6f8] p-5 dark:from-[#2a1013] dark:via-[#18181B] dark:to-[#111113] md:flex md:min-h-[220px] md:w-[320px] lg:w-[340px]">
