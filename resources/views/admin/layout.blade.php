@@ -65,6 +65,9 @@
     $sidebarStats = $adminSidebarStats ?? [
         'pending_services' => 0,
         'active_services' => 0,
+        'total_services' => 0,
+        'new_services_today' => 0,
+        'total_users' => 0,
         'new_users_today' => 0,
     ];
 @endphp
@@ -85,25 +88,35 @@
                class="flex items-center justify-between p-2 rounded hover:bg-gray-200 {{ request()->routeIs('admin.services.*') ? 'bg-gray-200 font-bold' : '' }}">
                 <span>Anunțuri</span>
                 <span class="inline-flex items-center gap-1">
+                    <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700" title="Anunțuri totale">
+                        {{ $sidebarStats['total_services'] ?? $sidebarStats['active_services'] ?? 0 }}
+                    </span>
+                    @if(($sidebarStats['new_services_today'] ?? 0) > 0)
+                        <span class="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700" title="Anunțuri publicate azi">
+                            +{{ $sidebarStats['new_services_today'] }}
+                        </span>
+                    @endif
                     @if(($sidebarStats['pending_services'] ?? 0) > 0)
                         <span class="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700" title="Anunțuri în așteptare">
                             {{ $sidebarStats['pending_services'] }}
                         </span>
                     @endif
-                    <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700" title="Anunțuri active">
-                        {{ $sidebarStats['active_services'] ?? 0 }}
-                    </span>
                 </span>
             </a>
 
             <a href="{{ route('admin.users.index') }}"
                class="flex items-center justify-between p-2 rounded hover:bg-gray-200 {{ request()->routeIs('admin.users.*') ? 'bg-gray-200 font-bold' : '' }}">
                 <span>Utilizatori</span>
-                @if(($sidebarStats['new_users_today'] ?? 0) > 0)
-                    <span class="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700" title="Utilizatori noi azi">
-                        +{{ $sidebarStats['new_users_today'] }}
+                <span class="inline-flex items-center gap-1">
+                    <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-700" title="Utilizatori total">
+                        {{ $sidebarStats['total_users'] ?? 0 }}
                     </span>
-                @endif
+                    @if(($sidebarStats['new_users_today'] ?? 0) > 0)
+                        <span class="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700" title="Utilizatori noi azi">
+                            +{{ $sidebarStats['new_users_today'] }}
+                        </span>
+                    @endif
+                </span>
             </a>
 
             <a href="{{ route('admin.categories.index') }}"

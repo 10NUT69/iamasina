@@ -28,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
             $view->with('adminSidebarStats', [
                 'pending_services' => Service::whereNull('deleted_at')->where('status', 'pending')->count(),
                 'active_services' => Service::whereNull('deleted_at')->where('status', 'active')->count(),
+                'total_services' => Service::whereNull('deleted_at')->count(),
+                'new_services_today' => Service::whereNull('deleted_at')->whereDate('published_at', now()->toDateString())->count(),
+                'total_users' => User::count(),
                 'new_users_today' => User::whereDate('created_at', now()->toDateString())->count(),
             ]);
         });

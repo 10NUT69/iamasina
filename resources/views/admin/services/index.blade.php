@@ -86,6 +86,7 @@
                         <tr class="bg-slate-50/80 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200 font-semibold">
                             <th class="p-4 w-10 text-center"><input type="checkbox" id="selectAll" class="rounded border-slate-300 text-blue-600 w-4 h-4 cursor-pointer"></th>
                             <th class="p-4">Anunț</th>
+                            <th class="p-4">Date</th>
                             <th class="p-4">Status</th>
                             <th class="p-4 text-right">Acțiuni Individuale</th>
                         </tr>
@@ -110,6 +111,11 @@
                                             <span class="text-xs text-slate-500">{{ $service->category->name ?? '-' }} | {{ $service->county->name ?? '-' }}</span>
                                         </div>
                                     </div>
+                                </td>
+
+                                <td class="p-4 text-xs text-slate-500 whitespace-nowrap">
+                                    <div><span class="font-bold text-slate-600">Publicat:</span> {{ $service->published_at ? $service->published_at->format('d.m.Y H:i') : '-' }}</div>
+                                    <div class="mt-1"><span class="font-bold text-slate-600">Actualizat:</span> {{ $service->updated_at ? $service->updated_at->format('d.m.Y H:i') : '-' }}</div>
                                 </td>
 
                                 <td class="p-4">
@@ -155,7 +161,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="4" class="p-8 text-center text-slate-400">Nu există date.</td></tr>
+                            <tr><td colspan="5" class="p-8 text-center text-slate-400">Nu există date.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
