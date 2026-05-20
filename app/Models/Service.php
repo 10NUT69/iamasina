@@ -217,24 +217,7 @@ class Service extends Model
     $brandSlug = null;
     $modelSlug = null;
 
-    $generation = null;
-    if ($this->car_generation_id) {
-        $generation = $this->relationLoaded('generation') ? $this->getRelation('generation') : $this->generation;
-    }
-
-    if ($generation) {
-        $model = $generation->relationLoaded('model') ? $generation->getRelation('model') : $generation->model;
-        $brand = $model
-            ? ($model->relationLoaded('brand') ? $model->getRelation('brand') : $model->brand)
-            : null;
-
-        if ($brand && $model) {
-            $brandSlug = $brand->slug ?: Str::slug($brand->name);
-            $modelSlug = $model->slug ?: Str::slug($model->name);
-        }
-    }
-
-    if ((!$brandSlug || !$modelSlug) && $this->brand_id && $this->model_id) {
+    if ($this->brand_id && $this->model_id) {
         $brand = $this->relationLoaded('brandRel') ? $this->getRelation('brandRel') : $this->brandRel;
         $model = $this->relationLoaded('modelRel') ? $this->getRelation('modelRel') : $this->modelRel;
 
@@ -250,6 +233,23 @@ class Service extends Model
         }
         if (!empty($this->model)) {
             $modelSlug = Str::slug($this->model);
+        }
+    }
+
+    $generation = null;
+    if ((!$brandSlug || !$modelSlug) && $this->car_generation_id) {
+        $generation = $this->relationLoaded('generation') ? $this->getRelation('generation') : $this->generation;
+    }
+
+    if ($generation) {
+        $model = $generation->relationLoaded('model') ? $generation->getRelation('model') : $generation->model;
+        $brand = $model
+            ? ($model->relationLoaded('brand') ? $model->getRelation('brand') : $model->brand)
+            : null;
+
+        if ($brand && $model) {
+            $brandSlug = $brand->slug ?: Str::slug($brand->name);
+            $modelSlug = $model->slug ?: Str::slug($model->name);
         }
     }
 
@@ -350,7 +350,7 @@ class Service extends Model
     {
         return ServiceImageStorage::cardImageUrl($image) ?: $this->main_image_url;
     }
-	// Legătura critică: Anunț -> Generație
+	// Legacy fallback pentru anunțurile vechi care încă au generație salvată.
     public function generation()
     {
         return $this->belongsTo(CarGeneration::class, 'car_generation_id');

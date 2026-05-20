@@ -12,15 +12,14 @@
      * $counties, $normePoluare, $carData, (și dacă ai categoria fixă auto) $autoCategoryId.
      *
      * În plus, $service trebuie să aibă câmpurile noi:
-     * brand_id, model_id, car_generation_id, an_fabricatie, caroserie_id, combustibil_id, cutie_viteze_id, tractiune_id,
+     * brand_id, model_id, an_fabricatie, caroserie_id, combustibil_id, cutie_viteze_id, tractiune_id,
      * culoare_id, culoare_opt_id, vin, km, putere, capacitate_cilindrica, norma_poluare_id, numar_usi, numar_locuri,
      * importata, avariata, filtru_particule, title, description, price_value, currency, price_type, phone, county_id, images
      */
 
     // ID-uri preselectate (prioritate: old() -> DB)
-    $savedBrandId = old('brand_id', $service->brand_id);
-    $savedModelId = old('model_id', $service->model_id);
-    $savedGenId   = old('car_generation_id', $service->car_generation_id);
+    $savedBrandId = old('brand_id', $service->brand_id ?: $service->generation?->model?->brand?->id);
+    $savedModelId = old('model_id', $service->model_id ?: $service->generation?->model?->id);
     $savedYear    = old('an_fabricatie', $service->an_fabricatie);
 
     // fallback text (compatibilitate veche – ca în create)
@@ -143,29 +142,16 @@
                                     </select>
                                 </div>
 
-                                <div class="grid grid-cols-2 gap-3">
-                                    {{-- Generation --}}
-                                    <div class="relative group">
-                                        <select name="car_generation_id" id="generationSelect" disabled
-                                                class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-[#444]
-                                                       bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white
-                                                       disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-[#222] disabled:cursor-not-allowed
-                                                       outline-none transition-all">
-                                            <option value="">Gen</option>
-                                        </select>
-                                    </div>
-
-                                    {{-- Year --}}
-                                    <div class="relative group">
-                                        <select name="an_fabricatie" id="yearSelect" disabled
-                                                class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-[#444]
-                                                       bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white
-                                                       disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-[#222] disabled:cursor-not-allowed
-                                                       outline-none transition-all"
-                                                required>
-                                            <option value="">An</option>
-                                        </select>
-                                    </div>
+                                {{-- Year --}}
+                                <div class="relative group">
+                                    <select name="an_fabricatie" id="yearSelect" disabled
+                                            class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-[#444]
+                                                   bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white
+                                                   disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-[#222] disabled:cursor-not-allowed
+                                                   outline-none transition-all"
+                                            required>
+                                        <option value="">An</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -676,13 +662,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         if (currentStep === 1) {
-            const genSel = document.getElementById('generationSelect');
-            if (!genSel.disabled && !genSel.value) {
-                valid = false;
-                genSel.classList.add('ring-2', 'ring-red-500', 'border-red-500');
-                genSel.addEventListener('change', () => genSel.classList.remove('ring-2', 'ring-red-500', 'border-red-500'), { once:true });
-            }
-
             if (!document.getElementById('inputBodyType').value) { document.getElementById('err-body').classList.remove('hidden'); valid = false; }
             if (!document.getElementById('inputFuel').value) { document.getElementById('err-fuel').classList.remove('hidden'); valid = false; }
             if (!document.getElementById('inputTrans').value) { document.getElementById('err-trans').classList.remove('hidden'); valid = false; }
@@ -716,12 +695,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const carData = @json($carData ?? []);
     const brandSel = document.getElementById('brandSelect');
     const modelSel = document.getElementById('modelSelect');
-    const genSel = document.getElementById('generationSelect');
     const yearSel = document.getElementById('yearSelect');
 
     const savedBrandId = @json($savedBrandId);
     const savedModelId = @json($savedModelId);
-    const savedGenId   = @json($savedGenId);
     const savedYear    = @json($savedYear);
 
     function populateYears(start, end, selectedYear = null) {
@@ -759,7 +736,6 @@ document.addEventListener('DOMContentLoaded', function() {
         syncBrandText();
 
         resetSelect(modelSel, 'Model');
-        resetSelect(genSel, 'Gen');
         resetSelect(yearSel, 'An');
 
         if (brandId && carData[brandId]) {
@@ -776,43 +752,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         syncModelText();
 
-        resetSelect(genSel, 'Gen');
         resetSelect(yearSel, 'An');
 
         if (brandId && modelId && carData[brandId]) {
-            const modelObj = carData[brandId].find(x => String(x.id) === String(modelId));
-            const generations = modelObj?.generations || [];
-
-            if (generations.length > 0) {
-                genSel.disabled = false;
-                genSel.classList.remove('bg-gray-100', 'cursor-not-allowed', 'text-gray-400');
-                genSel.innerHTML = '<option value="">Gen</option>';
-
-                generations.forEach(g => {
-                    const option = document.createElement('option');
-                    option.value = g.id;
-                    option.text = `${g.name} (${g.start} - ${g.end || 'Prezent'})`;
-                    option.dataset.start = g.start;
-                    option.dataset.end = g.end || new Date().getFullYear();
-                    genSel.appendChild(option);
-                });
-            } else {
-                genSel.disabled = true;
-                genSel.innerHTML = '<option value="">N/A</option>';
-                genSel.classList.add('bg-gray-100', 'cursor-not-allowed', 'text-gray-400');
-                populateYears(1990, new Date().getFullYear(), savedYear);
-            }
+            populateYears(1990, new Date().getFullYear(), savedYear);
         }
     });
 
-    genSel.addEventListener('change', function() {
-        const selected = this.options[this.selectedIndex];
-        if (selected && selected.dataset.start) {
-            populateYears(parseInt(selected.dataset.start), parseInt(selected.dataset.end), savedYear);
-        }
-    });
-
-    // ---- INIT preselect (brand->model->gen->year) ----
+    // ---- INIT preselect (brand->model->year) ----
     function initCascadeFromSaved() {
         if (!savedBrandId) return;
 
@@ -820,7 +767,6 @@ document.addEventListener('DOMContentLoaded', function() {
         syncBrandText();
 
         resetSelect(modelSel, 'Model');
-        resetSelect(genSel, 'Gen');
         resetSelect(yearSel, 'An');
 
         if (carData[savedBrandId]) {
@@ -837,33 +783,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (savedModelId) {
                 syncModelText();
-
-                const modelObj = carData[savedBrandId].find(x => String(x.id) === String(savedModelId));
-                const generations = modelObj?.generations || [];
-
-                if (generations.length > 0) {
-                    genSel.disabled = false;
-                    genSel.innerHTML = '<option value="">Gen</option>';
-
-                    let foundGen = null;
-                    generations.forEach(g => {
-                        const opt = document.createElement('option');
-                        opt.value = g.id;
-                        opt.textContent = `${g.name} (${g.start} - ${g.end || 'Prezent'})`;
-                        opt.dataset.start = g.start;
-                        opt.dataset.end = g.end || new Date().getFullYear();
-                        if (String(savedGenId) === String(g.id)) { opt.selected = true; foundGen = g; }
-                        genSel.appendChild(opt);
-                    });
-
-                    if (foundGen) {
-                        populateYears(parseInt(foundGen.start), parseInt(foundGen.end), savedYear);
-                    } else {
-                        populateYears(1990, new Date().getFullYear(), savedYear);
-                    }
-                } else {
-                    populateYears(1990, new Date().getFullYear(), savedYear);
-                }
+                populateYears(1990, new Date().getFullYear(), savedYear);
             }
         }
     }

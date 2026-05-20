@@ -132,13 +132,6 @@
                                 </select>
                             </div>
 
-                            {{-- Generation (Trimite car_generation_id) --}}
-                            <div class="relative group">
-                                <select name="car_generation_id" id="generationSelect" disabled class="wizard-big-select w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white dark:disabled:bg-[#222]">
-                                    <option value="">Generație</option>
-                                </select>
-                            </div>
-
                             {{-- Year --}}
                             <div class="relative group">
                                 <select name="an_fabricatie" id="yearSelect" disabled class="wizard-big-select w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white dark:disabled:bg-[#222]" required>
@@ -1712,12 +1705,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         if (stepNumber === 1) {
-            const genSel = document.getElementById('generationSelect');
-            if (genSel && !genSel.disabled && !genSel.value) {
-                invalidItems.push({ target: genSel, message: 'Alege generația.' });
-                if (reveal) markInvalidInput(genSel);
-            }
-
             [
                 ['inputBodyType', 'err-body', 'Selectează caroseria'],
                 ['inputFuel', 'err-fuel', 'Alege combustibilul'],
@@ -1830,16 +1817,13 @@ document.addEventListener('DOMContentLoaded', function() {
         resetLocalities();
     }
 
-    // === 4. CASCADING SELECTS (Brand -> Model -> Generation -> Year) ===
-    // IMPORTANT: $carData trebuie sa fie pe ID-uri:
-    // carData[brand_id] = [{id, name, generations:[{id,name,start,end}]}]
+    // === 4. CASCADING SELECTS (Brand -> Model -> Year) ===
     const carData = @json($carData ?? []);
     const brandSel = document.getElementById('brandSelect');
     const modelSel = document.getElementById('modelSelect');
-    const genSel = document.getElementById('generationSelect');
     const yearSel = document.getElementById('yearSelect');
 
-    function populateYears(start, end) {
+    function populateYears(start = 1990, end = new Date().getFullYear()) {
         yearSel.innerHTML = '<option value="">An fabricație</option>';
         yearSel.disabled = false;
         for(let i = end; i >= start; i--) {
@@ -1860,7 +1844,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('brandText').value = brandName;
 
         resetSelect(modelSel, 'Model');
-        resetSelect(genSel, 'Generație');
         resetSelect(yearSel, 'An fabricație');
 
         if(brandId && carData[brandId]) {
@@ -1879,38 +1862,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const modelName = this.options[this.selectedIndex]?.dataset?.name || '';
         document.getElementById('modelText').value = modelName;
 
-        resetSelect(genSel, 'Generație');
         resetSelect(yearSel, 'An fabricație');
 
         if(brandId && modelId && carData[brandId]) {
-            const modelObj = carData[brandId].find(x => String(x.id) === String(modelId));
-            const generations = modelObj?.generations || [];
-
-            if (generations.length > 0) {
-                genSel.disabled = false;
-                genSel.classList.remove('bg-gray-100', 'cursor-not-allowed', 'text-gray-400');
-
-                generations.forEach(g => {
-                    const option = document.createElement('option');
-                    option.value = g.id;
-                    option.text = `${g.name} (${g.start} - ${g.end || 'Prezent'})`;
-                    option.dataset.start = g.start;
-                    option.dataset.end = g.end || new Date().getFullYear();
-                    genSel.appendChild(option);
-                });
-            } else {
-                genSel.disabled = true;
-                genSel.innerHTML = '<option value="">N/A</option>';
-                genSel.classList.add('bg-gray-100', 'cursor-not-allowed', 'text-gray-400');
-                populateYears(1990, new Date().getFullYear());
-            }
-        }
-    });
-
-    genSel.addEventListener('change', function() {
-        const selected = this.options[this.selectedIndex];
-        if(selected && selected.dataset.start) {
-            populateYears(parseInt(selected.dataset.start), parseInt(selected.dataset.end));
+            populateYears();
         }
     });
 

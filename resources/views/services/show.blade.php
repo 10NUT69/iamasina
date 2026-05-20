@@ -25,18 +25,16 @@
     $formattedPrice = number_format($service->price_value ?? 0, 0, '.', ' ');
     $currency       = $service->currency ?? 'EUR';
 
-    // --- DATE AUTO (cu suport: generation -> brandRel/modelRel -> text fallback) ---
+    // --- DATE AUTO (brand/model pe FK, cu fallback vechi discret) ---
     $brandName =
-        optional(optional(optional($service->generation)->model)->brand)->name
-        ?: optional($service->brandRel ?? null)->name
+        optional($service->brandRel ?? null)->name
+        ?: optional(optional(optional($service->generation)->model)->brand)->name
         ?: ($service->brand ?? null);
 
     $modelName =
-        optional(optional($service->generation)->model)->name
-        ?: optional($service->modelRel ?? null)->name
+        optional($service->modelRel ?? null)->name
+        ?: optional(optional($service->generation)->model)->name
         ?: ($service->model ?? null);
-
-    $generationName = optional($service->generation)->name;
 
     $year   = $service->an_fabricatie ?? $service->year;
     $km     = $service->km ?? $service->mileage;
@@ -129,7 +127,7 @@
     $seoVehicleTitle = trim(implode(' ', array_filter([$brandName, $modelName, $year])));
     $seoVehicleTitle = $seoVehicleTitle ?: ($shortUserTitle ?: 'Autoturism');
 
-    $seoVehicleDescription = trim(implode(' ', array_filter([$brandName, $modelName, $generationName, $year])));
+    $seoVehicleDescription = trim(implode(' ', array_filter([$brandName, $modelName, $year])));
     $seoVehicleDescription = $seoVehicleDescription ?: $seoVehicleTitle;
 
     $fullSeoTitle = $seoVehicleTitle . ' de vânzare';
@@ -479,11 +477,11 @@
             @endif
 
             {{-- TITLU ANUNȚ ÎNAINTE DE DETALII IMPORTANTE --}}
-<div class="hidden md:block pt-1">
-    <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white leading-tight">
-        {{ $service->title }}
-    </h1>
-</div>
+            <div class="hidden md:block pt-1">
+                <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white leading-tight">
+                    {{ $service->title }}
+                </h1>
+            </div>
 
 @if(!empty($importantDetails))
     <div class="bg-white dark:bg-[#1E1E1E] p-4 sm:p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-[#333]">
@@ -580,7 +578,6 @@
                             $specs1 = [
                                 'Marcă' => $brandName,
                                 'Model' => $modelName,
-                                'Generație' => $generationName,
                                 'An fabricație' => $year,
                                 'Kilometraj' => $km ? number_format($km, 0, '.', ' ') . ' km' : null,
 

@@ -116,6 +116,11 @@
                 Județe
             </a>
 
+            <a href="{{ route('admin.backups.index') }}"
+               class="block p-2 rounded hover:bg-gray-200 {{ request()->routeIs('admin.backups.*') ? 'bg-gray-200 font-bold' : '' }}">
+                Backup si restaurare
+            </a>
+
             <a href="/" class="block p-2 text-red-600 hover:bg-red-100 rounded">
                 ← Înapoi la site
             </a>

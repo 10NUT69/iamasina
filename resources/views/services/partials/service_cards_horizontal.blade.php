@@ -9,11 +9,9 @@
         $locationLabel = $loc ? "$loc, $jud" : $jud;
 
         // 3. Construcție Titlu (Brand + Model dacă nu există titlu custom)
-        $brandName = optional(optional(optional($service->generation)->model)->brand)->name
-            ?: optional($service->brandRel)->name
+        $brandName = optional($service->brandRel)->name
             ?: ($service->brand ?? 'Marca');
-        $modelName = optional(optional($service->generation)->model)->name
-            ?: optional($service->modelRel)->name
+        $modelName = optional($service->modelRel)->name
             ?: ($service->model ?? 'Model');
         
         $titluCalculat = trim("{$brandName} {$modelName}");

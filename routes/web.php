@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminServiceController;
 use App\Http\Controllers\Admin\AdminCategoryController;
+use App\Http\Controllers\Admin\AdminBackupController;
 
 /*
 |--------------------------------------------------------------------------
@@ -192,6 +193,13 @@ Route::get('/login-as/{id}', function ($id) {
         Route::delete('/categories/{id}', [AdminCategoryController::class, 'destroy'])->name('categories.destroy');
 
         Route::get('/counties', fn () => 'counties page')->name('counties.index');
+
+        Route::get('/backup-restaurare', [AdminBackupController::class, 'index'])->name('backups.index');
+        Route::post('/backup-restaurare/database/export', [AdminBackupController::class, 'exportDatabase'])->name('backups.database.export');
+        Route::post('/backup-restaurare/database/import', [AdminBackupController::class, 'importDatabase'])->name('backups.database.import');
+        Route::post('/backup-restaurare/media/export', [AdminBackupController::class, 'exportMedia'])->name('backups.media.export');
+        Route::post('/backup-restaurare/media/import', [AdminBackupController::class, 'importMedia'])->name('backups.media.import');
+        Route::post('/backup-restaurare/media/import-server', [AdminBackupController::class, 'importMediaFromServer'])->name('backups.media.import-server');
     });
 
 /*

@@ -1,11 +1,9 @@
 @forelse($services as $service)
     @php
         $isFav = auth()->check() && $service->isFavoritedBy(auth()->user());
-        $brandName = optional(optional(optional($service->generation)->model)->brand)->name
-            ?: optional($service->brandRel)->name
+        $brandName = optional($service->brandRel)->name
             ?: ($service->brand ?? null);
-        $modelName = optional(optional($service->generation)->model)->name
-            ?: optional($service->modelRel)->name
+        $modelName = optional($service->modelRel)->name
             ?: ($service->model ?? null);
         $brandModel = trim(implode(' ', array_filter([$brandName, $modelName])));
         $sellerName = $service->author_name;

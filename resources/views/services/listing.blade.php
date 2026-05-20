@@ -155,10 +155,6 @@
                             <option value="">Model</option>
                         </select>
 
-                        <select id="generation-filter" name="car_generation_id" class="autovit-select listing-filter bg-gray-50 text-gray-400 cursor-not-allowed" disabled>
-                            <option value="">Generație</option>
-                        </select>
-
                         <div>
                             <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">An fabricație</p>
                             <div class="grid grid-cols-2 gap-2">
@@ -396,7 +392,6 @@
     const domElements = {
         brand: document.getElementById('brand-filter'),
         model: document.getElementById('model-filter'),
-        gen: document.getElementById('generation-filter'),
         body: document.getElementById('body-filter'),
         fuel: document.getElementById('fuel-filter'),
         gear: document.getElementById('gearbox-filter'),
@@ -671,7 +666,6 @@
         addParam('model_id', modelSlug ? '' : (domElements.model?.value || ''));
         addParam('county_id', countyInPath ? '' : (domElements.county?.value || ''));
         addParam('locality_id', cityInPath ? '' : (domElements.locality?.value || ''));
-        addParam('car_generation_id', domElements.gen?.value || '');
         addParam('caroserie_id', domElements.body?.value || '');
         addParam('combustibil_id', domElements.fuel?.value || '');
         addParam('cutie_viteze_id', domElements.gear?.value || '');
@@ -692,7 +686,7 @@
         if (!btn) return;
 
         const filters = [
-            domElements.brand, domElements.model, domElements.gen,
+            domElements.brand, domElements.model,
             domElements.body, domElements.fuel, domElements.gear, domElements.county,
             domElements.locality, domElements.priceMin,
             domElements.priceMax, domElements.kmMin, domElements.kmMax,
@@ -741,7 +735,6 @@
             seller_type: domElements.sellerType?.value || 'all',
             brand_id: domElements.brand?.value || '',
             model_id: domElements.model?.value || '',
-            car_generation_id: domElements.gen?.value || '',
             caroserie_id: domElements.body?.value || '',
             combustibil_id: domElements.fuel?.value || '',
             cutie_viteze_id: domElements.gear?.value || '',
@@ -907,7 +900,6 @@
             const brandId = domElements.brand.value;
 
             resetSelect(domElements.model, 'Model');
-            resetSelect(domElements.gen, 'Generație');
 
             if (carData[brandId]) {
                 enableSelect(domElements.model);
@@ -928,13 +920,11 @@
 
                 if (!brandId) {
                     resetSelect(domElements.model, 'Model');
-                    resetSelect(domElements.gen, 'Generație');
                     window.checkResetVisibility();
                     return;
                 }
 
                 resetSelect(domElements.model, 'Model');
-                resetSelect(domElements.gen, 'Generație');
 
                 if (carData[brandId]) {
                     enableSelect(domElements.model);
@@ -949,23 +939,6 @@
 
         if (domElements.model) {
             domElements.model.addEventListener('change', function () {
-                resetSelect(domElements.gen, 'Generație');
-
-                const brandId = domElements.brand.value;
-                const modelId = this.value;
-
-                if (brandId && modelId && carData[brandId]) {
-                    const modelObj = carData[brandId].find(x => String(x.id) === String(modelId));
-                    const generations = modelObj?.generations || [];
-
-                    if (generations.length) {
-                        enableSelect(domElements.gen);
-                        generations.forEach(g => {
-                            domElements.gen.innerHTML += `<option value="${g.id}">${g.name} (${g.start} - ${g.end || 'Prezent'})</option>`;
-                        });
-                    }
-                }
-
                 window.checkResetVisibility();
             });
         }
@@ -976,7 +949,7 @@
             resetLocalities();
         }
 
-        [domElements.gen, domElements.body, domElements.fuel, domElements.gear].forEach(el => {
+        [domElements.body, domElements.fuel, domElements.gear].forEach(el => {
             if (el) {
                 el.addEventListener('change', () => {
                     window.checkResetVisibility();

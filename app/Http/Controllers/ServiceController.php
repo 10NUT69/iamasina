@@ -14,7 +14,6 @@ use App\Support\ServiceImageStorage;
 // 🔹 MODELE AUTO
 use App\Models\CarBrand;
 use App\Models\CarModel;
-use App\Models\CarGeneration;
 
 // 🔹 MODELE NOMENCLATOR
 use App\Models\Combustibil;
@@ -79,7 +78,6 @@ class ServiceController extends Controller
         'cutieViteze',
         'brandRel',
         'modelRel',
-        'generation.model.brand',
         'normaPoluare',
     ])->where('status', 'active');
 
@@ -144,11 +142,6 @@ class ServiceController extends Controller
         $query->whereHas('generation.model', function ($q) use ($modelName) {
             $q->where('name', $modelName);
         });
-    }
-
-    // Generație (deja pe ID)
-    if ($request->filled('car_generation_id')) {
-        $query->where('car_generation_id', $request->car_generation_id);
     }
 
     // Caroserie
@@ -343,7 +336,6 @@ public function showDealerPortfolio(Request $request, string $countySlug, string
                 'id' => $model->id,
                 'name' => $model->name,
                 'slug' => $model->slug,
-                'generations' => [],
             ])
             ->values()
         )
@@ -367,7 +359,6 @@ public function showDealerPortfolio(Request $request, string $countySlug, string
         'cutieViteze',
         'brandRel',
         'modelRel',
-        'generation.model.brand',
         'normaPoluare',
     ])
         ->where('status', 'active')
@@ -644,9 +635,8 @@ public function indexAutoPath(
         'dealer_address'=> 'nullable|string|max:255',
 
         // FK-uri noi
-        'brand_id'          => 'nullable|exists:car_brands,id',
-        'model_id'          => 'nullable|exists:car_models,id',
-        'car_generation_id' => 'nullable|exists:car_generations,id',
+        'brand_id'          => 'required|exists:car_brands,id',
+        'model_id'          => 'required|exists:car_models,id',
 
         // rest auto
         'an_fabricatie'         => 'required|integer',
@@ -762,7 +752,7 @@ public function indexAutoPath(
     // FK-uri noi
     $service->brand_id          = $request->input('brand_id');
     $service->model_id          = $request->input('model_id');
-    $service->car_generation_id = $request->input('car_generation_id');
+    $service->car_generation_id = null;
 
     // Auto
     $service->an_fabricatie         = $request->input('an_fabricatie');
@@ -917,9 +907,8 @@ public function edit($id)
         'primary_existing_image' => 'nullable|string',
 
         // FK-uri (pe care le trimite create.blade)
-        'brand_id'          => 'nullable|exists:car_brands,id',
-        'model_id'          => 'nullable|exists:car_models,id',
-        'car_generation_id' => 'nullable|exists:car_generations,id',
+        'brand_id'          => 'required|exists:car_brands,id',
+        'model_id'          => 'required|exists:car_models,id',
 
         // rest auto
         'an_fabricatie'         => 'required|integer',
@@ -973,7 +962,7 @@ public function edit($id)
     // FK-uri
     $service->brand_id          = $request->input('brand_id');
     $service->model_id          = $request->input('model_id');
-    $service->car_generation_id = $request->input('car_generation_id');
+    $service->car_generation_id = null;
 
     // Auto
     $service->an_fabricatie         = $request->input('an_fabricatie');
@@ -1142,18 +1131,11 @@ public function edit($id)
 
     // ==========================================
     // helper: buildCarData pe ID-uri
-    // carData[brand_id] = [
-    //   { id, name, generations: [ {id,name,start,end}, ... ] },
-    // ]
+    // carData[brand_id] = [{ id, name, slug }]
     // ==========================================
     protected function buildCarData()
     {
-        $models = CarModel::with([
-            'brand',
-            'generations' => function ($q) {
-                $q->orderBy('year_start', 'asc');
-            }
-        ])->orderBy('name')->get();
+        $models = CarModel::with('brand')->orderBy('name')->get();
 
         $carData = [];
 
@@ -1166,23 +1148,10 @@ public function edit($id)
                 $carData[$brandId] = [];
             }
 
-            $generations = [];
-            if ($model->generations->isNotEmpty()) {
-                foreach ($model->generations as $gen) {
-                    $generations[] = [
-                        'id'    => $gen->id,
-                        'name'  => $gen->name,
-                        'start' => $gen->year_start,
-                        'end'   => $gen->year_end,
-                    ];
-                }
-            }
-
             $carData[$brandId][] = [
-                'id'          => $model->id,
-                'name'        => $model->name,
-                'slug'        => $model->slug,
-                'generations' => $generations,
+                'id'   => $model->id,
+                'name' => $model->name,
+                'slug' => $model->slug,
             ];
         }
 
@@ -1442,7 +1411,6 @@ public function edit($id)
         }
 
         $mapping = [
-            'car_generation_id' => ['car_generation_id'],
             'caroserie_id'      => ['caroserie_id'],
             'combustibil_id'    => ['combustibil_id'],
             'cutie_viteze_id'   => ['cutie_viteze_id'],

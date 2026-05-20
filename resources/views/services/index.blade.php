@@ -7,10 +7,10 @@
 
 @section('hero')
 {{-- HERO SECTION --}}
-<div class="w-full bg-[linear-gradient(180deg,#fff7f8_0%,#ffffff_72%)] dark:bg-[linear-gradient(180deg,#171112_0%,#121212_76%)] pt-14 md:pt-20 lg:pt-20 pb-3 md:pb-4 lg:pb-3">
+<div class="w-full bg-[linear-gradient(180deg,#fff7f8_0%,#ffffff_72%)] dark:bg-[linear-gradient(180deg,#171112_0%,#121212_76%)] pt-14 md:pt-20 lg:pt-20 pb-3 md:pb-4 lg:pb-2">
     <div class="homepage-hero-layout max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
 
-        <div class="homepage-hero-visual relative isolate -mx-4 flex min-h-[248px] items-center overflow-hidden rounded-none bg-white/70 px-4 py-6 sm:-mx-6 sm:min-h-[292px] sm:px-6 sm:py-8 md:min-h-[318px] md:py-9 lg:mx-0 lg:min-h-[300px] lg:rounded-3xl lg:px-10 lg:py-8 lg:shadow-[0_22px_70px_rgba(200,20,36,0.10)] dark:bg-[#171112] dark:lg:shadow-black/40 xl:min-h-[320px]"
+        <div class="homepage-hero-visual relative isolate -mx-4 flex min-h-[210px] items-center overflow-hidden rounded-none bg-white/70 px-4 py-5 sm:-mx-6 sm:min-h-[244px] sm:px-6 sm:py-7 md:min-h-[264px] md:py-8 lg:mx-0 lg:min-h-[216px] lg:rounded-3xl lg:px-10 lg:py-5 lg:shadow-[0_22px_70px_rgba(200,20,36,0.10)] dark:bg-[#171112] dark:lg:shadow-black/40 xl:min-h-[225px]"
              style="--homepage-hero-image: url('{{ asset('images/homepage-hero-car.webp') }}'); --homepage-hero-dark-image: url('{{ asset('images/homepage-hero-car-dark.webp') }}');">
             <div class="relative z-10 max-w-[20rem] sm:max-w-[26rem] md:max-w-[31rem] lg:max-w-[28rem]">
                 <h1 class="text-[1.75rem] min-[360px]:text-[1.9rem] min-[430px]:text-[2rem] sm:text-[2.35rem] md:text-[2.9rem] lg:text-[2rem] xl:text-[2.35rem] 2xl:text-[2.6rem] font-black text-gray-950 dark:text-white tracking-tight leading-[0.98]">
@@ -40,7 +40,7 @@
             @endphp
 
             <div class="homepage-quick-filters lg:hidden p-3">
-                <div class="grid grid-cols-3 gap-2">
+                <div class="grid grid-cols-2 gap-2">
                     <div class="min-w-0">
                         <label for="homepage-quick-brand-filter" class="mb-1 block text-[13px] font-bold text-gray-900 dark:text-gray-100 sm:text-sm">Marcă</label>
                         <select id="homepage-quick-brand-filter" class="autovit-select homepage-quick-select w-full">
@@ -64,16 +64,6 @@
                         <label for="homepage-quick-model-filter" class="mb-1 block text-[13px] font-bold text-gray-900 dark:text-gray-100 sm:text-sm">Model</label>
                         <select id="homepage-quick-model-filter" class="autovit-select homepage-quick-select w-full bg-gray-50 text-gray-400 cursor-not-allowed" disabled>
                             <option value="">Toate modelele</option>
-                        </select>
-                    </div>
-
-                    <div class="min-w-0">
-                        <label for="homepage-quick-county-filter" class="mb-1 block text-[13px] font-bold text-gray-900 dark:text-gray-100 sm:text-sm">Județ</label>
-                        <select id="homepage-quick-county-filter" class="autovit-select homepage-quick-select w-full">
-                            <option value="">Toată țara</option>
-                            @foreach($counties as $county)
-                                <option value="{{ $county->id }}" @selected((string) request('county_id') === (string) $county->id)>{{ $county->name }}</option>
-                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -137,7 +127,7 @@
                     <input type="hidden" name="seller_type" id="seller-type" value="{{ request('seller_type', 'all') }}">
 
                     {{-- GRID FILTRE (2 coloane pe mobile, 4 pe wide) --}}
-                    <div class="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-3">
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
 
                         {{-- RÂNDUL 1 --}}
                         <div class="col-span-2 lg:col-span-1">
@@ -171,13 +161,6 @@
                         </div>
 
                         <div class="col-span-1 lg:col-span-1">
-                            <label class="autovit-label">Generație</label>
-                            <select id="generation-filter" name="car_generation_id" class="autovit-select bg-gray-50 text-gray-400 cursor-not-allowed" disabled>
-                                <option value="">Generație</option>
-                            </select>
-                        </div>
-
-                        <div class="col-span-2 lg:col-span-1">
                             <label class="autovit-label">Caroserie</label>
                             <select id="body-filter" name="caroserie_id" class="autovit-select">
                                 <option value="">Oricare</option>
@@ -199,7 +182,7 @@
                         </div>
 
                         <div class="col-span-1">
-                            <label class="autovit-label">Cutie</label>
+                            <label class="autovit-label">Cutie viteze</label>
                             <select id="gearbox-filter" name="cutie_viteze_id" class="autovit-select">
                                 <option value="">Oricare</option>
                                 @foreach($transmissions as $trans)
@@ -209,7 +192,7 @@
                         </div>
 
                         {{-- LOCAȚIE --}}
-                        <div class="col-span-2">
+                        <div class="col-span-2 lg:hidden">
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="col-span-1">
                                     <label class="autovit-label">Județ</label>
@@ -230,7 +213,7 @@
                         </div>
 
 {{-- BUTOANE ACȚIUNE --}}
-                        <div class="col-span-2 lg:col-span-2 xl:col-span-4 mt-1 flex items-center justify-between pt-4 border-t border-gray-100 dark:border-[#333]">
+                        <div class="col-span-2 lg:hidden mt-1 flex items-center justify-between pt-4 border-t border-gray-100 dark:border-[#333]">
 
                             {{-- Buton Reset (Stânga) --}}
                             <button type="button" id="reset-btn" onclick="resetFilters()" disabled
@@ -243,12 +226,34 @@
                                 <span class="hidden md:inline">Reset filtre</span>
                             </button>
 
-                            {{-- Buton Submit (Dreapta, mai mic) --}}
                             <button type="submit" class="h-[42px] px-8 bg-[#C81424] hover:bg-[#94111B] text-white font-bold text-sm rounded-lg shadow-md shadow-red-700/20 transition-all flex items-center gap-2 uppercase tracking-wide transform active:scale-[0.98]">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
-                                Afișează Rezultatele
+                                Afiseaza Rezultatele
+                            </button>
+                        </div>
+
+                        <a href="{{ route('cars.index') }}"
+                           class="hidden lg:inline-flex h-[42px] self-end items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-3 text-[11px] font-black whitespace-nowrap text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-100 hover:text-slate-950 active:scale-[0.98] dark:border-white/10 dark:bg-[#201d1e] dark:text-gray-100 dark:hover:bg-[#2a2728]">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M4 7h10" />
+                                <path d="M18 7h2" />
+                                <path d="M16 5v4" />
+                                <path d="M4 17h2" />
+                                <path d="M10 17h10" />
+                                <path d="M8 15v4" />
+                            </svg>
+                            <span>Cautare detaliata</span>
+                        </a>
+
+                        {{-- Buton Submit --}}
+                        <div class="hidden lg:block lg:col-span-2 lg:self-end">
+                            <button type="submit" class="h-[42px] w-full px-8 bg-[#C81424] hover:bg-[#94111B] text-white font-bold text-sm rounded-lg shadow-md shadow-red-700/20 transition-all flex items-center justify-center gap-2 uppercase tracking-wide transform active:scale-[0.98]">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                                Cauta
                             </button>
                         </div>
 
@@ -265,8 +270,8 @@
 
 @section('content')
 
-<div class="w-full mt-0">
-    <div class="flex items-center justify-between gap-3 mb-5 pb-3 border-b border-gray-100 dark:border-[#2C2C2C] md:mb-6">
+<div class="w-full -mt-3 md:-mt-4">
+    <div class="flex items-center justify-between gap-3 mb-2 pb-1 border-b border-gray-100 dark:border-[#2C2C2C] md:mb-3">
         <div class="flex min-w-0 items-center gap-3">
              <div class="w-1.5 h-8 bg-[#C81424] rounded-full shadow-sm"></div>
             <h2 class="text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">Anunțuri recente</h2>
@@ -466,7 +471,6 @@
     const domElements = {
         brand: document.getElementById('brand-filter'),
         model: document.getElementById('model-filter'),
-        gen: document.getElementById('generation-filter'),
         body: document.getElementById('body-filter'),
         fuel: document.getElementById('fuel-filter'),
         gear: document.getElementById('gearbox-filter'),
@@ -478,7 +482,6 @@
         sellerType: document.getElementById('seller-type'),
         quickBrand: document.getElementById('homepage-quick-brand-filter'),
         quickModel: document.getElementById('homepage-quick-model-filter'),
-        quickCounty: document.getElementById('homepage-quick-county-filter'),
         quickSubmit: document.getElementById('homepage-quick-submit'),
         quickToggle: document.getElementById('homepage-more-filters-toggle'),
         quickToggleLabel: document.querySelector('.homepage-more-filters-label'),
@@ -708,16 +711,9 @@
         }
 
         populateHomepageQuickModels(domElements.model?.value || '');
-
-        if (domElements.quickCounty && domElements.county) {
-            domElements.quickCounty.value = domElements.county.value || '';
-            syncCustomSelect(domElements.quickCounty);
-        }
     }
 
     function applyHomepageQuickFiltersToMain() {
-        const previousCounty = domElements.county?.value || '';
-
         if (domElements.brand && domElements.quickBrand && domElements.brand.value !== domElements.quickBrand.value) {
             domElements.brand.value = domElements.quickBrand.value || '';
             domElements.brand.dispatchEvent(new Event('change', { bubbles: true }));
@@ -728,15 +724,6 @@
             domElements.model.value = domElements.quickModel.value || '';
             domElements.model.dispatchEvent(new Event('change', { bubbles: true }));
             syncCustomSelect(domElements.model);
-        }
-
-        if (domElements.county && domElements.quickCounty && domElements.county.value !== domElements.quickCounty.value) {
-            domElements.county.value = domElements.quickCounty.value || '';
-            if (previousCounty !== domElements.county.value) {
-                resetLocalities();
-            }
-            domElements.county.dispatchEvent(new Event('change', { bubbles: true }));
-            syncCustomSelect(domElements.county);
         }
 
         window.checkResetVisibility();
@@ -772,7 +759,7 @@
         const btn = domElements.resetBtn;
         if (!btn) return;
         // Am scos domElements.radius din lista de verificat
-        const filters = [domElements.brand, domElements.model, domElements.gen, domElements.body, domElements.fuel, domElements.gear, domElements.county, domElements.locality];
+        const filters = [domElements.brand, domElements.model, domElements.body, domElements.fuel, domElements.gear, domElements.county, domElements.locality];
         const hasAnyFilter = filters.some(el => el && el.value !== '');
 
         btn.disabled = !hasAnyFilter;
@@ -788,7 +775,6 @@
     window.resetFilters = function() {
         if (domElements.brand) domElements.brand.value = '';
         resetSelect(domElements.model, 'Alege model');
-        resetSelect(domElements.gen, 'Generație');
         ['body','fuel','gear','county'].forEach(k => { if(domElements[k]) domElements[k].value = ''; });
         resetLocalities();
         syncAllCustomSelects();
@@ -826,7 +812,6 @@
         addParam('model_id', modelSlug ? '' : (domElements.model?.value || ''));
         addParam('county_id', countyInPath ? '' : (domElements.county?.value || ''));
         addParam('locality_id', cityInPath ? '' : (domElements.locality?.value || ''));
-        addParam('car_generation_id', domElements.gen?.value || '');
         addParam('caroserie_id', domElements.body?.value || '');
         addParam('combustibil_id', domElements.fuel?.value || '');
         addParam('cutie_viteze_id', domElements.gear?.value || '');
@@ -899,12 +884,6 @@
             });
         }
 
-        if (domElements.quickCounty) {
-            domElements.quickCounty.addEventListener('change', () => {
-                applyHomepageQuickFiltersToMain();
-            });
-        }
-
         if (domElements.quickSubmit) {
             domElements.quickSubmit.addEventListener('click', () => {
                 applyHomepageQuickFiltersToMain();
@@ -915,7 +894,6 @@
         const handleBrandChange = () => {
             const brandId = domElements.brand.value;
             resetSelect(domElements.model, 'Alege model');
-            resetSelect(domElements.gen, 'Generație');
             if (brandId && carData[brandId]) {
                 enableSelect(domElements.model);
                 carData[brandId].forEach(m => domElements.model.innerHTML += `<option value="${m.id}" data-slug="${m.slug}">${m.name}</option>`);
@@ -931,22 +909,12 @@
 
         if (domElements.model) {
             domElements.model.addEventListener('change', function() {
-                const brandId = domElements.brand.value;
-                const modelId = this.value;
-                resetSelect(domElements.gen, 'Generație');
-                if (brandId && modelId && carData[brandId]) {
-                    const modelObj = carData[brandId].find(x => String(x.id) === String(modelId));
-                    if (modelObj?.generations?.length) {
-                        enableSelect(domElements.gen);
-                        modelObj.generations.forEach(g => domElements.gen.innerHTML += `<option value="${g.id}">${g.name} (${g.start}-${g.end||'Prezent'})</option>`);
-                    }
-                }
                 syncHomepageQuickFiltersFromMain();
                 window.checkResetVisibility();
             });
         }
 
-        [domElements.gen, domElements.body, domElements.fuel, domElements.gear].forEach(el => el && el.addEventListener('change', window.checkResetVisibility));
+        [domElements.body, domElements.fuel, domElements.gear].forEach(el => el && el.addEventListener('change', window.checkResetVisibility));
 
         if (domElements.county && domElements.county.value) {
             loadLocalities(domElements.county.value, initialLocalityId);
@@ -1118,7 +1086,7 @@
             background-color: transparent;
             background-size: cover, auto 100%;
             background-position: center, center right;
-            padding-top: 1.75rem;
+            padding-top: 1.25rem;
         }
 
         .homepage-hero-visual > div {
@@ -1157,7 +1125,7 @@
         }
 
         .homepage-filter-panel button[type="submit"] {
-            height: 38px;
+            height: 42px;
         }
 
         .homepage-quick-filters {
