@@ -67,7 +67,7 @@
 @section('meta_image', asset('images/social-share.webp'))
 
 @section('content')
-<div class="listing-page-shell max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 pt-0 lg:pt-6 pb-12">
+<div class="listing-page-shell w-full pt-0 lg:pt-6 pb-12">
     <div class="flex flex-col gap-0 lg:flex-row lg:gap-6">
         {{-- Sidebar filtre (desktop) --}}
         <aside class="lg:w-[300px] lg:shrink-0">
@@ -1026,8 +1026,8 @@
             z-index: 40;
             width: auto;
             max-width: none;
-            margin-right: -2rem;
-            margin-left: -2rem;
+            margin-right: -1rem;
+            margin-left: -1rem;
             padding: 0.625rem 1rem;
             background: rgba(255, 255, 255, 0.98);
             border-top: 1px solid rgba(229, 231, 235, 0.85);
@@ -1082,8 +1082,8 @@
 
     @media (min-width: 640px) and (max-width: 1023px) {
         #listing-actions-bar {
-            margin-right: -3rem;
-            margin-left: -3rem;
+            margin-right: -1.5rem;
+            margin-left: -1.5rem;
             padding-right: 1.5rem;
             padding-left: 1.5rem;
         }
