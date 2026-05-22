@@ -124,6 +124,11 @@
                 Categorii
             </a>
 
+            <a href="{{ route('admin.auto-catalog.index') }}"
+               class="block p-2 rounded hover:bg-gray-200 {{ request()->routeIs('admin.auto-catalog.*') ? 'bg-gray-200 font-bold' : '' }}">
+                Date auto
+            </a>
+
             <a href="{{ route('admin.counties.index') }}"
                class="block p-2 rounded hover:bg-gray-200 {{ request()->routeIs('admin.counties.*') ? 'bg-gray-200 font-bold' : '' }}">
                 Județe

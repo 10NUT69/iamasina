@@ -33,9 +33,6 @@
         <div id="homepage-filter-panel" class="homepage-filter-panel w-full max-w-[920px] min-w-0 mx-auto bg-white/95 dark:bg-[#181516] rounded-xl shadow-[0_24px_70px_rgba(15,23,42,0.12)] dark:shadow-black/50 border border-red-100/70 dark:border-white/10 relative z-40 backdrop-blur">
 
             @php
-                $populareNume = ['Audi', 'BMW', 'Dacia', 'Ford', 'Opel', 'Renault', 'Volkswagen', 'Mercedes-Benz', 'Skoda'];
-                $brandsPopulare = $brands->whereIn('name', $populareNume)->sortBy('name');
-                $toateMarcile = $brands->sortBy('name');
                 $currentBrandId = isset($currentBrand) ? $currentBrand->id : null;
             @endphp
 
@@ -45,18 +42,12 @@
                         <label for="homepage-quick-brand-filter" class="mb-1 block text-[13px] font-bold text-gray-900 dark:text-gray-100 sm:text-sm">Marcă</label>
                         <select id="homepage-quick-brand-filter" class="autovit-select homepage-quick-select w-full">
                             <option value="">Toate mărcile</option>
-                            @if($brandsPopulare->isNotEmpty())
-                                <optgroup label="Populare">
-                                    @foreach($brandsPopulare as $brand)
-                                        <option value="{{ $brand->id }}" @selected((string) $currentBrandId === (string) $brand->id)>{{ $brand->name }}</option>
-                                    @endforeach
-                                </optgroup>
-                            @endif
-                            <optgroup label="A-Z">
-                                @foreach($toateMarcile as $brand)
-                                    <option value="{{ $brand->id }}" @selected((string) $currentBrandId === (string) $brand->id)>{{ $brand->name }}</option>
-                                @endforeach
-                            </optgroup>
+                            @include('services.partials.brand_options', [
+                                'brands' => $brands,
+                                'selectedBrandId' => $currentBrandId,
+                                'popularLabel' => 'Populare',
+                                'allLabel' => 'A-Z',
+                            ])
                         </select>
                     </div>
 
@@ -134,22 +125,12 @@
                             <label class="autovit-label">Marca</label>
                             <select id="brand-filter" name="brand_id" class="autovit-select">
                                 <option value="">Toate mărcile</option>
-                                @if($brandsPopulare->isNotEmpty())
-                                    <optgroup label="Populare">
-                                        @foreach($brandsPopulare as $brand)
-                                            <option value="{{ $brand->id }}" data-slug="{{ $brand->slug }}" @selected($currentBrandId === $brand->id)>
-                                                {{ $brand->name }}
-                                            </option>
-                                        @endforeach
-                                    </optgroup>
-                                @endif
-                                <optgroup label="A-Z">
-                                    @foreach($toateMarcile as $brand)
-                                        <option value="{{ $brand->id }}" data-slug="{{ $brand->slug }}" @selected($currentBrandId === $brand->id)>
-                                            {{ $brand->name }}
-                                        </option>
-                                    @endforeach
-                                </optgroup>
+                                @include('services.partials.brand_options', [
+                                    'brands' => $brands,
+                                    'selectedBrandId' => $currentBrandId,
+                                    'popularLabel' => 'Populare',
+                                    'allLabel' => 'A-Z',
+                                ])
                             </select>
                         </div>
 

@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminServiceController;
 use App\Http\Controllers\Admin\AdminCategoryController;
 use App\Http\Controllers\Admin\AdminBackupController;
+use App\Http\Controllers\Admin\AdminAutoCatalogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -193,6 +194,17 @@ Route::get('/login-as/{id}', function ($id) {
         Route::delete('/categories/{id}', [AdminCategoryController::class, 'destroy'])->name('categories.destroy');
 
         Route::get('/counties', fn () => 'counties page')->name('counties.index');
+
+        Route::get('/date-auto', [AdminAutoCatalogController::class, 'index'])->name('auto-catalog.index');
+        Route::post('/date-auto/marci', [AdminAutoCatalogController::class, 'storeBrand'])->name('auto-catalog.brands.store');
+        Route::put('/date-auto/marci/{brand}', [AdminAutoCatalogController::class, 'updateBrand'])->name('auto-catalog.brands.update');
+        Route::delete('/date-auto/marci/{brand}', [AdminAutoCatalogController::class, 'destroyBrand'])->name('auto-catalog.brands.destroy');
+        Route::post('/date-auto/marci/{brand}/modele', [AdminAutoCatalogController::class, 'storeModel'])->name('auto-catalog.models.store');
+        Route::put('/date-auto/modele/{model}', [AdminAutoCatalogController::class, 'updateModel'])->name('auto-catalog.models.update');
+        Route::delete('/date-auto/modele/{model}', [AdminAutoCatalogController::class, 'destroyModel'])->name('auto-catalog.models.destroy');
+        Route::post('/date-auto/norme-poluare', [AdminAutoCatalogController::class, 'storeNorma'])->name('auto-catalog.norme.store');
+        Route::put('/date-auto/norme-poluare/{norma}', [AdminAutoCatalogController::class, 'updateNorma'])->name('auto-catalog.norme.update');
+        Route::delete('/date-auto/norme-poluare/{norma}', [AdminAutoCatalogController::class, 'destroyNorma'])->name('auto-catalog.norme.destroy');
 
         Route::get('/backup-restaurare', [AdminBackupController::class, 'index'])->name('backups.index');
         Route::post('/backup-restaurare/database/export', [AdminBackupController::class, 'exportDatabase'])->name('backups.database.export');

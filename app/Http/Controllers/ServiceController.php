@@ -245,7 +245,7 @@ class ServiceController extends Controller
     }
 
     // Date pentru filtre
-    $brands        = CarBrand::orderBy('name')->get();
+    $brands        = CarBrand::ordered()->get();
     $bodies        = Caroserie::orderBy('nume')->get();
     $fuels         = Combustibil::orderBy('nume')->get();
     $transmissions = CutieViteze::orderBy('nume')->get();
@@ -306,7 +306,7 @@ public function showDealerPortfolio(Request $request, string $countySlug, string
 
     $brands = CarBrand::query()
         ->whereIn('id', $brandIds)
-        ->orderBy('name')
+        ->ordered()
         ->get(['id', 'name', 'slug']);
 
     $selectedBrandId = $request->integer('brand_id') ?: null;
@@ -326,7 +326,7 @@ public function showDealerPortfolio(Request $request, string $countySlug, string
     $availableModels = CarModel::query()
         ->whereIn('id', $modelIds)
         ->whereIn('car_brand_id', $brandIds)
-        ->orderBy('name')
+        ->ordered()
         ->get(['id', 'car_brand_id', 'name', 'slug']);
 
     $carData = $availableModels
@@ -558,14 +558,14 @@ public function indexAutoPath(
     // ==========================================
     public function create()
     {
-        $brands = CarBrand::orderBy('name')->get();
+        $brands = CarBrand::ordered()->get();
 
         $colors        = Culoare::orderBy('nume')->get();
         $fuels         = Combustibil::orderBy('nume')->get();
         $bodies        = Caroserie::orderBy('nume')->get();
         $transmissions = CutieViteze::orderBy('nume')->get();
 		$tractiuni = Tractiune::orderBy('sort_order')->orderBy('nume')->get();
-		$normePoluare = NormaPoluare::orderBy('sort_order')->orderBy('nume')->get();
+		$normePoluare = NormaPoluare::ordered()->get();
 		$colorOpts = CuloareOpt::orderBy('id')->get(); // Mat / Metalizată / Perlat
 
 
@@ -830,7 +830,7 @@ public function edit($id)
         ->firstOrFail();
 
     // EXACT ca la create()
-    $brands = CarBrand::orderBy('name')->get();
+    $brands = CarBrand::ordered()->get();
 
     $colors        = Culoare::orderBy('nume')->get();
     $fuels         = Combustibil::orderBy('nume')->get();
@@ -838,7 +838,7 @@ public function edit($id)
     $transmissions = CutieViteze::orderBy('nume')->get();
 
     $tractiuni   = Tractiune::orderBy('sort_order')->orderBy('nume')->get();
-    $normePoluare = NormaPoluare::orderBy('sort_order')->orderBy('nume')->get();
+    $normePoluare = NormaPoluare::ordered()->get();
     $colorOpts    = CuloareOpt::orderBy('id')->get(); // Mat / Metalizată / Perlat
 
     $carData = $this->buildCarData();
@@ -1122,7 +1122,7 @@ public function edit($id)
         }
 
         $models = CarModel::where('car_brand_id', $brandId)
-            ->orderBy('name', 'asc')
+            ->ordered()
             ->get(['id', 'name']);
 
         return response()->json($models);
@@ -1134,7 +1134,7 @@ public function edit($id)
     // ==========================================
     protected function buildCarData()
     {
-        $models = CarModel::with('brand')->orderBy('name')->get();
+        $models = CarModel::with('brand')->ordered()->get();
 
         $carData = [];
 

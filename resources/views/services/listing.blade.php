@@ -118,37 +118,15 @@
                         <select id="brand-filter" name="brand_id" class="autovit-select listing-filter">
                             <option value="">Marcă</option>
                             @php
-                                $populareNume = ['Audi', 'BMW', 'Dacia', 'Ford', 'Opel', 'Renault', 'Volkswagen', 'Mercedes-Benz', 'Skoda'];
-                                $brandsPopulare = $brands->whereIn('name', $populareNume)->sortBy('name');
-                                $toateMarcile = $brands->sortBy('name');
                                 $currentBrandId = isset($currentBrand) ? $currentBrand->id : null;
                             @endphp
 
-                            @if($brandsPopulare->isNotEmpty())
-                                <optgroup label="Mărci Populare">
-                                    @foreach($brandsPopulare as $brand)
-                                        <option
-                                            value="{{ $brand->id }}"
-                                            data-slug="{{ $brand->slug }}"
-                                            @selected($currentBrandId === $brand->id)
-                                        >
-                                            {{ $brand->name }}
-                                        </option>
-                                    @endforeach
-                                </optgroup>
-                            @endif
-
-                            <optgroup label="Toate Mărcile">
-                                @foreach($toateMarcile as $brand)
-                                    <option
-                                        value="{{ $brand->id }}"
-                                        data-slug="{{ $brand->slug }}"
-                                        @selected($currentBrandId === $brand->id)
-                                    >
-                                        {{ $brand->name }}
-                                    </option>
-                                @endforeach
-                            </optgroup>
+                            @include('services.partials.brand_options', [
+                                'brands' => $brands,
+                                'selectedBrandId' => $currentBrandId,
+                                'popularLabel' => 'Mărci Populare',
+                                'allLabel' => 'Toate Mărcile',
+                            ])
                         </select>
 
                         <select id="model-filter" name="model_id" class="autovit-select listing-filter bg-gray-50 text-gray-400 cursor-not-allowed" disabled>

@@ -12,7 +12,7 @@ class CarController extends Controller
     // 1. Afișează pagina de căutare
     public function index()
     {
-        $brands = CarBrand::orderBy('name')->get();
+        $brands = CarBrand::ordered()->get();
         return view('search', compact('brands'));
     }
 
@@ -20,7 +20,7 @@ class CarController extends Controller
     public function getModels($brandId)
     {
         $models = CarModel::where('car_brand_id', $brandId)
-                          ->orderBy('name')
+                          ->ordered()
                           ->get(['id', 'name']);
         return response()->json($models);
     }

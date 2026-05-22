@@ -89,12 +89,6 @@
                     <span class="text-slate-500">🚙</span> Detalii Vehicul
                 </h2>
                 
-                @php
-                    $populareNume = ['Audi', 'BMW', 'Dacia', 'Ford', 'Opel', 'Renault', 'Volkswagen', 'Mercedes-Benz', 'Skoda'];
-                    $brandsPopulare = $brands->whereIn('name', $populareNume)->sortBy('name');
-                    $toateMarcile = $brands->sortBy('name');
-                @endphp
-
                 <div class="space-y-8">
                     <div class="space-y-4">
                         <label class="block text-[13px] font-extrabold uppercase tracking-[0.16em] text-slate-500 dark:text-gray-400">Identificare</label>
@@ -107,18 +101,12 @@
 
                                 <select name="brand_id" id="brandSelect" class="wizard-big-select w-full cursor-pointer appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white" required>
                                     <option value="">Marcă</option>
-                                    @if($brandsPopulare->isNotEmpty())
-                                        <optgroup label="Populare">
-                                            @foreach($brandsPopulare as $brand)
-                                                <option value="{{ $brand->id }}" data-name="{{ $brand->name }}">{{ $brand->name }}</option>
-                                            @endforeach
-                                        </optgroup>
-                                    @endif
-                                    <optgroup label="A-Z">
-                                        @foreach($toateMarcile as $brand)
-                                            <option value="{{ $brand->id }}" data-name="{{ $brand->name }}">{{ $brand->name }}</option>
-                                        @endforeach
-                                    </optgroup>
+                                    @include('services.partials.brand_options', [
+                                        'brands' => $brands,
+                                        'selectedBrandId' => old('brand_id'),
+                                        'popularLabel' => 'Populare',
+                                        'allLabel' => 'A-Z',
+                                    ])
                                 </select>
                             </div>
 
