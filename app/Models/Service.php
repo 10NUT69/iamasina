@@ -269,6 +269,12 @@ class Service extends Model
 
     public function getListingDateAttribute()
     {
+        if ($this->published_at && $this->created_at) {
+            return $this->created_at->greaterThan($this->published_at)
+                ? $this->created_at
+                : $this->published_at;
+        }
+
         return $this->published_at ?: $this->created_at;
     }
 

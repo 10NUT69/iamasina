@@ -1099,7 +1099,6 @@ public function edit($id)
         $service             = Service::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
         $service->status     = 'active';
         $service->created_at = now();
-        $service->published_at = now();
         $service->save();
 
         if ($request->expectsJson()) {
