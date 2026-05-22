@@ -322,7 +322,7 @@
 {{-- ===================== 2. PAGINA PROPRIU-ZISĂ ===================== --}}
 <div class="bg-[#F8F9FA] dark:bg-[#121212] min-h-screen font-sans text-gray-800 dark:text-gray-200 pb-32 lg:pb-12 pt-6">
 
-    <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div class="w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         {{-- === STÂNGA (Galerie, Info, Descriere) === --}}
         <div class="lg:col-span-8 space-y-6">
