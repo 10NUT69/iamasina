@@ -25,7 +25,7 @@ class NormaPoluare extends Model
         $table = $query->getModel()->getTable();
 
         return $query
-            ->orderByRaw("CASE WHEN {$table}.sort_order IS NULL OR {$table}.sort_order = 0 THEN 1 ELSE 0 END")
+            ->orderByRaw("CASE WHEN {$table}.sort_order >= 900 THEN 2 WHEN {$table}.sort_order IS NULL OR {$table}.sort_order = 0 THEN 1 ELSE 0 END")
             ->orderBy("{$table}.sort_order")
             ->orderBy("{$table}.nume");
     }
