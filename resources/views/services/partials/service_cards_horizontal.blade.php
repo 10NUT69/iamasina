@@ -55,8 +55,23 @@
                 activeSlide: 0, 
                 slides: {{ $slideCount > 0 ? $slideCount : 1 }},
                 next() { this.activeSlide = (this.activeSlide === this.slides - 1) ? 0 : this.activeSlide + 1 },
-                prev() { this.activeSlide = (this.activeSlide === 0) ? this.slides - 1 : this.activeSlide - 1 }
-             }">
+                prev() { this.activeSlide = (this.activeSlide === 0) ? this.slides - 1 : this.activeSlide - 1 },
+                touchStartX: null,
+                onTouchStart(event) { this.touchStartX = event.changedTouches[0].clientX },
+                onTouchEnd(event) {
+                    if (this.touchStartX === null || this.slides < 2) return;
+
+                    const diff = this.touchStartX - event.changedTouches[0].clientX;
+
+                    if (Math.abs(diff) > 40) {
+                        diff > 0 ? this.next() : this.prev();
+                    }
+
+                    this.touchStartX = null;
+                }
+             }"
+             @touchstart.passive="onTouchStart($event)"
+             @touchend.passive="onTouchEnd($event)">
 
             {{-- Link principal pe imagine --}}
             <a href="{{ $service->public_url }}" class="block w-full h-full relative group/img">
@@ -88,12 +103,12 @@
 
             {{-- Navigare Slider (Doar la Hover) --}}
             @if($imgCount > 1)
-                <div class="absolute inset-y-0 left-0 flex items-center pl-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
                     <button @click.prevent="prev()" class="pointer-events-auto p-1.5 rounded-full bg-white/90 text-black hover:bg-white shadow-lg transition-transform hover:scale-110 dark:bg-black/60 dark:text-white dark:hover:bg-black/80">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
                     </button>
                 </div>
-                <div class="absolute inset-y-0 right-0 flex items-center pr-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                <div class="absolute inset-y-0 right-0 flex items-center pr-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
                     <button @click.prevent="next()" class="pointer-events-auto p-1.5 rounded-full bg-white/90 text-black hover:bg-white shadow-lg transition-transform hover:scale-110 dark:bg-black/60 dark:text-white dark:hover:bg-black/80">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                     </button>
