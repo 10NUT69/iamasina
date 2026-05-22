@@ -291,7 +291,7 @@
             </div>
 
             <div id="services-container" class="flex flex-col gap-4">
-                @if($showEarlyStageBanners && !$listingHasActiveFilters && $earlyStageTotalListings < 50)
+                @if($showEarlyStageBanners && !$listingHasActiveFilters && $earlyStageTotalListings < 500)
                     {{-- EARLY STAGE BANNER START --}}
                     <article class="relative flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-[#27272a] dark:bg-[#18181B] md:flex-row">
                         <div class="relative hidden w-full overflow-hidden bg-gradient-to-br from-[#fff4f5] via-white to-[#f4f6f8] p-5 dark:from-[#2a1013] dark:via-[#18181B] dark:to-[#111113] md:flex md:min-h-[220px] md:w-[320px] lg:w-[340px]">
