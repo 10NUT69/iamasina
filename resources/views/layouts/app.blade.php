@@ -26,6 +26,7 @@
     <meta name="twitter:image" content="@yield('meta_image', asset('images/social-share.webp'))">
 
     @yield('schema')
+    @yield('head')
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -265,13 +266,14 @@
     const nav = document.getElementById('main-nav');
     const logo = document.getElementById('logo-img');
     const threshold = 15;
+    let isMobileViewport = window.innerWidth < 768;
+    let navScrollTicking = false;
 
-    window.addEventListener('scroll', function() {
+    function handleNavScroll() {
         const currentScrollY = window.scrollY;
-        const isMobile = window.innerWidth < 768;
 
         // --- 1. LOGICA DE DIMENSIUNE (SHRINK: Afectează doar Desktop) ---
-        if (!isMobile) {
+        if (!isMobileViewport) {
             if (currentScrollY > 20) {
                 // Desktop Scroll Jos -> Compact (h-14)
                 nav.classList.remove('md:h-[72px]');
@@ -296,13 +298,17 @@
         }
 
         // --- 2. LOGICA OLX (ASCUNDE/ARATĂ PE MOBIL) ---
-        if (isHomepage && isMobile) {
+        if (isHomepage && isMobileViewport) {
 
-            if (Math.abs(currentScrollY - lastScrollY) < threshold) return;
+            if (Math.abs(currentScrollY - lastScrollY) < threshold) {
+                navScrollTicking = false;
+                return;
+            }
 
             if (currentScrollY < 10) {
                 nav.style.transform = 'translateY(0)';
                 lastScrollY = currentScrollY;
+                navScrollTicking = false;
                 return;
             }
 
@@ -311,12 +317,26 @@
             } else {
                 nav.style.transform = 'translateY(0)';
             }
-        } else if (isHomepage && !isMobile) {
+        } else if (isHomepage && !isMobileViewport) {
             nav.style.transform = 'translateY(0)';
         }
 
         lastScrollY = currentScrollY;
-    });
+        navScrollTicking = false;
+    }
+
+    window.addEventListener('resize', function() {
+        isMobileViewport = window.innerWidth < 768;
+        if (isHomepage && !isMobileViewport) {
+            nav.style.transform = 'translateY(0)';
+        }
+    }, { passive: true });
+
+    window.addEventListener('scroll', function() {
+        if (navScrollTicking) return;
+        navScrollTicking = true;
+        window.requestAnimationFrame(handleNavScroll);
+    }, { passive: true });
 
     @auth
     function toggleAccountMenu() {

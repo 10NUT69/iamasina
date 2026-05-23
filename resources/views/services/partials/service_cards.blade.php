@@ -19,8 +19,9 @@
 
         {{-- Favorite Button --}}
         <button type="button"
-                onclick="toggleHeart(this, {{ $service->id }})"
-                @if(!auth()->check()) onclick="window.location.href='{{ route('login') }}'" @endif
+                onclick="@auth toggleHeart(this, {{ $service->id }}) @else window.location.href='{{ route('login') }}' @endauth"
+                aria-label="{{ $isFav ? 'Scoate de la favorite' : 'Adauga la favorite' }}: {{ $brandModel ?: $service->title }}"
+                aria-pressed="{{ $isFav ? 'true' : 'false' }}"
                 class="absolute top-2 right-2 md:top-3 md:right-3 z-30 p-1.5 md:p-2 rounded-full backdrop-blur-md shadow-sm transition-all duration-200
                         bg-white/80 dark:bg-black/50 hover:bg-white dark:hover:bg-[#2C2C2C] group/heart border border-white/20"
                 title="Adaugă la favorite">

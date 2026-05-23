@@ -10,7 +10,7 @@ return new class extends Migration
         DB::table('car_brands')
             ->where('name', 'Altul')
             ->update([
-                'name' => 'Altă marcă',
+                'name' => 'Alta marca',
                 'sort_order' => 999,
                 'is_popular' => false,
             ]);
@@ -26,7 +26,7 @@ return new class extends Migration
     public function down(): void
     {
         DB::table('car_brands')
-            ->where('name', 'Altă marcă')
+            ->where('name', 'Alta marca')
             ->where('slug', 'altul')
             ->update([
                 'name' => 'Altul',

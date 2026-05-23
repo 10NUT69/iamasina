@@ -133,7 +133,10 @@
             @endif
             
             {{-- Buton Favorite Mobile (Peste poză) --}}
-            <button onclick="toggleHeart(this, {{ $service->id }})" 
+            <button type="button"
+                    onclick="toggleHeart(this, {{ $service->id }})"
+                    aria-label="{{ $isFav ? 'Scoate de la favorite' : 'Adauga la favorite' }}: {{ $listingTitle }}"
+                    aria-pressed="{{ $isFav ? 'true' : 'false' }}"
                     class="md:hidden absolute top-3 right-3 z-20 p-2 rounded-full bg-black/30 backdrop-blur-md border border-white/20 text-white hover:bg-red-500 hover:border-red-500 transition-all">
                 <svg class="w-5 h-5 {{ $isFav ? 'text-red-500 fill-red-500' : 'text-white fill-none' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733C11.285 4.876 9.623 3.75 7.688 3.75 5.099 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
@@ -221,7 +224,10 @@
 
                 {{-- Acțiuni Desktop --}}
                 <div class="flex items-center gap-3">
-                    <button onclick="toggleHeart(this, {{ $service->id }})" 
+                    <button type="button"
+                            onclick="toggleHeart(this, {{ $service->id }})"
+                            aria-label="{{ $isFav ? 'Scoate de la favorite' : 'Adauga la favorite' }}: {{ $listingTitle }}"
+                            aria-pressed="{{ $isFav ? 'true' : 'false' }}"
                             class="hidden md:flex group/btn items-center justify-center w-8 h-8 rounded-full bg-gray-50 dark:bg-[#27272a] hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-all border border-gray-100 dark:border-gray-700"
                             title="Salvează anunțul">
                         <svg class="w-4.5 h-4.5 transition-colors {{ $isFav ? 'text-red-500 fill-red-500' : 'fill-none' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

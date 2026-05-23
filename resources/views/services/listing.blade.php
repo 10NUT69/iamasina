@@ -769,18 +769,10 @@
         const closeFilters = document.getElementById('close-filters');
         const sellerSelect = document.getElementById('seller-type-select');
 
-        const setMobileFiltersOffset = () => {
-            const nav = document.getElementById('main-nav');
-            const navHeight = nav ? Math.ceil(nav.getBoundingClientRect().height) : 56;
+        const nav = document.getElementById('main-nav');
+        const setMobileFiltersOffset = (height = null) => {
+            const navHeight = height ?? (nav ? Math.ceil(nav.offsetHeight) : 56);
             document.documentElement.style.setProperty('--mobile-filters-top', `${navHeight}px`);
-        };
-        let mobileFiltersOffsetFrame = null;
-        const scheduleMobileFiltersOffset = () => {
-            if (mobileFiltersOffsetFrame) return;
-            mobileFiltersOffsetFrame = window.requestAnimationFrame(() => {
-                mobileFiltersOffsetFrame = null;
-                setMobileFiltersOffset();
-            });
         };
 
         const closeMobileFilters = () => {
@@ -827,8 +819,12 @@
             }
         });
 
-        window.addEventListener('resize', setMobileFiltersOffset);
-        window.addEventListener('scroll', scheduleMobileFiltersOffset, { passive: true });
+        window.addEventListener('resize', () => setMobileFiltersOffset(), { passive: true });
+        if (nav && 'ResizeObserver' in window) {
+            new ResizeObserver((entries) => {
+                setMobileFiltersOffset(Math.ceil(entries[0].contentRect.height));
+            }).observe(nav);
+        }
         setMobileFiltersOffset();
 
         const searchForm = document.getElementById('search-form');
@@ -965,16 +961,27 @@
         @endif
 
         const icon = btn.querySelector('svg');
-        const isLiked = icon.classList.contains('text-[#C81424]');
+        const isLiked = btn.getAttribute('aria-pressed') === 'true'
+            || icon.classList.contains('text-[#C81424]')
+            || icon.classList.contains('text-red-500');
+        const nextLiked = !isLiked;
 
         if (isLiked) {
-            icon.classList.remove('text-[#C81424]', 'fill-[#C81424]', 'scale-110');
-            icon.classList.add('text-gray-600', 'dark:text-gray-300', 'fill-none');
+            icon.classList.remove('text-[#C81424]', 'fill-[#C81424]', 'text-red-500', 'fill-red-500', 'scale-110');
+            icon.classList.add('fill-none');
+            if (btn.classList.contains('md:hidden')) {
+                icon.classList.add('text-white');
+            } else {
+                icon.classList.add('text-gray-600', 'dark:text-gray-300');
+            }
         } else {
-            icon.classList.remove('text-gray-600', 'dark:text-gray-300', 'fill-none');
+            icon.classList.remove('text-gray-600', 'dark:text-gray-300', 'text-white', 'fill-none');
             icon.classList.add('text-[#C81424]', 'fill-[#C81424]', 'scale-125');
             setTimeout(() => { icon.classList.remove('scale-125'); icon.classList.add('scale-110'); }, 200);
         }
+        btn.setAttribute('aria-pressed', nextLiked ? 'true' : 'false');
+        const labelTarget = (btn.getAttribute('aria-label') || '').split(':').slice(1).join(':').trim();
+        btn.setAttribute('aria-label', `${nextLiked ? 'Scoate de la favorite' : 'Adauga la favorite'}${labelTarget ? ': ' + labelTarget : ''}`);
 
         fetch("{{ route('favorite.toggle') }}", {
             method: "POST",

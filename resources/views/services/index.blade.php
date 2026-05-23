@@ -4,14 +4,25 @@
 @section('meta_title', 'Anunturi Auto - Masini de Vanzare Second Hand si Noi | iaAuto.ro')
 @section('meta_description', 'Cauti o masina? Pe iaAuto.ro gasesti masini de vanzare second hand si noi de la proprietari si parcuri auto din Romania. Adauga anuntul tau complet gratuit!')
 @section('meta_image', asset('images/social-share.webp'))
+@section('head')
+    <link rel="preload" as="image" href="{{ asset('images/homepage-hero-car.webp') }}" fetchpriority="high" media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)">
+    <link rel="preload" as="image" href="{{ asset('images/homepage-hero-car-dark.webp') }}" fetchpriority="high" media="(prefers-color-scheme: dark)">
+@endsection
 
 @section('hero')
 {{-- HERO SECTION --}}
 <div class="w-full bg-[linear-gradient(180deg,#fff7f8_0%,#ffffff_72%)] dark:bg-[linear-gradient(180deg,#171112_0%,#121212_76%)] pt-14 md:pt-20 lg:pt-20 pb-3 md:pb-4 lg:pb-2">
     <div class="homepage-hero-layout max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
 
-        <div class="homepage-hero-visual relative isolate -mx-4 flex min-h-[210px] items-center overflow-hidden rounded-none bg-white/70 px-4 py-5 sm:-mx-6 sm:min-h-[244px] sm:px-6 sm:py-7 md:min-h-[264px] md:py-8 lg:mx-0 lg:min-h-[216px] lg:rounded-3xl lg:px-10 lg:py-5 lg:shadow-[0_22px_70px_rgba(200,20,36,0.10)] dark:bg-[#171112] dark:lg:shadow-black/40 xl:min-h-[225px]"
-             style="--homepage-hero-image: url('{{ asset('images/homepage-hero-car.webp') }}'); --homepage-hero-dark-image: url('{{ asset('images/homepage-hero-car-dark.webp') }}');">
+        <div class="homepage-hero-visual relative isolate -mx-4 flex min-h-[210px] items-center overflow-hidden rounded-none bg-white/70 px-4 py-5 sm:-mx-6 sm:min-h-[244px] sm:px-6 sm:py-7 md:min-h-[264px] md:py-8 lg:mx-0 lg:min-h-[216px] lg:rounded-3xl lg:px-10 lg:py-5 lg:shadow-[0_22px_70px_rgba(200,20,36,0.10)] dark:bg-[#171112] dark:lg:shadow-black/40 xl:min-h-[225px]">
+            <picture class="homepage-hero-media absolute inset-0 -z-20 block" aria-hidden="true">
+                <source media="(prefers-color-scheme: dark)" srcset="{{ asset('images/homepage-hero-car-dark.webp') }}">
+                <img src="{{ asset('images/homepage-hero-car.webp') }}"
+                     alt=""
+                     class="homepage-hero-image h-full w-full object-cover"
+                     fetchpriority="high"
+                     decoding="async">
+            </picture>
             <div class="relative z-10 max-w-[20rem] sm:max-w-[26rem] md:max-w-[31rem] lg:max-w-[28rem]">
                 <h1 class="text-[1.75rem] min-[360px]:text-[1.9rem] min-[430px]:text-[2rem] sm:text-[2.35rem] md:text-[2.9rem] lg:text-[2rem] xl:text-[2.35rem] 2xl:text-[2.6rem] font-black text-gray-950 dark:text-white tracking-tight leading-[0.98]">
                     Găsește mașina potrivită pentru tine
@@ -302,7 +313,11 @@
                     </div>
 
                     {{-- Favorite --}}
-                    <button onclick="event.preventDefault(); toggleHeart(this, {{ $service->id }})" class="absolute top-2 right-2 sm:top-3 sm:right-3 p-2.5 sm:p-2 rounded-full bg-black/20 hover:bg-white backdrop-blur-md transition-all duration-300 group/heart shadow-lg">
+                    <button type="button"
+                            onclick="event.preventDefault(); event.stopPropagation(); toggleHeart(this, {{ $service->id }})"
+                            aria-label="{{ $isFav ? 'Scoate de la favorite' : 'Adauga la favorite' }}: {{ $listingTitle }}"
+                            aria-pressed="{{ $isFav ? 'true' : 'false' }}"
+                            class="absolute top-2 right-2 sm:top-3 sm:right-3 p-2.5 sm:p-2 rounded-full bg-black/20 hover:bg-white backdrop-blur-md transition-all duration-300 group/heart shadow-lg">
                         <svg class="w-6 h-6 sm:w-5 sm:h-5 transition-colors {{ $isFav ? 'text-[#C81424] fill-[#C81424]' : 'text-white fill-none group-hover/heart:text-[#C81424]' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733C11.285 4.876 9.623 3.75 7.688 3.75 5.099 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                         </svg>
@@ -913,7 +928,8 @@
     window.toggleHeart = function(btn, serviceId) {
         @if(!auth()->check()) window.location.href = "{{ route('login') }}"; return; @endif
         const icon = btn.querySelector('svg');
-        const isLiked = icon.classList.contains('text-[#C81424]');
+        const isLiked = btn.getAttribute('aria-pressed') === 'true' || icon.classList.contains('text-[#C81424]');
+        const nextLiked = !isLiked;
         if (isLiked) {
             icon.classList.remove('text-[#C81424]', 'fill-[#C81424]');
             icon.classList.add('text-white', 'fill-none');
@@ -921,6 +937,9 @@
             icon.classList.remove('text-white', 'fill-none');
             icon.classList.add('text-[#C81424]', 'fill-[#C81424]');
         }
+        btn.setAttribute('aria-pressed', nextLiked ? 'true' : 'false');
+        const labelTarget = (btn.getAttribute('aria-label') || '').split(':').slice(1).join(':').trim();
+        btn.setAttribute('aria-label', `${nextLiked ? 'Scoate de la favorite' : 'Adauga la favorite'}${labelTarget ? ': ' + labelTarget : ''}`);
         fetch("{{ route('favorite.toggle') }}", {
             method: "POST", headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": "{{ csrf_token() }}" },
             body: JSON.stringify({ service_id: serviceId })
@@ -929,18 +948,25 @@
 </script>
 <style>
     .homepage-hero-visual {
-        background-image:
-            linear-gradient(90deg, rgba(255, 255, 255, 0.99) 0%, rgba(255, 255, 255, 0.97) 36%, rgba(255, 255, 255, 0.82) 48%, rgba(255, 255, 255, 0.24) 70%, rgba(255, 255, 255, 0.02) 100%),
-            var(--homepage-hero-image);
-        background-repeat: no-repeat;
-        background-size: cover, cover;
-        background-position: center, center right;
+        background: transparent;
+    }
+
+    .homepage-hero-visual::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -10;
+        pointer-events: none;
+        background: linear-gradient(90deg, rgba(255, 255, 255, 0.99) 0%, rgba(255, 255, 255, 0.97) 36%, rgba(255, 255, 255, 0.82) 48%, rgba(255, 255, 255, 0.24) 70%, rgba(255, 255, 255, 0.02) 100%);
+    }
+
+    .homepage-hero-image {
+        object-position: center right;
     }
 
     @media (max-width: 1023px) {
-        .homepage-hero-visual {
-            background-size: cover, auto 100%;
-            background-position: center, 38% center;
+        .homepage-hero-image {
+            object-position: 38% center;
         }
 
         .homepage-hero-subtitle {
@@ -992,8 +1018,8 @@
     }
 
     @media (min-width: 640px) and (max-width: 1023px) {
-        .homepage-hero-visual {
-            background-position: center, 40% center;
+        .homepage-hero-image {
+            object-position: 40% center;
         }
 
         .homepage-quick-filters {
@@ -1007,8 +1033,8 @@
     }
 
     @media (max-width: 480px) {
-        .homepage-hero-visual {
-            background-position: center, 22% center;
+        .homepage-hero-image {
+            object-position: 22% center;
         }
 
         .homepage-quick-submit-extra {
@@ -1017,8 +1043,8 @@
     }
 
     @media (max-width: 390px) {
-        .homepage-hero-visual {
-            background-position: center, 16% center;
+        .homepage-hero-image {
+            object-position: 16% center;
         }
 
         .homepage-quick-filters {
@@ -1065,8 +1091,6 @@
             border-radius: 0.85rem;
             box-shadow: none !important;
             background-color: transparent;
-            background-size: cover, auto 100%;
-            background-position: center, center right;
             padding-top: 1.25rem;
         }
 
@@ -1334,10 +1358,8 @@
     optgroup { font-weight: 700; color: #C81424; background-color: #f9fafb; }
 
     @media (prefers-color-scheme: dark) {
-        .homepage-hero-visual {
-            background-image:
-                linear-gradient(90deg, rgba(18, 18, 18, 0.99) 0%, rgba(18, 18, 18, 0.94) 34%, rgba(18, 18, 18, 0.72) 52%, rgba(18, 18, 18, 0.18) 78%, rgba(18, 18, 18, 0.02) 100%),
-                var(--homepage-hero-dark-image);
+        .homepage-hero-visual::before {
+            background: linear-gradient(90deg, rgba(18, 18, 18, 0.99) 0%, rgba(18, 18, 18, 0.94) 34%, rgba(18, 18, 18, 0.72) 52%, rgba(18, 18, 18, 0.18) 78%, rgba(18, 18, 18, 0.02) 100%);
         }
 
         .autovit-label {
