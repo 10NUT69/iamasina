@@ -76,7 +76,7 @@
 
     <!-- SIDEBAR -->
     <aside class="w-64 bg-white dark:bg-[#1E1E1E] shadow h-screen p-6 border-r border-transparent dark:border-[#333333]">
-        <h1 class="text-2xl font-bold mb-6">Admin Panel</h1>
+        <div class="text-2xl font-bold mb-6">Admin Panel</div>
 
         <nav class="space-y-3">
             <a href="{{ route('admin.dashboard') }}"

@@ -80,7 +80,7 @@
                     <span class="text-gray-400">/</span>
                     <span class="font-medium text-gray-900 dark:text-gray-100">Autoturisme</span>
                 </nav>
-                <h1 class="mt-4 text-3xl font-extrabold leading-tight text-gray-950 dark:text-white">Autoturisme</h1>
+                <p class="mt-4 text-3xl font-extrabold leading-tight text-gray-950 dark:text-white">Autoturisme</p>
                 <p class="mt-1 text-sm leading-snug text-gray-600 dark:text-gray-300">
                     Autoturisme de vânzare - Găsește mașina potrivită pentru tine
                 </p>

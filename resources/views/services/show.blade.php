@@ -423,10 +423,10 @@
                 </button>
             </div>
 
-            {{-- Mobile Title & Price (Vizibil doar pe mobil) --}}
-            <div class="md:hidden space-y-2 mt-4">
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white leading-tight">{{ $service->title }}</h1>
-                <div class="space-y-1.5 text-sm text-gray-500 dark:text-gray-400">
+            {{-- Titlu principal & pret mobil --}}
+            <div class="space-y-2 mt-4">
+                <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white leading-tight">{{ $service->title }}</h1>
+                <div class="md:hidden space-y-1.5 text-sm text-gray-500 dark:text-gray-400">
                     @if($showLocationLabel)
                         <div class="flex items-center gap-2">
                             <svg class="w-4 h-4 shrink-0 text-[#E03E2D]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -438,7 +438,7 @@
                         <span>Publicat: {{ $showPublishedLabel }}</span>
                     </div>
                 </div>
-                <div class="pt-2">
+                <div class="md:hidden pt-2">
                     <span class="text-3xl font-extrabold text-[#E03E2D]">{{ $formattedPrice }} {{ $currency }}</span>
                 </div>
             </div>
@@ -477,13 +477,6 @@
                     </span>
                 </div>
             @endif
-
-            {{-- TITLU ANUNȚ ÎNAINTE DE DETALII IMPORTANTE --}}
-            <div class="hidden md:block pt-1">
-                <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white leading-tight">
-                    {{ $service->title }}
-                </h1>
-            </div>
 
 @if(!empty($importantDetails))
     <div class="bg-white dark:bg-[#1E1E1E] p-4 sm:p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-[#333]">
@@ -637,7 +630,7 @@
 
                 {{-- CARD TITLU & PRET (Doar Desktop) --}}
                 <div class="bg-white dark:bg-[#1E1E1E] p-6 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-gray-100 dark:border-[#333] hidden md:block">
-                    <h1 class="text-xl font-bold text-gray-900 dark:text-white mb-2 leading-snug">{{ $service->title }}</h1>
+                    <p class="text-xl font-bold text-gray-900 dark:text-white mb-2 leading-snug">{{ $service->title }}</p>
                     <div class="mb-6 space-y-2 text-sm text-gray-500 dark:text-gray-400">
                         @if($showLocationLabel)
                             <div class="flex items-center gap-2">
