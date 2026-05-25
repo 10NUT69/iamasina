@@ -15,10 +15,10 @@
     <div class="homepage-hero-layout max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
 
         <div class="homepage-hero-visual relative isolate -mx-4 flex min-h-[210px] items-center overflow-hidden rounded-none bg-white/70 px-4 py-5 sm:-mx-6 sm:min-h-[244px] sm:px-6 sm:py-7 md:min-h-[264px] md:py-8 lg:mx-0 lg:min-h-[216px] lg:rounded-3xl lg:px-10 lg:py-5 lg:shadow-[0_22px_70px_rgba(200,20,36,0.10)] dark:bg-[#171112] dark:lg:shadow-black/40 xl:min-h-[225px]">
-            <picture class="homepage-hero-media absolute inset-0 -z-20 block" aria-hidden="true">
+            <picture class="homepage-hero-media absolute inset-0 -z-20 block">
                 <source media="(prefers-color-scheme: dark)" srcset="{{ asset('images/homepage-hero-car-dark.webp') }}">
                 <img src="{{ asset('images/homepage-hero-car.webp') }}"
-                     alt=""
+                     alt="Masina de vanzare pe iaAuto.ro"
                      class="homepage-hero-image h-full w-full object-cover"
                      fetchpriority="high"
                      decoding="async">
@@ -286,6 +286,7 @@
                 $jud = $service->county->name ?? '';
                 $locationLabel = $loc ? "$loc, $jud" : $jud;
                 $listingTitle = $service->title ?: trim(($service->brandRel->name ?? '') . ' ' . ($service->modelRel->name ?? ''));
+                $imageAlt = $service->image_alt;
                 $img = $service->card_image_url;
                 $price = $service->price_value ? number_format($service->price_value, 0, ',', '.') : null;
                 $priceBadge = $price ? ($service->price_type === 'negotiable' ? 'NEGOCIABIL' : 'PRET FIX') : null;
@@ -299,7 +300,7 @@
 
              <article class="group relative bg-white dark:bg-[#1E1E1E] border border-gray-100 dark:border-[#333] rounded-2xl overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
                 <a href="{{ $service->public_url }}" class="block relative w-full aspect-[4/3] overflow-hidden bg-gray-200 dark:bg-[#121212]">
-                    <img src="{{ $img }}" alt="{{ $listingTitle }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-in-out" loading="lazy">
+                    <img src="{{ $img }}" alt="{{ $imageAlt }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-in-out" loading="lazy">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-80"></div>
 
                     {{-- Preț --}}

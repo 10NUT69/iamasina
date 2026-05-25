@@ -5,6 +5,7 @@
         $jud = $service->county->name ?? '';
         $locationLabel = $loc ? "$loc, $jud" : $jud;
         $listingTitle = $service->title ?: trim(($service->brandRel->name ?? '') . ' ' . ($service->modelRel->name ?? ''));
+        $imageAlt = $service->image_alt;
         $img = $service->card_image_url;
         $price = $service->price_value ? number_format($service->price_value, 0, ',', '.') : null;
         $priceBadge = $price ? ($service->price_type === 'negotiable' ? 'NEGOCIABIL' : 'PRET FIX') : null;
@@ -18,7 +19,7 @@
 
     <article data-service-card class="group relative bg-white dark:bg-[#1E1E1E] border border-gray-100 dark:border-[#333] rounded-2xl overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
         <a href="{{ $service->public_url }}" class="block relative w-full aspect-[4/3] overflow-hidden bg-gray-200 dark:bg-[#121212]">
-            <img src="{{ $img }}" alt="{{ $listingTitle }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-in-out" loading="lazy">
+            <img src="{{ $img }}" alt="{{ $imageAlt }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-in-out" loading="lazy">
             <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-80"></div>
 
             <div class="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 flex flex-col items-start z-10">

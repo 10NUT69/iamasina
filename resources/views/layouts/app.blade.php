@@ -15,7 +15,7 @@
     @endif
 
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="iaAuto.ro">
+    <meta property="og:site_name" content="ia Auto">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:title" content="@yield('meta_title', view()->hasSection('title') ? view()->getSection('title') : 'Anunțuri auto de vânzare')">
     <meta property="og:description" content="@yield('meta_description', 'Găsește anunțuri auto curate din zona ta.')">
@@ -24,6 +24,18 @@
     <meta name="twitter:title" content="@yield('meta_title', view()->hasSection('title') ? view()->getSection('title') : 'Anunțuri auto de vânzare')">
     <meta name="twitter:description" content="@yield('meta_description', 'Găsește anunțuri auto curate din zona ta.')">
     <meta name="twitter:image" content="@yield('meta_image', asset('images/social-share.webp'))">
+
+@verbatim
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "ia Auto",
+    "alternateName": "iaAuto.ro",
+    "url": "https://iaauto.ro"
+}
+</script>
+@endverbatim
 
     @yield('schema')
     @yield('head')

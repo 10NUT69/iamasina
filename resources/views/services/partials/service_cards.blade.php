@@ -6,6 +6,7 @@
         $modelName = optional($service->modelRel)->name
             ?: ($service->model ?? null);
         $brandModel = trim(implode(' ', array_filter([$brandName, $modelName])));
+        $imageAlt = $service->image_alt;
         $sellerName = $service->author_name;
         $km = $service->km ? number_format($service->km, 0, ',', '.') . ' km' : '-';
         $fuel = optional($service->combustibil)->nume ?? '-';
@@ -41,7 +42,7 @@
             <div class="relative w-full aspect-[4/3] bg-gray-100 dark:bg-[#121212] overflow-hidden">
                 <img src="{{ $service->main_image_url }}"
                     class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    alt="{{ $service->title }}"
+                    alt="{{ $imageAlt }}"
                     @if($loop->index < 2) loading="eager" fetchpriority="high" @else loading="lazy" @endif
                     width="400" height="300">
 

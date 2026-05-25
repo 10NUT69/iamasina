@@ -297,6 +297,54 @@ class Service extends Model
         return $listingDate->translatedFormat('d M Y');
     }
 
+    public function getImageAltAttribute(): string
+    {
+        $brandName = $this->relationLoaded('brandRel')
+            ? $this->brandRel?->name
+            : null;
+        $brandName = $brandName ?: ($this->brand ?? null);
+
+        $modelName = $this->relationLoaded('modelRel')
+            ? $this->modelRel?->name
+            : null;
+        $modelName = $modelName ?: ($this->model ?? null);
+
+        if ((!$brandName || !$modelName) && $this->relationLoaded('generation')) {
+            $generation = $this->generation;
+            $generationModel = $generation?->relationLoaded('model') ? $generation->model : null;
+            $generationBrand = $generationModel?->relationLoaded('brand') ? $generationModel->brand : null;
+
+            $brandName = $brandName ?: $generationBrand?->name;
+            $modelName = $modelName ?: $generationModel?->name;
+        }
+
+        $vehicleLabel = trim(implode(' ', array_filter([
+            $brandName,
+            $modelName,
+            $this->an_fabricatie,
+        ])));
+
+        $title = trim((string) $this->title);
+        $label = $title !== '' ? $title : ($vehicleLabel ?: 'Autoturism');
+
+        $normalizedLabel = Str::lower(Str::ascii($label));
+        if (!str_contains($normalizedLabel, 'de vanzare')) {
+            $label .= ' de vanzare';
+        }
+
+        $countyName = $this->relationLoaded('county') ? $this->county?->name : null;
+        $localityName = $this->relationLoaded('locality')
+            ? $this->locality?->name
+            : ($this->city ?? null);
+
+        $location = trim(implode(', ', array_filter([$localityName, $countyName])));
+        if ($location !== '') {
+            $label .= ' in ' . $location;
+        }
+
+        return trim(preg_replace('/\s+/', ' ', $label));
+    }
+
 
     // ==========================================
     // 🖼️ IMAGINI (LOGICA DE DEFAULT CATEGORIE)

@@ -141,6 +141,8 @@
         $fullSeoTitle .= ' | ' . $siteBrand;
     }
 
+    $imageAlt = $service->image_alt;
+
     $seoSpecs = [];
     if ($seoPrice) {
         $seoSpecs[] = $seoPrice;
@@ -303,7 +305,7 @@
                             <img 
                                 src="{{ $url }}" 
                                 class="max-h-full max-w-full object-contain select-none" 
-                                alt="Gallery Image"
+                                alt="{{ $imageAlt }} - poza {{ $loop->iteration }}"
                                 style="-webkit-user-drag: none; -webkit-touch-callout: none;" 
                                 draggable="false"
                             >
@@ -358,7 +360,7 @@
                         <div class="swiper-wrapper">
                             @foreach($fullImageUrls as $index => $url)
                                 <div class="swiper-slide cursor-pointer" onclick="openGallery({{ $index }})">
-                                    <img src="{{ $url }}" class="w-full h-full object-cover">
+                                    <img src="{{ $url }}" alt="{{ $imageAlt }} - poza {{ $index + 1 }}" class="w-full h-full object-cover">
                                 </div>
                             @endforeach
                         </div>
@@ -378,20 +380,20 @@
                 <div class="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-[480px] cursor-pointer">
                     @if(isset($fullImageUrls[0]))
                         <div class="col-span-3 row-span-2 relative overflow-hidden group" onclick="openGallery(0)">
-                            <img src="{{ $fullImageUrls[0] }}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                            <img src="{{ $fullImageUrls[0] }}" alt="{{ $imageAlt }} - poza 1" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
                             <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition"></div>
                         </div>
                     @endif
 
                     @if(isset($fullImageUrls[1]))
                         <div class="col-span-1 row-span-1 relative overflow-hidden group" onclick="openGallery(1)">
-                            <img src="{{ $fullImageUrls[1] }}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                            <img src="{{ $fullImageUrls[1] }}" alt="{{ $imageAlt }} - poza 2" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
                         </div>
                     @endif
 
                     @if(isset($fullImageUrls[2]))
                         <div class="col-span-1 row-span-1 relative overflow-hidden group" onclick="openGallery(2)">
-                            <img src="{{ $fullImageUrls[2] }}" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                            <img src="{{ $fullImageUrls[2] }}" alt="{{ $imageAlt }} - poza 3" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
                             @if(count($fullImageUrls) > 3)
                                 <div class="absolute inset-0 bg-black/60 flex items-center justify-center group-hover:bg-black/50 transition">
                                     <span class="text-white font-bold text-lg tracking-wide flex flex-col items-center">
