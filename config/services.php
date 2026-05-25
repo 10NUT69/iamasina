@@ -42,4 +42,12 @@ return [
     'google' => [
         'analytics_id' => env('GOOGLE_ANALYTICS_ID'),
     ],
+
+    'indexnow' => [
+        'enabled' => env('INDEXNOW_ENABLED', true),
+        'endpoint' => env('INDEXNOW_ENDPOINT', 'https://api.indexnow.org/indexnow'),
+        'key' => env('INDEXNOW_KEY', 'fd033900e96a4eec85f1fa46216589fd'),
+        'key_location' => env('INDEXNOW_KEY_LOCATION'),
+        'timeout' => env('INDEXNOW_TIMEOUT', 5),
+    ],
 ];

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Service;
+use App\Services\IndexNowService;
 use App\Support\ServiceImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -53,6 +54,61 @@ class AdminServiceController extends Controller
         $services = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
 
         return view('admin.services.index', compact('services'));
+    }
+
+    public function submitIndexNow(IndexNowService $indexNow)
+    {
+        $submitted = 0;
+        $failedBatches = 0;
+
+        $total = Service::query()
+            ->where('status', 'active')
+            ->withoutTrashed()
+            ->count();
+
+        if ($total === 0) {
+            return back()->with('error', 'IndexNow: nu exista anunturi active de trimis.');
+        }
+
+        Service::query()
+            ->with([
+                'county',
+                'locality.county',
+                'brandRel',
+                'modelRel',
+                'generation.model.brand',
+            ])
+            ->where('status', 'active')
+            ->withoutTrashed()
+            ->orderBy('id')
+            ->chunkById(10000, function ($services) use ($indexNow, &$submitted, &$failedBatches) {
+                $urls = $services
+                    ->map(fn (Service $service) => $service->public_url)
+                    ->filter(fn (string $url) => $url !== url('/'))
+                    ->values()
+                    ->all();
+
+                if ($urls === []) {
+                    return;
+                }
+
+                if ($indexNow->submit($urls)) {
+                    $submitted += count($urls);
+                    return;
+                }
+
+                $failedBatches++;
+            });
+
+        if ($submitted === 0) {
+            return back()->with('error', 'IndexNow: nu am putut trimite URL-urile. Verifica APP_URL si fisierul cheie.');
+        }
+
+        if ($failedBatches > 0) {
+            return back()->with('error', "IndexNow: am trimis {$submitted} URL-uri, dar {$failedBatches} loturi au esuat.");
+        }
+
+        return back()->with('success', "IndexNow: am trimis {$submitted} URL-uri active.");
     }
 
     // ==========================================================

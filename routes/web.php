@@ -181,6 +181,7 @@ Route::get('/login-as/{id}', function ($id) {
         Route::get('/services', [AdminServiceController::class, 'index'])->name('services.index');
         Route::delete('/services/{id}', [AdminServiceController::class, 'destroy'])->name('services.destroy');
         Route::post('/services/{id}/toggle', [AdminServiceController::class, 'toggle'])->name('services.toggle');
+        Route::post('/services/indexnow', [AdminServiceController::class, 'submitIndexNow'])->name('services.indexnow');
         Route::post('/services/bulk', [AdminServiceController::class, 'bulkAction'])->name('services.bulk');
         Route::get('/services/{id}/edit', [AdminServiceController::class, 'edit'])->name('services.edit');
         Route::put('/services/{id}', [AdminServiceController::class, 'update'])->name('services.update');
