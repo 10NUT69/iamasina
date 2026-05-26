@@ -59,12 +59,36 @@
         : (isset($services) && method_exists($services, 'total')
             ? (int) $services->total()
             : (isset($services) && method_exists($services, 'count') ? (int) $services->count() : 0));
+    $listingPagination = $listingPagination ?? [];
+    $listingCurrentPage = (int) ($listingPagination['currentPage'] ?? max(1, (int) request('page', 1)));
+    $listingTotalPages = (int) ($listingPagination['totalPages'] ?? 1);
+    $listingCanonicalUrl = $listingPagination['canonicalUrl'] ?? url()->current();
+    $listingPrevUrl = $listingPagination['prevUrl'] ?? null;
+    $listingNextUrl = $listingPagination['nextUrl'] ?? null;
+    $listingPageLinks = $listingPagination['pages'] ?? [];
+
+    if ($listingCurrentPage > 1) {
+        $pageLabel = 'Pagina ' . $listingCurrentPage;
+        $listingMetaTitle = str_contains($listingMetaTitle, ' | iaAuto.ro')
+            ? str_replace(' | iaAuto.ro', ' - ' . $pageLabel . ' | iaAuto.ro', $listingMetaTitle)
+            : $listingMetaTitle . ' - ' . $pageLabel;
+        $listingMetaDescription .= ' ' . $pageLabel . ' din ' . $listingTotalPages . ' cu anunturi active.';
+    }
 @endphp
 
 @section('title', 'Anunțuri Auto - Anunturi Auto Second Hand')
 @section('meta_title', e($listingMetaTitle))
 @section('meta_description', e($listingMetaDescription))
 @section('meta_image', asset('images/social-share.webp'))
+@section('canonical')
+    <link rel="canonical" href="{{ $listingCanonicalUrl }}">
+    @if($listingPrevUrl)
+        <link rel="prev" href="{{ $listingPrevUrl }}">
+    @endif
+    @if($listingNextUrl)
+        <link rel="next" href="{{ $listingNextUrl }}">
+    @endif
+@endsection
 
 @section('content')
 <div class="listing-page-shell w-full pt-0 lg:pt-6 pb-12">
@@ -234,10 +258,16 @@
             </div>
 
             <div id="listing-actions-bar" class="sticky z-40 -mx-4 mb-4 bg-[#f6f7fb]/95 px-4 py-2.5 shadow-sm ring-1 ring-gray-200/80 backdrop-blur dark:bg-[#121212]/95 dark:ring-gray-800 sm:-mx-6 sm:px-6 lg:static lg:top-auto lg:z-auto lg:mx-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:ring-0 lg:backdrop-blur-0">
-                <div class="listing-actions-row grid grid-cols-[0.72fr_1fr_1.18fr] items-stretch gap-2 lg:flex lg:items-center lg:justify-between lg:gap-3">
+                <div class="listing-actions-row grid grid-cols-[0.58fr_0.68fr_0.9fr_1.28fr] items-stretch gap-2 lg:flex lg:items-center lg:justify-between lg:gap-3">
+                    <button type="button" id="scroll-to-listing-top"
+                        class="listing-action-button inline-flex h-11 min-w-0 items-center justify-center gap-1 rounded-md border border-gray-300 bg-white px-2 text-[13px] font-bold text-[#BA1422] shadow-sm transition hover:border-[#BA1422] hover:bg-[#fff7f8] hover:text-[#BA1422] dark:border-[#333333] dark:bg-[#1E1E1E] dark:text-red-200 dark:hover:border-red-700 dark:hover:bg-[#2a1013] lg:hidden">
+                        <span class="shrink-0 text-base leading-none">↑</span>
+                        <span class="truncate">Sus</span>
+                    </button>
+
                     <button type="button" id="open-filters"
                         class="listing-action-button inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 text-[13px] font-semibold text-[#C81424] shadow-sm transition hover:border-[#C81424] hover:bg-[#fff4f5] dark:border-[#333333] dark:bg-[#1E1E1E] dark:text-red-200 dark:hover:border-red-700 dark:hover:bg-[#2a1013] lg:hidden">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M4 7h10" />
                             <path d="M18 7h2" />
                             <path d="M16 5v4" />
@@ -249,16 +279,16 @@
                     </button>
                     <button type="button"
                         class="listing-action-button inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 text-[13px] font-semibold text-gray-700 shadow-sm transition hover:border-[#C81424] hover:bg-[#fff4f5] hover:text-[#C81424] dark:border-[#333333] dark:bg-[#1E1E1E] dark:text-gray-100 dark:hover:border-red-700 dark:hover:bg-[#2a1013] dark:hover:text-red-200 lg:w-auto lg:px-3 lg:text-sm lg:text-[#0F5CC0] lg:border-[#0F5CC0] lg:dark:text-red-200 lg:dark:border-red-900/50">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="hidden h-4 w-4 shrink-0 lg:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0h6z"/>
                         </svg>
-                        <span class="truncate">Salvează<span class="save-search-extra"> căutare</span></span>
+                        <span class="truncate">Salvează</span>
                     </button>
 
                     <div class="listing-sort-compact min-w-0 lg:ml-auto lg:flex lg:w-auto lg:items-center lg:gap-2">
                         <label for="sort-select" class="sr-only text-sm font-semibold text-gray-600 dark:text-gray-300 lg:not-sr-only">Sortare</label>
                         <select id="sort-select" class="autovit-select listing-filter w-full lg:w-56">
-                            <option value="newest" @selected(request('sort', 'newest') === 'newest')>Sortare recomandată</option>
+                            <option value="newest" @selected(request('sort', 'newest') === 'newest')>Recomandată</option>
                             <option value="price_asc" @selected(request('sort') === 'price_asc')>Ieftine</option>
                             <option value="price_desc" @selected(request('sort') === 'price_desc')>Scumpe</option>
                             <option value="km_asc" @selected(request('sort') === 'km_asc')>Km crescător</option>
@@ -347,7 +377,54 @@
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Se încarcă...</p>
             </div>
 
-            <div id="load-more-trigger" data-next-page="2" data-has-more="{{ $hasMore ? 'true' : 'false' }}" style="height: 1px;"></div>
+            <div id="load-more-trigger" data-next-page="{{ $listingCurrentPage + 1 }}" data-has-more="{{ $hasMore ? 'true' : 'false' }}" style="height: 1px;"></div>
+
+            @if($listingTotalPages > 1)
+                <nav id="listing-pagination"
+                     class="mt-6 rounded-xl border border-gray-200 bg-white px-4 py-4 text-sm text-gray-700 shadow-sm dark:border-[#333333] dark:bg-[#1E1E1E] dark:text-gray-200"
+                     aria-label="Paginare anunturi"
+                     data-current-page="{{ $listingCurrentPage }}"
+                     data-total-pages="{{ $listingTotalPages }}">
+                    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                            <p id="listing-pagination-summary" class="text-sm font-black text-gray-900 dark:text-white">
+                                Pagina {{ $listingCurrentPage }} din {{ $listingTotalPages }}
+                            </p>
+                            <p class="mt-1 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                                {{ number_format($earlyStageTotalListings, 0, ',', '.') }} anunturi gasite
+                            </p>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2">
+                        <a id="listing-pagination-prev"
+                           @if($listingPrevUrl) href="{{ $listingPrevUrl }}" rel="prev" @else aria-disabled="true" @endif
+                           class="inline-flex min-h-10 items-center justify-center rounded-lg border px-3 text-sm font-black transition {{ $listingPrevUrl ? 'border-gray-200 bg-white text-gray-700 hover:border-[#C81424] hover:text-[#C81424] dark:border-[#333333] dark:bg-[#202024] dark:text-gray-100 dark:hover:border-red-700 dark:hover:text-red-200' : 'pointer-events-none cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300 dark:border-[#333333] dark:bg-[#18181B] dark:text-gray-600' }}">
+                            Inapoi
+                        </a>
+
+                            <div id="listing-pagination-pages" class="flex flex-wrap items-center gap-1.5">
+                                @foreach($listingPageLinks as $item)
+                                    @if($item['isGap'] ?? false)
+                                        <span class="inline-flex h-10 min-w-10 items-center justify-center px-1 text-sm font-black text-gray-400 dark:text-gray-500">...</span>
+                                    @else
+                                        <a href="{{ $item['url'] }}"
+                                           @if($item['isCurrent']) aria-current="page" @endif
+                                           class="inline-flex h-10 min-w-10 items-center justify-center rounded-lg border px-3 text-sm font-black transition {{ $item['isCurrent'] ? 'border-[#C81424] bg-[#C81424] text-white shadow-sm shadow-red-700/20' : 'border-gray-200 bg-white text-gray-700 hover:border-[#C81424] hover:text-[#C81424] dark:border-[#333333] dark:bg-[#202024] dark:text-gray-100 dark:hover:border-red-700 dark:hover:text-red-200' }}">
+                                            {{ $item['page'] }}
+                                        </a>
+                                    @endif
+                                @endforeach
+                            </div>
+
+                        <a id="listing-pagination-next"
+                           @if($listingNextUrl) href="{{ $listingNextUrl }}" rel="next" @else aria-disabled="true" @endif
+                           class="inline-flex min-h-10 items-center justify-center rounded-lg border px-3 text-sm font-black transition {{ $listingNextUrl ? 'border-[#C81424] bg-[#C81424] text-white shadow-sm shadow-red-700/20 hover:bg-[#94111B]' : 'pointer-events-none cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300 dark:border-[#333333] dark:bg-[#18181B] dark:text-gray-600' }}">
+                            Inainte
+                        </a>
+                        </div>
+                    </div>
+                </nav>
+            @endif
         </div>
     </div>
 </div>
@@ -359,7 +436,7 @@
     const initialModelId = @json(optional($currentModel)->id);
 
     let isLoading = false;
-    let currentPage = 2;
+    let currentPage = Number(document.getElementById('load-more-trigger')?.dataset.nextPage || {{ $listingCurrentPage + 1 }});
     let hasMore = document.getElementById('load-more-trigger')?.dataset.hasMore === 'true';
 
     const carData = @json($carData ?? []);
@@ -382,12 +459,18 @@
         yearMin: document.getElementById('year-min'),
         yearMax: document.getElementById('year-max'),
         sort: document.getElementById('sort-select'),
+        scrollTopBtn: document.getElementById('scroll-to-listing-top'),
         resetBtn: document.getElementById('reset-btn'),
         container: document.getElementById('services-container'),
         loader: document.getElementById('loading-indicator'),
         trigger: document.getElementById('load-more-trigger'),
         vehicleType: document.getElementById('vehicle-type'),
         sellerType: document.getElementById('seller-type'),
+        pagination: document.getElementById('listing-pagination'),
+        paginationSummary: document.getElementById('listing-pagination-summary'),
+        paginationPages: document.getElementById('listing-pagination-pages'),
+        paginationPrev: document.getElementById('listing-pagination-prev'),
+        paginationNext: document.getElementById('listing-pagination-next'),
     };
 
     function isMobileView() {
@@ -689,6 +772,82 @@
         window.location.href = homeUrl;
     };
 
+    const paginationButtonBase = 'inline-flex min-h-10 items-center justify-center rounded-lg border px-3 text-sm font-black transition';
+    const paginationButtonEnabled = 'border-gray-200 bg-white text-gray-700 hover:border-[#C81424] hover:text-[#C81424] dark:border-[#333333] dark:bg-[#202024] dark:text-gray-100 dark:hover:border-red-700 dark:hover:text-red-200';
+    const paginationButtonPrimary = 'border-[#C81424] bg-[#C81424] text-white shadow-sm shadow-red-700/20 hover:bg-[#94111B]';
+    const paginationButtonDisabled = 'pointer-events-none cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300 dark:border-[#333333] dark:bg-[#18181B] dark:text-gray-600';
+    const paginationPageBase = 'inline-flex h-10 min-w-10 items-center justify-center rounded-lg border px-3 text-sm font-black transition';
+    const paginationPageEnabled = 'border-gray-200 bg-white text-gray-700 hover:border-[#C81424] hover:text-[#C81424] dark:border-[#333333] dark:bg-[#202024] dark:text-gray-100 dark:hover:border-red-700 dark:hover:text-red-200';
+    const paginationPageCurrent = 'border-[#C81424] bg-[#C81424] text-white shadow-sm shadow-red-700/20';
+    const paginationGapClass = 'inline-flex h-10 min-w-10 items-center justify-center px-1 text-sm font-black text-gray-400 dark:text-gray-500';
+
+    function updatePaginationLink(link, url, enabledClass = paginationButtonEnabled, relName = null) {
+        if (!link) return;
+
+        if (url) {
+            link.href = url;
+            link.removeAttribute('aria-disabled');
+            if (relName) link.setAttribute('rel', relName);
+            link.className = `${paginationButtonBase} ${enabledClass}`;
+        } else {
+            link.removeAttribute('href');
+            if (relName) link.removeAttribute('rel');
+            link.setAttribute('aria-disabled', 'true');
+            link.className = `${paginationButtonBase} ${paginationButtonDisabled}`;
+        }
+    }
+
+    function renderPaginationPages(pages) {
+        if (!domElements.paginationPages || !Array.isArray(pages)) return;
+
+        domElements.paginationPages.innerHTML = '';
+
+        pages.forEach((item) => {
+            if (item.isGap) {
+                const gap = document.createElement('span');
+                gap.className = paginationGapClass;
+                gap.textContent = '...';
+                domElements.paginationPages.appendChild(gap);
+                return;
+            }
+
+            const link = document.createElement('a');
+            link.href = item.url;
+            link.textContent = item.page;
+            link.className = `${paginationPageBase} ${item.isCurrent ? paginationPageCurrent : paginationPageEnabled}`;
+
+            if (item.isCurrent) {
+                link.setAttribute('aria-current', 'page');
+            }
+
+            domElements.paginationPages.appendChild(link);
+        });
+    }
+
+    function updateListingPagination(meta) {
+        if (!domElements.pagination || !meta) return;
+
+        const current = Number(meta.currentPage || 1);
+        const total = Number(meta.totalPages || 1);
+
+        if (total <= 1) {
+            domElements.pagination.classList.add('hidden');
+            return;
+        }
+
+        domElements.pagination.classList.remove('hidden');
+        domElements.pagination.dataset.currentPage = String(current);
+        domElements.pagination.dataset.totalPages = String(total);
+
+        if (domElements.paginationSummary) {
+            domElements.paginationSummary.textContent = `Pagina ${current} din ${total}`;
+        }
+
+        updatePaginationLink(domElements.paginationPrev, meta.prevUrl, paginationButtonEnabled, 'prev');
+        updatePaginationLink(domElements.paginationNext, meta.nextUrl, paginationButtonPrimary, 'next');
+        renderPaginationPages(meta.pages);
+    }
+
     window.loadServices = function(page) {
         const isNewFilter = page === 1;
         if (isLoading) return;
@@ -743,6 +902,7 @@
 
             hasMore = !!data.hasMore;
             if (domElements.trigger) domElements.trigger.dataset.hasMore = hasMore ? 'true' : 'false';
+            updateListingPagination(data.pagination);
 
             if (hasMore) currentPage++;
 
@@ -770,9 +930,22 @@
         const sellerSelect = document.getElementById('seller-type-select');
 
         const nav = document.getElementById('main-nav');
+        let cachedNavHeight = nav ? Math.ceil(nav.offsetHeight) : 56;
+        let currentNavVisibleHeight = Number(nav?.dataset.mobileVisibleHeight || cachedNavHeight);
+
+        const applyMobileFiltersOffset = () => {
+            document.documentElement.style.setProperty('--mobile-filters-top', `${Math.max(0, currentNavVisibleHeight)}px`);
+        };
+
         const setMobileFiltersOffset = (height = null) => {
-            const navHeight = height ?? (nav ? Math.ceil(nav.offsetHeight) : 56);
-            document.documentElement.style.setProperty('--mobile-filters-top', `${navHeight}px`);
+            if (height !== null) {
+                cachedNavHeight = height;
+            } else if (nav) {
+                cachedNavHeight = Math.ceil(nav.offsetHeight) || cachedNavHeight;
+            }
+
+            currentNavVisibleHeight = Number(nav?.dataset.mobileVisibleHeight || cachedNavHeight);
+            applyMobileFiltersOffset();
         };
 
         const closeMobileFilters = () => {
@@ -793,6 +966,10 @@
         if (openFilters && filterOverlay && filterPanel) {
             openFilters.addEventListener('click', openMobileFilters);
         }
+
+        domElements.scrollTopBtn?.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
 
         [filterOverlay, closeFilters].forEach((el) => {
             if (el) {
@@ -817,6 +994,11 @@
             if (!event.matches) {
                 closeMobileFilters();
             }
+        });
+
+        window.addEventListener('main-nav-visibility-change', (event) => {
+            currentNavVisibleHeight = Number(event.detail?.visibleHeight ?? cachedNavHeight);
+            applyMobileFiltersOffset();
         });
 
         window.addEventListener('resize', () => setMobileFiltersOffset(), { passive: true });
@@ -1005,44 +1187,63 @@
             margin-top: -0.25rem;
         }
 
-        #listing-actions-bar {
-            position: sticky;
-            top: var(--mobile-filters-top);
-            z-index: 40;
-            width: auto;
-            max-width: none;
-            margin-right: -1rem;
-            margin-left: -1rem;
-            padding: 0.625rem 1rem;
-            background: rgba(255, 255, 255, 0.98);
-            border-top: 1px solid rgba(229, 231, 235, 0.85);
-            border-bottom: 1px solid rgba(229, 231, 235, 0.85);
-            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
-            backdrop-filter: blur(10px);
-        }
+    #listing-actions-bar {
+        position: sticky;
+        top: var(--mobile-filters-top);
+        z-index: 40;
+        width: auto;
+        max-width: none;
+        margin-right: -1rem;
+        margin-left: -1rem;
+        padding: 3px 1rem;
+        background: rgba(248, 249, 251, 0.58);
+        border-top: 1px solid rgba(229, 231, 235, 0.28);
+        border-bottom: 1px solid rgba(229, 231, 235, 0.28);
+        box-shadow: 0 6px 14px rgba(15, 23, 42, 0.025);
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+    }
 
         .listing-actions-row {
             display: grid;
-            grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr) minmax(0, 1.18fr);
+            grid-template-columns: minmax(0, 0.58fr) minmax(0, 0.68fr) minmax(0, 0.9fr) minmax(0, 1.28fr);
             align-items: stretch;
             gap: 0.5rem;
         }
 
-        .listing-action-button {
-            line-height: 1.1;
-            white-space: nowrap;
-        }
+    .listing-action-button {
+        height: 42px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background: #ffffff;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+        line-height: 1.1;
+        white-space: nowrap;
+    }
 
-        .listing-sort-compact .custom-select-trigger {
-            height: 44px;
-            gap: 0.35rem;
-            padding: 0 0.45rem 0 0.55rem;
-            border-color: #d1d5db;
-            border-radius: 0.375rem;
-            font-size: 0.78rem;
-            font-weight: 600;
-            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-        }
+    #listing-actions-bar #scroll-to-listing-top,
+    #listing-actions-bar #open-filters {
+        color: #BA1422;
+    }
+
+    #listing-actions-bar #scroll-to-listing-top:hover,
+    #listing-actions-bar #open-filters:hover {
+        border-color: #BA1422;
+        background: #fff7f8;
+        color: #BA1422;
+    }
+
+    .listing-sort-compact .custom-select-trigger {
+        height: 42px;
+        gap: 0.35rem;
+        padding: 0 0.45rem 0 0.55rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background: #ffffff;
+        font-size: 0.78rem;
+        font-weight: 600;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+    }
 
         .listing-sort-compact .custom-select-menu {
             left: auto;
@@ -1081,21 +1282,21 @@
     }
 
     @media (max-width: 390px) {
-        .listing-action-button {
-            gap: 0.3rem;
-            padding-left: 0.35rem;
-            padding-right: 0.35rem;
-            font-size: 0.75rem;
+        .listing-actions-row {
+            gap: 0.375rem;
         }
 
-        .save-search-extra {
-            display: none;
+        .listing-action-button {
+            gap: 0.3rem;
+            padding-left: 0.3rem;
+            padding-right: 0.3rem;
+            font-size: 0.72rem;
         }
 
         .listing-sort-compact .custom-select-trigger {
-            padding-left: 0.4rem;
-            padding-right: 0.35rem;
-            font-size: 0.72rem;
+            padding-left: 0.35rem;
+            padding-right: 0.3rem;
+            font-size: 0.7rem;
         }
     }
 
@@ -1369,11 +1570,11 @@
         }
     }
 
-    @media (prefers-color-scheme: dark) and (max-width: 1023px) {
-        #listing-actions-bar {
-            background: rgba(18, 18, 18, 0.96);
-            border-color: rgba(31, 41, 55, 0.85);
-        }
+@media (prefers-color-scheme: dark) and (max-width: 1023px) {
+    #listing-actions-bar {
+        background: rgba(18, 18, 18, 0.5);
+        border-color: rgba(55, 65, 81, 0.28);
     }
+}
 </style>
 @endsection

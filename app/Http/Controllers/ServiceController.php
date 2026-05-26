@@ -229,6 +229,9 @@ class ServiceController extends Controller
 
     $loadedSoFar = $offset + $services->count();
     $hasMore     = $loadedSoFar < $totalCount;
+    $paginationMeta = $isHomepage
+        ? []
+        : $this->listingPaginationMeta($request, $page, $totalCount, $perPageFirst, $perPageNext);
 
     if ($request->ajax() || (string) $request->input('ajax') === '1') {
         $cardsView = $request->routeIs('services.index')
@@ -241,6 +244,7 @@ class ServiceController extends Controller
             'hasMore'     => $hasMore,
             'total'       => $totalCount,
             'loadedCount' => $services->count(),
+            'pagination'  => $paginationMeta,
         ]);
     }
 
@@ -277,6 +281,7 @@ class ServiceController extends Controller
 
         'currentBrand'    => $request->attributes->get('currentBrand'),
         'currentModel'    => $request->attributes->get('currentModel'),
+        'listingPagination' => $paginationMeta,
     ]);
 }
 
@@ -1519,6 +1524,79 @@ public function edit($id)
         }
 
         return true;
+    }
+
+    private function listingPaginationMeta(Request $request, int $page, int $totalCount, int $perPageFirst, int $perPageNext): array
+    {
+        $totalPages = $totalCount <= $perPageFirst
+            ? 1
+            : 1 + (int) ceil(($totalCount - $perPageFirst) / $perPageNext);
+
+        $currentPage = max(1, $page);
+
+        return [
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
+            'canonicalUrl' => $this->listingPageUrl($request, $currentPage),
+            'prevUrl' => $currentPage > 1 ? $this->listingPageUrl($request, $currentPage - 1) : null,
+            'nextUrl' => $currentPage < $totalPages ? $this->listingPageUrl($request, $currentPage + 1) : null,
+            'pages' => $this->listingPaginationPages($request, $currentPage, $totalPages),
+        ];
+    }
+
+    private function listingPaginationPages(Request $request, int $currentPage, int $totalPages): array
+    {
+        if ($totalPages <= 1) {
+            return [];
+        }
+
+        $items = [];
+        $addPage = function (int $page) use (&$items, $request, $currentPage) {
+            $items[] = [
+                'page' => $page,
+                'url' => $this->listingPageUrl($request, $page),
+                'isCurrent' => $page === $currentPage,
+                'isGap' => false,
+            ];
+        };
+
+        $addGap = function () use (&$items) {
+            $items[] = ['isGap' => true];
+        };
+
+        $windowStart = max(2, $currentPage - 2);
+        $windowEnd = min($totalPages - 1, $currentPage + 2);
+
+        $addPage(1);
+
+        if ($windowStart > 2) {
+            $addGap();
+        }
+
+        for ($page = $windowStart; $page <= $windowEnd; $page++) {
+            $addPage($page);
+        }
+
+        if ($windowEnd < $totalPages - 1) {
+            $addGap();
+        }
+
+        $addPage($totalPages);
+
+        return $items;
+    }
+
+    private function listingPageUrl(Request $request, int $page): string
+    {
+        $query = $this->cleanAdvancedQuery($request);
+
+        if ($page > 1) {
+            $query['page'] = $page;
+        } else {
+            unset($query['page']);
+        }
+
+        return $this->buildUrlWithQuery('/' . ltrim($request->path(), '/'), $query);
     }
 
     private function buildUrlWithQuery(string $path, array $query = []): string

@@ -271,8 +271,8 @@
 
         <a href="{{ url('/anunturi-auto-de-vanzare') }}"
            class="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-[#C81424] bg-white px-4 py-2.5 text-xs font-black text-[#C81424] shadow-sm transition hover:bg-[#C81424] hover:text-white active:scale-[0.98] dark:bg-transparent dark:hover:bg-[#C81424] sm:px-6 sm:py-3 sm:text-sm"
-           aria-label="Vezi toate anunțurile auto">
-            Vezi toate anunturile auto
+           aria-label="Toate anunțurile auto">
+            Toate anunțurile auto
             <span aria-hidden="true">&rarr;</span>
         </a>
     </div>
@@ -385,8 +385,8 @@
         <div class="flex justify-center pb-8">
             <a href="{{ url('/anunturi-auto-de-vanzare') }}"
                class="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-lg border border-[#C81424] bg-white px-6 py-3 text-sm font-black text-[#C81424] shadow-sm transition hover:bg-[#C81424] hover:text-white active:scale-[0.98] dark:bg-transparent dark:hover:bg-[#C81424] sm:w-auto sm:max-w-none"
-               aria-label="Vezi toate anunturile auto">
-                Vezi toate anunturile auto
+               aria-label="Toate anunțurile auto">
+                Toate anunțurile auto
                 <span aria-hidden="true">&rarr;</span>
             </a>
         </div>

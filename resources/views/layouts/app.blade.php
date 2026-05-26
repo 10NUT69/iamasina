@@ -274,12 +274,37 @@
     // ============================================================
 
     const isHomepage = {{ request()->routeIs('services.index') ? 'true' : 'false' }};
-    let lastScrollY = window.scrollY;
+    let lastScrollY = 0;
     const nav = document.getElementById('main-nav');
     const logo = document.getElementById('logo-img');
-    const threshold = 15;
-    let isMobileViewport = window.innerWidth < 768;
+    const mobileViewportQuery = window.matchMedia('(max-width: 1023px)');
+    let isMobileViewport = mobileViewportQuery.matches;
     let navScrollTicking = false;
+    const shouldAutoHideMobileNav = isHomepage || !!document.getElementById('listing-actions-bar');
+    let mobileNavHiddenOffset = 0;
+    let mobileNavHeight = nav ? Math.ceil(nav.offsetHeight) : 56;
+
+    function setMobileNavOffset(hiddenOffset) {
+        mobileNavHeight = nav ? Math.ceil(nav.offsetHeight) || mobileNavHeight : mobileNavHeight;
+        mobileNavHiddenOffset = Math.max(0, Math.min(hiddenOffset, mobileNavHeight));
+        const visibleHeight = Math.max(0, mobileNavHeight - mobileNavHiddenOffset);
+        const hidden = mobileNavHiddenOffset >= mobileNavHeight - 1;
+
+        nav.dataset.mobileHidden = hidden ? 'true' : 'false';
+        nav.dataset.mobileVisibleHeight = String(visibleHeight);
+        nav.style.transform = `translateY(-${mobileNavHiddenOffset}px)`;
+        window.dispatchEvent(new CustomEvent('main-nav-visibility-change', {
+            detail: { hidden, visibleHeight, hiddenOffset: mobileNavHiddenOffset }
+        }));
+    }
+
+    function updateMobileNavTransitionMode() {
+        if (shouldAutoHideMobileNav && isMobileViewport) {
+            nav.style.transitionProperty = 'height, box-shadow, border-color, background-color';
+        } else {
+            nav.style.transitionProperty = '';
+        }
+    }
 
     function handleNavScroll() {
         const currentScrollY = window.scrollY;
@@ -310,27 +335,22 @@
         }
 
         // --- 2. LOGICA OLX (ASCUNDE/ARATĂ PE MOBIL) ---
-        if (isHomepage && isMobileViewport) {
+        if (shouldAutoHideMobileNav && isMobileViewport) {
 
-            if (Math.abs(currentScrollY - lastScrollY) < threshold) {
-                navScrollTicking = false;
-                return;
-            }
+            const scrollDelta = currentScrollY - lastScrollY;
 
             if (currentScrollY < 10) {
-                nav.style.transform = 'translateY(0)';
+                setMobileNavOffset(0);
                 lastScrollY = currentScrollY;
                 navScrollTicking = false;
                 return;
             }
 
-            if (currentScrollY > lastScrollY) {
-                nav.style.transform = 'translateY(-100%)';
-            } else {
-                nav.style.transform = 'translateY(0)';
+            if (scrollDelta !== 0) {
+                setMobileNavOffset(mobileNavHiddenOffset + scrollDelta);
             }
-        } else if (isHomepage && !isMobileViewport) {
-            nav.style.transform = 'translateY(0)';
+        } else {
+            setMobileNavOffset(0);
         }
 
         lastScrollY = currentScrollY;
@@ -338,11 +358,15 @@
     }
 
     window.addEventListener('resize', function() {
-        isMobileViewport = window.innerWidth < 768;
-        if (isHomepage && !isMobileViewport) {
-            nav.style.transform = 'translateY(0)';
+        isMobileViewport = mobileViewportQuery.matches;
+        mobileNavHeight = nav ? Math.ceil(nav.offsetHeight) || mobileNavHeight : mobileNavHeight;
+        updateMobileNavTransitionMode();
+        if (!isMobileViewport || !shouldAutoHideMobileNav) {
+            setMobileNavOffset(0);
         }
     }, { passive: true });
+
+    updateMobileNavTransitionMode();
 
     window.addEventListener('scroll', function() {
         if (navScrollTicking) return;
