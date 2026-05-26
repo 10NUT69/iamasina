@@ -1206,9 +1206,10 @@
 
         .listing-actions-row {
             display: grid;
-            grid-template-columns: minmax(0, 0.58fr) minmax(0, 0.68fr) minmax(0, 0.9fr) minmax(0, 1.28fr);
+            grid-template-columns: 50px 68px 76px 96px;
             align-items: stretch;
-            gap: 0.5rem;
+            justify-content: center;
+            gap: 0.375rem;
         }
 
     .listing-action-button {
@@ -1216,6 +1217,8 @@
         border: 1px solid #e5e7eb;
         border-radius: 8px;
         background: #ffffff;
+        padding-left: 0.35rem;
+        padding-right: 0.35rem;
         box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
         line-height: 1.1;
         white-space: nowrap;
@@ -1235,14 +1238,19 @@
 
     .listing-sort-compact .custom-select-trigger {
         height: 42px;
-        gap: 0.35rem;
-        padding: 0 0.45rem 0 0.55rem;
+        justify-content: center;
+        gap: 0;
+        padding: 0 0.35rem;
         border: 1px solid #e5e7eb;
         border-radius: 8px;
         background: #ffffff;
         font-size: 0.78rem;
         font-weight: 600;
         box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+    }
+
+    .listing-sort-compact .custom-select-chevron {
+        display: none;
     }
 
         .listing-sort-compact .custom-select-menu {
@@ -1283,6 +1291,7 @@
 
     @media (max-width: 390px) {
         .listing-actions-row {
+            grid-template-columns: 46px 62px 68px 88px;
             gap: 0.375rem;
         }
 
