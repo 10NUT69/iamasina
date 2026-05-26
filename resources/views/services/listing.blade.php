@@ -1221,6 +1221,12 @@
         white-space: nowrap;
     }
 
+    #listing-actions-bar .truncate,
+    #listing-actions-bar .custom-select-label {
+        overflow: visible;
+        text-overflow: clip;
+    }
+
     #listing-actions-bar #scroll-to-listing-top,
     #listing-actions-bar #open-filters {
         color: #BA1422;
@@ -1284,22 +1290,6 @@
     @media (max-width: 390px) {
         .listing-actions-row {
             gap: 0.375rem;
-        }
-
-        #scroll-to-listing-top > span:first-child,
-        #open-filters svg,
-        .listing-sort-compact .custom-select-chevron {
-            display: none;
-        }
-
-        #scroll-to-listing-top,
-        #open-filters,
-        .listing-sort-compact .custom-select-trigger {
-            gap: 0;
-        }
-
-        .listing-sort-compact .custom-select-trigger {
-            justify-content: center;
         }
 
         .listing-action-button {
