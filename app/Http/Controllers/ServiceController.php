@@ -29,6 +29,7 @@ use App\Models\Tractiune;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -249,13 +250,31 @@ class ServiceController extends Controller
     }
 
     // Date pentru filtre
-    $brands        = CarBrand::ordered()->get();
-    $bodies        = Caroserie::orderBy('nume')->get();
-    $fuels         = Combustibil::orderBy('nume')->get();
-    $transmissions = CutieViteze::orderBy('nume')->get();
-    $counties      = County::orderBy('name')->get();
-    $categories    = Category::orderBy('sort_order', 'asc')->get();
-    $carData       = $this->buildCarData();
+    $brands = Cache::remember('iaauto:filter:brands:v1', now()->addDays(7), function () {
+        return CarBrand::ordered()->get();
+    });
+
+    $bodies = Cache::remember('iaauto:filter:bodies:v1', now()->addDays(7), function () {
+        return Caroserie::orderBy('nume')->get();
+    });
+
+    $fuels = Cache::remember('iaauto:filter:fuels:v1', now()->addDays(7), function () {
+        return Combustibil::orderBy('nume')->get();
+    });
+
+    $transmissions = Cache::remember('iaauto:filter:transmissions:v1', now()->addDays(7), function () {
+        return CutieViteze::orderBy('nume')->get();
+    });
+
+    $counties = Cache::remember('iaauto:filter:counties:v1', now()->addDays(7), function () {
+        return County::orderBy('name')->get();
+    });
+
+    $categories = Cache::remember('iaauto:filter:categories:v1', now()->addDays(7), function () {
+        return Category::orderBy('sort_order', 'asc')->get();
+    });
+
+    $carData = $this->buildCarData();
 
     $view = $request->routeIs('services.index') ? 'services.index' : 'services.listing';
     $showEarlyStageBanners = true; // TEMP: Seteaza false cand site-ul are suficiente anunturi.
@@ -1139,37 +1158,43 @@ public function edit($id)
     // ==========================================
     protected function buildCarData()
     {
-        $models = CarModel::with('brand')->ordered()->get();
+        return Cache::remember('iaauto:car_data:v1', now()->addDays(7), function () {
+            $models = CarModel::with('brand')->ordered()->get();
 
-        $carData = [];
+            $carData = [];
 
-        foreach ($models as $model) {
-            if (!$model->brand) continue;
+            foreach ($models as $model) {
+                if (!$model->brand) {
+                    continue;
+                }
 
-            $brandId = $model->brand->id;
+                $brandId = $model->brand->id;
 
-            if (!isset($carData[$brandId])) {
-                $carData[$brandId] = [];
+                if (!isset($carData[$brandId])) {
+                    $carData[$brandId] = [];
+                }
+
+                $carData[$brandId][] = [
+                    'id'   => $model->id,
+                    'name' => $model->name,
+                    'slug' => $model->slug,
+                ];
             }
 
-            $carData[$brandId][] = [
-                'id'   => $model->id,
-                'name' => $model->name,
-                'slug' => $model->slug,
-            ];
-        }
-
-        return $carData;
+            return $carData;
+        });
     }
 
     public function getLocalitiesByCounty(int $countyId)
     {
-        $localities = Locality::query()
-            ->cities()
-            ->where('county_id', $countyId)
-            ->orderBy('type')
-            ->orderBy('name')
-            ->get(['id', 'name', 'slug']);
+        $localities = Cache::remember("iaauto:localities:county:{$countyId}:v1", now()->addDays(7), function () use ($countyId) {
+            return Locality::query()
+                ->cities()
+                ->where('county_id', $countyId)
+                ->orderBy('type')
+                ->orderBy('name')
+                ->get(['id', 'name', 'slug']);
+        });
 
         return response()->json($localities);
     }
