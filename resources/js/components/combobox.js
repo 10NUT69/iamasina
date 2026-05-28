@@ -30,7 +30,6 @@ class HybridCombobox {
         this.label = root.dataset.comboboxLabel || this.hidden?.dataset.comboboxLabel || '';
         this.placeholder = root.dataset.comboboxPlaceholder || this.label;
         this.searchable = root.dataset.comboboxSearchable !== 'false';
-        this.touchPickerQuery = window.matchMedia?.('(hover: none), (pointer: coarse)') || null;
         this.options = this.readOptionsFromDom();
         this.filteredOptions = [...this.options];
         this.activeIndex = -1;
@@ -41,7 +40,6 @@ class HybridCombobox {
         }
 
         this.bindEvents();
-        this.syncInputMode();
         this.syncDisabled();
         this.setValue(this.hidden.value || '', { dispatch: false, keepQuery: false });
 
@@ -55,27 +53,6 @@ class HybridCombobox {
         });
     }
 
-    usesTouchPicker() {
-        return !!this.touchPickerQuery?.matches;
-    }
-
-    syncInputMode() {
-        const usePicker = this.usesTouchPicker();
-        this.input.readOnly = !this.searchable || usePicker;
-        this.input.inputMode = usePicker ? 'none' : 'text';
-    }
-
-    focusInputIfSearchable() {
-        this.syncInputMode();
-
-        if (!this.usesTouchPicker() && !this.input.disabled && !this.input.readOnly) {
-            this.input.focus();
-            return;
-        }
-
-        this.input.blur();
-    }
-
     readOptionsFromDom() {
         return Array.from(this.root.querySelectorAll('[data-combobox-option]')).map((option) => normaliseOption({
             value: option.dataset.value,
@@ -87,38 +64,26 @@ class HybridCombobox {
     }
 
     bindEvents() {
-        this.touchPickerQuery?.addEventListener?.('change', () => this.syncInputMode());
-
-        this.control.addEventListener('pointerdown', (event) => {
-            if (!this.usesTouchPicker() || this.hidden.disabled) return;
-            if (event.target.closest('[data-combobox-clear]')) return;
-
-            event.preventDefault();
-            this.toggle();
-            this.input.blur();
-        });
-
         this.control.addEventListener('mousedown', (event) => {
             if (this.hidden.disabled) return;
-            if (this.usesTouchPicker()) return;
             if (event.target.closest('[data-combobox-clear]')) return;
             event.preventDefault();
             this.open();
-            this.focusInputIfSearchable();
+            this.input.focus();
         });
 
         this.toggleButton?.addEventListener('click', (event) => {
             event.preventDefault();
             if (this.hidden.disabled) return;
             this.toggle();
-            this.focusInputIfSearchable();
+            this.input.focus();
         });
 
         this.clearButton?.addEventListener('click', (event) => {
             event.preventDefault();
             event.stopPropagation();
             this.clear();
-            this.focusInputIfSearchable();
+            this.input.focus();
         });
 
         this.input.addEventListener('focus', () => {
@@ -342,7 +307,7 @@ class HybridCombobox {
                 button.addEventListener('click', () => {
                     this.setValue(option.value);
                     this.close();
-                    this.focusInputIfSearchable();
+                    this.input.focus();
                 });
 
                 groupEl.appendChild(button);
