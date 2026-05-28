@@ -45,28 +45,50 @@
 
             @php
                 $currentBrandId = isset($currentBrand) ? $currentBrand->id : null;
+                $currentModelId = isset($currentModel) ? $currentModel->id : null;
+                $brandItems = collect($brands ?? []);
+                $popularBrands = $brandItems->where('is_popular', true);
+                $alphabeticalBrands = $brandItems->sortBy(function ($brand) {
+                    $name = (string) ($brand->name ?? '');
+                    $slug = (string) ($brand->slug ?? '');
+                    $normalizedName = mb_strtolower(\Illuminate\Support\Str::ascii($name));
+                    $isOtherBrand = in_array($slug, ['altul', 'alta-marca'], true)
+                        || in_array($normalizedName, ['alta marca', 'altul'], true);
+
+                    return sprintf('%d-%s', $isOtherBrand ? 1 : 0, $normalizedName);
+                });
+                $brandComboboxGroups = [
+                    ['label' => 'Populare', 'options' => $popularBrands],
+                    ['label' => 'A-Z', 'options' => $alphabeticalBrands],
+                ];
             @endphp
 
             <div class="homepage-quick-filters lg:hidden p-3">
                 <div class="grid grid-cols-2 gap-2">
                     <div class="min-w-0">
-                        <label for="homepage-quick-brand-filter" class="mb-1 block text-[13px] font-bold text-gray-900 dark:text-gray-100 sm:text-sm">Marcă</label>
-                        <select id="homepage-quick-brand-filter" class="autovit-select homepage-quick-select w-full">
-                            <option value="">Toate mărcile</option>
-                            @include('services.partials.brand_options', [
-                                'brands' => $brands,
-                                'selectedBrandId' => $currentBrandId,
-                                'popularLabel' => 'Populare',
-                                'allLabel' => 'A-Z',
-                            ])
-                        </select>
+                        <x-combobox
+                            id="homepage-quick-brand-filter"
+                            name="homepage_quick_brand_id"
+                            label="Marca"
+                            placeholder="Marca"
+                            :groups="$brandComboboxGroups"
+                            option-label="name"
+                            :selected="request('brand_id', $currentBrandId)"
+                            class="homepage-quick-select"
+                        />
                     </div>
 
                     <div class="min-w-0">
-                        <label for="homepage-quick-model-filter" class="mb-1 block text-[13px] font-bold text-gray-900 dark:text-gray-100 sm:text-sm">Model</label>
-                        <select id="homepage-quick-model-filter" class="autovit-select homepage-quick-select w-full bg-gray-50 text-gray-400 cursor-not-allowed" disabled>
-                            <option value="">Toate modelele</option>
-                        </select>
+                        <x-combobox
+                            id="homepage-quick-model-filter"
+                            name="homepage_quick_model_id"
+                            label="Model"
+                            placeholder="Model"
+                            :options="[]"
+                            :selected="$currentModelId"
+                            :disabled="true"
+                            class="homepage-quick-select"
+                        />
                     </div>
                 </div>
 
@@ -133,73 +155,90 @@
 
                         {{-- RÂNDUL 1 --}}
                         <div class="col-span-2 lg:col-span-1">
-                            <label class="autovit-label">Marca</label>
-                            <select id="brand-filter" name="brand_id" class="autovit-select">
-                                <option value="">Toate mărcile</option>
-                                @include('services.partials.brand_options', [
-                                    'brands' => $brands,
-                                    'selectedBrandId' => $currentBrandId,
-                                    'popularLabel' => 'Populare',
-                                    'allLabel' => 'A-Z',
-                                ])
-                            </select>
+                            <x-combobox
+                                id="brand-filter"
+                                name="brand_id"
+                                label="Marca"
+                                placeholder="Marca"
+                                :groups="$brandComboboxGroups"
+                                option-label="name"
+                                :selected="request('brand_id', $currentBrandId)"
+                            />
                         </div>
 
                         <div class="col-span-1 lg:col-span-1">
-                            <label class="autovit-label">Model</label>
-                            <select id="model-filter" name="model_id" class="autovit-select bg-gray-50 text-gray-400 cursor-not-allowed" disabled>
-                                <option value="">Alege model</option>
-                            </select>
+                            <x-combobox
+                                id="model-filter"
+                                name="model_id"
+                                label="Model"
+                                placeholder="Model"
+                                :options="[]"
+                                :selected="$currentModelId"
+                                :disabled="true"
+                            />
                         </div>
 
                         <div class="col-span-1 lg:col-span-1">
-                            <label class="autovit-label">Caroserie</label>
-                            <select id="body-filter" name="caroserie_id" class="autovit-select">
-                                <option value="">Oricare</option>
-                                @foreach($bodies as $body)
-                                    <option value="{{ $body->id }}">{{ $body->nume }}</option>
-                                @endforeach
-                            </select>
+                            <x-combobox
+                                id="body-filter"
+                                name="caroserie_id"
+                                label="Tip caroserie"
+                                placeholder="Tip caroserie"
+                                :options="$bodies"
+                                option-label="nume"
+                                :selected="request('caroserie_id')"
+                            />
                         </div>
 
                         {{-- RÂNDUL 2 --}}
                         <div class="col-span-1">
-                            <label class="autovit-label">Combustibil</label>
-                            <select id="fuel-filter" name="combustibil_id" class="autovit-select">
-                                <option value="">Oricare</option>
-                                @foreach($fuels as $fuel)
-                                    <option value="{{ $fuel->id }}">{{ $fuel->nume }}</option>
-                                @endforeach
-                            </select>
+                            <x-combobox
+                                id="fuel-filter"
+                                name="combustibil_id"
+                                label="Combustibil"
+                                placeholder="Combustibil"
+                                :options="$fuels"
+                                option-label="nume"
+                                :selected="request('combustibil_id')"
+                            />
                         </div>
 
                         <div class="col-span-1">
-                            <label class="autovit-label">Cutie viteze</label>
-                            <select id="gearbox-filter" name="cutie_viteze_id" class="autovit-select">
-                                <option value="">Oricare</option>
-                                @foreach($transmissions as $trans)
-                                    <option value="{{ $trans->id }}">{{ $trans->nume }}</option>
-                                @endforeach
-                            </select>
+                            <x-combobox
+                                id="gearbox-filter"
+                                name="cutie_viteze_id"
+                                label="Transmisie"
+                                placeholder="Transmisie"
+                                :options="$transmissions"
+                                option-label="nume"
+                                :selected="request('cutie_viteze_id')"
+                            />
                         </div>
 
                         {{-- LOCAȚIE --}}
                         <div class="col-span-2 lg:hidden">
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="col-span-1">
-                                    <label class="autovit-label">Județ</label>
-                                    <select id="county-input" name="county_id" class="autovit-select">
-                                        <option value="">Toată țara</option>
-                                        @foreach($counties as $county)
-                                            <option value="{{ $county->id }}" data-slug="{{ $county->slug }}" @selected((string)request('county_id') === (string)$county->id)>{{ $county->name }}</option>
-                                        @endforeach
-                                    </select>
+                                    <x-combobox
+                                        id="county-input"
+                                        name="county_id"
+                                        label="Judet"
+                                        placeholder="Judet"
+                                        :options="$counties"
+                                        option-label="name"
+                                        :selected="request('county_id', optional($currentCounty)->id)"
+                                    />
                                 </div>
                                 <div class="col-span-1">
-                                    <label class="autovit-label">Oraș</label>
-                                    <select id="locality-input" name="locality_id" class="autovit-select" disabled>
-                                        <option value="">Oraș</option>
-                                    </select>
+                                    <x-combobox
+                                        id="locality-input"
+                                        name="locality_id"
+                                        label="Localitate"
+                                        placeholder="Localitate"
+                                        :options="[]"
+                                        :selected="optional($currentLocality)->id"
+                                        :disabled="true"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -227,7 +266,7 @@
                         </div>
 
                         <a href="{{ route('cars.index') }}"
-                           class="hidden lg:inline-flex h-[42px] self-end items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-3 text-[11px] font-black whitespace-nowrap text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-100 hover:text-slate-950 active:scale-[0.98] dark:border-white/10 dark:bg-[#201d1e] dark:text-gray-100 dark:hover:bg-[#2a2728]">
+                           class="homepage-detail-link hidden lg:inline-flex h-[42px] self-end items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-4 text-[0.9rem] font-black whitespace-nowrap text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-100 hover:text-slate-950 active:scale-[0.98] dark:border-white/10 dark:bg-[#201d1e] dark:text-gray-100 dark:hover:bg-[#2a2728]">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M4 7h10" />
                                 <path d="M18 7h2" />
@@ -464,6 +503,7 @@
     const carData = @json($carData ?? []);
     const localityBaseUrl = "{{ url('/api/localities') }}";
     const initialLocalityId = @json(optional($currentLocality)->id);
+    const initialModelId = @json(optional($currentModel)->id);
 
     const domElements = {
         brand: document.getElementById('brand-filter'),
@@ -487,6 +527,12 @@
 
     function resetSelect(el, placeholder) {
         if (!el) return;
+        const combo = window.iaCombobox?.get(el);
+        if (combo) {
+            window.iaCombobox.setOptions(el, [], '');
+            window.iaCombobox.disable(el);
+            return;
+        }
         el.innerHTML = `<option value="">${placeholder}</option>`;
         el.disabled = true;
         el.classList.add('bg-gray-50', 'text-gray-400', 'cursor-not-allowed', 'dark:bg-[#1a1a1a]', 'dark:text-gray-500');
@@ -497,6 +543,10 @@
 
     function enableSelect(el) {
         if (!el) return;
+        if (window.iaCombobox?.get(el)) {
+            window.iaCombobox.enable(el);
+            return;
+        }
         el.disabled = false;
         el.classList.remove('bg-gray-50', 'text-gray-400', 'cursor-not-allowed', 'dark:bg-[#1a1a1a]', 'dark:text-gray-500');
         el.classList.add('bg-white', 'text-gray-900', 'dark:bg-[#2d2d2d]', 'dark:text-gray-100');
@@ -667,6 +717,10 @@
 
     function setHomepageQuickModelEnabled(enabled) {
         if (!domElements.quickModel) return;
+        if (window.iaCombobox?.get(domElements.quickModel)) {
+            enabled ? window.iaCombobox.enable(domElements.quickModel) : window.iaCombobox.disable(domElements.quickModel);
+            return;
+        }
         domElements.quickModel.disabled = !enabled;
         domElements.quickModel.classList.toggle('bg-gray-50', !enabled);
         domElements.quickModel.classList.toggle('text-gray-400', !enabled);
@@ -678,23 +732,41 @@
         if (!domElements.quickModel) return;
 
         const brandId = domElements.quickBrand?.value || domElements.brand?.value || '';
-        domElements.quickModel.innerHTML = '<option value="">Toate modelele</option>';
+        const models = (brandId && carData[brandId]?.length)
+            ? carData[brandId].map((model) => ({
+                value: model.id,
+                label: model.name,
+                name: model.name,
+                slug: model.slug,
+            }))
+            : [];
 
-        if (!brandId || !carData[brandId]?.length) {
-            domElements.quickModel.value = '';
+        if (!models.length) {
+            if (window.iaCombobox?.get(domElements.quickModel)) {
+                window.iaCombobox.setOptions(domElements.quickModel, [], '');
+            } else {
+                domElements.quickModel.innerHTML = '<option value="">Toate modelele</option>';
+                domElements.quickModel.value = '';
+            }
             setHomepageQuickModelEnabled(false);
             return;
         }
 
-        carData[brandId].forEach((model) => {
-            const option = document.createElement('option');
-            option.value = model.id;
-            option.textContent = model.name;
-            domElements.quickModel.appendChild(option);
-        });
+        if (window.iaCombobox?.get(domElements.quickModel)) {
+            window.iaCombobox.setOptions(domElements.quickModel, models, selectedId);
+        } else {
+            domElements.quickModel.innerHTML = '<option value="">Toate modelele</option>';
+            models.forEach((model) => {
+                const option = document.createElement('option');
+                option.value = model.value;
+                option.textContent = model.label;
+                option.dataset.slug = model.slug;
+                domElements.quickModel.appendChild(option);
+            });
 
-        if (selectedId && Array.from(domElements.quickModel.options).some(option => String(option.value) === String(selectedId))) {
-            domElements.quickModel.value = selectedId;
+            if (selectedId && Array.from(domElements.quickModel.options).some(option => String(option.value) === String(selectedId))) {
+                domElements.quickModel.value = selectedId;
+            }
         }
 
         setHomepageQuickModelEnabled(true);
@@ -703,7 +775,11 @@
 
     function syncHomepageQuickFiltersFromMain() {
         if (domElements.quickBrand && domElements.brand) {
-            domElements.quickBrand.value = domElements.brand.value || '';
+            if (window.iaCombobox?.get(domElements.quickBrand)) {
+                window.iaCombobox.setValue(domElements.quickBrand, domElements.brand.value || '', { dispatch: false });
+            } else {
+                domElements.quickBrand.value = domElements.brand.value || '';
+            }
             syncCustomSelect(domElements.quickBrand);
         }
 
@@ -712,14 +788,22 @@
 
     function applyHomepageQuickFiltersToMain() {
         if (domElements.brand && domElements.quickBrand && domElements.brand.value !== domElements.quickBrand.value) {
-            domElements.brand.value = domElements.quickBrand.value || '';
-            domElements.brand.dispatchEvent(new Event('change', { bubbles: true }));
+            if (window.iaCombobox?.get(domElements.brand)) {
+                window.iaCombobox.setValue(domElements.brand, domElements.quickBrand.value || '');
+            } else {
+                domElements.brand.value = domElements.quickBrand.value || '';
+                domElements.brand.dispatchEvent(new Event('change', { bubbles: true }));
+            }
             syncCustomSelect(domElements.brand);
         }
 
         if (domElements.model && domElements.quickModel && domElements.model.value !== domElements.quickModel.value) {
-            domElements.model.value = domElements.quickModel.value || '';
-            domElements.model.dispatchEvent(new Event('change', { bubbles: true }));
+            if (window.iaCombobox?.get(domElements.model)) {
+                window.iaCombobox.setValue(domElements.model, domElements.quickModel.value || '');
+            } else {
+                domElements.model.value = domElements.quickModel.value || '';
+                domElements.model.dispatchEvent(new Event('change', { bubbles: true }));
+            }
             syncCustomSelect(domElements.model);
         }
 
@@ -728,6 +812,11 @@
 
     function resetLocalities() {
         if(domElements.locality) {
+            if (window.iaCombobox?.get(domElements.locality)) {
+                window.iaCombobox.setOptions(domElements.locality, [], '');
+                window.iaCombobox.disable(domElements.locality);
+                return;
+            }
             domElements.locality.innerHTML = '<option value="">Oraș</option>';
             domElements.locality.disabled = true;
         }
@@ -739,15 +828,25 @@
             const response = await fetch(`${localityBaseUrl}/${countyId}`);
             const data = await response.json();
             if(domElements.locality) {
-                domElements.locality.innerHTML = '<option value="">Oraș</option>';
-                data.forEach(l => {
-                    const opt = document.createElement('option');
-                    opt.value = l.id; opt.textContent = l.name;
-                    opt.dataset.slug = l.slug;
-                    if(String(selectedId) === String(l.id)) opt.selected = true;
-                    domElements.locality.appendChild(opt);
-                });
-                domElements.locality.disabled = false;
+                if (window.iaCombobox?.get(domElements.locality)) {
+                    window.iaCombobox.setOptions(domElements.locality, data.map((locality) => ({
+                        value: locality.id,
+                        label: locality.name,
+                        name: locality.name,
+                        slug: locality.slug,
+                    })), selectedId || '');
+                    window.iaCombobox.enable(domElements.locality);
+                } else {
+                    domElements.locality.innerHTML = '<option value="">Oraș</option>';
+                    data.forEach(l => {
+                        const opt = document.createElement('option');
+                        opt.value = l.id; opt.textContent = l.name;
+                        opt.dataset.slug = l.slug;
+                        if(String(selectedId) === String(l.id)) opt.selected = true;
+                        domElements.locality.appendChild(opt);
+                    });
+                    domElements.locality.disabled = false;
+                }
             }
         } catch (error) { console.error(error); resetLocalities(); }
     }
@@ -770,24 +869,48 @@
     };
 
     window.resetFilters = function() {
-        if (domElements.brand) domElements.brand.value = '';
+        if (domElements.brand) {
+            if (window.iaCombobox?.get(domElements.brand)) {
+                window.iaCombobox.setValue(domElements.brand, '');
+            } else {
+                domElements.brand.value = '';
+            }
+        }
         resetSelect(domElements.model, 'Alege model');
-        ['body','fuel','gear','county'].forEach(k => { if(domElements[k]) domElements[k].value = ''; });
+        ['body','fuel','gear','county'].forEach(k => {
+            if (!domElements[k]) return;
+            if (window.iaCombobox?.get(domElements[k])) {
+                window.iaCombobox.setValue(domElements[k], '');
+            } else {
+                domElements[k].value = '';
+            }
+        });
         resetLocalities();
         syncAllCustomSelects();
         syncHomepageQuickFiltersFromMain();
         window.checkResetVisibility();
     };
 
+    function selectedOptionMeta(el) {
+        const comboOption = window.iaCombobox?.selectedOption(el);
+        if (comboOption) return comboOption;
+
+        return el?.selectedOptions?.[0] || null;
+    }
+
+    function optionSlug(option) {
+        return option?.slug || option?.dataset?.slug || '';
+    }
+
     function buildSearchUrl() {
-        const brandOption = domElements.brand?.selectedOptions?.[0];
-        const modelOption = domElements.model?.selectedOptions?.[0];
-        const countyOption = domElements.county?.selectedOptions?.[0];
-        const localityOption = domElements.locality?.selectedOptions?.[0];
-        const brandSlug = brandOption?.dataset?.slug;
-        const modelSlug = modelOption?.dataset?.slug;
-        const countySlug = countyOption?.dataset?.slug;
-        const citySlug = localityOption?.dataset?.slug;
+        const brandOption = selectedOptionMeta(domElements.brand);
+        const modelOption = selectedOptionMeta(domElements.model);
+        const countyOption = selectedOptionMeta(domElements.county);
+        const localityOption = selectedOptionMeta(domElements.locality);
+        const brandSlug = optionSlug(brandOption);
+        const modelSlug = optionSlug(modelOption);
+        const countySlug = optionSlug(countyOption);
+        const citySlug = optionSlug(localityOption);
         const countyInPath = !!countySlug;
         const cityInPath = !!(countySlug && citySlug);
 
@@ -818,6 +941,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        window.iaCombobox?.init(document);
         document.querySelectorAll('select.autovit-select').forEach(enhanceSelect);
 
         window.checkResetVisibility();
@@ -888,13 +1012,33 @@
             });
         }
 
+        let didInitBrandCascade = false;
         const handleBrandChange = () => {
             const brandId = domElements.brand.value;
+            const selectedModelId = !didInitBrandCascade ? initialModelId : '';
+            const models = (brandId && carData[brandId])
+                ? carData[brandId].map((model) => ({
+                    value: model.id,
+                    label: model.name,
+                    name: model.name,
+                    slug: model.slug,
+                }))
+                : [];
+
             resetSelect(domElements.model, 'Alege model');
-            if (brandId && carData[brandId]) {
-                enableSelect(domElements.model);
-                carData[brandId].forEach(m => domElements.model.innerHTML += `<option value="${m.id}" data-slug="${m.slug}">${m.name}</option>`);
+            if (models.length) {
+                if (window.iaCombobox?.get(domElements.model)) {
+                    window.iaCombobox.setOptions(domElements.model, models, selectedModelId || '');
+                    window.iaCombobox.enable(domElements.model);
+                } else {
+                    enableSelect(domElements.model);
+                    models.forEach(m => domElements.model.innerHTML += `<option value="${m.value}" data-slug="${m.slug}">${m.label}</option>`);
+                    if (selectedModelId) {
+                        domElements.model.value = String(selectedModelId);
+                    }
+                }
             }
+            didInitBrandCascade = true;
             syncHomepageQuickFiltersFromMain();
             window.checkResetVisibility();
         };
@@ -1079,7 +1223,7 @@
         .homepage-filter-wrap {
             grid-column: 1;
             grid-row: 1;
-            margin-top: 0 !important;
+            margin-top: 1.8rem !important;
             padding-left: 0 !important;
             padding-right: 0 !important;
         }
@@ -1112,7 +1256,11 @@
 
         .homepage-filter-panel .search-panel-header span {
             white-space: nowrap;
-            font-size: 0.78rem;
+            font-size: 0.9rem;
+        }
+
+        .homepage-filter-panel .seller-tab {
+            font-size: 0.9rem;
         }
 
         .homepage-filter-panel .seller-tabs {
@@ -1140,6 +1288,24 @@
 
         .homepage-advanced-filters {
             display: block !important;
+        }
+    }
+
+    @media (min-width: 1536px) {
+        .homepage-filter-wrap {
+            margin-top: 2.3rem !important;
+        }
+    }
+
+    @media (min-width: 1024px) and (max-width: 1365px) {
+        .homepage-detail-link {
+            gap: 0.35rem;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+
+        .homepage-detail-link svg {
+            display: none;
         }
     }
 

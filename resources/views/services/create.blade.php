@@ -78,6 +78,22 @@
                 'mat' => 2,
             ]);
 
+            $brandItems = collect($brands ?? []);
+            $popularBrands = $brandItems->where('is_popular', true);
+            $alphabeticalBrands = $brandItems->sortBy(function ($brand) {
+                $name = (string) ($brand->name ?? '');
+                $slug = (string) ($brand->slug ?? '');
+                $normalizedName = mb_strtolower(\Illuminate\Support\Str::ascii($name));
+                $isOtherBrand = in_array($slug, ['altul', 'alta-marca'], true)
+                    || in_array($normalizedName, ['alta marca', 'altul'], true);
+
+                return sprintf('%d-%s', $isOtherBrand ? 1 : 0, $normalizedName);
+            });
+            $brandComboboxGroups = [
+                ['label' => 'Populare', 'options' => $popularBrands],
+                ['label' => 'A-Z', 'options' => $alphabeticalBrands],
+            ];
+
         @endphp
 
         {{-- CONTAINER PRINCIPAL --}}
@@ -99,15 +115,16 @@
                                 {{-- fallback pentru compatibilitate veche --}}
                                 <input type="hidden" name="brand" id="brandText" value="">
 
-                                <select name="brand_id" id="brandSelect" class="wizard-big-select w-full cursor-pointer appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white" required>
-                                    <option value="">Marcă</option>
-                                    @include('services.partials.brand_options', [
-                                        'brands' => $brands,
-                                        'selectedBrandId' => old('brand_id'),
-                                        'popularLabel' => 'Populare',
-                                        'allLabel' => 'A-Z',
-                                    ])
-                                </select>
+                                <x-combobox
+                                    id="brandSelect"
+                                    name="brand_id"
+                                    label="Marca"
+                                    placeholder="Marca"
+                                    :groups="$brandComboboxGroups"
+                                    option-label="name"
+                                    :selected="old('brand_id')"
+                                    :required="true"
+                                />
                             </div>
 
                             {{-- Model (FK) + fallback text --}}
@@ -115,16 +132,30 @@
                                 {{-- fallback pentru compatibilitate veche --}}
                                 <input type="hidden" name="model" id="modelText" value="">
 
-                                <select name="model_id" id="modelSelect" disabled required class="wizard-big-select w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white dark:disabled:bg-[#222]">
-                                    <option value="">Model</option>
-                                </select>
+                                <x-combobox
+                                    id="modelSelect"
+                                    name="model_id"
+                                    label="Model"
+                                    placeholder="Model"
+                                    :options="[]"
+                                    :selected="old('model_id')"
+                                    :disabled="true"
+                                    :required="true"
+                                />
                             </div>
 
                             {{-- Year --}}
                             <div class="relative group">
-                                <select name="an_fabricatie" id="yearSelect" disabled class="wizard-big-select w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white dark:disabled:bg-[#222]" required>
-                                    <option value="">An fabricație</option>
-                                </select>
+                                <x-combobox
+                                    id="yearSelect"
+                                    name="an_fabricatie"
+                                    label="An fabricatie"
+                                    placeholder="An fabricatie"
+                                    :options="[]"
+                                    :selected="old('an_fabricatie')"
+                                    :disabled="true"
+                                    :required="true"
+                                />
                             </div>
                         </div>
 
@@ -135,14 +166,17 @@
                     <div class="space-y-6">
                         {{-- SELECT CULOARE + OPTIUNI FINISAJ --}}
                         <div class="color-finish-row">
-                            <select name="culoare_id"
-                                class="color-select-compact rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white"
-                                required>
-                                <option value="">Culoare</option>
-                                @foreach($colors as $color)
-                                    <option value="{{ $color->id }}">{{ $color->nume }}</option>
-                                @endforeach
-                            </select>
+                            <x-combobox
+                                id="inputColor"
+                                name="culoare_id"
+                                label="Culoare"
+                                placeholder="Culoare"
+                                :options="$colors"
+                                option-label="nume"
+                                :selected="old('culoare_id')"
+                                :required="true"
+                                class="color-select-compact"
+                            />
 
                             <div class="contents">
                                 <input type="hidden" name="culoare_opt_id" id="inputColorOpt" value="">
@@ -160,49 +194,57 @@
                         <div class="grid grid-cols-2 gap-2.5 sm:gap-4">
                         {{-- CAROSERIE --}}
                         <div>
-                            <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-gray-300">Caroserie</label>
-                            <select name="caroserie_id" id="inputBodyType" class="choice-select w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 sm:px-4 sm:text-sm dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white">
-                                <option value="">Selectează</option>
-                                @foreach($orderedBodies as $body)
-                                    <option value="{{ $body->id }}">{{ $body->nume }}</option>
-                                @endforeach
-                            </select>
+                            <x-combobox
+                                id="inputBodyType"
+                                name="caroserie_id"
+                                label="Tip caroserie"
+                                placeholder="Tip caroserie"
+                                :options="$orderedBodies"
+                                option-label="nume"
+                                :selected="old('caroserie_id')"
+                            />
                             <p id="err-body" class="text-red-500 text-xs mt-1 hidden">Selectează caroseria.</p>
                         </div>
 
                         {{-- COMBUSTIBIL --}}
                         <div>
-                            <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-gray-300">Combustibil</label>
-                            <select name="combustibil_id" id="inputFuel" class="choice-select w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 sm:px-4 sm:text-sm dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white">
-                                <option value="">Selectează</option>
-                                @foreach($orderedFuels as $fuel)
-                                    <option value="{{ $fuel->id }}">{{ $fuel->nume }}</option>
-                                @endforeach
-                            </select>
+                            <x-combobox
+                                id="inputFuel"
+                                name="combustibil_id"
+                                label="Combustibil"
+                                placeholder="Combustibil"
+                                :options="$orderedFuels"
+                                option-label="nume"
+                                :selected="old('combustibil_id')"
+                            />
                             <p id="err-fuel" class="text-red-500 text-xs mt-1 hidden">Alege combustibil.</p>
                         </div>
 
                         {{-- TRANSMISIE --}}
                         <div>
-                            <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-gray-300">Transmisie</label>
-                            <select name="cutie_viteze_id" id="inputTrans" class="choice-select w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 sm:px-4 sm:text-sm dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white">
-                                <option value="">Selectează</option>
-                                @foreach($transmissions as $trans)
-                                    <option value="{{ $trans->id }}">{{ $trans->nume }}</option>
-                                @endforeach
-                            </select>
+                            <x-combobox
+                                id="inputTrans"
+                                name="cutie_viteze_id"
+                                label="Transmisie"
+                                placeholder="Transmisie"
+                                :options="$transmissions"
+                                option-label="nume"
+                                :selected="old('cutie_viteze_id')"
+                            />
                             <p id="err-trans" class="text-red-500 text-xs mt-1 hidden">Alege transmisia.</p>
                         </div>
 
                         {{-- TRACTIUNE --}}
                         <div>
-                            <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-gray-300">Tracțiune</label>
-                            <select name="tractiune_id" id="inputTractiune" class="choice-select w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 sm:px-4 sm:text-sm dark:border-[#444] dark:bg-[#1a1a1a] dark:text-white">
-                                <option value="">Selectează</option>
-                                @foreach($tractiuni as $tr)
-                                    <option value="{{ $tr->id }}">{{ $tr->nume }}</option>
-                                @endforeach
-                            </select>
+                            <x-combobox
+                                id="inputTractiune"
+                                name="tractiune_id"
+                                label="Tractiune"
+                                placeholder="Tractiune"
+                                :options="$tractiuni"
+                                option-label="nume"
+                                :selected="old('tractiune_id')"
+                            />
 
                             <p id="err-tractiune" class="text-red-500 text-xs mt-1 hidden">Alege tracțiunea.</p>
                         </div>
@@ -256,34 +298,39 @@
                 <div class="mb-5 grid grid-cols-2 gap-3 sm:mb-6 sm:gap-4 md:grid-cols-3 md:gap-6">
                     {{-- NORMA POLUARE --}}
                     <div>
-                        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Normă poluare</label>
-                        <select name="norma_poluare_id"
-                            class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#252525] dark:text-white">
-                            <option value="">Alege norma</option>
-                            @foreach($normePoluare as $norma)
-                                <option value="{{ $norma->id }}">{{ $norma->nume }}</option>
-                            @endforeach
-                        </select>
+                        <x-combobox
+                            id="inputNormaPoluare"
+                            name="norma_poluare_id"
+                            label="Norma poluare"
+                            placeholder="Norma poluare"
+                            :options="$normePoluare"
+                            option-label="nume"
+                            :selected="old('norma_poluare_id')"
+                        />
                     </div>
 
                     <div>
-                        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Număr uși</label>
-                        <select name="numar_usi" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-gray-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#252525] dark:text-white">
-                            <option value="">—</option>
-                            @foreach([2,3,4,5] as $usi)
-                                <option value="{{ $usi }}">{{ $usi }}</option>
-                            @endforeach
-                        </select>
+                        <x-combobox
+                            id="inputDoors"
+                            name="numar_usi"
+                            label="Numar usi"
+                            placeholder="Numar usi"
+                            :options="collect([2, 3, 4, 5])->map(fn ($usi) => ['value' => $usi, 'label' => (string) $usi])"
+                            :selected="old('numar_usi')"
+                            :searchable="false"
+                        />
                     </div>
 
                     <div>
-                        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Număr locuri</label>
-                        <select name="numar_locuri" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-gray-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#252525] dark:text-white">
-                            <option value="">—</option>
-                            @foreach(range(2,9) as $locuri)
-                                <option value="{{ $locuri }}">{{ $locuri }}</option>
-                            @endforeach
-                        </select>
+                        <x-combobox
+                            id="inputSeats"
+                            name="numar_locuri"
+                            label="Numar locuri"
+                            placeholder="Numar locuri"
+                            :options="collect(range(2, 9))->map(fn ($locuri) => ['value' => $locuri, 'label' => (string) $locuri])"
+                            :selected="old('numar_locuri')"
+                            :searchable="false"
+                        />
                     </div>
                 </div>
 
@@ -382,19 +429,28 @@
                             <input type="text" name="phone" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#252525] dark:text-white" placeholder="07xx xxx xxx" required>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Județ</label>
-                            <select id="county-select" name="county_id" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#252525] dark:text-white" required>
-                                <option value="">Alege județ</option>
-                                @foreach ($counties as $county)
-                                    <option value="{{ $county->id }}" @selected((string)old('county_id') === (string)$county->id)>{{ $county->name }}</option>
-                                @endforeach
-                            </select>
+                            <x-combobox
+                                id="county-select"
+                                name="county_id"
+                                label="Judet"
+                                placeholder="Judet"
+                                :options="$counties"
+                                option-label="name"
+                                :selected="old('county_id')"
+                                :required="true"
+                            />
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Oraș</label>
-                            <select id="locality-select" name="locality_id" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 dark:border-[#444] dark:bg-[#252525] dark:text-white dark:disabled:bg-[#222]" disabled required>
-                                <option value="">Selectează orașul</option>
-                            </select>
+                            <x-combobox
+                                id="locality-select"
+                                name="locality_id"
+                                label="Localitate"
+                                placeholder="Localitate"
+                                :options="[]"
+                                :selected="old('locality_id')"
+                                :disabled="true"
+                                :required="true"
+                            />
                         </div>
                     </div>
                 </div>
@@ -813,7 +869,7 @@
             color: #ffffff !important;
             box-shadow: 0 10px 22px rgba(200, 20, 36, 0.28);
         }
-        #wizardForm input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+        #wizardForm input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(.ia-combobox__input),
         #wizardForm textarea,
         #wizardForm select {
             background-color: #20242b !important;
@@ -829,20 +885,20 @@
             color: #94a3b8;
             opacity: 1;
         }
-        #wizardForm input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):hover,
+        #wizardForm input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(.ia-combobox__input):hover,
         #wizardForm textarea:hover,
         #wizardForm select:hover {
             background-color: #252a32 !important;
             border-color: #4b5563 !important;
         }
-        #wizardForm input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):focus,
+        #wizardForm input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(.ia-combobox__input):focus,
         #wizardForm textarea:focus,
         #wizardForm select:focus {
             background-color: #252a32 !important;
             border-color: #fb7185 !important;
             box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.18) !important;
         }
-        #wizardForm input:disabled,
+        #wizardForm input:not(.ia-combobox__input):disabled,
         #wizardForm select:disabled,
         #wizardForm textarea:disabled {
             background-color: #171a1f !important;
@@ -1041,11 +1097,11 @@
         #wizardForm label {
             letter-spacing: 0.08em;
         }
-        #wizardForm input,
+        #wizardForm input:not(.ia-combobox__input),
         #wizardForm textarea {
             font-size: 0.9rem;
         }
-        #wizardForm input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]) {
+        #wizardForm input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(.ia-combobox__input) {
             padding-left: 0.85rem;
             padding-right: 0.85rem;
         }
@@ -1104,6 +1160,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    window.iaCombobox?.init(document);
     // === 1. NAVIGATION WIZARD ===
     let currentStep = 1;
     const totalSteps = 3;
@@ -1170,12 +1227,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function resetLocalities() {
         if (!localitySelect) return;
+        if (window.iaCombobox?.get(localitySelect)) {
+            window.iaCombobox.setOptions(localitySelect, [], '');
+            window.iaCombobox.disable(localitySelect);
+            return;
+        }
         localitySelect.innerHTML = '<option value=\"\">Selectează orașul</option>';
         localitySelect.disabled = true;
     }
 
     function populateLocalities(localities, selectedId) {
         if (!localitySelect) return;
+        if (window.iaCombobox?.get(localitySelect)) {
+            window.iaCombobox.setOptions(localitySelect, localities.map((locality) => ({
+                value: locality.id,
+                label: locality.name,
+                name: locality.name,
+                slug: locality.slug,
+            })), selectedId || '');
+            window.iaCombobox.enable(localitySelect);
+            return;
+        }
         localitySelect.innerHTML = '<option value=\"\">Selectează orașul</option>';
         localities.forEach(locality => {
             const option = document.createElement('option');
@@ -1611,12 +1683,19 @@ document.addEventListener('DOMContentLoaded', function() {
         input.classList.add('ring-2', 'ring-red-500', 'border-red-500');
         input.setAttribute('aria-invalid', 'true');
         setCustomSelectInvalid(input, true);
+        window.iaCombobox?.setInvalid(input, true);
 
         const clear = () => {
-            if (input.checkValidity()) {
+            const isComboboxValue = input.matches('[data-combobox-value]');
+            const isValid = isComboboxValue
+                ? (!input.required || !!input.value)
+                : input.checkValidity();
+
+            if (isValid) {
                 input.classList.remove('ring-2', 'ring-red-500', 'border-red-500');
                 input.removeAttribute('aria-invalid');
                 setCustomSelectInvalid(input, false);
+                window.iaCombobox?.setInvalid(input, false);
             }
         };
 
@@ -1630,6 +1709,7 @@ document.addEventListener('DOMContentLoaded', function() {
         input?.classList.remove('ring-2', 'ring-red-500', 'border-red-500');
         input?.removeAttribute('aria-invalid');
         setCustomSelectInvalid(input, false);
+        window.iaCombobox?.setInvalid(input, false);
         wrapper?.querySelectorAll('.pill-btn').forEach(btn => {
             btn.classList.remove('ring-2', 'ring-red-500', 'border-red-500');
         });
@@ -1652,10 +1732,11 @@ document.addEventListener('DOMContentLoaded', function() {
             input.classList.add('ring-2', 'ring-red-500', 'border-red-500');
             input.setAttribute('aria-invalid', 'true');
             setCustomSelectInvalid(input, true);
+            window.iaCombobox?.setInvalid(input, true);
         }
 
         return {
-            target: wrapper?.querySelector('.pill-btn') || customSelects.get(input)?.root || input || error,
+            target: wrapper?.querySelector('.pill-btn') || customSelects.get(input)?.root || window.iaCombobox?.get(input)?.root || input || error,
             message,
         };
     }
@@ -1664,11 +1745,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!target) return;
 
         const customState = target.tagName === 'SELECT' ? customSelects.get(target) : null;
-        const visibleTarget = customState?.root || target;
+        const comboState = window.iaCombobox?.get(target);
+        const visibleTarget = customState?.root || comboState?.root || target;
 
         visibleTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
         setTimeout(() => {
-            const focusTarget = customState?.trigger || visibleTarget;
+            const focusTarget = customState?.trigger || comboState?.input || visibleTarget;
             if (typeof focusTarget.focus === 'function') {
                 focusTarget.focus({ preventScroll: true });
             }
@@ -1683,9 +1765,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const inputs = stepEl.querySelectorAll('input, select, textarea');
 
         inputs.forEach(input => {
-            if (input.disabled || input.type === 'hidden') return;
+            const isComboboxValue = input.matches('[data-combobox-value]');
+            if (input.disabled || (input.type === 'hidden' && !isComboboxValue)) return;
 
-            if (!input.checkValidity()) {
+            const isInvalidCombobox = isComboboxValue && input.required && !input.value;
+            if (isInvalidCombobox || !input.checkValidity()) {
                 const message = validationMessageFor(input);
                 invalidItems.push({ target: input, message });
                 if (reveal) markInvalidInput(input);
@@ -1810,52 +1894,118 @@ document.addEventListener('DOMContentLoaded', function() {
     const brandSel = document.getElementById('brandSelect');
     const modelSel = document.getElementById('modelSelect');
     const yearSel = document.getElementById('yearSelect');
+    const savedBrandId = @json(old('brand_id'));
+    const savedModelId = @json(old('model_id'));
+    const savedYear = @json(old('an_fabricatie'));
 
-    function populateYears(start = 1990, end = new Date().getFullYear()) {
+    function populateYears(start = 1990, end = new Date().getFullYear(), selectedYear = '') {
+        const years = [];
+        for (let i = end; i >= start; i--) {
+            years.push({ value: i, label: String(i) });
+        }
+
+        if (window.iaCombobox?.get(yearSel)) {
+            window.iaCombobox.setOptions(yearSel, years, selectedYear || '');
+            window.iaCombobox.enable(yearSel);
+            return;
+        }
+
         yearSel.innerHTML = '<option value="">An fabricație</option>';
         yearSel.disabled = false;
-        for(let i = end; i >= start; i--) {
-            yearSel.innerHTML += `<option value="${i}">${i}</option>`;
-        }
+        years.forEach((year) => {
+            const selected = selectedYear && String(selectedYear) === String(year.value) ? 'selected' : '';
+            yearSel.innerHTML += `<option value="${year.value}" ${selected}>${year.label}</option>`;
+        });
     }
+
     function resetSelect(el, defaultText) {
+        if (window.iaCombobox?.get(el)) {
+            window.iaCombobox.setOptions(el, [], '');
+            window.iaCombobox.disable(el);
+            return;
+        }
         el.innerHTML = `<option value="">${defaultText}</option>`;
         el.disabled = true;
         el.value = "";
     }
 
-    brandSel.addEventListener('change', function() {
-        const brandId = this.value;
+    function selectedOptionMeta(el) {
+        const comboOption = window.iaCombobox?.selectedOption(el);
+        if (comboOption) return comboOption;
 
-        // fallback text (compatibilitate veche)
-        const brandName = this.options[this.selectedIndex]?.dataset?.name || '';
-        document.getElementById('brandText').value = brandName;
+        return el?.selectedOptions?.[0] || null;
+    }
 
+    function syncBrandText() {
+        const brandOption = selectedOptionMeta(brandSel);
+        document.getElementById('brandText').value = brandOption?.name || brandOption?.label || brandOption?.dataset?.name || '';
+    }
+
+    function syncModelText() {
+        const modelOption = selectedOptionMeta(modelSel);
+        document.getElementById('modelText').value = modelOption?.name || modelOption?.label || modelOption?.dataset?.name || '';
+    }
+
+    function populateModels(brandId, selectedModelId = '') {
         resetSelect(modelSel, 'Model');
         resetSelect(yearSel, 'An fabricație');
 
-        if(brandId && carData[brandId]) {
-            modelSel.disabled = false;
-            carData[brandId].forEach(m => {
-                modelSel.innerHTML += `<option value="${m.id}" data-name="${m.name}">${m.name}</option>`;
-            });
+        const models = (brandId && carData[brandId])
+            ? carData[brandId].map((model) => ({
+                value: model.id,
+                label: model.name,
+                name: model.name,
+                slug: model.slug,
+            }))
+            : [];
+
+        if (!models.length) return;
+
+        if (window.iaCombobox?.get(modelSel)) {
+            window.iaCombobox.setOptions(modelSel, models, selectedModelId || '');
+            window.iaCombobox.enable(modelSel);
+            return;
         }
+
+        modelSel.disabled = false;
+        models.forEach(m => {
+            const selected = selectedModelId && String(selectedModelId) === String(m.value) ? 'selected' : '';
+            modelSel.innerHTML += `<option value="${m.value}" data-name="${m.name}" ${selected}>${m.label}</option>`;
+        });
+    }
+
+    brandSel.addEventListener('change', function() {
+        const brandId = this.value;
+
+        syncBrandText();
+        populateModels(brandId);
     });
 
     modelSel.addEventListener('change', function() {
         const brandId = brandSel.value;
         const modelId = this.value;
 
-        // fallback text (compatibilitate veche)
-        const modelName = this.options[this.selectedIndex]?.dataset?.name || '';
-        document.getElementById('modelText').value = modelName;
-
+        syncModelText();
         resetSelect(yearSel, 'An fabricație');
 
         if(brandId && modelId && carData[brandId]) {
-            populateYears();
+            populateYears(1990, new Date().getFullYear());
         }
     });
+
+    function initCascadeFromSaved() {
+        if (!savedBrandId) return;
+
+        syncBrandText();
+        populateModels(savedBrandId, savedModelId);
+
+        if (savedModelId) {
+            syncModelText();
+            populateYears(1990, new Date().getFullYear(), savedYear);
+        }
+    }
+
+    initCascadeFromSaved();
 
     // === 5. IMAGE PREVIEW ===
     const imageInput = document.getElementById('imageInput');

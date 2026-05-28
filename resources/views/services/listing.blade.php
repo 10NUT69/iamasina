@@ -131,93 +131,145 @@
                         <input type="hidden" name="seller_type" id="seller-type" value="{{ request('seller_type', 'all') }}">
 
                         <div>
-                            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">De unde vrei să cumperi?</p>
-                            <select id="seller-type-select" class="autovit-select listing-filter">
-                                <option value="all" @selected(request('seller_type', 'all') === 'all')>Parcuri + Proprietari</option>
-                                <option value="individual" @selected(request('seller_type') === 'individual')>Proprietari</option>
-                                <option value="dealer" @selected(request('seller_type') === 'dealer')>Parcuri</option>
-                            </select>
+                            <x-combobox
+                                id="seller-type-select"
+                                name="seller_type_select"
+                                label="Vanzator"
+                                placeholder="Vanzator"
+                                :options="[
+                                    ['value' => 'all', 'label' => 'Parcuri + Proprietari'],
+                                    ['value' => 'individual', 'label' => 'Proprietari'],
+                                    ['value' => 'dealer', 'label' => 'Parcuri'],
+                                ]"
+                                :selected="request()->has('seller_type') ? request('seller_type') : null"
+                                :searchable="false"
+                                class="listing-filter"
+                            />
                         </div>
 
-                        <select id="brand-filter" name="brand_id" class="autovit-select listing-filter">
-                            <option value="">Marcă</option>
-                            @php
-                                $currentBrandId = isset($currentBrand) ? $currentBrand->id : null;
-                            @endphp
+                        @php
+                            $currentBrandId = isset($currentBrand) ? $currentBrand->id : null;
+                            $currentModelId = isset($currentModel) ? $currentModel->id : null;
+                            $brandItems = collect($brands ?? []);
+                            $popularBrands = $brandItems->where('is_popular', true);
+                            $alphabeticalBrands = $brandItems->sortBy(function ($brand) {
+                                $name = (string) ($brand->name ?? '');
+                                $slug = (string) ($brand->slug ?? '');
+                                $normalizedName = mb_strtolower(\Illuminate\Support\Str::ascii($name));
+                                $isOtherBrand = in_array($slug, ['altul', 'alta-marca'], true)
+                                    || in_array($normalizedName, ['alta marca', 'altul'], true);
 
-                            @include('services.partials.brand_options', [
-                                'brands' => $brands,
-                                'selectedBrandId' => $currentBrandId,
-                                'popularLabel' => 'Mărci Populare',
-                                'allLabel' => 'Toate Mărcile',
-                            ])
-                        </select>
+                                return sprintf('%d-%s', $isOtherBrand ? 1 : 0, $normalizedName);
+                            });
+                            $brandComboboxGroups = [
+                                ['label' => 'Populare', 'options' => $popularBrands],
+                                ['label' => 'A-Z', 'options' => $alphabeticalBrands],
+                            ];
+                        @endphp
 
-                        <select id="model-filter" name="model_id" class="autovit-select listing-filter bg-gray-50 text-gray-400 cursor-not-allowed" disabled>
-                            <option value="">Model</option>
-                        </select>
+                        <x-combobox
+                            id="brand-filter"
+                            name="brand_id"
+                            label="Marca"
+                            placeholder="Marca"
+                            :groups="$brandComboboxGroups"
+                            option-label="name"
+                            :selected="request('brand_id', $currentBrandId)"
+                            class="listing-filter"
+                        />
+
+                        <x-combobox
+                            id="model-filter"
+                            name="model_id"
+                            label="Model"
+                            placeholder="Model"
+                            :options="[]"
+                            :selected="$currentModelId"
+                            :disabled="true"
+                            class="listing-filter"
+                        />
 
                         <div>
-                            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">An fabricație</p>
                             <div class="grid grid-cols-2 gap-2">
-                                <input type="number" id="year-min" name="year_min" placeholder="Min" value="{{ request('year_min', request('an_min')) }}"
+                                <input type="number" id="year-min" name="year_min" placeholder="Anul de la" aria-label="Anul de la" value="{{ request('year_min', request('an_min')) }}"
                                     class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
-                                <input type="number" id="year-max" name="year_max" placeholder="Max" value="{{ request('year_max', request('an_max')) }}"
+                                <input type="number" id="year-max" name="year_max" placeholder="Anul pana la" aria-label="Anul pana la" value="{{ request('year_max', request('an_max')) }}"
                                     class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
                             </div>
                         </div>
 
                         <div>
-                            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Km</p>
                             <div class="grid grid-cols-2 gap-2">
-                                <input type="number" id="km-min" name="km_min" placeholder="Min" value="{{ request('km_min') }}"
+                                <input type="number" id="km-min" name="km_min" placeholder="Km de la" aria-label="Km de la" value="{{ request('km_min') }}"
                                     class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
-                                <input type="number" id="km-max" name="km_max" placeholder="Max" value="{{ request('km_max') }}"
+                                <input type="number" id="km-max" name="km_max" placeholder="Km pana la" aria-label="Km pana la" value="{{ request('km_max') }}"
                                     class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
                             </div>
                         </div>
 
                         <div>
-                            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Preț (EUR)</p>
                             <div class="grid grid-cols-2 gap-2">
-                                <input type="number" id="price-min" name="price_min" placeholder="Min" value="{{ request('price_min', request('pret_min')) }}"
+                                <input type="number" id="price-min" name="price_min" placeholder="Pret de la" aria-label="Pret de la" value="{{ request('price_min', request('pret_min')) }}"
                                     class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
-                                <input type="number" id="price-max" name="price_max" placeholder="Max" value="{{ request('price_max', request('pret_max')) }}"
+                                <input type="number" id="price-max" name="price_max" placeholder="Pret pana la" aria-label="Pret pana la" value="{{ request('price_max', request('pret_max')) }}"
                                     class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
                             </div>
                         </div>
 
-                        <select id="body-filter" name="caroserie_id" class="autovit-select listing-filter">
-                            <option value="">Caroserie</option>
-                            @foreach($bodies as $body)
-                                <option value="{{ $body->id }}">{{ $body->nume }}</option>
-                            @endforeach
-                        </select>
+                        <x-combobox
+                            id="body-filter"
+                            name="caroserie_id"
+                            label="Tip caroserie"
+                            placeholder="Tip caroserie"
+                            :options="$bodies"
+                            option-label="nume"
+                            :selected="request('caroserie_id')"
+                            class="listing-filter"
+                        />
 
-                        <select id="fuel-filter" name="combustibil_id" class="autovit-select listing-filter">
-                            <option value="">Combustibil</option>
-                            @foreach($fuels as $fuel)
-                                <option value="{{ $fuel->id }}">{{ $fuel->nume }}</option>
-                            @endforeach
-                        </select>
+                        <x-combobox
+                            id="fuel-filter"
+                            name="combustibil_id"
+                            label="Combustibil"
+                            placeholder="Combustibil"
+                            :options="$fuels"
+                            option-label="nume"
+                            :selected="request('combustibil_id')"
+                            class="listing-filter"
+                        />
 
-                        <select id="gearbox-filter" name="cutie_viteze_id" class="autovit-select listing-filter">
-                            <option value="">Cutie viteze</option>
-                            @foreach($transmissions as $trans)
-                                <option value="{{ $trans->id }}">{{ $trans->nume }}</option>
-                            @endforeach
-                        </select>
+                        <x-combobox
+                            id="gearbox-filter"
+                            name="cutie_viteze_id"
+                            label="Transmisie"
+                            placeholder="Transmisie"
+                            :options="$transmissions"
+                            option-label="nume"
+                            :selected="request('cutie_viteze_id')"
+                            class="listing-filter"
+                        />
 
-                        <select id="county-input" name="county_id" class="autovit-select listing-filter">
-                            <option value="">Toată țara</option>
-                            @foreach($counties as $county)
-                                <option value="{{ $county->id }}" data-slug="{{ $county->slug }}" @selected((string)(request('county_id') ?: optional($currentCounty)->id) === (string)$county->id)>{{ $county->name }}</option>
-                            @endforeach
-                        </select>
+                        <x-combobox
+                            id="county-input"
+                            name="county_id"
+                            label="Judet"
+                            placeholder="Judet"
+                            :options="$counties"
+                            option-label="name"
+                            :selected="request('county_id', optional($currentCounty)->id)"
+                            class="listing-filter"
+                        />
 
-                        <select id="locality-input" name="locality_id" class="autovit-select listing-filter" disabled>
-                            <option value="">Oraș</option>
-                        </select>
+                        <x-combobox
+                            id="locality-input"
+                            name="locality_id"
+                            label="Localitate"
+                            placeholder="Localitate"
+                            :options="[]"
+                            :selected="optional($currentLocality)->id"
+                            :disabled="true"
+                            class="listing-filter"
+                        />
 
                         <div class="flex gap-2">
                             <button type="button" id="reset-btn" onclick="resetFilters()" disabled
@@ -286,14 +338,22 @@
                     </button>
 
                     <div class="listing-sort-compact min-w-0 lg:ml-auto lg:flex lg:w-auto lg:items-center lg:gap-2">
-                        <label for="sort-select" class="sr-only text-sm font-semibold text-gray-600 dark:text-gray-300 lg:not-sr-only">Sortare</label>
-                        <select id="sort-select" class="autovit-select listing-filter w-full lg:w-56">
-                            <option value="newest" @selected(request('sort', 'newest') === 'newest')>Recomandată</option>
-                            <option value="price_asc" @selected(request('sort') === 'price_asc')>Ieftine</option>
-                            <option value="price_desc" @selected(request('sort') === 'price_desc')>Scumpe</option>
-                            <option value="km_asc" @selected(request('sort') === 'km_asc')>Km crescător</option>
-                            <option value="power_asc" @selected(request('sort') === 'power_asc')>Putere crescător</option>
-                        </select>
+                        <x-combobox
+                            id="sort-select"
+                            name="sort_select"
+                            label="Sortare"
+                            placeholder="Sortare"
+                            :options="[
+                                ['value' => 'newest', 'label' => 'Recomandata'],
+                                ['value' => 'price_asc', 'label' => 'Ieftine'],
+                                ['value' => 'price_desc', 'label' => 'Scumpe'],
+                                ['value' => 'km_asc', 'label' => 'Km crescator'],
+                                ['value' => 'power_asc', 'label' => 'Putere crescator'],
+                            ]"
+                            :selected="request()->has('sort') ? request('sort') : null"
+                            :searchable="false"
+                            class="listing-filter w-full lg:w-56"
+                        />
                     </div>
                 </div>
             </div>
@@ -479,6 +539,11 @@
 
     function resetSelect(el, placeholder) {
         if (!el) return;
+        if (window.iaCombobox?.get(el)) {
+            window.iaCombobox.setOptions(el, [], '');
+            window.iaCombobox.disable(el);
+            return;
+        }
         el.innerHTML = `<option value="">${placeholder}</option>`;
         el.disabled = true;
         el.classList.add('bg-gray-50', 'text-gray-400', 'cursor-not-allowed');
@@ -487,6 +552,10 @@
 
     function enableSelect(el) {
         if (!el) return;
+        if (window.iaCombobox?.get(el)) {
+            window.iaCombobox.enable(el);
+            return;
+        }
         el.disabled = false;
         el.classList.remove('bg-gray-50', 'text-gray-400', 'cursor-not-allowed');
     }
@@ -654,12 +723,27 @@
 
     function resetLocalities() {
         if (!domElements.locality) return;
+        if (window.iaCombobox?.get(domElements.locality)) {
+            window.iaCombobox.setOptions(domElements.locality, [], '');
+            window.iaCombobox.disable(domElements.locality);
+            return;
+        }
         domElements.locality.innerHTML = '<option value="">Oraș</option>';
         domElements.locality.disabled = true;
     }
 
     function populateLocalities(localities, selectedId) {
         if (!domElements.locality) return;
+        if (window.iaCombobox?.get(domElements.locality)) {
+            window.iaCombobox.setOptions(domElements.locality, localities.map((locality) => ({
+                value: locality.id,
+                label: locality.name,
+                name: locality.name,
+                slug: locality.slug,
+            })), selectedId || '');
+            window.iaCombobox.enable(domElements.locality);
+            return;
+        }
         domElements.locality.innerHTML = '<option value="">Oraș</option>';
         localities.forEach(locality => {
             const option = document.createElement('option');
@@ -690,16 +774,27 @@
         }
     }
 
-    function buildSearchUrl() {
-        const brandOption = domElements.brand?.selectedOptions?.[0];
-        const modelOption = domElements.model?.selectedOptions?.[0];
-        const countyOption = domElements.county?.selectedOptions?.[0];
-        const localityOption = domElements.locality?.selectedOptions?.[0];
+    function selectedOptionMeta(el) {
+        const comboOption = window.iaCombobox?.selectedOption(el);
+        if (comboOption) return comboOption;
 
-        const brandSlug = brandOption?.dataset?.slug;
-        const modelSlug = modelOption?.dataset?.slug;
-        const countySlug = countyOption?.dataset?.slug;
-        const citySlug = localityOption?.dataset?.slug;
+        return el?.selectedOptions?.[0] || null;
+    }
+
+    function optionSlug(option) {
+        return option?.slug || option?.dataset?.slug || '';
+    }
+
+    function buildSearchUrl() {
+        const brandOption = selectedOptionMeta(domElements.brand);
+        const modelOption = selectedOptionMeta(domElements.model);
+        const countyOption = selectedOptionMeta(domElements.county);
+        const localityOption = selectedOptionMeta(domElements.locality);
+
+        const brandSlug = optionSlug(brandOption);
+        const modelSlug = optionSlug(modelOption);
+        const countySlug = optionSlug(countyOption);
+        const citySlug = optionSlug(localityOption);
         const countyInPath = !!countySlug;
         const cityInPath = !!(countySlug && citySlug);
 
@@ -919,6 +1014,7 @@
     };
 
     document.addEventListener('DOMContentLoaded', () => {
+        window.iaCombobox?.init(document);
         document.querySelectorAll('select.autovit-select').forEach(enhanceSelect);
 
         window.checkResetVisibility();
@@ -1052,22 +1148,42 @@
             });
         }
 
-        if (domElements.brand && domElements.brand.value) {
-            const brandId = domElements.brand.value;
-
+        function populateModelsForBrand(brandId, selectedModelId = '') {
             resetSelect(domElements.model, 'Model');
 
-            if (carData[brandId]) {
-                enableSelect(domElements.model);
-                carData[brandId].forEach(m => {
-                    const selected = initialModelId && String(initialModelId) === String(m.id) ? 'selected' : '';
-                    domElements.model.innerHTML += `<option value="${m.id}" data-slug="${m.slug}" ${selected}>${m.name}</option>`;
-                });
+            const models = (brandId && carData[brandId])
+                ? carData[brandId].map((model) => ({
+                    value: model.id,
+                    label: model.name,
+                    name: model.name,
+                    slug: model.slug,
+                }))
+                : [];
 
-                if (initialModelId && domElements.model.value) {
+            if (!models.length) return;
+
+            if (window.iaCombobox?.get(domElements.model)) {
+                window.iaCombobox.setOptions(domElements.model, models, selectedModelId || '');
+                window.iaCombobox.enable(domElements.model);
+                if (selectedModelId && domElements.model.value) {
                     domElements.model.dispatchEvent(new Event('change'));
                 }
+                return;
             }
+
+            enableSelect(domElements.model);
+            models.forEach(m => {
+                const selected = selectedModelId && String(selectedModelId) === String(m.value) ? 'selected' : '';
+                domElements.model.innerHTML += `<option value="${m.value}" data-slug="${m.slug}" ${selected}>${m.label}</option>`;
+            });
+
+            if (selectedModelId && domElements.model.value) {
+                domElements.model.dispatchEvent(new Event('change'));
+            }
+        }
+
+        if (domElements.brand && domElements.brand.value) {
+            populateModelsForBrand(domElements.brand.value, initialModelId);
         }
 
         if (domElements.brand) {
@@ -1080,15 +1196,7 @@
                     return;
                 }
 
-                resetSelect(domElements.model, 'Model');
-
-                if (carData[brandId]) {
-                    enableSelect(domElements.model);
-                    carData[brandId].forEach(m => {
-                        domElements.model.innerHTML += `<option value="${m.id}" data-slug="${m.slug}">${m.name}</option>`;
-                    });
-                }
-
+                populateModelsForBrand(brandId);
                 window.checkResetVisibility();
             });
         }

@@ -626,8 +626,6 @@ public function indexAutoPath(
     // ==========================================
     public function store(Request $request)
 {
-    $wasAuthenticated = Auth::check();
-
     $rules = [
         'title'       => 'required|max:255',
         'description' => 'required',
@@ -746,6 +744,7 @@ public function indexAutoPath(
         ]);
 
         Auth::login($user);
+        $request->session()->regenerate();
         $userId = $user->id;
     }
 
@@ -834,7 +833,7 @@ public function indexAutoPath(
         }
     }
 
-    $redirectUrl = $wasAuthenticated
+    $redirectUrl = $service->user_id
         ? url('/contul-meu?tab=anunturi')
         : route('cars.index');
 

@@ -64,6 +64,22 @@
     if (is_string($gallery)) $gallery = json_decode($gallery, true) ?? [];
     if (!is_array($gallery)) $gallery = [];
     $gallery = array_values(array_filter($gallery));
+
+    $brandItems = collect($brands ?? []);
+    $popularBrands = $brandItems->where('is_popular', true);
+    $alphabeticalBrands = $brandItems->sortBy(function ($brand) {
+        $name = (string) ($brand->name ?? '');
+        $slug = (string) ($brand->slug ?? '');
+        $normalizedName = mb_strtolower(\Illuminate\Support\Str::ascii($name));
+        $isOtherBrand = in_array($slug, ['altul', 'alta-marca'], true)
+            || in_array($normalizedName, ['alta marca', 'altul'], true);
+
+        return sprintf('%d-%s', $isOtherBrand ? 1 : 0, $normalizedName);
+    });
+    $brandComboboxGroups = [
+        ['label' => 'Populare', 'options' => $popularBrands],
+        ['label' => 'A-Z', 'options' => $alphabeticalBrands],
+    ];
 @endphp
 
 <div class="max-w-[1536px] mx-auto mt-8 mb-20 px-4 sm:px-6 lg:px-8">
@@ -112,20 +128,16 @@
                                     <span class="absolute left-3 top-2.5 text-gray-400">🏢</span>
                                     <input type="hidden" name="brand" id="brandText" value="{{ $savedBrandText }}">
 
-                                    <select name="brand_id" id="brandSelect"
-                                            class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444]
-                                                   bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white
-                                                   focus:ring-2 focus:ring-[#C81424] outline-none transition-all appearance-none cursor-pointer"
-                                            required>
-                                        <option value="">Marca</option>
-                                        @foreach($brands as $brand)
-                                            <option value="{{ $brand->id }}"
-                                                    data-name="{{ $brand->name }}"
-                                                    @selected((string)$savedBrandId === (string)$brand->id)>
-                                                {{ $brand->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                    <x-combobox
+                                        id="brandSelect"
+                                        name="brand_id"
+                                        label="Marca"
+                                        placeholder="Marca"
+                                        :groups="$brandComboboxGroups"
+                                        option-label="name"
+                                        :selected="$savedBrandId"
+                                        :required="true"
+                                    />
                                 </div>
 
                                 {{-- Model (FK) + fallback text --}}
@@ -133,25 +145,29 @@
                                     <span class="absolute left-3 top-2.5 text-gray-400">🚘</span>
                                     <input type="hidden" name="model" id="modelText" value="{{ $savedModelText }}">
 
-                                    <select name="model_id" id="modelSelect" disabled
-                                            class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444]
-                                                   bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white
-                                                   disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-[#222] disabled:cursor-not-allowed
-                                                   focus:ring-2 focus:ring-[#C81424] outline-none transition-all appearance-none">
-                                        <option value="">Model</option>
-                                    </select>
+                                    <x-combobox
+                                        id="modelSelect"
+                                        name="model_id"
+                                        label="Model"
+                                        placeholder="Model"
+                                        :options="[]"
+                                        :selected="$savedModelId"
+                                        :disabled="true"
+                                    />
                                 </div>
 
                                 {{-- Year --}}
                                 <div class="relative group">
-                                    <select name="an_fabricatie" id="yearSelect" disabled
-                                            class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-[#444]
-                                                   bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white
-                                                   disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-[#222] disabled:cursor-not-allowed
-                                                   outline-none transition-all"
-                                            required>
-                                        <option value="">An</option>
-                                    </select>
+                                    <x-combobox
+                                        id="yearSelect"
+                                        name="an_fabricatie"
+                                        label="An"
+                                        placeholder="An"
+                                        :options="[]"
+                                        :selected="$savedYear"
+                                        :disabled="true"
+                                        :required="true"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -169,16 +185,16 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
                             {{-- SELECT CULOARE --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Culoare</label>
-                                <select name="culoare_id"
-                                        class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444]
-                                               bg-white dark:bg-[#1a1a1a] text-sm text-gray-900 dark:text-white outline-none focus:border-[#C81424]"
-                                        required>
-                                    <option value="">Alege Culoarea</option>
-                                    @foreach($colors as $color)
-                                        <option value="{{ $color->id }}" @selected((string)$savedColorId === (string)$color->id)>{{ $color->nume }}</option>
-                                    @endforeach
-                                </select>
+                                <x-combobox
+                                    id="inputColor"
+                                    name="culoare_id"
+                                    label="Culoare"
+                                    placeholder="Culoare"
+                                    :options="$colors"
+                                    option-label="nume"
+                                    :selected="$savedColorId"
+                                    :required="true"
+                                />
                             </div>
 
                             {{-- BUTOANE FINISAJ --}}
@@ -203,73 +219,57 @@
 
                         {{-- CAROSERIE --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Caroserie</label>
-                            <input type="hidden" name="caroserie_id" id="inputBodyType" value="{{ $savedBodyId ?: '' }}">
-                            <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                                @foreach($bodies as $body)
-                                    <button type="button"
-                                            onclick="selectPill('inputBodyType', '{{ $body->id }}', this)"
-                                            class="pill-btn px-2 py-2 rounded-lg border border-gray-200 dark:border-[#333]
-                                                   text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-[#C81424] hover:text-[#C81424]
-                                                   transition-all bg-white dark:bg-[#252525] {{ (string)$savedBodyId === (string)$body->id ? 'selected' : '' }}">
-                                        {{ $body->nume }}
-                                    </button>
-                                @endforeach
-                            </div>
+                            <x-combobox
+                                id="inputBodyType"
+                                name="caroserie_id"
+                                label="Tip caroserie"
+                                placeholder="Tip caroserie"
+                                :options="$bodies"
+                                option-label="nume"
+                                :selected="$savedBodyId"
+                            />
                             <p id="err-body" class="text-red-500 text-xs mt-1 hidden">Selectează caroseria.</p>
                         </div>
 
                         {{-- COMBUSTIBIL --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Combustibil</label>
-                            <input type="hidden" name="combustibil_id" id="inputFuel" value="{{ $savedFuelId ?: '' }}">
-                            <div class="flex flex-wrap gap-2">
-                                @foreach($fuels as $fuel)
-                                    <button type="button"
-                                            onclick="selectPill('inputFuel', '{{ $fuel->id }}', this)"
-                                            class="pill-btn px-4 py-2 rounded-lg border border-gray-200 dark:border-[#333]
-                                                   text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-[#C81424] hover:text-[#C81424]
-                                                   transition-all bg-white dark:bg-[#252525] {{ (string)$savedFuelId === (string)$fuel->id ? 'selected' : '' }}">
-                                        {{ $fuel->nume }}
-                                    </button>
-                                @endforeach
-                            </div>
+                            <x-combobox
+                                id="inputFuel"
+                                name="combustibil_id"
+                                label="Combustibil"
+                                placeholder="Combustibil"
+                                :options="$fuels"
+                                option-label="nume"
+                                :selected="$savedFuelId"
+                            />
                             <p id="err-fuel" class="text-red-500 text-xs mt-1 hidden">Alege combustibil.</p>
                         </div>
 
                         {{-- TRANSMISIE --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Transmisie</label>
-                            <input type="hidden" name="cutie_viteze_id" id="inputTrans" value="{{ $savedTransId ?: '' }}">
-                            <div class="flex gap-3">
-                                @foreach($transmissions as $trans)
-                                    <button type="button"
-                                            onclick="selectPill('inputTrans', '{{ $trans->id }}', this)"
-                                            class="pill-btn flex-1 py-2.5 rounded-lg border border-gray-200 dark:border-[#333]
-                                                   text-sm font-medium bg-white dark:bg-[#252525] hover:border-[#C81424] transition-all
-                                                   flex items-center justify-center gap-2 {{ (string)$savedTransId === (string)$trans->id ? 'selected' : '' }}">
-                                        {{ $trans->nume }}
-                                    </button>
-                                @endforeach
-                            </div>
+                            <x-combobox
+                                id="inputTrans"
+                                name="cutie_viteze_id"
+                                label="Transmisie"
+                                placeholder="Transmisie"
+                                :options="$transmissions"
+                                option-label="nume"
+                                :selected="$savedTransId"
+                            />
                             <p id="err-trans" class="text-red-500 text-xs mt-1 hidden">Alege transmisia.</p>
                         </div>
 
                         {{-- TRACTIUNE --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Tracțiune</label>
-                            <input type="hidden" name="tractiune_id" id="inputTractiune" value="{{ $savedTractiuneId ?: '' }}">
-                            <div class="flex flex-wrap gap-2">
-                                @foreach($tractiuni as $tr)
-                                    <button type="button"
-                                            onclick="selectPill('inputTractiune', '{{ $tr->id }}', this)"
-                                            class="pill-btn px-4 py-2 rounded-lg border border-gray-200 dark:border-[#333]
-                                                   text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-[#C81424] hover:text-[#C81424]
-                                                   transition-all bg-white dark:bg-[#252525] {{ (string)$savedTractiuneId === (string)$tr->id ? 'selected' : '' }}">
-                                        {{ $tr->nume }}
-                                    </button>
-                                @endforeach
-                            </div>
+                            <x-combobox
+                                id="inputTractiune"
+                                name="tractiune_id"
+                                label="Tractiune"
+                                placeholder="Tractiune"
+                                :options="$tractiuni"
+                                option-label="nume"
+                                :selected="$savedTractiuneId"
+                            />
                             <p id="err-tractiune" class="text-red-500 text-xs mt-1 hidden">Alege tracțiunea.</p>
                         </div>
 
@@ -326,37 +326,41 @@
 
                 {{-- NORMA POLUARE --}}
                 <div class="mb-6">
-                    <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Normă poluare</label>
-                    <select name="norma_poluare_id"
-                            class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444]
-                                   bg-white dark:bg-[#252525] text-sm text-gray-900 dark:text-white">
-                        <option value="">Alege norma</option>
-                        @foreach($normePoluare as $norma)
-                            <option value="{{ $norma->id }}" @selected((string)$savedNormaId === (string)$norma->id)>{{ $norma->nume }}</option>
-                        @endforeach
-                    </select>
+                    <x-combobox
+                        id="inputNormaPoluare"
+                        name="norma_poluare_id"
+                        label="Norma poluare"
+                        placeholder="Norma poluare"
+                        :options="$normePoluare"
+                        option-label="nume"
+                        :selected="$savedNormaId"
+                    />
                 </div>
 
                 {{-- USI + LOCURI --}}
                 <div class="grid grid-cols-2 gap-6 mb-6">
                     <div>
-                        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Număr uși</label>
-                        <select name="numar_usi" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm text-gray-900 dark:text-white">
-                            <option value="">—</option>
-                            @foreach([2,3,4,5] as $usi)
-                                <option value="{{ $usi }}" @selected((string)$savedDoors === (string)$usi)>{{ $usi }}</option>
-                            @endforeach
-                        </select>
+                        <x-combobox
+                            id="inputDoors"
+                            name="numar_usi"
+                            label="Numar usi"
+                            placeholder="Numar usi"
+                            :options="collect([2, 3, 4, 5])->map(fn ($usi) => ['value' => $usi, 'label' => (string) $usi])"
+                            :selected="$savedDoors"
+                            :searchable="false"
+                        />
                     </div>
 
                     <div>
-                        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Număr locuri</label>
-                        <select name="numar_locuri" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm text-gray-900 dark:text-white">
-                            <option value="">—</option>
-                            @foreach(range(2,9) as $locuri)
-                                <option value="{{ $locuri }}" @selected((string)$savedSeats === (string)$locuri)>{{ $locuri }}</option>
-                            @endforeach
-                        </select>
+                        <x-combobox
+                            id="inputSeats"
+                            name="numar_locuri"
+                            label="Numar locuri"
+                            placeholder="Numar locuri"
+                            :options="collect(range(2, 9))->map(fn ($locuri) => ['value' => $locuri, 'label' => (string) $locuri])"
+                            :selected="$savedSeats"
+                            :searchable="false"
+                        />
                     </div>
                 </div>
 
@@ -487,19 +491,28 @@
                                    required>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Județ</label>
-                            <select id="county-select" name="county_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm text-gray-900 dark:text-white" required>
-                                <option value="">Alege județ</option>
-                                @foreach ($counties as $county)
-                                    <option value="{{ $county->id }}" @selected((string)$savedCountyId === (string)$county->id)>{{ $county->name }}</option>
-                                @endforeach
-                            </select>
+                            <x-combobox
+                                id="county-select"
+                                name="county_id"
+                                label="Judet"
+                                placeholder="Judet"
+                                :options="$counties"
+                                option-label="name"
+                                :selected="$savedCountyId"
+                                :required="true"
+                            />
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Oraș</label>
-                            <select id="locality-select" name="locality_id" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525] text-sm text-gray-900 dark:text-white" disabled required>
-                                <option value="">Selectează orașul</option>
-                            </select>
+                            <x-combobox
+                                id="locality-select"
+                                name="locality_id"
+                                label="Localitate"
+                                placeholder="Localitate"
+                                :options="[]"
+                                :selected="$savedLocalityId"
+                                :disabled="true"
+                                :required="true"
+                            />
                         </div>
                     </div>
                 </div>
@@ -548,6 +561,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    window.iaCombobox?.init(document);
 
     // ================== 1) WIZARD NAV ==================
     let currentStep = 1;
@@ -597,12 +611,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function resetLocalities() {
         if (!localitySelect) return;
+        if (window.iaCombobox?.get(localitySelect)) {
+            window.iaCombobox.setOptions(localitySelect, [], '');
+            window.iaCombobox.disable(localitySelect);
+            return;
+        }
         localitySelect.innerHTML = '<option value="">Selectează orașul</option>';
         localitySelect.disabled = true;
     }
 
     function populateLocalities(localities, selectedId) {
         if (!localitySelect) return;
+        if (window.iaCombobox?.get(localitySelect)) {
+            window.iaCombobox.setOptions(localitySelect, localities.map((locality) => ({
+                value: locality.id,
+                label: locality.name,
+                name: locality.name,
+                slug: locality.slug,
+            })), selectedId || '');
+            window.iaCombobox.enable(localitySelect);
+            return;
+        }
         localitySelect.innerHTML = '<option value="">Selectează orașul</option>';
         localities.forEach(locality => {
             const option = document.createElement('option');
@@ -647,6 +676,18 @@ document.addEventListener('DOMContentLoaded', function() {
         if (inputId === 'inputTractiune') document.getElementById('err-tractiune')?.classList.add('hidden');
     }
 
+    [
+        ['inputBodyType', 'err-body'],
+        ['inputFuel', 'err-fuel'],
+        ['inputTrans', 'err-trans'],
+        ['inputTractiune', 'err-tractiune'],
+    ].forEach(([inputId, errorId]) => {
+        document.getElementById(inputId)?.addEventListener('change', () => {
+            document.getElementById(errorId)?.classList.add('hidden');
+            window.iaCombobox?.setInvalid(document.getElementById(inputId), false);
+        });
+    });
+
     // ================== 3) VALIDATION (ca în create) ==================
     function validateCurrentStep() {
         let valid = true;
@@ -654,18 +695,34 @@ document.addEventListener('DOMContentLoaded', function() {
         const inputs = currentEl.querySelectorAll('input[required], select[required], textarea[required]');
 
         inputs.forEach(inp => {
+            const isComboboxValue = inp.matches('[data-combobox-value]');
+            if (inp.disabled) return;
+
             if (!inp.value) {
                 valid = false;
                 inp.classList.add('ring-2', 'ring-red-500', 'border-red-500');
-                inp.addEventListener('change', () => inp.classList.remove('ring-2', 'ring-red-500', 'border-red-500'), { once:true });
+                window.iaCombobox?.setInvalid(inp, true);
+                inp.addEventListener('change', () => {
+                    inp.classList.remove('ring-2', 'ring-red-500', 'border-red-500');
+                    window.iaCombobox?.setInvalid(inp, false);
+                }, { once:true });
             }
         });
 
         if (currentStep === 1) {
-            if (!document.getElementById('inputBodyType').value) { document.getElementById('err-body').classList.remove('hidden'); valid = false; }
-            if (!document.getElementById('inputFuel').value) { document.getElementById('err-fuel').classList.remove('hidden'); valid = false; }
-            if (!document.getElementById('inputTrans').value) { document.getElementById('err-trans').classList.remove('hidden'); valid = false; }
-            if (!document.getElementById('inputTractiune').value) { document.getElementById('err-tractiune').classList.remove('hidden'); valid = false; }
+            [
+                ['inputBodyType', 'err-body'],
+                ['inputFuel', 'err-fuel'],
+                ['inputTrans', 'err-trans'],
+                ['inputTractiune', 'err-tractiune'],
+            ].forEach(([inputId, errorId]) => {
+                const input = document.getElementById(inputId);
+                if (!input?.value) {
+                    document.getElementById(errorId)?.classList.remove('hidden');
+                    window.iaCombobox?.setInvalid(input, true);
+                    valid = false;
+                }
+            });
         }
 
         return valid;
@@ -702,48 +759,87 @@ document.addEventListener('DOMContentLoaded', function() {
     const savedYear    = @json($savedYear);
 
     function populateYears(start, end, selectedYear = null) {
+        const finalEnd = end || new Date().getFullYear();
+        const years = [];
+        for (let i = finalEnd; i >= start; i--) {
+            years.push({ value: i, label: String(i) });
+        }
+
+        if (window.iaCombobox?.get(yearSel)) {
+            window.iaCombobox.setOptions(yearSel, years, selectedYear || '');
+            window.iaCombobox.enable(yearSel);
+            return;
+        }
+
         yearSel.innerHTML = '<option value="">An</option>';
         yearSel.disabled = false;
-        const finalEnd = end || new Date().getFullYear();
-        for (let i = finalEnd; i >= start; i--) {
-            const opt = document.createElement('option');
-            opt.value = i;
-            opt.textContent = i;
-            if (selectedYear && String(selectedYear) === String(i)) opt.selected = true;
-            yearSel.appendChild(opt);
-        }
+        years.forEach((year) => {
+            const selected = selectedYear && String(selectedYear) === String(year.value) ? 'selected' : '';
+            yearSel.innerHTML += `<option value="${year.value}" ${selected}>${year.label}</option>`;
+        });
     }
 
     function resetSelect(el, defaultText) {
+        if (window.iaCombobox?.get(el)) {
+            window.iaCombobox.setOptions(el, [], '');
+            window.iaCombobox.disable(el);
+            return;
+        }
         el.innerHTML = `<option value="">${defaultText}</option>`;
         el.disabled = true;
         el.value = "";
     }
 
+    function selectedOptionMeta(el) {
+        const comboOption = window.iaCombobox?.selectedOption(el);
+        if (comboOption) return comboOption;
+
+        return el?.selectedOptions?.[0] || null;
+    }
+
     function syncBrandText() {
-        const brandName = brandSel.options[brandSel.selectedIndex]?.dataset?.name || '';
-        document.getElementById('brandText').value = brandName;
+        const brandOption = selectedOptionMeta(brandSel);
+        document.getElementById('brandText').value = brandOption?.name || brandOption?.label || brandOption?.dataset?.name || '';
     }
 
     function syncModelText() {
-        const modelName = modelSel.options[modelSel.selectedIndex]?.dataset?.name || '';
-        document.getElementById('modelText').value = modelName;
+        const modelOption = selectedOptionMeta(modelSel);
+        document.getElementById('modelText').value = modelOption?.name || modelOption?.label || modelOption?.dataset?.name || '';
+    }
+
+    function populateModels(brandId, selectedModelId = '') {
+        resetSelect(modelSel, 'Model');
+        resetSelect(yearSel, 'An');
+
+        const models = (brandId && carData[brandId])
+            ? carData[brandId].map((model) => ({
+                value: model.id,
+                label: model.name,
+                name: model.name,
+                slug: model.slug,
+            }))
+            : [];
+
+        if (!models.length) return;
+
+        if (window.iaCombobox?.get(modelSel)) {
+            window.iaCombobox.setOptions(modelSel, models, selectedModelId || '');
+            window.iaCombobox.enable(modelSel);
+            return;
+        }
+
+        modelSel.disabled = false;
+        models.forEach(m => {
+            const selected = selectedModelId && String(selectedModelId) === String(m.value) ? 'selected' : '';
+            modelSel.innerHTML += `<option value="${m.value}" data-name="${m.name}" ${selected}>${m.label}</option>`;
+        });
     }
 
     brandSel.addEventListener('change', function() {
         const brandId = this.value;
 
         syncBrandText();
-
-        resetSelect(modelSel, 'Model');
-        resetSelect(yearSel, 'An');
-
-        if (brandId && carData[brandId]) {
-            modelSel.disabled = false;
-            carData[brandId].forEach(m => {
-                modelSel.innerHTML += `<option value="${m.id}" data-name="${m.name}">${m.name}</option>`;
-            });
-        }
+        populateModels(brandId);
     });
 
     modelSel.addEventListener('change', function() {
@@ -763,23 +859,18 @@ document.addEventListener('DOMContentLoaded', function() {
     function initCascadeFromSaved() {
         if (!savedBrandId) return;
 
-        brandSel.value = String(savedBrandId);
+        if (window.iaCombobox?.get(brandSel)) {
+            window.iaCombobox.setValue(brandSel, savedBrandId, { dispatch: false });
+        } else {
+            brandSel.value = String(savedBrandId);
+        }
         syncBrandText();
 
         resetSelect(modelSel, 'Model');
         resetSelect(yearSel, 'An');
 
         if (carData[savedBrandId]) {
-            modelSel.disabled = false;
-            modelSel.innerHTML = '<option value="">Model</option>';
-            carData[savedBrandId].forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m.id;
-                opt.textContent = m.name;
-                opt.dataset.name = m.name;
-                if (String(savedModelId) === String(m.id)) opt.selected = true;
-                modelSel.appendChild(opt);
-            });
+            populateModels(savedBrandId, savedModelId);
 
             if (savedModelId) {
                 syncModelText();
