@@ -48,14 +48,14 @@
 
         <div class="mb-4">
             <label class="font-semibold text-gray-700 dark:text-gray-300">Parola nouă</label>
-            <input type="password" name="password"
+            <input type="password" name="password" minlength="6"
                    class="w-full mt-1 px-4 py-3 border border-gray-200 dark:border-[#404040] rounded-xl bg-gray-50 dark:bg-[#252525] text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-end">
             @error('password')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
         </div>
 
         <div class="mb-4">
             <label class="font-semibold text-gray-700 dark:text-gray-300">Confirmă parola nouă</label>
-            <input type="password" name="password_confirmation"
+            <input type="password" name="password_confirmation" minlength="6"
                    class="w-full mt-1 px-4 py-3 border border-gray-200 dark:border-[#404040] rounded-xl bg-gray-50 dark:bg-[#252525] text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-end">
         </div>
 

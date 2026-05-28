@@ -298,8 +298,7 @@
                         <div class="relative">
                             <input type="number" name="km" value="{{ $savedKm }}"
                                    class="w-full pl-3 pr-8 py-2.5 rounded-lg border border-gray-200 dark:border-[#444]
-                                          bg-white dark:bg-[#252525] text-gray-900 dark:text-white focus:ring-2 focus:ring-[#C81424] outline-none transition-all font-mono"
-                                   required>
+                                          bg-white dark:bg-[#252525] text-gray-900 dark:text-white focus:ring-2 focus:ring-[#C81424] outline-none transition-all font-mono">
                             <span class="absolute right-3 top-2.5 text-xs font-bold text-gray-400">km</span>
                         </div>
                     </div>
@@ -378,17 +377,19 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Titlu Anunț</label>
-                        <input type="text" name="title" value="{{ $savedTitle }}"
+                        <input type="text" name="title" value="{{ $savedTitle }}" maxlength="90" data-character-counter data-character-counter-target="edit-title-counter" placeholder="Maxim 90 caractere"
                                class="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#252525] border border-gray-200 dark:border-[#444]
                                       focus:border-[#C81424] outline-none text-gray-900 dark:text-white font-medium"
                                required>
+                        <p class="mt-1 text-right text-xs font-semibold text-slate-400"><span id="edit-title-counter">90</span> caractere ramase</p>
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Descriere</label>
-                        <textarea name="description" rows="8"
+                        <textarea name="description" rows="8" maxlength="10000" data-character-counter data-character-counter-target="edit-description-counter"
                                   class="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#252525] border border-gray-200 dark:border-[#444]
                                          focus:border-[#C81424] outline-none text-sm text-gray-900 dark:text-white resize-none"
                                   required>{{ $savedDesc }}</textarea>
+                        <p class="mt-1 text-right text-xs font-semibold text-slate-400"><span id="edit-description-counter">10.000</span> caractere ramase</p>
                     </div>
                 </div>
             </div>

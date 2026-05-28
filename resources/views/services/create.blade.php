@@ -275,7 +275,7 @@
                     <div>
                         <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Rulaj</label>
                         <div class="relative">
-                            <input type="number" name="km" placeholder="150000" class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-3 pr-16 text-gray-900 font-mono outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#252525] dark:text-white" required>
+                            <input type="number" name="km" placeholder="150000" class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-3 pr-16 text-gray-900 font-mono outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#252525] dark:text-white">
                             <span class="pointer-events-none absolute inset-y-2 right-3 flex items-center border-l border-slate-200 pl-3 text-[11px] font-bold uppercase text-slate-400 dark:border-[#444]">km</span>
                         </div>
                     </div>
@@ -350,11 +350,13 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Titlu Anunț</label>
-                        <input type="text" name="title" placeholder="Ex: BMW 320d M-Packet 2019, Unic Proprietar" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium text-gray-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#252525] dark:text-white" required>
+                        <input type="text" name="title" maxlength="90" data-character-counter data-character-counter-target="create-title-counter" placeholder="Maxim 90 caractere. Ex: BMW 320d M-Packet 2019" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium text-gray-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#252525] dark:text-white" required>
+                        <p class="mt-1 text-right text-xs font-semibold text-slate-400"><span id="create-title-counter">90</span> caractere ramase</p>
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Descriere</label>
-                        <textarea name="description" rows="8" placeholder="Descrie dotările, istoricul de service, starea tehnică..." class="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-gray-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#252525] dark:text-white" required></textarea>
+                        <textarea name="description" rows="8" maxlength="10000" data-character-counter data-character-counter-target="create-description-counter" placeholder="Descrie dotările, istoricul de service, starea tehnică..." class="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-gray-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#252525] dark:text-white" required></textarea>
+                        <p class="mt-1 text-right text-xs font-semibold text-slate-400"><span id="create-description-counter">10.000</span> caractere ramase</p>
                     </div>
                 </div>
             </div>
@@ -481,7 +483,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Parolă</label>
-                            <input type="password" name="password" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#252525] dark:text-white">
+                            <input type="password" name="password" minlength="6" placeholder="Minim 6 caractere" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#252525] dark:text-white">
                         </div>
                     </div>
                 </div>

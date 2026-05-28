@@ -49,11 +49,11 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                             </svg>
                         </div>
-                        <input id="password" name="password" type="password" autocomplete="new-password" required
+                        <input id="password" name="password" type="password" autocomplete="new-password" minlength="6" required
                             class="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-[#404040] rounded-xl
                                    placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#C81424] focus:border-transparent
                                    bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white sm:text-sm transition shadow-sm"
-                            placeholder="Parola nouă">
+                            placeholder="Parola nouă, minim 6 caractere">
                     </div>
                     <x-input-error :messages="$errors->get('password')" class="mt-1 text-xs text-red-500" />
                 </div>
@@ -68,7 +68,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25V19.5H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.5c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
                             </svg>
                         </div>
-                        <input id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" required
+                        <input id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" minlength="6" required
                             class="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-[#404040] rounded-xl
                                    placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#C81424] focus:border-transparent
                                    bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white sm:text-sm transition shadow-sm"

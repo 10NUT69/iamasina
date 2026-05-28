@@ -40,6 +40,8 @@ class ServiceController extends Controller
 {
     private const MAX_SERVICE_IMAGES = 10;
     private const MAX_SERVICE_IMAGE_KB = 15360;
+    private const SERVICE_TITLE_MAX_LENGTH = 90;
+    private const SERVICE_DESCRIPTION_MAX_LENGTH = 10000;
 
     // ==========================================
     // 1. INDEX (NESCHIMBAT)
@@ -627,8 +629,8 @@ public function indexAutoPath(
     public function store(Request $request)
 {
     $rules = [
-        'title'       => 'required|max:255',
-        'description' => 'required',
+        'title'       => 'required|string|max:' . self::SERVICE_TITLE_MAX_LENGTH,
+        'description' => 'required|string|max:' . self::SERVICE_DESCRIPTION_MAX_LENGTH,
         'category_id' => 'required|exists:categories,id',
         'county_id'   => 'required|exists:counties,id',
         'locality_id' => [
@@ -662,7 +664,7 @@ public function indexAutoPath(
 
         // rest auto
         'an_fabricatie'         => 'required|integer',
-        'km'                    => 'required|integer',
+        'km'                    => 'nullable|integer',
         'capacitate_cilindrica' => 'nullable|integer',
         'putere'                => 'nullable|integer',
         'vin'                   => 'nullable|string|max:17',
@@ -689,6 +691,8 @@ public function indexAutoPath(
     }
 
     $messages = [
+        'title.max'         => 'Titlul poate avea maxim ' . self::SERVICE_TITLE_MAX_LENGTH . ' de caractere.',
+        'description.max'   => 'Descrierea poate avea maxim ' . number_format(self::SERVICE_DESCRIPTION_MAX_LENGTH, 0, ',', '.') . ' de caractere.',
         'images.max'        => 'Poți încărca maxim 10 imagini.',
         'images.*.max'      => 'Una dintre imagini este prea mare (max 15MB).',
         'images.*.uploaded' => 'Eroare la încărcare server.',
@@ -906,8 +910,8 @@ public function edit($id)
         ?? Category::where('name', 'Autoturisme')->value('id');
 
     $rules = [
-        'title'       => 'required|max:255',
-        'description' => 'required',
+        'title'       => 'required|string|max:' . self::SERVICE_TITLE_MAX_LENGTH,
+        'description' => 'required|string|max:' . self::SERVICE_DESCRIPTION_MAX_LENGTH,
 
         // categoria NU vine din UI (hidden sau deloc). O forțăm mai jos.
         // 'category_id' => ... (NU mai validăm din request)
@@ -935,7 +939,7 @@ public function edit($id)
 
         // rest auto
         'an_fabricatie'         => 'required|integer',
-        'km'                    => 'required|integer',
+        'km'                    => 'nullable|integer',
         'vin'                   => 'nullable|string|max:17',
         'putere'                => 'nullable|integer',
         'capacitate_cilindrica' => 'nullable|integer',
@@ -961,6 +965,8 @@ public function edit($id)
     }
 
     $validated = $request->validate($rules, [
+        'title.max'         => 'Titlul poate avea maxim ' . self::SERVICE_TITLE_MAX_LENGTH . ' de caractere.',
+        'description.max'   => 'Descrierea poate avea maxim ' . number_format(self::SERVICE_DESCRIPTION_MAX_LENGTH, 0, ',', '.') . ' de caractere.',
         'images.max'        => 'Poți avea maxim 10 imagini în total.',
         'images.*.max'      => 'Una dintre imagini este prea mare (max 15MB).',
         'images.*.uploaded' => 'Eroare la încărcare server.',

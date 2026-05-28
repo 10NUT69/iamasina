@@ -1,5 +1,6 @@
 import './bootstrap';
 import './components/combobox';
+import './components/character-counter';
 
 import Alpine from 'alpinejs';
 window.Alpine = Alpine;
