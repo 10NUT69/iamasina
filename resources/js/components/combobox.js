@@ -92,6 +92,14 @@ class HybridCombobox {
             }
         });
 
+        this.input.addEventListener('blur', () => {
+            this.close();
+        });
+
+        this.input.addEventListener('change', () => {
+            this.close();
+        });
+
         this.input.addEventListener('input', () => {
             if (!this.searchable) {
                 this.input.value = this.selectedOption()?.label || '';
@@ -125,8 +133,10 @@ class HybridCombobox {
                 const option = this.filteredOptions[this.activeIndex] || this.filteredOptions[0];
                 if (option) {
                     this.setValue(option.value);
-                    this.close();
                 }
+                this.finishInteraction();
+            } else if (event.key === 'Tab') {
+                this.close();
             } else if (event.key === 'Escape') {
                 event.preventDefault();
                 this.close();
@@ -306,8 +316,7 @@ class HybridCombobox {
                 button.addEventListener('mousedown', (event) => event.preventDefault());
                 button.addEventListener('click', () => {
                     this.setValue(option.value);
-                    this.close();
-                    this.input.focus();
+                    this.finishInteraction();
                 });
 
                 groupEl.appendChild(button);
@@ -344,6 +353,13 @@ class HybridCombobox {
         this.root.classList.remove('is-open');
         this.input.setAttribute('aria-expanded', 'false');
         this.input.removeAttribute('aria-activedescendant');
+    }
+
+    finishInteraction() {
+        this.close();
+        if (document.activeElement === this.input) {
+            this.input.blur();
+        }
     }
 
     toggle() {
@@ -410,7 +426,7 @@ function initComboboxes(scope = document) {
 document.addEventListener('click', (event) => {
     if (event.target.closest('[data-combobox]')) return;
     document.querySelectorAll('[data-combobox].is-open').forEach((root) => {
-        instances.get(root)?.close();
+        instances.get(root)?.finishInteraction();
     });
 });
 
