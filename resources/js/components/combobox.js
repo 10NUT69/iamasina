@@ -1,4 +1,5 @@
 const instances = new WeakMap();
+const nativeFieldInstances = new WeakSet();
 
 function normaliseText(value) {
     return String(value || '')
@@ -47,6 +48,7 @@ class HybridCombobox {
             this.syncDisabled();
             this.root.classList.toggle('is-invalid', this.hidden.getAttribute('aria-invalid') === 'true');
         });
+
         this.observer.observe(this.hidden, {
             attributes: true,
             attributeFilter: ['disabled', 'aria-invalid', 'value'],
@@ -64,9 +66,16 @@ class HybridCombobox {
     }
 
     bindEvents() {
-        this.control.addEventListener('mousedown', (event) => {
+        this.control?.addEventListener('mousedown', (event) => {
             if (this.hidden.disabled) return;
+
             if (event.target.closest('[data-combobox-clear]')) return;
+            if (event.target.closest('[data-combobox-toggle]')) return;
+
+            if (event.target === this.input) {
+                return;
+            }
+
             event.preventDefault();
             this.open();
             this.input.focus();
@@ -74,16 +83,26 @@ class HybridCombobox {
 
         this.toggleButton?.addEventListener('click', (event) => {
             event.preventDefault();
+            event.stopPropagation();
+
             if (this.hidden.disabled) return;
-            this.toggle();
-            this.input.focus();
+
+            if (this.root.classList.contains('is-open')) {
+                this.finishInteraction();
+                return;
+            }
+
+            this.open();
         });
 
         this.clearButton?.addEventListener('click', (event) => {
             event.preventDefault();
             event.stopPropagation();
-            this.clear();
-            this.input.focus();
+
+            if (this.hidden.disabled) return;
+
+            this.clear({ dispatch: true });
+            this.finishInteraction();
         });
 
         this.input.addEventListener('focus', () => {
@@ -107,6 +126,7 @@ class HybridCombobox {
             }
 
             const selected = this.selectedOption();
+
             if (selected && this.input.value !== selected.label) {
                 this.setValue('', { dispatch: true, keepQuery: true });
             }
@@ -123,50 +143,81 @@ class HybridCombobox {
                 event.preventDefault();
                 this.open();
                 this.moveActive(1);
-            } else if (event.key === 'ArrowUp') {
+                return;
+            }
+
+            if (event.key === 'ArrowUp') {
                 event.preventDefault();
                 this.open();
                 this.moveActive(-1);
-            } else if (event.key === 'Enter') {
-                if (!this.root.classList.contains('is-open')) return;
+                return;
+            }
+
+            if (event.key === 'Enter') {
                 event.preventDefault();
-                const option = this.filteredOptions[this.activeIndex] || this.filteredOptions[0];
-                if (option) {
-                    this.setValue(option.value);
+
+                if (this.root.classList.contains('is-open')) {
+                    const option = this.filteredOptions[this.activeIndex] || this.filteredOptions[0];
+
+                    if (option) {
+                        this.setValue(option.value);
+                    }
                 }
+
                 this.finishInteraction();
-            } else if (event.key === 'Tab') {
+                return;
+            }
+
+            if (event.key === 'Tab') {
                 this.close();
-            } else if (event.key === 'Escape') {
+                return;
+            }
+
+            if (event.key === 'Escape') {
                 event.preventDefault();
-                this.close();
+
                 const selected = this.selectedOption();
                 this.input.value = selected?.label || '';
                 this.root.classList.toggle('has-query', false);
+
+                this.finishInteraction();
             }
         });
 
         this.hidden.addEventListener('change', () => {
             if (this.suppressHiddenSync) return;
-            this.setValue(this.hidden.value || '', { dispatch: false, keepQuery: false });
+
+            this.setValue(this.hidden.value || '', {
+                dispatch: false,
+                keepQuery: false,
+            });
         });
     }
 
     syncDisabled() {
         const disabled = this.hidden.disabled;
+
         this.input.disabled = disabled;
-        if (this.toggleButton) this.toggleButton.disabled = disabled;
-        if (this.clearButton) this.clearButton.disabled = disabled;
+
+        if (this.toggleButton) {
+            this.toggleButton.disabled = disabled;
+        }
+
+        if (this.clearButton) {
+            this.clearButton.disabled = disabled;
+        }
+
         this.root.classList.toggle('is-disabled', disabled);
         this.input.setAttribute('aria-disabled', disabled ? 'true' : 'false');
 
         if (disabled) {
-            this.close();
+            this.finishInteraction();
         }
     }
 
     selectedOption() {
         const value = String(this.hidden.value || '');
+
         if (!value) return null;
 
         return this.options.find((option) => option.value === value) || null;
@@ -192,11 +243,13 @@ class HybridCombobox {
 
         if (option) {
             this.setSelectedMeta(option);
+
             if (!keepQuery) {
                 this.input.value = option.label;
             }
         } else {
             this.clearSelectedMeta();
+
             if (!keepQuery) {
                 this.input.value = '';
             }
@@ -204,6 +257,7 @@ class HybridCombobox {
 
         this.root.classList.toggle('has-value', !!option);
         this.root.classList.toggle('has-query', !option && this.input.value.trim() !== '');
+
         if (this.clearButton) {
             this.clearButton.hidden = !option;
         }
@@ -223,7 +277,7 @@ class HybridCombobox {
         this.setValue('', { dispatch });
         this.input.value = '';
         this.filter('');
-        this.open();
+        this.root.classList.toggle('has-query', false);
     }
 
     filter(query) {
@@ -234,6 +288,7 @@ class HybridCombobox {
 
         if (needle) {
             const seenValues = new Set();
+
             this.filteredOptions = matches.filter((option) => {
                 if (seenValues.has(option.value)) {
                     return false;
@@ -256,10 +311,16 @@ class HybridCombobox {
         this.filteredOptions.forEach((option) => {
             const groupName = option.group || '';
             let group = groups.find((item) => item.label === groupName);
+
             if (!group) {
-                group = { label: groupName, options: [] };
+                group = {
+                    label: groupName,
+                    options: [],
+                };
+
                 groups.push(group);
             }
+
             group.options.push(option);
         });
 
@@ -271,28 +332,36 @@ class HybridCombobox {
 
         if (!this.filteredOptions.length) {
             const empty = document.createElement('div');
+
             empty.className = 'ia-combobox__empty';
             empty.textContent = 'Nicio optiune gasita';
+
             this.listbox.appendChild(empty);
             this.input.removeAttribute('aria-activedescendant');
+
             return;
         }
 
         let optionIndex = 0;
+
         this.groupedOptions().forEach((group) => {
             const groupEl = document.createElement('div');
+
             groupEl.className = 'ia-combobox__group';
 
             if (group.label) {
                 const labelEl = document.createElement('div');
+
                 labelEl.className = 'ia-combobox__group-label';
                 labelEl.textContent = group.label;
+
                 groupEl.appendChild(labelEl);
             }
 
             group.options.forEach((option) => {
                 const button = document.createElement('button');
                 const id = `${this.input.id}-option-${optionIndex}`;
+
                 button.type = 'button';
                 button.id = id;
                 button.className = 'ia-combobox__option';
@@ -313,7 +382,10 @@ class HybridCombobox {
                     button.classList.add('is-selected');
                 }
 
-                button.addEventListener('mousedown', (event) => event.preventDefault());
+                button.addEventListener('mousedown', (event) => {
+                    event.preventDefault();
+                });
+
                 button.addEventListener('click', () => {
                     this.setValue(option.value);
                     this.finishInteraction();
@@ -330,6 +402,7 @@ class HybridCombobox {
     updateSelectedStates() {
         this.listbox.querySelectorAll('[data-value]').forEach((option) => {
             const selected = option.dataset.value === this.hidden.value && this.hidden.value !== '';
+
             option.classList.toggle('is-selected', selected);
             option.setAttribute('aria-selected', selected ? 'true' : 'false');
         });
@@ -357,6 +430,7 @@ class HybridCombobox {
 
     finishInteraction() {
         this.close();
+
         if (document.activeElement === this.input) {
             this.input.blur();
         }
@@ -364,7 +438,7 @@ class HybridCombobox {
 
     toggle() {
         if (this.root.classList.contains('is-open')) {
-            this.close();
+            this.finishInteraction();
         } else {
             this.open();
         }
@@ -374,11 +448,19 @@ class HybridCombobox {
         if (!this.filteredOptions.length) return;
 
         this.activeIndex += direction;
-        if (this.activeIndex < 0) this.activeIndex = this.filteredOptions.length - 1;
-        if (this.activeIndex >= this.filteredOptions.length) this.activeIndex = 0;
+
+        if (this.activeIndex < 0) {
+            this.activeIndex = this.filteredOptions.length - 1;
+        }
+
+        if (this.activeIndex >= this.filteredOptions.length) {
+            this.activeIndex = 0;
+        }
+
         this.renderOptions();
 
         const active = this.listbox.querySelector('.ia-combobox__option.is-active');
+
         active?.scrollIntoView({ block: 'nearest' });
     }
 
@@ -395,6 +477,7 @@ class HybridCombobox {
 
     setInvalid(invalid) {
         this.root.classList.toggle('is-invalid', !!invalid);
+
         if (invalid) {
             this.hidden.setAttribute('aria-invalid', 'true');
         } else {
@@ -407,6 +490,7 @@ function resolveInstance(target) {
     if (!target) return null;
 
     const element = typeof target === 'string' ? document.getElementById(target) : target;
+
     if (!element) return null;
 
     const root = element.matches?.('[data-combobox]')
@@ -419,12 +503,66 @@ function resolveInstance(target) {
 function initComboboxes(scope = document) {
     scope.querySelectorAll('[data-combobox]').forEach((root) => {
         if (instances.has(root)) return;
+
         instances.set(root, new HybridCombobox(root));
+    });
+}
+
+function shouldBlurNativeInputOnEnter(input) {
+    if (!input || input.matches('[data-combobox-input]')) {
+        return false;
+    }
+
+    const type = String(input.getAttribute('type') || 'text').toLowerCase();
+
+    return [
+        'text',
+        'search',
+        'email',
+        'tel',
+        'url',
+        'number',
+        'password',
+        'date',
+        'month',
+        'week',
+        'time',
+        'datetime-local',
+    ].includes(type);
+}
+
+function initNativeFieldFinishing(scope = document) {
+    scope.querySelectorAll('select').forEach((select) => {
+        if (nativeFieldInstances.has(select)) return;
+
+        nativeFieldInstances.add(select);
+
+        select.addEventListener('change', () => {
+            if (document.activeElement === select) {
+                select.blur();
+            }
+        });
+    });
+
+    scope.querySelectorAll('input').forEach((input) => {
+        if (nativeFieldInstances.has(input)) return;
+        if (!shouldBlurNativeInputOnEnter(input)) return;
+
+        nativeFieldInstances.add(input);
+
+        input.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter') return;
+
+            if (document.activeElement === input) {
+                input.blur();
+            }
+        });
     });
 }
 
 document.addEventListener('click', (event) => {
     if (event.target.closest('[data-combobox]')) return;
+
     document.querySelectorAll('[data-combobox].is-open').forEach((root) => {
         instances.get(root)?.finishInteraction();
     });
@@ -432,39 +570,56 @@ document.addEventListener('click', (event) => {
 
 document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
+
     document.querySelectorAll('[data-combobox].is-open').forEach((root) => {
-        instances.get(root)?.close();
+        instances.get(root)?.finishInteraction();
     });
 });
 
-document.addEventListener('DOMContentLoaded', () => initComboboxes());
+document.addEventListener('DOMContentLoaded', () => {
+    initComboboxes();
+    initNativeFieldFinishing();
+});
 
 window.iaCombobox = {
-    init: initComboboxes,
+    init(scope = document) {
+        initComboboxes(scope);
+        initNativeFieldFinishing(scope);
+    },
+
     get: resolveInstance,
+
     setOptions(target, options, selectedValue = '', config = {}) {
         resolveInstance(target)?.setOptions(options, selectedValue, config);
     },
+
     setValue(target, value, config = {}) {
         resolveInstance(target)?.setValue(value, config);
     },
+
     clear(target, config = {}) {
         resolveInstance(target)?.clear(config);
     },
+
     enable(target) {
         resolveInstance(target)?.setDisabled(false);
     },
+
     disable(target) {
         resolveInstance(target)?.setDisabled(true);
     },
+
     selectedOption(target) {
         return resolveInstance(target)?.selectedOption() || null;
     },
+
     setInvalid(target, invalid) {
         resolveInstance(target)?.setInvalid(invalid);
     },
+
     refresh(target) {
         const instance = resolveInstance(target);
+
         if (instance) {
             instance.options = instance.readOptionsFromDom();
             instance.setValue(instance.hidden.value || '', { dispatch: false });
