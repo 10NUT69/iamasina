@@ -20,6 +20,12 @@ class ProcessGeoLocation extends Command
 
     public function handle()
     {
+        if (! config('services.geoip.external_lookup_enabled', false)) {
+            $this->info('Procesarea GeoIP externa este dezactivata. Dashboard-ul foloseste doar datele deja salvate.');
+
+            return self::SUCCESS;
+        }
+
         $this->info('--> Încep procesarea locațiilor...');
 
         // 1. Selectăm IP-urile unice care nu au țară și nu sunt locale

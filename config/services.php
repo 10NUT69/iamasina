@@ -50,4 +50,8 @@ return [
         'key_location' => env('INDEXNOW_KEY_LOCATION'),
         'timeout' => env('INDEXNOW_TIMEOUT', 5),
     ],
+
+    'geoip' => [
+        'external_lookup_enabled' => env('GEOIP_EXTERNAL_LOOKUP_ENABLED', false),
+    ],
 ];
