@@ -56,7 +56,7 @@
     box-shadow: none !important;
     color: #111827 !important;
     flex: 1 1 auto;
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 650;
     height: 100%;
     min-width: 0;
@@ -191,9 +191,9 @@
     color: #111827;
     cursor: pointer;
     display: block;
-    font-size: 0.88rem;
+    font-size: 1rem;
     font-weight: 650;
-    min-height: 2.55rem;
+    min-height: 2.65rem;
     padding: 0.65rem 0.7rem;
     text-align: left;
     transition: background-color 0.14s ease, color 0.14s ease;
@@ -215,7 +215,7 @@
 
 .ia-combobox__empty {
     color: #6b7280;
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 650;
     padding: 0.75rem;
 }
@@ -290,7 +290,7 @@
 
     .ia-combobox__input,
     #wizardForm .ia-combobox .ia-combobox__input {
-        font-size: 0.84rem;
+        font-size: 1rem;
         padding-left: 0.75rem !important;
         padding-right: 2.45rem !important;
     }
@@ -309,8 +309,14 @@
     }
 
     .ia-combobox__option {
-        font-size: 0.84rem;
+        font-size: 1rem;
         min-height: 2.65rem;
+    }
+
+    input,
+    select,
+    textarea {
+        font-size: 16px;
     }
 }
 
@@ -326,6 +332,7 @@
     padding-bottom: 0.15rem !important;
     backdrop-filter: blur(6px);
 }
+
 .emag-gradient {
     background:
         linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 42%),
@@ -341,6 +348,7 @@
         box-shadow: 0 12px 34px rgba(0, 0, 0, 0.38);
     }
 }
+
 /* Logo normal */
 .logo-main {
     height: 2.25rem; /* 36px */
