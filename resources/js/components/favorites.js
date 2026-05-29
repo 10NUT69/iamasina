@@ -108,9 +108,15 @@ async function toggleRemote(button, serviceId) {
         }
 
         const data = await response.json();
-        applyStateForService(serviceId, data.status === 'added');
+        const isFavorite = data.status === 'added';
+        applyStateForService(serviceId, isFavorite);
+        window.iaAutoToast?.(
+            isFavorite ? 'Anunt adaugat la favorite.' : 'Anunt scos din favorite.',
+            { duration: 3500 }
+        );
     } catch (error) {
         applyStateForService(serviceId, wasFavorite);
+        window.iaAutoToast?.('Nu am putut actualiza favoritele. Incearca din nou.', { duration: 5000 });
         console.error(error);
     }
 }

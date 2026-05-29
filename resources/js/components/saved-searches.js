@@ -135,7 +135,7 @@ window.iaAutoSavedSearches = {
         try {
             const data = await saveRemoteSearch(payload);
             window.iaAutoToast?.(
-                data.status === 'updated' ? 'Cautarea era deja salvata.' : 'Cautarea a fost salvata.',
+                data.status === 'updated' ? 'Cautarea era deja salvata la favorite.' : 'Cautarea a fost salvata la favorite.',
                 { duration: 5000 }
             );
 
