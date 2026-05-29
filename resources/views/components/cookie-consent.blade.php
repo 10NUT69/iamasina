@@ -1,26 +1,21 @@
 @once
-    <div id="cookie-consent-banner" class="hidden fixed inset-x-0 bottom-0 z-[80] px-4 pb-4 sm:pb-6">
-        <div class="mx-auto max-w-5xl rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-2xl shadow-black/10 backdrop-blur dark:border-[#333333] dark:bg-[#1E1E1E]/95 sm:p-5">
-            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <p class="text-sm leading-relaxed text-gray-700 dark:text-gray-200">
-                    Folosim cookie-uri pentru functionarea site-ului, analiza si imbunatatirea experientei. Poti accepta toate cookie-urile, refuza cookie-urile optionale sau personaliza preferintele.
+    <div id="cookie-consent-banner" class="hidden fixed inset-x-0 bottom-0 z-[80] px-3 pb-2 sm:px-4 sm:pb-6">
+        <div class="mx-auto max-w-5xl rounded-2xl border border-gray-200 bg-white/95 p-3 shadow-2xl shadow-black/10 backdrop-blur dark:border-[#333333] dark:bg-[#1E1E1E]/95 sm:p-4">
+            <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <p class="text-sm leading-relaxed text-gray-700 dark:text-gray-200 md:flex-1">
+                    Folosim cookie-uri pentru funcționarea corectă a site-ului și îmbunătățirea experienței tale.
                 </p>
 
-                <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-row lg:shrink-0">
+                <div class="grid grid-cols-2 gap-2 md:flex md:flex-row md:shrink-0">
                     <button type="button"
                             id="cookie-consent-accept"
-                            class="col-span-2 inline-flex h-11 min-w-0 items-center justify-center rounded-xl bg-[#C81424] px-3 text-sm font-bold text-white transition hover:bg-[#a6101d] sm:col-span-1 sm:px-4">
-                        Accept toate
-                    </button>
-                    <button type="button"
-                            id="cookie-consent-reject"
-                            class="inline-flex h-11 min-w-0 items-center justify-center rounded-xl border border-gray-300 bg-white px-3 text-sm font-bold text-gray-800 transition hover:bg-gray-100 dark:border-[#444444] dark:bg-[#252525] dark:text-gray-100 dark:hover:bg-[#2F2F2F] sm:px-4">
-                        Refuz optionale
+                            class="inline-flex h-11 min-w-0 items-center justify-center rounded-xl bg-[#C81424] px-4 text-sm font-bold text-white transition hover:bg-[#a6101d]">
+                        Acceptă
                     </button>
                     <button type="button"
                             id="cookie-consent-settings"
-                            class="inline-flex h-11 min-w-0 items-center justify-center rounded-xl border border-red-100 bg-red-50 px-3 text-sm font-bold text-[#C81424] transition hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30 sm:px-4">
-                        Setari
+                            class="inline-flex h-11 min-w-0 items-center justify-center rounded-xl border border-[#C81424] bg-white px-4 text-sm font-bold text-[#C81424] transition hover:bg-red-50 dark:border-red-700 dark:bg-[#1E1E1E] dark:text-red-200 dark:hover:bg-[#2a1013]">
+                        Setări
                     </button>
                 </div>
             </div>
@@ -194,7 +189,6 @@
                 const banner = document.getElementById('cookie-consent-banner');
                 const panel = document.getElementById('cookie-consent-panel');
                 const acceptButton = document.getElementById('cookie-consent-accept');
-                const rejectButton = document.getElementById('cookie-consent-reject');
                 const settingsButton = document.getElementById('cookie-consent-settings');
                 const closeButton = document.getElementById('cookie-consent-close');
                 const saveButton = document.getElementById('cookie-consent-save');
@@ -212,13 +206,6 @@
                     const consent = buildConsent(true, true);
                     storeConsent(consent);
                     applyConsent(consent);
-                    hideElement(banner);
-                    hideElement(panel);
-                });
-
-                rejectButton?.addEventListener('click', function () {
-                    const consent = buildConsent(false, false);
-                    storeConsent(consent);
                     hideElement(banner);
                     hideElement(panel);
                 });

@@ -93,6 +93,11 @@ class User extends Authenticatable
         return $this->hasMany(Favorite::class);
     }
 
+    public function savedSearches()
+    {
+        return $this->hasMany(SavedSearch::class);
+    }
+
     /* ========================================
      *        RELAȚIE ANUNȚURI
      * ======================================== */

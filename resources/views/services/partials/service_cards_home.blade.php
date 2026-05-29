@@ -33,6 +33,9 @@
 
             <button type="button"
                     onclick="event.preventDefault(); event.stopPropagation(); toggleHeart(this, {{ $service->id }})"
+                    data-favorite-service-id="{{ $service->id }}"
+                    data-favorite-empty-class="text-white fill-none group-hover/heart:text-[#C81424]"
+                    data-favorite-active-class="text-[#C81424] fill-[#C81424]"
                     aria-label="{{ $isFav ? 'Scoate de la favorite' : 'Adauga la favorite' }}: {{ $listingTitle }}"
                     aria-pressed="{{ $isFav ? 'true' : 'false' }}"
                     class="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 rounded-full bg-black/20 hover:bg-white backdrop-blur-md transition-all duration-300 group/heart shadow-lg">

@@ -388,37 +388,7 @@ function resetFilters() {
 }
 
 window.toggleHeart = function(btn, serviceId) {
-    @if(!auth()->check())
-        window.location.href = "{{ route('login') }}";
-        return;
-    @endif
-
-    const icon = btn.querySelector('svg');
-    if (!icon) return;
-
-    const isLiked = icon.classList.contains('text-[#C81424]');
-
-    if (isLiked) {
-        icon.classList.remove('text-[#C81424]', 'fill-[#C81424]', 'scale-110');
-        icon.classList.add('text-gray-600', 'dark:text-gray-300', 'fill-none');
-    } else {
-        icon.classList.remove('text-gray-600', 'dark:text-gray-300', 'fill-none');
-        icon.classList.add('text-[#C81424]', 'fill-[#C81424]', 'scale-125');
-        setTimeout(() => {
-            icon.classList.remove('scale-125');
-            icon.classList.add('scale-110');
-        }, 200);
-    }
-
-    fetch("{{ route('favorite.toggle') }}", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-TOKEN": "{{ csrf_token() }}",
-            "Accept": "application/json"
-        },
-        body: JSON.stringify({ service_id: serviceId })
-    }).catch(err => console.error(err));
+    window.iaAutoFavorites?.toggle(btn, serviceId);
 }
 
 function updateDealerGalleryImage() {

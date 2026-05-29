@@ -329,7 +329,7 @@
                         </svg>
                         <span class="truncate">Filtre</span>
                     </button>
-                    <button type="button"
+                    <button type="button" id="save-search-btn"
                         class="listing-action-button inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 text-[13px] font-semibold text-gray-700 shadow-sm transition hover:border-[#C81424] hover:bg-[#fff4f5] hover:text-[#C81424] dark:border-[#333333] dark:bg-[#1E1E1E] dark:text-gray-100 dark:hover:border-red-700 dark:hover:bg-[#2a1013] dark:hover:text-red-200 lg:w-auto lg:px-3 lg:text-sm lg:text-[#0F5CC0] lg:border-[#0F5CC0] lg:dark:text-red-200 lg:dark:border-red-900/50">
                         <svg xmlns="http://www.w3.org/2000/svg" class="hidden h-4 w-4 shrink-0 lg:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0h6z"/>
@@ -519,6 +519,7 @@
         yearMin: document.getElementById('year-min'),
         yearMax: document.getElementById('year-max'),
         sort: document.getElementById('sort-select'),
+        saveSearch: document.getElementById('save-search-btn'),
         scrollTopBtn: document.getElementById('scroll-to-listing-top'),
         resetBtn: document.getElementById('reset-btn'),
         container: document.getElementById('services-container'),
@@ -837,6 +838,47 @@
         return `${baseUrl}${path}${queryString ? `?${queryString}` : ''}`;
     }
 
+    function selectedOptionLabel(el) {
+        if (!el || !el.value) return '';
+
+        const option = selectedOptionMeta(el);
+        if (!option || option.value === '') return '';
+
+        return String(option.label || option.dataset?.label || option.textContent || '').trim();
+    }
+
+    function collectSavedSearchFilters() {
+        return {
+            seller_type: domElements.sellerType?.value || '',
+            brand_id: domElements.brand?.value || '',
+            brand: selectedOptionLabel(domElements.brand),
+            model_id: domElements.model?.value || '',
+            model: selectedOptionLabel(domElements.model),
+            county_id: domElements.county?.value || '',
+            county: selectedOptionLabel(domElements.county),
+            locality_id: domElements.locality?.value || '',
+            locality: selectedOptionLabel(domElements.locality),
+            caroserie_id: domElements.body?.value || '',
+            caroserie: selectedOptionLabel(domElements.body),
+            combustibil_id: domElements.fuel?.value || '',
+            combustibil: selectedOptionLabel(domElements.fuel),
+            cutie_viteze_id: domElements.gear?.value || '',
+            cutie_viteze: selectedOptionLabel(domElements.gear),
+            price_min: domElements.priceMin?.value || '',
+            price_max: domElements.priceMax?.value || '',
+            km_min: domElements.kmMin?.value || '',
+            km_max: domElements.kmMax?.value || '',
+            year_min: domElements.yearMin?.value || '',
+            year_max: domElements.yearMax?.value || '',
+            sort: domElements.sort?.value || '',
+        };
+    }
+
+    function savedSearchName(filters) {
+        const parts = [filters.brand, filters.model, filters.locality, filters.county].filter(Boolean);
+        return parts.length ? parts.join(' ') : 'Cautare auto';
+    }
+
     window.checkResetVisibility = function() {
         const btn = domElements.resetBtn;
         if (!btn) return;
@@ -995,6 +1037,8 @@
                 if (domElements.container) domElements.container.insertAdjacentHTML('beforeend', data.html);
             }
 
+            window.iaAutoFavorites?.refresh(domElements.container || document);
+
             hasMore = !!data.hasMore;
             if (domElements.trigger) domElements.trigger.dataset.hasMore = hasMore ? 'true' : 'false';
             updateListingPagination(data.pagination);
@@ -1018,6 +1062,15 @@
         document.querySelectorAll('select.autovit-select').forEach(enhanceSelect);
 
         window.checkResetVisibility();
+
+        domElements.saveSearch?.addEventListener('click', () => {
+            const filters = collectSavedSearchFilters();
+            window.iaAutoSavedSearches?.save({
+                url: buildSearchUrl(),
+                name: savedSearchName(filters),
+                filters,
+            });
+        });
 
         const filterOverlay = document.getElementById('filters-overlay');
         const filterPanel = document.getElementById('filters-panel');
@@ -1242,46 +1295,10 @@
         if (entries[0].isIntersecting && !isLoading && hasMore) {
             window.loadServices(currentPage);
         }
-    }, { rootMargin: '0px 0px 400px 0px' });
+    }, { rootMargin: '0px 0px 800px 0px' });
 
     window.toggleHeart = function(btn, serviceId) {
-        @if(!auth()->check())
-            window.location.href = "{{ route('login') }}";
-            return;
-        @endif
-
-        const icon = btn.querySelector('svg');
-        const isLiked = btn.getAttribute('aria-pressed') === 'true'
-            || icon.classList.contains('text-[#C81424]')
-            || icon.classList.contains('text-red-500');
-        const nextLiked = !isLiked;
-
-        if (isLiked) {
-            icon.classList.remove('text-[#C81424]', 'fill-[#C81424]', 'text-red-500', 'fill-red-500', 'scale-110');
-            icon.classList.add('fill-none');
-            if (btn.classList.contains('md:hidden')) {
-                icon.classList.add('text-white');
-            } else {
-                icon.classList.add('text-gray-600', 'dark:text-gray-300');
-            }
-        } else {
-            icon.classList.remove('text-gray-600', 'dark:text-gray-300', 'text-white', 'fill-none');
-            icon.classList.add('text-[#C81424]', 'fill-[#C81424]', 'scale-125');
-            setTimeout(() => { icon.classList.remove('scale-125'); icon.classList.add('scale-110'); }, 200);
-        }
-        btn.setAttribute('aria-pressed', nextLiked ? 'true' : 'false');
-        const labelTarget = (btn.getAttribute('aria-label') || '').split(':').slice(1).join(':').trim();
-        btn.setAttribute('aria-label', `${nextLiked ? 'Scoate de la favorite' : 'Adauga la favorite'}${labelTarget ? ': ' + labelTarget : ''}`);
-
-        fetch("{{ route('favorite.toggle') }}", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                "Accept": "application/json"
-            },
-            body: JSON.stringify({ service_id: serviceId })
-        }).catch(err => console.error(err));
+        window.iaAutoFavorites?.toggle(btn, serviceId);
     }
 </script>
 

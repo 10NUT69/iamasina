@@ -355,6 +355,9 @@
                     {{-- Favorite --}}
                     <button type="button"
                             onclick="event.preventDefault(); event.stopPropagation(); toggleHeart(this, {{ $service->id }})"
+                            data-favorite-service-id="{{ $service->id }}"
+                            data-favorite-empty-class="text-white fill-none group-hover/heart:text-[#C81424]"
+                            data-favorite-active-class="text-[#C81424] fill-[#C81424]"
                             aria-label="{{ $isFav ? 'Scoate de la favorite' : 'Adauga la favorite' }}: {{ $listingTitle }}"
                             aria-pressed="{{ $isFav ? 'true' : 'false' }}"
                             class="absolute top-2 right-2 sm:top-3 sm:right-3 p-2.5 sm:p-2 rounded-full bg-black/20 hover:bg-white backdrop-blur-md transition-all duration-300 group/heart shadow-lg">
@@ -1071,24 +1074,7 @@
     });
 
     window.toggleHeart = function(btn, serviceId) {
-        @if(!auth()->check()) window.location.href = "{{ route('login') }}"; return; @endif
-        const icon = btn.querySelector('svg');
-        const isLiked = btn.getAttribute('aria-pressed') === 'true' || icon.classList.contains('text-[#C81424]');
-        const nextLiked = !isLiked;
-        if (isLiked) {
-            icon.classList.remove('text-[#C81424]', 'fill-[#C81424]');
-            icon.classList.add('text-white', 'fill-none');
-        } else {
-            icon.classList.remove('text-white', 'fill-none');
-            icon.classList.add('text-[#C81424]', 'fill-[#C81424]');
-        }
-        btn.setAttribute('aria-pressed', nextLiked ? 'true' : 'false');
-        const labelTarget = (btn.getAttribute('aria-label') || '').split(':').slice(1).join(':').trim();
-        btn.setAttribute('aria-label', `${nextLiked ? 'Scoate de la favorite' : 'Adauga la favorite'}${labelTarget ? ': ' + labelTarget : ''}`);
-        fetch("{{ route('favorite.toggle') }}", {
-            method: "POST", headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": "{{ csrf_token() }}" },
-            body: JSON.stringify({ service_id: serviceId })
-        }).catch(err => console.error(err));
+        window.iaAutoFavorites?.toggle(btn, serviceId);
     }
 </script>
 <style>

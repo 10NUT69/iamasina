@@ -136,6 +136,9 @@
             {{-- Buton Favorite Mobile (Peste poză) --}}
             <button type="button"
                     onclick="toggleHeart(this, {{ $service->id }})"
+                    data-favorite-service-id="{{ $service->id }}"
+                    data-favorite-empty-class="text-white fill-none"
+                    data-favorite-active-class="text-red-500 fill-red-500"
                     aria-label="{{ $isFav ? 'Scoate de la favorite' : 'Adauga la favorite' }}: {{ $listingTitle }}"
                     aria-pressed="{{ $isFav ? 'true' : 'false' }}"
                     class="md:hidden absolute top-3 right-3 z-20 p-2 rounded-full bg-black/30 backdrop-blur-md border border-white/20 text-white hover:bg-red-500 hover:border-red-500 transition-all">
@@ -227,6 +230,9 @@
                 <div class="flex items-center gap-3">
                     <button type="button"
                             onclick="toggleHeart(this, {{ $service->id }})"
+                            data-favorite-service-id="{{ $service->id }}"
+                            data-favorite-empty-class="text-gray-400 fill-none"
+                            data-favorite-active-class="text-red-500 fill-red-500"
                             aria-label="{{ $isFav ? 'Scoate de la favorite' : 'Adauga la favorite' }}: {{ $listingTitle }}"
                             aria-pressed="{{ $isFav ? 'true' : 'false' }}"
                             class="hidden md:flex group/btn items-center justify-center w-8 h-8 rounded-full bg-gray-50 dark:bg-[#27272a] hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-all border border-gray-100 dark:border-gray-700"

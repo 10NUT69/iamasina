@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\SavedSearchController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\CarController;
@@ -150,6 +151,12 @@ Route::middleware('auth')->group(function () {
         ->name('services.deleteImage');
 
     Route::post('/favorite/toggle', [FavoriteController::class, 'toggle'])->name('favorite.toggle');
+    Route::post('/favorite/import', [FavoriteController::class, 'import'])->name('favorite.import');
+    Route::post('/cautari-favorite', [SavedSearchController::class, 'store'])->name('saved-searches.store');
+    Route::post('/cautari-favorite/import', [SavedSearchController::class, 'import'])->name('saved-searches.import');
+    Route::delete('/cautari-favorite/{savedSearch}', [SavedSearchController::class, 'destroy'])
+        ->whereNumber('savedSearch')
+        ->name('saved-searches.destroy');
 });
 
 /*

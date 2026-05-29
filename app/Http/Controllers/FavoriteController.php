@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Favorite;
+use App\Models\Service;
 use Illuminate\Http\Request;
 
 class FavoriteController extends Controller
@@ -45,5 +46,45 @@ class FavoriteController extends Controller
             ]);
             return response()->json(['status' => 'added']);
         }
+    }
+
+    public function import(Request $request)
+    {
+        $data = $request->validate([
+            'service_ids' => ['required', 'array', 'max:100'],
+            'service_ids.*' => ['integer'],
+        ]);
+
+        $serviceIds = collect($data['service_ids'])
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values();
+
+        if ($serviceIds->isEmpty()) {
+            return response()->json(['status' => 'empty', 'imported' => 0]);
+        }
+
+        $validServiceIds = Service::query()
+            ->whereIn('id', $serviceIds)
+            ->where('status', 'active')
+            ->pluck('id');
+
+        $imported = 0;
+        foreach ($validServiceIds as $serviceId) {
+            $favorite = Favorite::firstOrCreate([
+                'user_id' => $request->user()->id,
+                'service_id' => $serviceId,
+            ]);
+
+            if ($favorite->wasRecentlyCreated) {
+                $imported++;
+            }
+        }
+
+        return response()->json([
+            'status' => 'ok',
+            'imported' => $imported,
+        ]);
     }
 }

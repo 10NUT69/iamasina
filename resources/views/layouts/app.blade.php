@@ -40,6 +40,19 @@
     @yield('schema')
     @yield('head')
 
+    <script>
+        window.iaAutoConfig = {
+            isAuthenticated: @json(auth()->check()),
+            csrfToken: @json(csrf_token()),
+            favoriteToggleUrl: @json(route('favorite.toggle')),
+            favoriteImportUrl: @json(auth()->check() ? route('favorite.import') : null),
+            savedSearchStoreUrl: @json(auth()->check() ? route('saved-searches.store') : null),
+            savedSearchImportUrl: @json(auth()->check() ? route('saved-searches.import') : null),
+            accountFavoritesUrl: @json(route('account.index', ['tab' => 'favorite'])),
+            loginUrl: @json(route('login')),
+        };
+    </script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
@@ -125,6 +138,7 @@
                                 </span>
                             </a>
                             <a href="{{ route('account.index', ['tab' => 'favorite']) }}" class="block whitespace-nowrap px-3 py-2 text-[13px] font-bold hover:bg-gray-50 dark:hover:bg-[#252525]">Favorite</a>
+                            <a href="{{ route('account.index', ['tab' => 'cautari']) }}" class="block whitespace-nowrap px-3 py-2 text-[13px] font-bold hover:bg-gray-50 dark:hover:bg-[#252525]">Cautari favorite</a>
                             <a href="{{ route('account.index', ['tab' => 'profil']) }}" class="block whitespace-nowrap px-3 py-2 text-[13px] font-bold hover:bg-gray-50 dark:hover:bg-[#252525]">Setări</a>
                             <div class="my-1 border-t border-gray-100 dark:border-[#333]"></div>
                             <form method="POST" action="{{ route('logout') }}">
@@ -265,7 +279,7 @@
         @if(auth()->check())
             window.location.href = "{{ route('account.index', ['tab' => 'favorite']) }}";
         @else
-            alert("Trebuie să fii autentificat.");
+            window.iaAutoToast?.("Favoritele sunt salvate in acest browser. Creeaza cont pentru a le importa automat.", { duration: 5000 });
         @endif
     }
 

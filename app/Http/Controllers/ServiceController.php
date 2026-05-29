@@ -58,18 +58,14 @@ class ServiceController extends Controller
     $isHomepage = $request->routeIs('services.index');
     $page = max(1, (int) $request->get('page', 1));
     $perPageHomepage = 12;
-    $perPageFirst = 10;
-    $perPageNext  = 8;
+    $perPageListing = 20;
 
     if ($isHomepage) {
         $limit = $perPageHomepage;
         $offset = 0;
-    } elseif ($page === 1) {
-        $limit  = $perPageFirst;
-        $offset = 0;
     } else {
-        $limit  = $perPageNext;
-        $offset = $perPageFirst + (($page - 2) * $perPageNext);
+        $limit = $perPageListing;
+        $offset = ($page - 1) * $perPageListing;
     }
 
     $query = Service::with([
@@ -234,7 +230,7 @@ class ServiceController extends Controller
     $hasMore     = $loadedSoFar < $totalCount;
     $paginationMeta = $isHomepage
         ? []
-        : $this->listingPaginationMeta($request, $page, $totalCount, $perPageFirst, $perPageNext);
+        : $this->listingPaginationMeta($request, $page, $totalCount, $perPageListing);
 
     if ($request->ajax() || (string) $request->input('ajax') === '1') {
         $cardsView = $request->routeIs('services.index')
@@ -1556,11 +1552,9 @@ public function edit($id)
         return true;
     }
 
-    private function listingPaginationMeta(Request $request, int $page, int $totalCount, int $perPageFirst, int $perPageNext): array
+    private function listingPaginationMeta(Request $request, int $page, int $totalCount, int $perPage): array
     {
-        $totalPages = $totalCount <= $perPageFirst
-            ? 1
-            : 1 + (int) ceil(($totalCount - $perPageFirst) / $perPageNext);
+        $totalPages = max(1, (int) ceil($totalCount / $perPage));
 
         $currentPage = max(1, $page);
 
