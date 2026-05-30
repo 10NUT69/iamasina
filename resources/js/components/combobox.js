@@ -35,10 +35,17 @@ class HybridCombobox {
         this.filteredOptions = [...this.options];
         this.activeIndex = -1;
         this.suppressHiddenSync = false;
+        this.listboxParent = null;
+        this.listboxNextSibling = null;
+        this.isListboxPortaled = false;
+        this.positionPortaledListbox = this.positionPortaledListbox.bind(this);
 
         if (!this.root || !this.hidden || !this.input || !this.listbox) {
             return;
         }
+
+        this.listboxParent = this.listbox.parentElement;
+        this.listboxNextSibling = this.listbox.nextSibling;
 
         this.bindEvents();
         this.syncDisabled();
@@ -338,6 +345,7 @@ class HybridCombobox {
 
             this.listbox.appendChild(empty);
             this.input.removeAttribute('aria-activedescendant');
+            this.positionPortaledListbox();
 
             return;
         }
@@ -397,6 +405,8 @@ class HybridCombobox {
 
             this.listbox.appendChild(groupEl);
         });
+
+        this.positionPortaledListbox();
     }
 
     updateSelectedStates() {
@@ -420,12 +430,66 @@ class HybridCombobox {
         this.filter(this.searchable ? this.input.value : '');
         this.root.classList.add('is-open');
         this.input.setAttribute('aria-expanded', 'true');
+        this.portalListbox();
+        this.positionPortaledListbox();
     }
 
     close() {
         this.root.classList.remove('is-open');
         this.input.setAttribute('aria-expanded', 'false');
         this.input.removeAttribute('aria-activedescendant');
+        this.restoreListbox();
+    }
+
+    portalListbox() {
+        if (this.isListboxPortaled || !this.listbox) return;
+
+        this.listboxParent = this.listbox.parentElement;
+        this.listboxNextSibling = this.listbox.nextSibling;
+        document.body.appendChild(this.listbox);
+        this.isListboxPortaled = true;
+
+        window.addEventListener('resize', this.positionPortaledListbox);
+        window.addEventListener('scroll', this.positionPortaledListbox, true);
+    }
+
+    restoreListbox() {
+        if (!this.isListboxPortaled || !this.listbox) return;
+
+        window.removeEventListener('resize', this.positionPortaledListbox);
+        window.removeEventListener('scroll', this.positionPortaledListbox, true);
+        this.listbox.removeAttribute('style');
+
+        const parent = this.listboxParent?.isConnected ? this.listboxParent : this.root;
+        const nextSibling = this.listboxNextSibling?.parentNode === parent ? this.listboxNextSibling : null;
+
+        parent.insertBefore(this.listbox, nextSibling);
+        this.isListboxPortaled = false;
+    }
+
+    positionPortaledListbox() {
+        if (!this.isListboxPortaled || !this.control || !this.listbox) return;
+
+        const rect = this.control.getBoundingClientRect();
+        const gap = 6;
+        const viewportPadding = 12;
+        const spaceBelow = window.innerHeight - rect.bottom - viewportPadding;
+        const spaceAbove = rect.top - viewportPadding;
+        const openAbove = spaceBelow < 180 && spaceAbove > spaceBelow;
+        const availableSpace = Math.max(120, (openAbove ? spaceAbove : spaceBelow) - gap);
+        const maxHeight = Math.min(304, availableSpace);
+
+        Object.assign(this.listbox.style, {
+            bottom: openAbove ? `${Math.max(viewportPadding, window.innerHeight - rect.top + gap)}px` : 'auto',
+            display: 'block',
+            left: `${Math.round(rect.left)}px`,
+            maxHeight: `${Math.round(maxHeight)}px`,
+            position: 'fixed',
+            right: 'auto',
+            top: openAbove ? 'auto' : `${Math.round(rect.bottom + gap)}px`,
+            width: `${Math.round(rect.width)}px`,
+            zIndex: '10020',
+        });
     }
 
     finishInteraction() {
