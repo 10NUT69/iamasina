@@ -8,7 +8,7 @@
     'disabled' => false,
     'required' => false,
     'searchable' => true,
-    'inputAutocomplete' => 'off',
+    'inputAutocomplete' => 'nope',
     'id' => null,
     'optionValue' => 'id',
     'optionLabel' => null,
