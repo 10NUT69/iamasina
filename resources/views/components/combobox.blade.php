@@ -8,6 +8,7 @@
     'disabled' => false,
     'required' => false,
     'searchable' => true,
+    'inputAutocomplete' => 'off',
     'id' => null,
     'optionValue' => 'id',
     'optionLabel' => null,
@@ -85,7 +86,7 @@
             type="text"
             class="ia-combobox__input"
             placeholder="{{ $placeholder }}"
-            autocomplete="off"
+            autocomplete="{{ $inputAutocomplete }}"
             role="combobox"
             aria-autocomplete="list"
             aria-expanded="false"

@@ -241,6 +241,7 @@
                                 name="tractiune_id"
                                 label="Tractiune"
                                 placeholder="Tractiune"
+                                input-autocomplete="nope"
                                 :options="$tractiuni"
                                 option-label="nume"
                                 :selected="old('tractiune_id')"
