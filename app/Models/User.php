@@ -106,6 +106,11 @@ class User extends Authenticatable
         return $this->hasMany(Service::class);
     }
 
+    public function emailNotificationLogs()
+    {
+        return $this->hasMany(EmailNotificationLog::class);
+    }
+
     public function buyerConversations()
     {
         return $this->hasMany(Conversation::class, 'buyer_id');
