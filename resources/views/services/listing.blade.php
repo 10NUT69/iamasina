@@ -397,28 +397,23 @@
 
                         <div class="flex min-w-0 flex-1 flex-col p-5 sm:p-6">
                             <div>
-                                <span class="inline-flex w-fit items-center rounded-full bg-red-50 px-3 py-1 text-[11px] font-black uppercase tracking-wide text-[#C81424] dark:bg-[#2a1013] dark:text-red-200">
-                                    Mesaj iaAuto.ro
-                                </span>
-                                <h2 class="mt-3 text-xl font-black leading-tight text-gray-950 dark:text-white sm:text-2xl">
-                                    De ce sunt doar {{ number_format($earlyStageTotalListings, 0, ',', '.') }} mașini aici?
+                                <h2 class="text-xl font-black leading-tight text-gray-950 dark:text-white sm:text-2xl">
+                                    Nou pe piață: iaAuto.ro
                                 </h2>
                                 <p class="mt-2 max-w-3xl text-sm font-semibold leading-relaxed text-gray-600 dark:text-gray-300 sm:text-base">
-    Pentru că am lansat platforma recent și am ales să oferim anunțuri
-    <strong class="font-extrabold text-gray-900 dark:text-white">GRATUIT pe viață</strong>
-    și
-    <strong class="font-extrabold text-gray-900 dark:text-white">fără taxe ascunse</strong>.
-    Dacă vinzi
-    <strong class="font-extrabold text-gray-900 dark:text-white">o mașină sau 1000</strong>,
-    pune anunțuri aici și fii unul dintre
-    <strong class="font-extrabold text-gray-900 dark:text-white">pionierii iaAuto</strong>!
-</p>
+                                    Publică anunțuri auto
+                                    <strong class="font-extrabold text-gray-900 dark:text-white">GRATUIT pe viață</strong>,
+                                    <strong class="font-extrabold text-gray-900 dark:text-white">fără limite</strong>
+                                    și
+                                    <strong class="font-extrabold text-gray-900 dark:text-white">fără taxe ascunse</strong>.
+                                    Adaugă mașina acum și profită de vizibilitatea unei platforme aflate la început, unde anunțul tău nu se pierde în mulțime.
+                                </p>
                             </div>
 
                             <div class="mt-5 border-t border-gray-100 pt-4 dark:border-[#333]">
                                 <a href="{{ route('services.create') }}"
                                    class="inline-flex w-full items-center justify-center rounded-xl bg-[#C81424] px-5 py-3 text-sm font-black uppercase tracking-wide text-white shadow-lg shadow-red-700/20 transition hover:bg-[#94111B] active:scale-[0.98] sm:w-auto">
-                                    + Publică anunțul tău acum
+                                    + Publică anunț gratuit
                                 </a>
                             </div>
                         </div>
