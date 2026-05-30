@@ -97,7 +97,7 @@
         @endphp
 
         {{-- CONTAINER PRINCIPAL --}}
-        <div class="wizard-card bg-white dark:bg-[#1E1E1E] rounded-[1.15rem] sm:rounded-2xl shadow-xl border border-gray-100 dark:border-[#2A2A2A] overflow-hidden min-h-[500px] flex flex-col relative">
+        <div class="wizard-card bg-white dark:bg-[#1E1E1E] rounded-[1.15rem] sm:rounded-2xl shadow-xl border border-gray-100 dark:border-[#2A2A2A] min-h-[500px] flex flex-col relative">
 
             {{-- ================= PASUL 1: SPECIFICAȚII ================= --}}
             <div class="step-content p-4 sm:p-6 md:p-8 animate-fade-in" data-step="1">
