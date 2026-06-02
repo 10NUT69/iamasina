@@ -247,32 +247,27 @@ class ServiceController extends Controller
         ]);
     }
 
-    // Date pentru filtre
-    $brands = Cache::remember('iaauto:filter:brands:v1', now()->addDays(7), function () {
-        return CarBrand::ordered()->get();
-    });
+    $currentBrand = $this->selectedBrandForFilters($request);
+    $currentModel = $this->selectedModelForFilters($request);
 
-    $bodies = Cache::remember('iaauto:filter:bodies:v1', now()->addDays(7), function () {
-        return Caroserie::orderBy('nume')->get();
-    });
+    if (!$currentBrand && $currentModel) {
+        $currentBrand = CarBrand::query()
+            ->select('id', 'name', 'slug', 'is_popular')
+            ->find($currentModel->car_brand_id);
+    }
 
-    $fuels = Cache::remember('iaauto:filter:fuels:v1', now()->addDays(7), function () {
-        return Combustibil::orderBy('nume')->get();
-    });
+    $currentCounty = $this->selectedCountyForFilters($request, $selectedLocality);
 
-    $transmissions = Cache::remember('iaauto:filter:transmissions:v1', now()->addDays(7), function () {
-        return CutieViteze::orderBy('nume')->get();
-    });
-
-    $counties = Cache::remember('iaauto:filter:counties:v1', now()->addDays(7), function () {
-        return County::orderBy('name')->get();
-    });
+    // Datele mari ale filtrelor auto sunt incarcate lazy prin AJAX.
+    $brands = $currentBrand ? collect([$currentBrand]) : collect();
+    $bodies = $this->selectedLookupOptions(Caroserie::class, $request->input('caroserie_id'), ['id', 'nume']);
+    $fuels = $this->selectedLookupOptions(Combustibil::class, $request->input('combustibil_id'), ['id', 'nume']);
+    $transmissions = $this->selectedLookupOptions(CutieViteze::class, $request->input('cutie_viteze_id'), ['id', 'nume']);
+    $counties = (!$isHomepage && $currentCounty) ? collect([$currentCounty]) : collect();
 
     $categories = Cache::remember('iaauto:filter:categories:v1', now()->addDays(7), function () {
         return Category::orderBy('sort_order', 'asc')->get();
     });
-
-    $carData = $this->buildCarData();
 
     $view = $request->routeIs('services.index') ? 'services.index' : 'services.listing';
     $showEarlyStageBanners = true; // TEMP: Seteaza false cand site-ul are suficiente anunturi.
@@ -287,17 +282,16 @@ class ServiceController extends Controller
         'counties'        => $counties,
         'categories'      => $categories,
         'currentCategory' => $request->attributes->get('currentCategory'),
-        'currentCounty'   => $request->attributes->get('currentCounty'),
+        'currentCounty'   => $currentCounty,
         'currentLocality' => $request->attributes->get('currentLocality') ?: $selectedLocality,
 
         'brands'          => $brands,
         'bodies'          => $bodies,
         'fuels'           => $fuels,
         'transmissions'   => $transmissions,
-        'carData'         => $carData,
 
-        'currentBrand'    => $request->attributes->get('currentBrand'),
-        'currentModel'    => $request->attributes->get('currentModel'),
+        'currentBrand'    => $currentBrand,
+        'currentModel'    => $currentModel,
         'listingPagination' => $paginationMeta,
     ]);
 }
@@ -1138,17 +1132,75 @@ public function edit($id)
     // ==========================================
     // 11. AJAX HELPER (coloana corectă: car_brand_id)
     // ==========================================
+    public function getBrands()
+    {
+        $brands = Cache::remember('iaauto:ajax:brands:v1', now()->addDays(7), function () {
+            return CarBrand::query()
+                ->ordered()
+                ->get(['id', 'name', 'slug', 'is_popular']);
+        });
+
+        return response()->json($brands);
+    }
+
+    public function getCarBodyTypes()
+    {
+        $bodies = Cache::remember('iaauto:ajax:bodies:v1', now()->addDays(7), function () {
+            return Caroserie::query()
+                ->orderBy('nume')
+                ->get(['id', 'nume']);
+        });
+
+        return response()->json($bodies);
+    }
+
+    public function getFuelTypes()
+    {
+        $fuels = Cache::remember('iaauto:ajax:fuels:v1', now()->addDays(7), function () {
+            return Combustibil::query()
+                ->orderBy('nume')
+                ->get(['id', 'nume']);
+        });
+
+        return response()->json($fuels);
+    }
+
+    public function getTransmissionTypes()
+    {
+        $transmissions = Cache::remember('iaauto:ajax:transmissions:v1', now()->addDays(7), function () {
+            return CutieViteze::query()
+                ->orderBy('nume')
+                ->get(['id', 'nume']);
+        });
+
+        return response()->json($transmissions);
+    }
+
+    public function getCounties()
+    {
+        $counties = Cache::remember('iaauto:ajax:counties:v1', now()->addDays(7), function () {
+            return County::query()
+                ->orderBy('name')
+                ->get(['id', 'name', 'slug']);
+        });
+
+        return response()->json($counties);
+    }
+
     public function getModelsByBrand(Request $request)
     {
-        $brandId = $request->get('brand_id');
+        $brandId = $request->integer('brand_id');
 
         if (!$brandId) {
             return response()->json([]);
         }
 
-        $models = CarModel::where('car_brand_id', $brandId)
-            ->ordered()
-            ->get(['id', 'name']);
+        $models = Cache::remember("iaauto:ajax:models:brand:{$brandId}:v1", now()->addDays(7), function () use ($brandId) {
+            return CarModel::query()
+                ->where('car_brand_id', $brandId)
+                ->ordered()
+                ->get(['id', 'car_brand_id', 'name', 'slug']);
+        });
 
         return response()->json($models);
     }
@@ -1316,6 +1368,78 @@ public function edit($id)
             [$primaryImage],
             array_filter($images, fn ($image) => $image !== $primaryImage)
         )));
+    }
+
+    private function selectedBrandForFilters(Request $request): ?CarBrand
+    {
+        $brand = $request->attributes->get('currentBrand');
+
+        if ($brand instanceof CarBrand) {
+            return $brand;
+        }
+
+        if (!$request->filled('brand_id')) {
+            return null;
+        }
+
+        return CarBrand::query()
+            ->select('id', 'name', 'slug', 'is_popular')
+            ->find($request->input('brand_id'));
+    }
+
+    private function selectedModelForFilters(Request $request): ?CarModel
+    {
+        $model = $request->attributes->get('currentModel');
+
+        if ($model instanceof CarModel) {
+            return $model;
+        }
+
+        if (!$request->filled('model_id')) {
+            return null;
+        }
+
+        return CarModel::query()
+            ->select('id', 'car_brand_id', 'name', 'slug')
+            ->find($request->input('model_id'));
+    }
+
+    private function selectedCountyForFilters(Request $request, ?Locality $selectedLocality = null): ?County
+    {
+        $county = $request->attributes->get('currentCounty');
+
+        if ($county instanceof County) {
+            return $county;
+        }
+
+        if ($selectedLocality?->county_id) {
+            return County::query()
+                ->select('id', 'name', 'slug')
+                ->find($selectedLocality->county_id);
+        }
+
+        $countyId = $request->input('county_id', $request->input('county'));
+
+        if (!$countyId) {
+            return null;
+        }
+
+        return County::query()
+            ->select('id', 'name', 'slug')
+            ->find($countyId);
+    }
+
+    private function selectedLookupOptions(string $modelClass, $id, array $columns)
+    {
+        if (!$id) {
+            return collect();
+        }
+
+        $record = $modelClass::query()
+            ->select($columns)
+            ->find($id);
+
+        return $record ? collect([$record]) : collect();
     }
 
     private function redirectToCleanAutoListingUrl(Request $request)

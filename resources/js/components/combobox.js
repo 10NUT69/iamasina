@@ -35,6 +35,7 @@ class HybridCombobox {
         this.filteredOptions = [...this.options];
         this.activeIndex = -1;
         this.suppressHiddenSync = false;
+        this.dropdownSpaceFrame = null;
 
         if (!this.root || !this.hidden || !this.input || !this.listbox) {
             return;
@@ -105,6 +106,17 @@ class HybridCombobox {
             this.finishInteraction();
         });
 
+        this.input.addEventListener('pointerdown', (event) => {
+            if (this.hidden.disabled) return;
+
+            if (document.activeElement !== this.input) return;
+            if (!this.root.classList.contains('is-open')) return;
+
+            event.preventDefault();
+            event.stopPropagation();
+            this.finishInteraction();
+        });
+
         this.input.addEventListener('focus', () => {
             if (!this.hidden.disabled) {
                 this.open();
@@ -169,6 +181,14 @@ class HybridCombobox {
             }
 
             if (event.key === 'Tab') {
+                if (this.root.classList.contains('is-open') && this.input.value.trim() !== '') {
+                    const option = this.filteredOptions[this.activeIndex] || this.filteredOptions[0];
+
+                    if (option) {
+                        this.setValue(option.value);
+                    }
+                }
+
                 this.close();
                 return;
             }
@@ -338,6 +358,7 @@ class HybridCombobox {
 
             this.listbox.appendChild(empty);
             this.input.removeAttribute('aria-activedescendant');
+            this.syncListingFilterDropdownSpace();
 
             return;
         }
@@ -397,6 +418,8 @@ class HybridCombobox {
 
             this.listbox.appendChild(groupEl);
         });
+
+        this.syncListingFilterDropdownSpace();
     }
 
     updateSelectedStates() {
@@ -420,12 +443,14 @@ class HybridCombobox {
         this.filter(this.searchable ? this.input.value : '');
         this.root.classList.add('is-open');
         this.input.setAttribute('aria-expanded', 'true');
+        this.syncListingFilterDropdownSpace();
     }
 
     close() {
         this.root.classList.remove('is-open');
         this.input.setAttribute('aria-expanded', 'false');
         this.input.removeAttribute('aria-activedescendant');
+        this.clearListingFilterDropdownSpace();
     }
 
     finishInteraction() {
@@ -483,6 +508,55 @@ class HybridCombobox {
         } else {
             this.hidden.removeAttribute('aria-invalid');
         }
+    }
+
+    isListingFilterCombobox() {
+        return this.root.classList.contains('listing-filter') && !!this.root.closest('#filters-panel');
+    }
+
+    clearListingFilterDropdownSpace() {
+        if (this.dropdownSpaceFrame) {
+            window.cancelAnimationFrame(this.dropdownSpaceFrame);
+            this.dropdownSpaceFrame = null;
+        }
+
+        this.root.style.removeProperty('--ia-filter-open-listbox-space');
+    }
+
+    syncListingFilterDropdownSpace() {
+        if (!this.isListingFilterCombobox()) {
+            return;
+        }
+
+        if (!this.root.classList.contains('is-open')) {
+            this.clearListingFilterDropdownSpace();
+            return;
+        }
+
+        if (this.dropdownSpaceFrame) {
+            window.cancelAnimationFrame(this.dropdownSpaceFrame);
+        }
+
+        this.dropdownSpaceFrame = window.requestAnimationFrame(() => {
+            this.dropdownSpaceFrame = null;
+
+            if (!this.root.classList.contains('is-open')) {
+                this.clearListingFilterDropdownSpace();
+                return;
+            }
+
+            if (window.getComputedStyle(this.listbox).position !== 'absolute') {
+                this.clearListingFilterDropdownSpace();
+                return;
+            }
+
+            const listboxHeight = Math.ceil(this.listbox.getBoundingClientRect().height);
+
+            this.root.style.setProperty(
+                '--ia-filter-open-listbox-space',
+                listboxHeight > 0 ? `${listboxHeight + 12}px` : '0px'
+            );
+        });
     }
 }
 

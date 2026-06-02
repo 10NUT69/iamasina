@@ -85,6 +85,16 @@ Route::get('/api/models/{brandId}', [CarController::class, 'getModels'])->name('
 Route::get('/api/generations/{modelId}', [CarController::class, 'getGenerations'])->name('api.cars.generations');
 Route::get('/api/localities/{countyId}', [ServiceController::class, 'getLocalitiesByCounty'])->name('api.localities.by.county');
 
+Route::get('/ajax/brands', [ServiceController::class, 'getBrands'])
+    ->name('ajax.brands');
+Route::get('/ajax/bodies', [ServiceController::class, 'getCarBodyTypes'])
+    ->name('ajax.bodies');
+Route::get('/ajax/fuels', [ServiceController::class, 'getFuelTypes'])
+    ->name('ajax.fuels');
+Route::get('/ajax/transmissions', [ServiceController::class, 'getTransmissionTypes'])
+    ->name('ajax.transmissions');
+Route::get('/ajax/counties', [ServiceController::class, 'getCounties'])
+    ->name('ajax.counties');
 Route::get('/ajax/models-by-brand', [ServiceController::class, 'getModelsByBrand'])
     ->name('ajax.models.by.brand');
 

@@ -116,7 +116,7 @@
             <div id="filters-overlay" class="fixed inset-0 bg-black/40 z-[1000] hidden lg:hidden"></div>
             <div id="filters-panel"
                  class="fixed inset-0 z-[1001] hidden pointer-events-none lg:static lg:block lg:z-auto lg:pointer-events-auto">
-                <div class="filters-panel-sheet pointer-events-auto bg-white dark:bg-[#1E1E1E] h-full lg:h-auto w-full max-w-md lg:max-w-none lg:rounded-2xl lg:shadow-md border border-gray-200 dark:border-[#333333] overflow-y-auto">
+                <div class="filters-panel-sheet pointer-events-auto bg-white dark:bg-[#1E1E1E] h-full lg:h-auto w-full max-w-md lg:max-w-none lg:rounded-2xl lg:shadow-md border border-gray-200 dark:border-[#333333] overflow-y-auto lg:overflow-visible">
                     <div class="sticky top-0 z-20 flex items-center justify-between px-4 py-4 border-b border-gray-200 bg-white dark:bg-[#1E1E1E] dark:border-[#333333] lg:hidden">
                         <h2 class="text-lg font-bold text-gray-900 dark:text-white">Filtrează</h2>
                         <button type="button" id="close-filters" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:border-[#C81424] hover:text-[#C81424] dark:border-[#333333] dark:bg-[#2d2d2d] dark:text-gray-200">
@@ -150,21 +150,56 @@
                         @php
                             $currentBrandId = isset($currentBrand) ? $currentBrand->id : null;
                             $currentModelId = isset($currentModel) ? $currentModel->id : null;
-                            $brandItems = collect($brands ?? []);
-                            $popularBrands = $brandItems->where('is_popular', true);
-                            $alphabeticalBrands = $brandItems->sortBy(function ($brand) {
-                                $name = (string) ($brand->name ?? '');
-                                $slug = (string) ($brand->slug ?? '');
-                                $normalizedName = mb_strtolower(\Illuminate\Support\Str::ascii($name));
-                                $isOtherBrand = in_array($slug, ['altul', 'alta-marca'], true)
-                                    || in_array($normalizedName, ['alta marca', 'altul'], true);
-
-                                return sprintf('%d-%s', $isOtherBrand ? 1 : 0, $normalizedName);
-                            });
-                            $brandComboboxGroups = [
-                                ['label' => 'Populare', 'options' => $popularBrands],
-                                ['label' => 'A-Z', 'options' => $alphabeticalBrands],
+                            $selectedBrandId = request('brand_id', $currentBrandId);
+                            $selectedModelId = request('model_id', $currentModelId);
+                            $selectedCountyId = request('county_id', optional($currentCounty)->id);
+                            $selectedLocalityId = request('locality_id', optional($currentLocality)->id);
+                            $numericFilterGroups = [
+                                [
+                                    [
+                                        'id' => 'year-min',
+                                        'name' => 'year_min',
+                                        'placeholder' => 'Anul de la',
+                                        'value' => request('year_min', request('an_min')),
+                                    ],
+                                    [
+                                        'id' => 'year-max',
+                                        'name' => 'year_max',
+                                        'placeholder' => 'Anul până la',
+                                        'value' => request('year_max', request('an_max')),
+                                    ],
+                                ],
+                                [
+                                    [
+                                        'id' => 'km-min',
+                                        'name' => 'km_min',
+                                        'placeholder' => 'Km de la',
+                                        'value' => request('km_min'),
+                                    ],
+                                    [
+                                        'id' => 'km-max',
+                                        'name' => 'km_max',
+                                        'placeholder' => 'Km până la',
+                                        'value' => request('km_max'),
+                                    ],
+                                ],
+                                [
+                                    [
+                                        'id' => 'price-min',
+                                        'name' => 'price_min',
+                                        'placeholder' => 'Preț de la',
+                                        'value' => request('price_min', request('pret_min')),
+                                    ],
+                                    [
+                                        'id' => 'price-max',
+                                        'name' => 'price_max',
+                                        'placeholder' => 'Preț până la',
+                                        'value' => request('price_max', request('pret_max')),
+                                    ],
+                                ],
                             ];
+                            $numericFilterInputClass = 'listing-filter w-full h-[46px] px-3 pr-9 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#20242b] dark:border-[#3a414b] dark:text-white dark:placeholder-white';
+                            $numericFilterClearClass = 'ia-combobox__clear !right-1.5';
                         @endphp
 
                         <x-combobox
@@ -172,9 +207,9 @@
                             name="brand_id"
                             label="Marca"
                             placeholder="Marca"
-                            :groups="$brandComboboxGroups"
+                            :options="$brands"
                             option-label="name"
-                            :selected="request('brand_id', $currentBrandId)"
+                            :selected="$selectedBrandId"
                             class="listing-filter"
                         />
 
@@ -183,38 +218,39 @@
                             name="model_id"
                             label="Model"
                             placeholder="Model"
-                            :options="[]"
-                            :selected="$currentModelId"
-                            :disabled="true"
+                            :options="$currentModel ? collect([$currentModel]) : collect()"
+                            :selected="$selectedModelId"
+                            :disabled="!$selectedBrandId"
                             class="listing-filter"
                         />
 
-                        <div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <input type="number" id="year-min" name="year_min" placeholder="Anul de la" aria-label="Anul de la" value="{{ request('year_min', request('an_min')) }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#20242b] dark:border-[#3a414b] dark:text-white dark:placeholder-white">
-                                <input type="number" id="year-max" name="year_max" placeholder="Anul până la" aria-label="Anul până la" value="{{ request('year_max', request('an_max')) }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#20242b] dark:border-[#3a414b] dark:text-white dark:placeholder-white">
+                        @foreach($numericFilterGroups as $numericFilterGroup)
+                            <div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    @foreach($numericFilterGroup as $numericFilter)
+                                        <div class="relative" data-clearable-filter>
+                                            <input
+                                                type="number"
+                                                inputmode="numeric"
+                                                id="{{ $numericFilter['id'] }}"
+                                                name="{{ $numericFilter['name'] }}"
+                                                placeholder="{{ $numericFilter['placeholder'] }}"
+                                                aria-label="{{ $numericFilter['placeholder'] }}"
+                                                value="{{ $numericFilter['value'] }}"
+                                                class="{{ $numericFilterInputClass }}"
+                                            >
+                                            <button
+                                                type="button"
+                                                class="{{ $numericFilterClearClass }}"
+                                                aria-label="Șterge {{ $numericFilter['placeholder'] }}"
+                                                data-clear-filter-input
+                                                @if($numericFilter['value'] === null || $numericFilter['value'] === '') hidden @endif
+                                            >&times;</button>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
-                        </div>
-
-                        <div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <input type="number" id="km-min" name="km_min" placeholder="Km de la" aria-label="Km de la" value="{{ request('km_min') }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#20242b] dark:border-[#3a414b] dark:text-white dark:placeholder-white">
-                                <input type="number" id="km-max" name="km_max" placeholder="Km până la" aria-label="Km până la" value="{{ request('km_max') }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#20242b] dark:border-[#3a414b] dark:text-white dark:placeholder-white">
-                            </div>
-                        </div>
-
-                        <div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <input type="number" id="price-min" name="price_min" placeholder="Preț de la" aria-label="Preț de la" value="{{ request('price_min', request('pret_min')) }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#20242b] dark:border-[#3a414b] dark:text-white dark:placeholder-white">
-                                <input type="number" id="price-max" name="price_max" placeholder="Preț până la" aria-label="Preț până la" value="{{ request('price_max', request('pret_max')) }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#20242b] dark:border-[#3a414b] dark:text-white dark:placeholder-white">
-                            </div>
-                        </div>
+                        @endforeach
 
                         <x-combobox
                             id="body-filter"
@@ -256,7 +292,7 @@
                             placeholder="Județ"
                             :options="$counties"
                             option-label="name"
-                            :selected="request('county_id', optional($currentCounty)->id)"
+                            :selected="$selectedCountyId"
                             class="listing-filter"
                         />
 
@@ -265,9 +301,10 @@
                             name="locality_id"
                             label="Localitate"
                             placeholder="Localitate"
-                            :options="[]"
-                            :selected="optional($currentLocality)->id"
-                            :disabled="true"
+                            :options="$currentLocality ? collect([$currentLocality]) : collect()"
+                            option-label="name"
+                            :selected="$selectedLocalityId"
+                            :disabled="!$selectedCountyId"
                             class="listing-filter"
                         />
 
@@ -493,12 +530,19 @@
     const listUrl = "{{ url()->current() }}";
     const baseUrl = "{{ url('/') }}";
     const initialModelId = @json(optional($currentModel)->id);
+    const autoCatalogUrls = {
+        brands: "{{ route('ajax.brands') }}",
+        modelsByBrand: "{{ route('ajax.models.by.brand') }}",
+        bodies: "{{ route('ajax.bodies') }}",
+        fuels: "{{ route('ajax.fuels') }}",
+        transmissions: "{{ route('ajax.transmissions') }}",
+        counties: "{{ route('ajax.counties') }}",
+    };
 
     let isLoading = false;
     let currentPage = Number(document.getElementById('load-more-trigger')?.dataset.nextPage || {{ $listingCurrentPage + 1 }});
     let hasMore = document.getElementById('load-more-trigger')?.dataset.hasMore === 'true';
 
-    const carData = @json($carData ?? []);
     const localityBaseUrl = "{{ url('/api/localities') }}";
     const initialLocalityId = @json(optional($currentLocality)->id);
     const mobileQuery = window.matchMedia('(max-width: 1023px)');
@@ -558,6 +602,254 @@
         }
         el.disabled = false;
         el.classList.remove('bg-gray-50', 'text-gray-400', 'cursor-not-allowed');
+    }
+
+    function clearButtonForFilterInput(input) {
+        return input?.closest('[data-clearable-filter]')?.querySelector('[data-clear-filter-input]') || null;
+    }
+
+    function syncClearableFilterInput(input) {
+        const button = clearButtonForFilterInput(input);
+
+        if (button) {
+            button.hidden = !input?.value;
+        }
+    }
+
+    function initClearableFilterInputs(inputs) {
+        inputs.filter(Boolean).forEach((input) => {
+            const button = clearButtonForFilterInput(input);
+
+            syncClearableFilterInput(input);
+
+            input.addEventListener('input', () => syncClearableFilterInput(input));
+            input.addEventListener('change', () => syncClearableFilterInput(input));
+
+            button?.addEventListener('click', () => {
+                if (!input.value) return;
+
+                input.value = '';
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+                input.focus();
+            });
+        });
+    }
+
+    const catalogCache = new Map();
+    let brandsLoaded = false;
+    let countiesLoaded = false;
+    let modelsLoadedForBrand = null;
+
+    function catalogLabel(item, labelKey = 'name') {
+        return String(item?.[labelKey] ?? item?.name ?? item?.nume ?? item?.label ?? '').trim();
+    }
+
+    function catalogOption(item, labelKey = 'name', group = '') {
+        const label = catalogLabel(item, labelKey);
+
+        return {
+            value: item?.id,
+            label,
+            name: item?.name ?? label,
+            slug: item?.slug ?? '',
+            group,
+        };
+    }
+
+    function normaliseCatalogText(value) {
+        return String(value || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .trim();
+    }
+
+    function sortBrandsAlphabetically(brands) {
+        return [...brands].sort((left, right) => {
+            const leftName = normaliseCatalogText(left?.name);
+            const rightName = normaliseCatalogText(right?.name);
+            const leftOther = ['altul', 'alta-marca'].includes(String(left?.slug || ''))
+                || ['alta marca', 'altul'].includes(leftName);
+            const rightOther = ['altul', 'alta-marca'].includes(String(right?.slug || ''))
+                || ['alta marca', 'altul'].includes(rightName);
+
+            if (leftOther !== rightOther) return leftOther ? 1 : -1;
+            return leftName.localeCompare(rightName, 'ro');
+        });
+    }
+
+    function brandOptions(brands) {
+        const popular = brands
+            .filter((brand) => !!brand?.is_popular)
+            .map((brand) => catalogOption(brand, 'name', 'Populare'));
+        const alphabetical = sortBrandsAlphabetically(brands)
+            .map((brand) => catalogOption(brand, 'name', 'A-Z'));
+
+        return [...popular, ...alphabetical];
+    }
+
+    async function fetchCatalog(url) {
+        if (!catalogCache.has(url)) {
+            const promise = fetch(url, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            }).then((response) => {
+                if (!response.ok) {
+                    throw new Error(`Catalog request failed: ${response.status}`);
+                }
+
+                return response.json();
+            }).catch((error) => {
+                catalogCache.delete(url);
+                throw error;
+            });
+
+            catalogCache.set(url, promise);
+        }
+
+        return catalogCache.get(url);
+    }
+
+    function comboboxRoot(el) {
+        return window.iaCombobox?.get(el)?.root || el?.closest?.('[data-combobox]') || null;
+    }
+
+    function setComboboxOptions(el, options, selectedValue = '') {
+        if (!el || !window.iaCombobox?.get(el)) return;
+
+        window.iaCombobox.setOptions(el, options, selectedValue || el.value || '', { dispatch: false });
+        window.iaCombobox.enable(el);
+    }
+
+    function setComboboxEnabled(el, enabled) {
+        if (!el) return;
+
+        if (window.iaCombobox?.get(el)) {
+            enabled ? window.iaCombobox.enable(el) : window.iaCombobox.disable(el);
+            return;
+        }
+
+        el.disabled = !enabled;
+    }
+
+    function modelsUrl(brandId) {
+        return `${autoCatalogUrls.modelsByBrand}?brand_id=${encodeURIComponent(brandId)}`;
+    }
+
+    function localitiesUrl(countyId) {
+        return `${localityBaseUrl}/${encodeURIComponent(countyId)}`;
+    }
+
+    function prefetchStaticCatalogs() {
+        [
+            autoCatalogUrls.brands,
+            autoCatalogUrls.bodies,
+            autoCatalogUrls.fuels,
+            autoCatalogUrls.transmissions,
+            autoCatalogUrls.counties,
+        ].forEach((url) => {
+            fetchCatalog(url).catch((error) => console.error(error));
+        });
+    }
+
+    function prefetchModelsForBrand(brandId) {
+        if (!brandId) return;
+
+        fetchCatalog(modelsUrl(brandId)).catch((error) => console.error(error));
+    }
+
+    function loadOnFirstComboboxOpen(el, loader) {
+        if (!el) return;
+
+        let loadPromise = null;
+        const load = (event = null) => {
+            if (event?.target?.closest?.('[data-combobox-listbox]')) {
+                return Promise.resolve();
+            }
+
+            if (!el || el.disabled) return Promise.resolve();
+            if (!loadPromise) {
+                loadPromise = Promise.resolve(loader()).catch((error) => {
+                    console.error(error);
+                }).finally(() => {
+                    loadPromise = null;
+                });
+            }
+
+            return loadPromise;
+        };
+
+        const root = comboboxRoot(el);
+        root?.addEventListener('pointerdown', load, { capture: true });
+        root?.addEventListener('focusin', load);
+        root?.querySelector('[data-combobox-toggle]')?.addEventListener('click', load, { capture: true });
+    }
+
+    async function ensureBrandsLoaded() {
+        if (brandsLoaded) return;
+
+        const brands = await fetchCatalog(autoCatalogUrls.brands);
+        setComboboxOptions(domElements.brand, brandOptions(brands), domElements.brand?.value || '');
+        brandsLoaded = true;
+    }
+
+    async function ensureCountiesLoaded() {
+        if (countiesLoaded) return;
+
+        const counties = await fetchCatalog(autoCatalogUrls.counties);
+        setComboboxOptions(
+            domElements.county,
+            counties.map((county) => catalogOption(county, 'name')),
+            domElements.county?.value || ''
+        );
+        countiesLoaded = true;
+    }
+
+    async function renderModelsForBrand(brandId, selectedModelId = '', { resetFirst = true } = {}) {
+        if (resetFirst) {
+            resetSelect(domElements.model, 'Model');
+        }
+
+        if (!brandId) {
+            if (!resetFirst) {
+                resetSelect(domElements.model, 'Model');
+            }
+            modelsLoadedForBrand = null;
+            return;
+        }
+
+        const models = await fetchCatalog(modelsUrl(brandId));
+        const options = models.map((model) => catalogOption(model, 'name'));
+
+        if (!options.length) {
+            resetSelect(domElements.model, 'Model');
+            modelsLoadedForBrand = String(brandId);
+            return;
+        }
+
+        setComboboxOptions(domElements.model, options, selectedModelId || domElements.model?.value || '');
+        modelsLoadedForBrand = String(brandId);
+
+        if (selectedModelId && domElements.model?.value) {
+            domElements.model.dispatchEvent(new Event('change'));
+        }
+    }
+
+    async function ensureModelsLoadedForSelectedBrand() {
+        const brandId = domElements.brand?.value || '';
+
+        if (!brandId || modelsLoadedForBrand === String(brandId)) {
+            return;
+        }
+
+        await renderModelsForBrand(brandId, domElements.model?.value || initialModelId || '', { resetFirst: false });
+    }
+
+    function setupLookupCatalog(el, url, labelKey = 'nume') {
+        loadOnFirstComboboxOpen(el, async () => {
+            const items = await fetchCatalog(url);
+            setComboboxOptions(el, items.map((item) => catalogOption(item, labelKey)), el?.value || '');
+        });
     }
 
     const customSelects = new Map();
@@ -721,18 +1013,18 @@
         });
     }
 
-    function resetLocalities() {
+    function resetLocalities(enabled = false) {
         if (!domElements.locality) return;
         if (window.iaCombobox?.get(domElements.locality)) {
             window.iaCombobox.setOptions(domElements.locality, [], '');
-            window.iaCombobox.disable(domElements.locality);
+            enabled ? window.iaCombobox.enable(domElements.locality) : window.iaCombobox.disable(domElements.locality);
             return;
         }
         domElements.locality.innerHTML = '<option value="">Oraș</option>';
-        domElements.locality.disabled = true;
+        domElements.locality.disabled = !enabled;
     }
 
-    function populateLocalities(localities, selectedId) {
+    function renderLocalities(localities, selectedId) {
         if (!domElements.locality) return;
         if (window.iaCombobox?.get(domElements.locality)) {
             window.iaCombobox.setOptions(domElements.locality, localities.map((locality) => ({
@@ -758,20 +1050,30 @@
         domElements.locality.disabled = false;
     }
 
-    async function loadLocalities(countyId, selectedId = null) {
+    async function renderLocalitiesForCounty(countyId, selectedId = null) {
         if (!countyId) {
             resetLocalities();
             return;
         }
 
         try {
-            const response = await fetch(`${localityBaseUrl}/${countyId}`);
-            const data = await response.json();
-            populateLocalities(data, selectedId);
+            const data = await fetchCatalog(localitiesUrl(countyId));
+            renderLocalities(data, selectedId);
         } catch (error) {
             console.error(error);
             resetLocalities();
         }
+    }
+
+    async function ensureLocalitiesLoadedForSelectedCounty() {
+        const countyId = domElements.county?.value || '';
+
+        if (!countyId) {
+            resetLocalities();
+            return;
+        }
+
+        await renderLocalitiesForCounty(countyId, domElements.locality?.value || initialLocalityId || '');
     }
 
     function selectedOptionMeta(el) {
@@ -1170,7 +1472,12 @@
 
         if (domElements.county) {
             domElements.county.addEventListener('change', () => {
-                loadLocalities(domElements.county.value);
+                const countyId = domElements.county.value;
+
+                resetLocalities(!!countyId);
+                if (countyId) {
+                    renderLocalitiesForCounty(countyId);
+                }
                 window.checkResetVisibility();
             });
         }
@@ -1200,47 +1507,21 @@
             });
         }
 
-        function populateModelsForBrand(brandId, selectedModelId = '') {
-            resetSelect(domElements.model, 'Model');
+        loadOnFirstComboboxOpen(domElements.brand, ensureBrandsLoaded);
+        loadOnFirstComboboxOpen(domElements.model, ensureModelsLoadedForSelectedBrand);
+        loadOnFirstComboboxOpen(domElements.county, ensureCountiesLoaded);
+        loadOnFirstComboboxOpen(domElements.locality, ensureLocalitiesLoadedForSelectedCounty);
+        setupLookupCatalog(domElements.body, autoCatalogUrls.bodies);
+        setupLookupCatalog(domElements.fuel, autoCatalogUrls.fuels);
+        setupLookupCatalog(domElements.gear, autoCatalogUrls.transmissions);
 
-            const models = (brandId && carData[brandId])
-                ? carData[brandId].map((model) => ({
-                    value: model.id,
-                    label: model.name,
-                    name: model.name,
-                    slug: model.slug,
-                }))
-                : [];
-
-            if (!models.length) return;
-
-            if (window.iaCombobox?.get(domElements.model)) {
-                window.iaCombobox.setOptions(domElements.model, models, selectedModelId || '');
-                window.iaCombobox.enable(domElements.model);
-                if (selectedModelId && domElements.model.value) {
-                    domElements.model.dispatchEvent(new Event('change'));
-                }
-                return;
-            }
-
-            enableSelect(domElements.model);
-            models.forEach(m => {
-                const selected = selectedModelId && String(selectedModelId) === String(m.value) ? 'selected' : '';
-                domElements.model.innerHTML += `<option value="${m.value}" data-slug="${m.slug}" ${selected}>${m.label}</option>`;
-            });
-
-            if (selectedModelId && domElements.model.value) {
-                domElements.model.dispatchEvent(new Event('change'));
-            }
-        }
-
-        if (domElements.brand && domElements.brand.value) {
-            populateModelsForBrand(domElements.brand.value, initialModelId);
-        }
+        prefetchStaticCatalogs();
+        prefetchModelsForBrand(domElements.brand?.value || '');
 
         if (domElements.brand) {
             domElements.brand.addEventListener('change', function () {
                 const brandId = this.value;
+                modelsLoadedForBrand = null;
 
                 if (!brandId) {
                     resetSelect(domElements.model, 'Model');
@@ -1248,7 +1529,9 @@
                     return;
                 }
 
-                populateModelsForBrand(brandId);
+                resetSelect(domElements.model, 'Model');
+                setComboboxEnabled(domElements.model, true);
+                prefetchModelsForBrand(brandId);
                 window.checkResetVisibility();
             });
         }
@@ -1259,8 +1542,9 @@
             });
         }
 
-        if (domElements.county && domElements.county.value) {
-            loadLocalities(domElements.county.value, initialLocalityId);
+        if (domElements.county?.value) {
+            setComboboxEnabled(domElements.locality, true);
+            renderLocalitiesForCounty(domElements.county.value, initialLocalityId);
         } else {
             resetLocalities();
         }
@@ -1273,7 +1557,18 @@
             }
         });
 
-        [domElements.priceMin, domElements.priceMax, domElements.kmMin, domElements.kmMax, domElements.yearMin, domElements.yearMax].forEach(el => {
+        const numericFilterInputs = [
+            domElements.priceMin,
+            domElements.priceMax,
+            domElements.kmMin,
+            domElements.kmMax,
+            domElements.yearMin,
+            domElements.yearMax,
+        ];
+
+        initClearableFilterInputs(numericFilterInputs);
+
+        numericFilterInputs.forEach(el => {
             if (el) {
                 el.addEventListener('input', () => {
                     window.checkResetVisibility();
@@ -1467,6 +1762,17 @@
 
     .autovit-select.listing-filter {
         width: 100%;
+    }
+
+    #filters-panel input.listing-filter[type="number"] {
+        -moz-appearance: textfield;
+        appearance: textfield;
+    }
+
+    #filters-panel input.listing-filter[type="number"]::-webkit-inner-spin-button,
+    #filters-panel input.listing-filter[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
     }
 
     .native-select-hidden {

@@ -46,21 +46,8 @@
             @php
                 $currentBrandId = isset($currentBrand) ? $currentBrand->id : null;
                 $currentModelId = isset($currentModel) ? $currentModel->id : null;
-                $brandItems = collect($brands ?? []);
-                $popularBrands = $brandItems->where('is_popular', true);
-                $alphabeticalBrands = $brandItems->sortBy(function ($brand) {
-                    $name = (string) ($brand->name ?? '');
-                    $slug = (string) ($brand->slug ?? '');
-                    $normalizedName = mb_strtolower(\Illuminate\Support\Str::ascii($name));
-                    $isOtherBrand = in_array($slug, ['altul', 'alta-marca'], true)
-                        || in_array($normalizedName, ['alta marca', 'altul'], true);
-
-                    return sprintf('%d-%s', $isOtherBrand ? 1 : 0, $normalizedName);
-                });
-                $brandComboboxGroups = [
-                    ['label' => 'Populare', 'options' => $popularBrands],
-                    ['label' => 'A-Z', 'options' => $alphabeticalBrands],
-                ];
+                $selectedBrandId = request('brand_id', $currentBrandId);
+                $selectedModelId = request('model_id', $currentModelId);
             @endphp
 
             <div class="homepage-quick-filters lg:hidden p-3">
@@ -71,9 +58,9 @@
                             name="homepage_quick_brand_id"
                             label="Marca"
                             placeholder="Marca"
-                            :groups="$brandComboboxGroups"
+                            :options="$brands"
                             option-label="name"
-                            :selected="request('brand_id', $currentBrandId)"
+                            :selected="$selectedBrandId"
                             class="homepage-quick-select"
                         />
                     </div>
@@ -84,9 +71,9 @@
                             name="homepage_quick_model_id"
                             label="Model"
                             placeholder="Model"
-                            :options="[]"
-                            :selected="$currentModelId"
-                            :disabled="true"
+                            :options="$currentModel ? collect([$currentModel]) : collect()"
+                            :selected="$selectedModelId"
+                            :disabled="!$selectedBrandId"
                             class="homepage-quick-select"
                         />
                     </div>
@@ -160,9 +147,9 @@
                                 name="brand_id"
                                 label="Marca"
                                 placeholder="Marca"
-                                :groups="$brandComboboxGroups"
+                                :options="$brands"
                                 option-label="name"
-                                :selected="request('brand_id', $currentBrandId)"
+                                :selected="$selectedBrandId"
                             />
                         </div>
 
@@ -172,9 +159,9 @@
                                 name="model_id"
                                 label="Model"
                                 placeholder="Model"
-                                :options="[]"
-                                :selected="$currentModelId"
-                                :disabled="true"
+                                :options="$currentModel ? collect([$currentModel]) : collect()"
+                                :selected="$selectedModelId"
+                                :disabled="!$selectedBrandId"
                             />
                         </div>
 
@@ -213,34 +200,6 @@
                                 option-label="nume"
                                 :selected="request('cutie_viteze_id')"
                             />
-                        </div>
-
-                        {{-- LOCAȚIE --}}
-                        <div class="col-span-2 lg:hidden">
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="col-span-1">
-                                    <x-combobox
-                                        id="county-input"
-                                        name="county_id"
-                                        label="Județ"
-                                        placeholder="Județ"
-                                        :options="$counties"
-                                        option-label="name"
-                                        :selected="request('county_id', optional($currentCounty)->id)"
-                                    />
-                                </div>
-                                <div class="col-span-1">
-                                    <x-combobox
-                                        id="locality-input"
-                                        name="locality_id"
-                                        label="Localitate"
-                                        placeholder="Localitate"
-                                        :options="[]"
-                                        :selected="optional($currentLocality)->id"
-                                        :disabled="true"
-                                    />
-                                </div>
-                            </div>
                         </div>
 
 {{-- BUTOANE ACȚIUNE --}}
@@ -503,9 +462,13 @@
 
 <script>
     const baseUrl = "{{ url('/') }}";
-    const carData = @json($carData ?? []);
-    const localityBaseUrl = "{{ url('/api/localities') }}";
-    const initialLocalityId = @json(optional($currentLocality)->id);
+    const autoCatalogUrls = {
+        brands: "{{ route('ajax.brands') }}",
+        modelsByBrand: "{{ route('ajax.models.by.brand') }}",
+        bodies: "{{ route('ajax.bodies') }}",
+        fuels: "{{ route('ajax.fuels') }}",
+        transmissions: "{{ route('ajax.transmissions') }}",
+    };
     const initialModelId = @json(optional($currentModel)->id);
 
     const domElements = {
@@ -514,8 +477,6 @@
         body: document.getElementById('body-filter'),
         fuel: document.getElementById('fuel-filter'),
         gear: document.getElementById('gearbox-filter'),
-        county: document.getElementById('county-input'),
-        locality: document.getElementById('locality-input'),
         // Am eliminat radius
         resetBtn: document.getElementById('reset-btn'),
         vehicleType: document.getElementById('vehicle-type'),
@@ -554,6 +515,236 @@
         el.classList.remove('bg-gray-50', 'text-gray-400', 'cursor-not-allowed', 'dark:bg-[#1a1a1a]', 'dark:text-gray-500');
         el.classList.add('bg-white', 'text-gray-900', 'dark:bg-[#2d2d2d]', 'dark:text-gray-100');
         syncCustomSelect(el);
+    }
+
+    const catalogCache = new Map();
+    let brandsLoaded = false;
+    let modelsLoadedForBrand = null;
+
+    function brandFields() {
+        return [domElements.brand, domElements.quickBrand].filter(Boolean);
+    }
+
+    function modelFields() {
+        return [domElements.model, domElements.quickModel].filter(Boolean);
+    }
+
+    function catalogLabel(item, labelKey = 'name') {
+        return String(item?.[labelKey] ?? item?.name ?? item?.nume ?? item?.label ?? '').trim();
+    }
+
+    function catalogOption(item, labelKey = 'name', group = '') {
+        const label = catalogLabel(item, labelKey);
+
+        return {
+            value: item?.id,
+            label,
+            name: item?.name ?? label,
+            slug: item?.slug ?? '',
+            group,
+        };
+    }
+
+    function normaliseCatalogText(value) {
+        return String(value || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .trim();
+    }
+
+    function sortBrandsAlphabetically(brands) {
+        return [...brands].sort((left, right) => {
+            const leftName = normaliseCatalogText(left?.name);
+            const rightName = normaliseCatalogText(right?.name);
+            const leftOther = ['altul', 'alta-marca'].includes(String(left?.slug || ''))
+                || ['alta marca', 'altul'].includes(leftName);
+            const rightOther = ['altul', 'alta-marca'].includes(String(right?.slug || ''))
+                || ['alta marca', 'altul'].includes(rightName);
+
+            if (leftOther !== rightOther) return leftOther ? 1 : -1;
+            return leftName.localeCompare(rightName, 'ro');
+        });
+    }
+
+    function brandOptions(brands) {
+        const popular = brands
+            .filter((brand) => !!brand?.is_popular)
+            .map((brand) => catalogOption(brand, 'name', 'Populare'));
+        const alphabetical = sortBrandsAlphabetically(brands)
+            .map((brand) => catalogOption(brand, 'name', 'A-Z'));
+
+        return [...popular, ...alphabetical];
+    }
+
+    async function fetchCatalog(url) {
+        if (!catalogCache.has(url)) {
+            const promise = fetch(url, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            }).then((response) => {
+                if (!response.ok) {
+                    throw new Error(`Catalog request failed: ${response.status}`);
+                }
+
+                return response.json();
+            }).catch((error) => {
+                catalogCache.delete(url);
+                throw error;
+            });
+
+            catalogCache.set(url, promise);
+        }
+
+        return catalogCache.get(url);
+    }
+
+    function comboboxRoot(el) {
+        return window.iaCombobox?.get(el)?.root || el?.closest?.('[data-combobox]') || null;
+    }
+
+    function setComboboxOptions(el, options, selectedValue = '') {
+        if (!el || !window.iaCombobox?.get(el)) return;
+
+        window.iaCombobox.setOptions(el, options, selectedValue || el.value || '', { dispatch: false });
+        window.iaCombobox.enable(el);
+        syncCustomSelect(el);
+    }
+
+    function setComboboxEnabled(el, enabled) {
+        if (!el) return;
+
+        if (window.iaCombobox?.get(el)) {
+            enabled ? window.iaCombobox.enable(el) : window.iaCombobox.disable(el);
+            return;
+        }
+
+        el.disabled = !enabled;
+        syncCustomSelect(el);
+    }
+
+    function setComboboxValue(el, value, { dispatch = false } = {}) {
+        if (!el) return;
+
+        if (window.iaCombobox?.get(el)) {
+            window.iaCombobox.setValue(el, value || '', { dispatch });
+        } else {
+            el.value = value || '';
+            if (dispatch) {
+                el.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+
+        syncCustomSelect(el);
+    }
+
+    function modelsUrl(brandId) {
+        return `${autoCatalogUrls.modelsByBrand}?brand_id=${encodeURIComponent(brandId)}`;
+    }
+
+    function prefetchStaticCatalogs() {
+        [
+            autoCatalogUrls.brands,
+            autoCatalogUrls.bodies,
+            autoCatalogUrls.fuels,
+            autoCatalogUrls.transmissions,
+        ].forEach((url) => {
+            fetchCatalog(url).catch((error) => console.error(error));
+        });
+    }
+
+    function prefetchModelsForBrand(brandId) {
+        if (!brandId) return;
+
+        fetchCatalog(modelsUrl(brandId)).catch((error) => console.error(error));
+    }
+
+    function loadOnFirstComboboxOpen(el, loader) {
+        if (!el) return;
+
+        let loadPromise = null;
+        const load = (event = null) => {
+            if (event?.target?.closest?.('[data-combobox-listbox]')) {
+                return Promise.resolve();
+            }
+
+            if (!el || el.disabled) return Promise.resolve();
+            if (!loadPromise) {
+                loadPromise = Promise.resolve(loader()).catch((error) => {
+                    console.error(error);
+                }).finally(() => {
+                    loadPromise = null;
+                });
+            }
+
+            return loadPromise;
+        };
+
+        const root = comboboxRoot(el);
+        root?.addEventListener('pointerdown', load, { capture: true });
+        root?.addEventListener('focusin', load);
+        root?.querySelector('[data-combobox-toggle]')?.addEventListener('click', load, { capture: true });
+    }
+
+    async function ensureBrandsLoaded() {
+        if (brandsLoaded) return;
+
+        const brands = await fetchCatalog(autoCatalogUrls.brands);
+        const options = brandOptions(brands);
+        brandFields().forEach((el) => setComboboxOptions(el, options, el.value || ''));
+        brandsLoaded = true;
+    }
+
+    function resetModelFields(enabled = false) {
+        modelFields().forEach((el) => {
+            resetSelect(el, el === domElements.quickModel ? 'Toate modelele' : 'Alege model');
+            if (enabled) {
+                setComboboxEnabled(el, true);
+            }
+        });
+    }
+
+    async function renderModelsForBrand(brandId, selectedModelId = '', { resetFirst = true } = {}) {
+        if (resetFirst) {
+            resetModelFields();
+        }
+
+        if (!brandId) {
+            if (!resetFirst) resetModelFields();
+            modelsLoadedForBrand = null;
+            return;
+        }
+
+        const models = await fetchCatalog(modelsUrl(brandId));
+        const options = models.map((model) => catalogOption(model, 'name'));
+
+        if (!options.length) {
+            resetModelFields();
+            modelsLoadedForBrand = String(brandId);
+            return;
+        }
+
+        modelFields().forEach((el) => {
+            const selectedValue = selectedModelId || el.value || '';
+            setComboboxOptions(el, options, selectedValue);
+        });
+        modelsLoadedForBrand = String(brandId);
+    }
+
+    async function ensureModelsLoadedForSelectedBrand() {
+        const brandId = domElements.brand?.value || domElements.quickBrand?.value || '';
+
+        if (!brandId || modelsLoadedForBrand === String(brandId)) {
+            return;
+        }
+
+        await renderModelsForBrand(brandId, domElements.model?.value || domElements.quickModel?.value || initialModelId || '', { resetFirst: false });
+    }
+
+    function setupLookupCatalog(el, url, labelKey = 'nume') {
+        loadOnFirstComboboxOpen(el, async () => {
+            const items = await fetchCatalog(url);
+            setComboboxOptions(el, items.map((item) => catalogOption(item, labelKey)), el?.value || '');
+        });
     }
 
     const customSelects = new Map();
@@ -718,147 +909,22 @@
         });
     }
 
-    function setHomepageQuickModelEnabled(enabled) {
-        if (!domElements.quickModel) return;
-        if (window.iaCombobox?.get(domElements.quickModel)) {
-            enabled ? window.iaCombobox.enable(domElements.quickModel) : window.iaCombobox.disable(domElements.quickModel);
-            return;
-        }
-        domElements.quickModel.disabled = !enabled;
-        domElements.quickModel.classList.toggle('bg-gray-50', !enabled);
-        domElements.quickModel.classList.toggle('text-gray-400', !enabled);
-        domElements.quickModel.classList.toggle('cursor-not-allowed', !enabled);
-        syncCustomSelect(domElements.quickModel);
-    }
-
-    function populateHomepageQuickModels(selectedId = '') {
-        if (!domElements.quickModel) return;
-
-        const brandId = domElements.quickBrand?.value || domElements.brand?.value || '';
-        const models = (brandId && carData[brandId]?.length)
-            ? carData[brandId].map((model) => ({
-                value: model.id,
-                label: model.name,
-                name: model.name,
-                slug: model.slug,
-            }))
-            : [];
-
-        if (!models.length) {
-            if (window.iaCombobox?.get(domElements.quickModel)) {
-                window.iaCombobox.setOptions(domElements.quickModel, [], '');
-            } else {
-                domElements.quickModel.innerHTML = '<option value="">Toate modelele</option>';
-                domElements.quickModel.value = '';
-            }
-            setHomepageQuickModelEnabled(false);
-            return;
-        }
-
-        if (window.iaCombobox?.get(domElements.quickModel)) {
-            window.iaCombobox.setOptions(domElements.quickModel, models, selectedId);
-        } else {
-            domElements.quickModel.innerHTML = '<option value="">Toate modelele</option>';
-            models.forEach((model) => {
-                const option = document.createElement('option');
-                option.value = model.value;
-                option.textContent = model.label;
-                option.dataset.slug = model.slug;
-                domElements.quickModel.appendChild(option);
-            });
-
-            if (selectedId && Array.from(domElements.quickModel.options).some(option => String(option.value) === String(selectedId))) {
-                domElements.quickModel.value = selectedId;
-            }
-        }
-
-        setHomepageQuickModelEnabled(true);
-        syncCustomSelect(domElements.quickModel);
-    }
-
     function syncHomepageQuickFiltersFromMain() {
-        if (domElements.quickBrand && domElements.brand) {
-            if (window.iaCombobox?.get(domElements.quickBrand)) {
-                window.iaCombobox.setValue(domElements.quickBrand, domElements.brand.value || '', { dispatch: false });
-            } else {
-                domElements.quickBrand.value = domElements.brand.value || '';
-            }
-            syncCustomSelect(domElements.quickBrand);
-        }
-
-        populateHomepageQuickModels(domElements.model?.value || '');
+        setComboboxValue(domElements.quickBrand, domElements.brand?.value || '', { dispatch: false });
+        setComboboxValue(domElements.quickModel, domElements.model?.value || '', { dispatch: false });
     }
 
     function applyHomepageQuickFiltersToMain() {
-        if (domElements.brand && domElements.quickBrand && domElements.brand.value !== domElements.quickBrand.value) {
-            if (window.iaCombobox?.get(domElements.brand)) {
-                window.iaCombobox.setValue(domElements.brand, domElements.quickBrand.value || '');
-            } else {
-                domElements.brand.value = domElements.quickBrand.value || '';
-                domElements.brand.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-            syncCustomSelect(domElements.brand);
-        }
-
-        if (domElements.model && domElements.quickModel && domElements.model.value !== domElements.quickModel.value) {
-            if (window.iaCombobox?.get(domElements.model)) {
-                window.iaCombobox.setValue(domElements.model, domElements.quickModel.value || '');
-            } else {
-                domElements.model.value = domElements.quickModel.value || '';
-                domElements.model.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-            syncCustomSelect(domElements.model);
-        }
+        setComboboxValue(domElements.brand, domElements.quickBrand?.value || '', { dispatch: false });
+        setComboboxValue(domElements.model, domElements.quickModel?.value || '', { dispatch: false });
 
         window.checkResetVisibility();
-    }
-
-    function resetLocalities() {
-        if(domElements.locality) {
-            if (window.iaCombobox?.get(domElements.locality)) {
-                window.iaCombobox.setOptions(domElements.locality, [], '');
-                window.iaCombobox.disable(domElements.locality);
-                return;
-            }
-            domElements.locality.innerHTML = '<option value="">Oraș</option>';
-            domElements.locality.disabled = true;
-        }
-    }
-
-    async function loadLocalities(countyId, selectedId = null) {
-        if (!countyId) { resetLocalities(); return; }
-        try {
-            const response = await fetch(`${localityBaseUrl}/${countyId}`);
-            const data = await response.json();
-            if(domElements.locality) {
-                if (window.iaCombobox?.get(domElements.locality)) {
-                    window.iaCombobox.setOptions(domElements.locality, data.map((locality) => ({
-                        value: locality.id,
-                        label: locality.name,
-                        name: locality.name,
-                        slug: locality.slug,
-                    })), selectedId || '');
-                    window.iaCombobox.enable(domElements.locality);
-                } else {
-                    domElements.locality.innerHTML = '<option value="">Oraș</option>';
-                    data.forEach(l => {
-                        const opt = document.createElement('option');
-                        opt.value = l.id; opt.textContent = l.name;
-                        opt.dataset.slug = l.slug;
-                        if(String(selectedId) === String(l.id)) opt.selected = true;
-                        domElements.locality.appendChild(opt);
-                    });
-                    domElements.locality.disabled = false;
-                }
-            }
-        } catch (error) { console.error(error); resetLocalities(); }
     }
 
     window.checkResetVisibility = function() {
         const btn = domElements.resetBtn;
         if (!btn) return;
-        // Am scos domElements.radius din lista de verificat
-        const filters = [domElements.brand, domElements.model, domElements.body, domElements.fuel, domElements.gear, domElements.county, domElements.locality];
+        const filters = [domElements.brand, domElements.model, domElements.body, domElements.fuel, domElements.gear];
         const hasAnyFilter = filters.some(el => el && el.value !== '');
 
         btn.disabled = !hasAnyFilter;
@@ -872,15 +938,9 @@
     };
 
     window.resetFilters = function() {
-        if (domElements.brand) {
-            if (window.iaCombobox?.get(domElements.brand)) {
-                window.iaCombobox.setValue(domElements.brand, '');
-            } else {
-                domElements.brand.value = '';
-            }
-        }
-        resetSelect(domElements.model, 'Alege model');
-        ['body','fuel','gear','county'].forEach(k => {
+        brandFields().forEach((el) => setComboboxValue(el, '', { dispatch: false }));
+        resetModelFields();
+        ['body','fuel','gear'].forEach(k => {
             if (!domElements[k]) return;
             if (window.iaCombobox?.get(domElements[k])) {
                 window.iaCombobox.setValue(domElements[k], '');
@@ -888,9 +948,7 @@
                 domElements[k].value = '';
             }
         });
-        resetLocalities();
         syncAllCustomSelects();
-        syncHomepageQuickFiltersFromMain();
         window.checkResetVisibility();
     };
 
@@ -908,22 +966,12 @@
     function buildSearchUrl() {
         const brandOption = selectedOptionMeta(domElements.brand);
         const modelOption = selectedOptionMeta(domElements.model);
-        const countyOption = selectedOptionMeta(domElements.county);
-        const localityOption = selectedOptionMeta(domElements.locality);
         const brandSlug = optionSlug(brandOption);
         const modelSlug = optionSlug(modelOption);
-        const countySlug = optionSlug(countyOption);
-        const citySlug = optionSlug(localityOption);
-        const countyInPath = !!countySlug;
-        const cityInPath = !!(countySlug && citySlug);
 
         let path = '/anunturi-auto-de-vanzare';
         if (brandSlug) path += `/${brandSlug}`;
         if (brandSlug && modelSlug) path += `/${modelSlug}`;
-        if (countySlug) path += `/${countySlug}`;
-        if (countySlug && citySlug) {
-            path += `/${citySlug}`;
-        }
 
         const params = new URLSearchParams();
         const addParam = (key, value, defaultValue = '') => {
@@ -933,8 +981,6 @@
         addParam('seller_type', domElements.sellerType?.value || '', 'all');
         addParam('brand_id', brandSlug ? '' : (domElements.brand?.value || ''));
         addParam('model_id', modelSlug ? '' : (domElements.model?.value || ''));
-        addParam('county_id', countyInPath ? '' : (domElements.county?.value || ''));
-        addParam('locality_id', cityInPath ? '' : (domElements.locality?.value || ''));
         addParam('caroserie_id', domElements.body?.value || '');
         addParam('combustibil_id', domElements.fuel?.value || '');
         addParam('cutie_viteze_id', domElements.gear?.value || '');
@@ -972,13 +1018,14 @@
             }));
         }
 
-        if (domElements.county) domElements.county.addEventListener('change', () => {
-            loadLocalities(domElements.county.value);
-            syncHomepageQuickFiltersFromMain();
-            window.checkResetVisibility();
-        });
-        // Am eliminat listener-ul care activa radius
-        if (domElements.locality) domElements.locality.addEventListener('change', () => { window.checkResetVisibility(); });
+        brandFields().forEach((el) => loadOnFirstComboboxOpen(el, ensureBrandsLoaded));
+        modelFields().forEach((el) => loadOnFirstComboboxOpen(el, ensureModelsLoadedForSelectedBrand));
+        setupLookupCatalog(domElements.body, autoCatalogUrls.bodies);
+        setupLookupCatalog(domElements.fuel, autoCatalogUrls.fuels);
+        setupLookupCatalog(domElements.gear, autoCatalogUrls.transmissions);
+
+        prefetchStaticCatalogs();
+        prefetchModelsForBrand(domElements.brand?.value || domElements.quickBrand?.value || '');
 
         const searchForm = document.getElementById('search-form');
         if (searchForm) searchForm.addEventListener('submit', (e) => { e.preventDefault(); window.location.href = buildSearchUrl(); });
@@ -997,8 +1044,12 @@
 
         if (domElements.quickBrand) {
             domElements.quickBrand.addEventListener('change', () => {
-                populateHomepageQuickModels('');
                 applyHomepageQuickFiltersToMain();
+                modelsLoadedForBrand = null;
+                resetModelFields(!!domElements.quickBrand.value);
+                prefetchModelsForBrand(domElements.quickBrand.value || '');
+                syncHomepageQuickFiltersFromMain();
+                window.checkResetVisibility();
             });
         }
 
@@ -1015,39 +1066,17 @@
             });
         }
 
-        let didInitBrandCascade = false;
         const handleBrandChange = () => {
             const brandId = domElements.brand.value;
-            const selectedModelId = !didInitBrandCascade ? initialModelId : '';
-            const models = (brandId && carData[brandId])
-                ? carData[brandId].map((model) => ({
-                    value: model.id,
-                    label: model.name,
-                    name: model.name,
-                    slug: model.slug,
-                }))
-                : [];
-
-            resetSelect(domElements.model, 'Alege model');
-            if (models.length) {
-                if (window.iaCombobox?.get(domElements.model)) {
-                    window.iaCombobox.setOptions(domElements.model, models, selectedModelId || '');
-                    window.iaCombobox.enable(domElements.model);
-                } else {
-                    enableSelect(domElements.model);
-                    models.forEach(m => domElements.model.innerHTML += `<option value="${m.value}" data-slug="${m.slug}">${m.label}</option>`);
-                    if (selectedModelId) {
-                        domElements.model.value = String(selectedModelId);
-                    }
-                }
-            }
-            didInitBrandCascade = true;
+            setComboboxValue(domElements.quickBrand, brandId, { dispatch: false });
+            modelsLoadedForBrand = null;
+            resetModelFields(!!brandId);
+            prefetchModelsForBrand(brandId);
             syncHomepageQuickFiltersFromMain();
             window.checkResetVisibility();
         };
 
         if (domElements.brand) {
-            if(domElements.brand.value) handleBrandChange();
             domElements.brand.addEventListener('change', handleBrandChange);
         }
 
@@ -1059,10 +1088,6 @@
         }
 
         [domElements.body, domElements.fuel, domElements.gear].forEach(el => el && el.addEventListener('change', window.checkResetVisibility));
-
-        if (domElements.county && domElements.county.value) {
-            loadLocalities(domElements.county.value, initialLocalityId);
-        }
 
         syncHomepageQuickFiltersFromMain();
     });
