@@ -27,16 +27,16 @@
             <div class="flex items-start justify-between gap-4">
                 <div>
                     <h2 id="cookie-consent-title" class="text-lg font-black text-gray-900 dark:text-white">
-                        Setari cookies
+                        Setări cookies
                     </h2>
                     <p class="mt-1 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
-                        Alege ce tipuri de cookie-uri optionale permiti. Cookie-urile necesare raman active pentru functionarea site-ului.
+                        Alege ce tipuri de cookie-uri opționale permiți. Cookie-urile necesare rămân active pentru funcționarea site-ului.
                     </p>
                 </div>
                 <button type="button"
                         id="cookie-consent-close"
                         class="rounded-full p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-[#2C2C2C] dark:hover:text-gray-100"
-                        aria-label="Inchide setarile cookies">
+                        aria-label="Închide setările cookies">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -47,7 +47,7 @@
                 <label class="flex items-center justify-between gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-[#333333] dark:bg-[#18181B]">
                     <span>
                         <span class="block text-sm font-bold text-gray-900 dark:text-white">Cookie-uri necesare</span>
-                        <span class="mt-1 block text-xs leading-relaxed text-gray-500 dark:text-gray-400">Active mereu pentru securitate, sesiune si functionalitati de baza.</span>
+                        <span class="mt-1 block text-xs leading-relaxed text-gray-500 dark:text-gray-400">Active mereu pentru securitate, sesiune și funcționalități de bază.</span>
                     </span>
                     <input type="checkbox" checked disabled class="h-5 w-5 rounded border-gray-300 text-[#C81424] opacity-70">
                 </label>
@@ -55,7 +55,7 @@
                 <label class="flex items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 dark:border-[#333333]">
                     <span>
                         <span class="block text-sm font-bold text-gray-900 dark:text-white">Analytics</span>
-                        <span class="mt-1 block text-xs leading-relaxed text-gray-500 dark:text-gray-400">Ne ajuta sa intelegem cum este folosit site-ul si ce putem imbunatati.</span>
+                        <span class="mt-1 block text-xs leading-relaxed text-gray-500 dark:text-gray-400">Ne ajută să înțelegem cum este folosit site-ul și ce putem îmbunătăți.</span>
                     </span>
                     <input id="cookie-consent-analytics" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-[#C81424]">
                 </label>
@@ -63,7 +63,7 @@
                 <label class="flex items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 dark:border-[#333333]">
                     <span>
                         <span class="block text-sm font-bold text-gray-900 dark:text-white">Marketing</span>
-                        <span class="mt-1 block text-xs leading-relaxed text-gray-500 dark:text-gray-400">Permite folosirea unor coduri pentru reclame sau masurarea campaniilor.</span>
+                        <span class="mt-1 block text-xs leading-relaxed text-gray-500 dark:text-gray-400">Permite folosirea unor coduri pentru reclame sau măsurarea campaniilor.</span>
                     </span>
                     <input id="cookie-consent-marketing" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-[#C81424]">
                 </label>
@@ -73,7 +73,7 @@
                 <button type="button"
                         id="cookie-consent-save"
                         class="inline-flex items-center justify-center rounded-xl bg-[#C81424] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#a6101d]">
-                    Salveaza preferintele
+                    Salvează preferințele
                 </button>
             </div>
         </div>

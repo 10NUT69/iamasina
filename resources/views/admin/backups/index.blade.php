@@ -3,9 +3,9 @@
 @section('content')
 <div class="max-w-[1600px] mx-auto py-8 px-4 sm:px-6 lg:px-8 bg-[#F8FAFC] min-h-screen font-sans text-slate-600">
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Backup si restaurare</h1>
+        <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Backup și restaurare</h1>
         <p class="text-sm text-slate-500 mt-1 max-w-4xl">
-            Exporta si restaureaza baza de date si fisierele media ale platformei iaAuto.ro. Foloseste importurile doar cand ai verificat fisierul sursa.
+            Exportă și restaurează baza de date și fișierele media ale platformei iaAuto.ro. Folosește importurile doar când ai verificat fișierul sursă.
         </p>
     </div>
 
@@ -23,7 +23,7 @@
 
     @if($errors->any())
         <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg shadow-sm">
-            <p class="font-bold mb-2">Verifica formularul:</p>
+            <p class="font-bold mb-2">Verifică formularul:</p>
             <ul class="list-disc list-inside text-sm space-y-1">
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -44,7 +44,7 @@
             </div>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4">
-            <p class="text-xs font-bold uppercase text-slate-400">Backupuri de siguranta</p>
+            <p class="text-xs font-bold uppercase text-slate-400">Backupuri de siguranță</p>
             <p class="mt-1 text-sm text-slate-700 break-all">{{ $safetyDirectory }}</p>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4">
@@ -52,7 +52,7 @@
             <p class="mt-1 text-sm text-slate-700 break-all">{{ $manualMediaImportDirectory }}</p>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4">
-            <p class="text-xs font-bold uppercase text-slate-400">Limita upload server</p>
+            <p class="text-xs font-bold uppercase text-slate-400">Limită upload server</p>
             <p class="mt-1 text-sm text-slate-700">{{ $maxUploadSize }}</p>
         </div>
     </div>
@@ -61,13 +61,13 @@
         <section class="bg-white rounded-xl shadow-sm border border-slate-100 p-5">
             <div class="flex items-start justify-between gap-4">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-800">Export baza de date</h2>
+                    <h2 class="text-lg font-bold text-slate-800">Export bază de date</h2>
                     <p class="mt-2 text-sm text-slate-600 leading-relaxed">
-                        Descarca un backup complet al bazei de date, compatibil cu functia de import.
+                        Descarcă un backup complet al bazei de date, compatibil cu funcția de import.
                     </p>
                 </div>
                 <span class="rounded-full px-3 py-1 text-xs font-bold {{ $mysqldumpAvailable ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700' }}">
-                    {{ $mysqldumpAvailable ? 'mysqldump disponibil' : 'mysqldump lipsa' }}
+                    {{ $mysqldumpAvailable ? 'mysqldump disponibil' : 'mysqldump lipsă' }}
                 </span>
             </div>
 
@@ -82,7 +82,7 @@
                 <button type="submit"
                         class="inline-flex items-center justify-center rounded-lg bg-slate-800 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
                         @disabled(!$mysqldumpAvailable)>
-                    Exporta baza de date
+                    Exportă baza de date
                 </button>
             </form>
         </section>
@@ -90,9 +90,9 @@
         <section class="bg-white rounded-xl shadow-sm border border-slate-100 p-5">
             <div class="flex items-start justify-between gap-4">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-800">Import baza de date</h2>
+                    <h2 class="text-lg font-bold text-slate-800">Import bază de date</h2>
                     <p class="mt-2 text-sm text-slate-600 leading-relaxed">
-                        Incarca un fisier .sql generat de exportul bazei de date.
+                        Încarcă un fișier .sql generat de exportul bazei de date.
                     </p>
                 </div>
                 <span class="rounded-full px-3 py-1 text-xs font-bold {{ $mysqlAvailable && $mysqldumpAvailable ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700' }}">
@@ -101,13 +101,13 @@
             </div>
 
             <div class="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                <strong>Atentie:</strong> aceasta actiune poate sterge datele existente si le poate inlocui cu datele din fisierul importat.
-                Inainte de import se creeaza automat un backup de siguranta.
+                <strong>Atenție:</strong> această acțiune poate șterge datele existente și le poate înlocui cu datele din fișierul importat.
+                Înainte de import se creează automat un backup de siguranță.
             </div>
 
             @unless($mysqlAvailable && $mysqldumpAvailable)
                 <div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                    Restaurarea automata necesita mysql CLI si mysqldump pe server.
+                    Restaurarea automată necesită mysql CLI și mysqldump pe server.
                 </div>
             @endunless
 
@@ -115,14 +115,14 @@
                 @csrf
 
                 <div>
-                    <label for="sql_file" class="block text-sm font-bold text-slate-700 mb-1">Fisier .sql</label>
+                    <label for="sql_file" class="block text-sm font-bold text-slate-700 mb-1">Fișier .sql</label>
                     <input id="sql_file" name="sql_file" type="file" accept=".sql"
                            class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-red-500 focus:ring-red-500">
                 </div>
 
                 <label class="flex items-start gap-2 text-sm text-slate-700">
                     <input type="checkbox" name="understand_db_import" value="1" class="mt-1 rounded border-slate-300 text-red-600">
-                    <span>Inteleg ca aceasta actiune va sterge datele existente si va importa datele din fisier.</span>
+                    <span>Înțeleg că această acțiune va șterge datele existente și va importa datele din fișier.</span>
                 </label>
 
                 <div>
@@ -134,7 +134,7 @@
                 <button type="submit"
                         class="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                         @disabled(!$mysqlAvailable || !$mysqldumpAvailable)>
-                    Importa baza de date
+                    Importă baza de date
                 </button>
             </form>
         </section>
@@ -144,17 +144,17 @@
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">Export media</h2>
                     <p class="mt-2 text-sm text-slate-600 leading-relaxed">
-                        Descarca o arhiva ZIP cu imaginile anunturilor, thumbnailurile si galeriile dealerilor.
+                        Descarcă o arhivă ZIP cu imaginile anunțurilor, thumbnailurile și galeriile dealerilor.
                     </p>
                 </div>
                 <span class="rounded-full px-3 py-1 text-xs font-bold {{ $zipAvailable ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700' }}">
-                    {{ $zipAvailable ? 'ZIP disponibil' : 'ZIP lipsa' }}
+                    {{ $zipAvailable ? 'ZIP disponibil' : 'ZIP lipsă' }}
                 </span>
             </div>
 
             @unless($zipAvailable)
                 <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                    Extensia PHP ZipArchive nu este disponibila. Exportul media nu poate fi realizat automat.
+                    Extensia PHP ZipArchive nu este disponibilă. Exportul media nu poate fi realizat automat.
                 </div>
             @endunless
 
@@ -163,7 +163,7 @@
                 <button type="submit"
                         class="inline-flex items-center justify-center rounded-lg bg-slate-800 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
                         @disabled(!$zipAvailable)>
-                    Exporta media
+                    Exportă media
                 </button>
             </form>
         </section>
@@ -172,27 +172,27 @@
             <div>
                 <h2 class="text-lg font-bold text-slate-800">Import media</h2>
                 <p class="mt-2 text-sm text-slate-600 leading-relaxed">
-                    Incarca o arhiva .zip generata de exportul media sau importa o arhiva deja urcata pe server.
+                    Încarcă o arhivă .zip generată de exportul media sau importă o arhivă deja urcată pe server.
                 </p>
             </div>
 
             <div class="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                <strong>Atentie:</strong> aceasta actiune poate inlocui imaginile existente.
-                Inainte de import se creeaza automat un backup de siguranta.
+                <strong>Atenție:</strong> această acțiune poate înlocui imaginile existente.
+                Înainte de import se creează automat un backup de siguranță.
             </div>
 
             <form method="POST" action="{{ route('admin.backups.media.import') }}" enctype="multipart/form-data" class="mt-5 space-y-4">
                 @csrf
 
                 <div>
-                    <label for="media_file" class="block text-sm font-bold text-slate-700 mb-1">Fisier .zip</label>
+                    <label for="media_file" class="block text-sm font-bold text-slate-700 mb-1">Fișier .zip</label>
                     <input id="media_file" name="media_file" type="file" accept=".zip"
                            class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-red-500 focus:ring-red-500">
                 </div>
 
                 <label class="flex items-start gap-2 text-sm text-slate-700">
                     <input type="checkbox" name="understand_media_import" value="1" class="mt-1 rounded border-slate-300 text-red-600">
-                    <span>Inteleg ca aceasta actiune poate inlocui imaginile existente.</span>
+                    <span>Înțeleg că această acțiune poate înlocui imaginile existente.</span>
                 </label>
 
                 <div>
@@ -203,22 +203,22 @@
 
                 <label class="flex items-start gap-2 text-sm text-slate-700">
                     <input type="checkbox" name="delete_existing_media" value="1" class="mt-1 rounded border-slate-300 text-red-600">
-                    <span>Sterge media existenta inainte de import</span>
+                    <span>Șterge media existentă înainte de import</span>
                 </label>
 
                 <button type="submit"
                         class="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                         @disabled(!$zipAvailable)>
-                    Importa media prin upload
+                    Importă media prin upload
                 </button>
             </form>
 
             <div class="my-6 border-t border-slate-100"></div>
 
             <div>
-                <h3 class="text-base font-bold text-slate-800">Import media din fisier de pe server</h3>
+                <h3 class="text-base font-bold text-slate-800">Import media din fișier de pe server</h3>
                 <p class="mt-2 text-sm text-slate-600 leading-relaxed">
-                    Pentru arhive mari, urca fisierul prin SFTP/SSH in folderul de mai jos, apoi selecteaza-l aici.
+                    Pentru arhive mari, urcă fișierul prin SFTP/SSH în folderul de mai jos, apoi selectează-l aici.
                     Varianta aceasta nu depinde de limita de upload din PHP.
                 </p>
                 <p class="mt-2 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-600 break-all">
@@ -228,7 +228,7 @@
 
             @if(empty($manualMediaImports))
                 <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                    Nu exista arhive .zip disponibile in folderul de import manual.
+                    Nu există arhive .zip disponibile în folderul de import manual.
                 </div>
             @else
                 <form method="POST" action="{{ route('admin.backups.media.import-server') }}" class="mt-5 space-y-4">
@@ -248,7 +248,7 @@
 
                     <label class="flex items-start gap-2 text-sm text-slate-700">
                         <input type="checkbox" name="understand_server_media_import" value="1" class="mt-1 rounded border-slate-300 text-red-600">
-                        <span>Inteleg ca aceasta actiune poate inlocui imaginile existente.</span>
+                        <span>Înțeleg că această acțiune poate înlocui imaginile existente.</span>
                     </label>
 
                     <div>
@@ -259,13 +259,13 @@
 
                     <label class="flex items-start gap-2 text-sm text-slate-700">
                         <input type="checkbox" name="delete_existing_server_media" value="1" class="mt-1 rounded border-slate-300 text-red-600">
-                        <span>Sterge media existenta inainte de import</span>
+                        <span>Șterge media existentă înainte de import</span>
                     </label>
 
                     <button type="submit"
                             class="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                             @disabled(!$zipAvailable)>
-                        Importa media din server
+                        Importă media din server
                     </button>
                 </form>
             @endif

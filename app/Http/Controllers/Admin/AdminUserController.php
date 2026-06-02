@@ -68,7 +68,7 @@ class AdminUserController extends Controller
         $rawIds = $request->input('ids');
 
         if (empty($rawIds)) {
-            return back()->with('error', 'Selecteaza cel putin un utilizator.');
+            return back()->with('error', 'Selectează cel puțin un utilizator.');
         }
 
         $ids = array_filter(explode(',', $rawIds));
@@ -106,7 +106,7 @@ class AdminUserController extends Controller
         }
 
         if ($count === 0 && count($ids) > 0) {
-            return back()->with('error', 'Nu poti efectua actiuni asupra propriului cont.');
+            return back()->with('error', 'Nu poți efectua acțiuni asupra propriului cont.');
         }
 
         return back()->with('success', "Actiunea '{$action}' a fost aplicata pe {$count} utilizatori.");
@@ -117,7 +117,7 @@ class AdminUserController extends Controller
         $user = User::findOrFail($id);
 
         if ($user->id === auth()->id()) {
-            return back()->with('error', 'Nu poti dezactiva propriul cont.');
+            return back()->with('error', 'Nu poți dezactiva propriul cont.');
         }
 
         if (!Schema::hasColumn('users', 'is_active')) {
@@ -135,13 +135,13 @@ class AdminUserController extends Controller
         $user = User::findOrFail($id);
 
         if ($user->id === auth()->id()) {
-            return back()->with('error', 'Nu poti sterge propriul cont.');
+            return back()->with('error', 'Nu poți șterge propriul cont.');
         }
 
         $this->cleanupUserResources($user);
         $user->delete();
 
-        return back()->with('success', 'Utilizatorul si anunturile sale au fost sterse.');
+        return back()->with('success', 'Utilizatorul și anunțurile sale au fost șterse.');
     }
 
     private function cleanupUserResources(User $user): void

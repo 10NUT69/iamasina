@@ -4,12 +4,12 @@
 @php
     $currentRange = $range ?? request('range', 'today');
     $rangeLabel = match($currentRange) {
-        'today' => 'Astazi',
+        'today' => 'Astăzi',
         'yesterday' => 'Ieri',
         '7days' => 'Ultimele 7 zile',
         '30days' => 'Ultimele 30 zile',
         'this_month' => 'Luna aceasta',
-        default => 'Astazi',
+        default => 'Astăzi',
     };
 
     $chartLabels = $dailyStats->pluck('date')->map(function ($value) {
@@ -38,7 +38,7 @@
             <div class="relative group">
                 <select name="range" onchange="this.form.submit()"
                         class="appearance-none bg-transparent border-none text-slate-700 text-sm font-semibold py-2 pl-4 pr-8 rounded-md focus:ring-0 cursor-pointer hover:text-blue-600 transition-colors">
-                    <option value="today" {{ $currentRange === 'today' ? 'selected' : '' }}>Astazi</option>
+                    <option value="today" {{ $currentRange === 'today' ? 'selected' : '' }}>Astăzi</option>
                     <option value="yesterday" {{ $currentRange === 'yesterday' ? 'selected' : '' }}>Ieri</option>
                     <option value="7days" {{ $currentRange === '7days' ? 'selected' : '' }}>Ultimele 7 zile</option>
                     <option value="30days" {{ $currentRange === '30days' ? 'selected' : '' }}>Ultimele 30 zile</option>
@@ -53,7 +53,7 @@
 
             <button type="button" onclick="window.location.reload();"
                     class="p-2 text-slate-500 hover:text-blue-600 hover:bg-white rounded-md transition-all shadow-sm"
-                    title="Actualizeaza">
+                    title="Actualizează">
                 <i class="fas fa-sync-alt"></i>
             </button>
         </form>
@@ -62,7 +62,7 @@
     <div class="mb-6">
         <div class="mb-3 flex items-center justify-between">
             <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500">De rezolvat</h2>
-            <span class="text-xs text-slate-400">Snapshot operational</span>
+            <span class="text-xs text-slate-400">Snapshot operațional</span>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-4">
@@ -77,7 +77,7 @@
                         <i class="fas fa-hourglass-half"></i>
                     </div>
                 </div>
-                <p class="mt-3 text-xs text-slate-500">Anunturi de verificat</p>
+                <p class="mt-3 text-xs text-slate-500">Anunțuri de verificat</p>
             </a>
 
             <a href="{{ route('admin.services.index', ['status' => 'inactive']) }}"
@@ -91,21 +91,21 @@
                         <i class="fas fa-calendar-times"></i>
                     </div>
                 </div>
-                <p class="mt-3 text-xs text-slate-500">Necesita decizie</p>
+                <p class="mt-3 text-xs text-slate-500">Necesită decizie</p>
             </a>
 
             <a href="{{ route('admin.services.index') }}"
                class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 hover:border-blue-200 hover:shadow-md transition">
                 <div class="flex items-start justify-between gap-3">
                     <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase">Fara poze</p>
+                        <p class="text-xs font-bold text-slate-400 uppercase">Fără poze</p>
                         <p class="mt-2 text-2xl font-bold text-slate-800">{{ number_format($servicesWithoutImages) }}</p>
                     </div>
                     <div class="h-9 w-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
                         <i class="fas fa-image"></i>
                     </div>
                 </div>
-                <p class="mt-3 text-xs text-slate-500">Calitate listari</p>
+                <p class="mt-3 text-xs text-slate-500">Calitate listări</p>
             </a>
 
             <a href="{{ route('admin.users.index') }}"
@@ -119,7 +119,7 @@
                         <i class="fas fa-user-plus"></i>
                     </div>
                 </div>
-                <p class="mt-3 text-xs text-slate-500">Inregistrati azi</p>
+                <p class="mt-3 text-xs text-slate-500">Înregistrați azi</p>
             </a>
 
             <a href="{{ route('admin.users.index') }}"
@@ -146,7 +146,7 @@
                         <i class="fas fa-comments"></i>
                     </div>
                 </div>
-                <p class="mt-3 text-xs text-slate-500">{{ number_format($newConversationsToday) }} conversatii noi</p>
+                <p class="mt-3 text-xs text-slate-500">{{ number_format($newConversationsToday) }} conversații noi</p>
             </div>
         </div>
     </div>
@@ -166,7 +166,7 @@
                     </span>
                 </h3>
                 <div class="mt-4 pt-4 border-t border-slate-700/50">
-                    <p class="text-xs text-slate-300">Utilizatori activi in ultimele 5 minute</p>
+                    <p class="text-xs text-slate-300">Utilizatori activi în ultimele 5 minute</p>
                 </div>
             </div>
         </div>
@@ -220,7 +220,7 @@
                 </div>
                 <div class="h-8 w-px bg-white/20"></div>
                 <div class="flex flex-col text-right">
-                    <span class="text-indigo-200 text-xs font-bold uppercase">Anunturi</span>
+                    <span class="text-indigo-200 text-xs font-bold uppercase">Anunțuri</span>
                     <span class="text-2xl font-bold">{{ number_format($serviceCount) }}</span>
                 </div>
             </div>
@@ -244,7 +244,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
             <div class="px-5 py-4 border-b border-slate-100 bg-slate-50">
                 <h3 class="font-bold text-slate-700 flex items-center gap-2">
-                    <i class="fas fa-location-dot text-blue-500"></i> Top locatii
+                    <i class="fas fa-location-dot text-blue-500"></i> Top locații
                 </h3>
             </div>
             <div class="flex-1 overflow-auto max-h-[360px] custom-scrollbar">
@@ -265,7 +265,7 @@
                         @empty
                             <tr>
                                 <td class="px-4 py-8 text-center text-slate-400" colspan="2">
-                                    Nu exista date de locatie salvate inca.
+                                    Nu există date de locație salvate încă.
                                 </td>
                             </tr>
                         @endforelse
@@ -300,7 +300,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td class="px-4 py-8 text-center text-slate-400" colspan="2">Fara date.</td>
+                                <td class="px-4 py-8 text-center text-slate-400" colspan="2">Fără date.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -337,7 +337,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td class="px-4 py-8 text-center text-slate-400" colspan="2">Fara date.</td>
+                                <td class="px-4 py-8 text-center text-slate-400" colspan="2">Fără date.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -386,7 +386,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td class="px-4 py-8 text-center text-slate-400" colspan="2">Fara date.</td>
+                                <td class="px-4 py-8 text-center text-slate-400" colspan="2">Fără date.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -426,7 +426,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td class="px-4 py-8 text-center text-slate-400" colspan="2">Fara date.</td>
+                                <td class="px-4 py-8 text-center text-slate-400" colspan="2">Fără date.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -446,8 +446,8 @@
             <table class="w-full text-xs text-left">
                 <thead class="bg-slate-50 text-slate-500 uppercase font-bold border-b border-slate-200">
                     <tr>
-                        <th class="px-6 py-3">Ultima vizita</th>
-                        <th class="px-6 py-3">IP / locatie</th>
+                        <th class="px-6 py-3">Ultima vizită</th>
+                        <th class="px-6 py-3">IP / locație</th>
                         <th class="px-6 py-3">Ultima pagina</th>
                         <th class="px-6 py-3 text-center">Pagini</th>
                         <th class="px-6 py-3">Referrer</th>
@@ -463,8 +463,8 @@
                             <td class="px-6 py-3">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono border border-slate-200">{{ $visit->ip }}</span>
-                                    <span class="text-slate-500 truncate max-w-[180px]" title="{{ $visit->location_label ?? 'Locatie necunoscuta' }}">
-                                        {{ $visit->location_label ?? 'Locatie necunoscuta' }}
+                                    <span class="text-slate-500 truncate max-w-[180px]" title="{{ $visit->location_label ?? 'Locație necunoscută' }}">
+                                        {{ $visit->location_label ?? 'Locație necunoscută' }}
                                     </span>
                                 </div>
                             </td>
@@ -484,7 +484,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td class="px-6 py-8 text-center text-slate-400" colspan="5">Fara vizite in perioada aleasa.</td>
+                            <td class="px-6 py-8 text-center text-slate-400" colspan="5">Fără vizite în perioada aleasă.</td>
                         </tr>
                     @endforelse
                 </tbody>

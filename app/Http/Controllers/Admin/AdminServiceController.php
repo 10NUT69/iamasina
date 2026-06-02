@@ -67,7 +67,7 @@ class AdminServiceController extends Controller
             ->count();
 
         if ($total === 0) {
-            return back()->with('error', 'IndexNow: nu exista anunturi active de trimis.');
+            return back()->with('error', 'IndexNow: nu există anunțuri active de trimis.');
         }
 
         Service::query()
@@ -101,11 +101,11 @@ class AdminServiceController extends Controller
             });
 
         if ($submitted === 0) {
-            return back()->with('error', 'IndexNow: nu am putut trimite URL-urile. Verifica APP_URL si fisierul cheie.');
+            return back()->with('error', 'IndexNow: nu am putut trimite URL-urile. Verifică APP_URL și fișierul cheie.');
         }
 
         if ($failedBatches > 0) {
-            return back()->with('error', "IndexNow: am trimis {$submitted} URL-uri, dar {$failedBatches} loturi au esuat.");
+            return back()->with('error', "IndexNow: am trimis {$submitted} URL-uri, dar {$failedBatches} loturi au eșuat.");
         }
 
         return back()->with('success', "IndexNow: am trimis {$submitted} URL-uri active.");
@@ -199,7 +199,7 @@ class AdminServiceController extends Controller
         }
 
         if (!in_array($imageName, $images, true)) {
-            return back()->with('error', 'Imaginea nu a fost gasita in acest anunt.');
+            return back()->with('error', 'Imaginea nu a fost găsită în acest anunț.');
         }
 
         $images = array_values(array_filter($images, fn ($image) => $image !== $imageName));

@@ -95,7 +95,7 @@
             @if($disabled) disabled @endif
             data-combobox-input
         >
-        <button type="button" class="ia-combobox__clear" aria-label="Sterge {{ $label }}" data-combobox-clear hidden>&times;</button>
+        <button type="button" class="ia-combobox__clear" aria-label="Șterge {{ $label }}" data-combobox-clear hidden>&times;</button>
         <button type="button" class="ia-combobox__toggle" aria-label="Deschide {{ $label }}" tabindex="-1" data-combobox-toggle>
             <span aria-hidden="true"></span>
         </button>

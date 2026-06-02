@@ -41,7 +41,7 @@ class AdminAutoCatalogController extends Controller
 
         CarBrand::create($data);
 
-        return back()->with('success', 'Marca a fost adaugata.');
+        return back()->with('success', 'Marca a fost adăugată.');
     }
 
     public function updateBrand(Request $request, CarBrand $brand)
@@ -50,7 +50,7 @@ class AdminAutoCatalogController extends Controller
 
         $brand->update($data);
 
-        return back()->with('success', 'Marca a fost actualizata.');
+        return back()->with('success', 'Marca a fost actualizată.');
     }
 
     public function destroyBrand(CarBrand $brand)
@@ -58,7 +58,7 @@ class AdminAutoCatalogController extends Controller
         $usedServices = $this->brandServicesCount($brand);
 
         if ($usedServices > 0) {
-            return back()->with('error', "Nu poti sterge marca {$brand->name}: exista {$usedServices} anunturi legate de ea.");
+            return back()->with('error', "Nu poți șterge marca {$brand->name}: există {$usedServices} anunțuri legate de ea.");
         }
 
         DB::transaction(function () use ($brand) {
@@ -66,7 +66,7 @@ class AdminAutoCatalogController extends Controller
             $brand->delete();
         });
 
-        return back()->with('success', 'Marca si modelele ei nefolosite au fost sterse.');
+        return back()->with('success', 'Marca și modelele ei nefolosite au fost șterse.');
     }
 
     public function storeModel(Request $request, CarBrand $brand)
@@ -76,7 +76,7 @@ class AdminAutoCatalogController extends Controller
 
         CarModel::create($data);
 
-        return back()->with('success', 'Modelul a fost adaugat.');
+        return back()->with('success', 'Modelul a fost adăugat.');
     }
 
     public function updateModel(Request $request, CarModel $model)
@@ -93,12 +93,12 @@ class AdminAutoCatalogController extends Controller
         $usedServices = $this->modelServicesCount($model);
 
         if ($usedServices > 0) {
-            return back()->with('error', "Nu poti sterge modelul {$model->name}: exista {$usedServices} anunturi legate de el.");
+            return back()->with('error', "Nu poți șterge modelul {$model->name}: există {$usedServices} anunțuri legate de el.");
         }
 
         $model->delete();
 
-        return back()->with('success', 'Modelul a fost sters.');
+        return back()->with('success', 'Modelul a fost șters.');
     }
 
     public function storeNorma(Request $request)
@@ -107,7 +107,7 @@ class AdminAutoCatalogController extends Controller
 
         NormaPoluare::create($data);
 
-        return back()->with('success', 'Norma de poluare a fost adaugata.');
+        return back()->with('success', 'Norma de poluare a fost adăugată.');
     }
 
     public function updateNorma(Request $request, NormaPoluare $norma)
@@ -116,18 +116,18 @@ class AdminAutoCatalogController extends Controller
 
         $norma->update($data);
 
-        return back()->with('success', 'Norma de poluare a fost actualizata.');
+        return back()->with('success', 'Norma de poluare a fost actualizată.');
     }
 
     public function destroyNorma(NormaPoluare $norma)
     {
         if ($norma->services()->exists()) {
-            return back()->with('error', "Nu poti sterge {$norma->nume}: exista anunturi care o folosesc.");
+            return back()->with('error', "Nu poți șterge {$norma->nume}: există anunțuri care o folosesc.");
         }
 
         $norma->delete();
 
-        return back()->with('success', 'Norma de poluare a fost stearsa.');
+        return back()->with('success', 'Norma de poluare a fost ștearsă.');
     }
 
     private function validateBrand(Request $request, ?CarBrand $brand = null): array

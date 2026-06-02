@@ -36,7 +36,7 @@
                     data-favorite-service-id="{{ $service->id }}"
                     data-favorite-empty-class="text-white fill-none group-hover/heart:text-[#C81424]"
                     data-favorite-active-class="text-[#C81424] fill-[#C81424]"
-                    aria-label="{{ $isFav ? 'Scoate de la favorite' : 'Adauga la favorite' }}: {{ $listingTitle }}"
+                   aria-label="{{ $isFav ? 'Scoate de la favorite' : 'Adaugă la favorite' }}: {{ $listingTitle }}"
                     aria-pressed="{{ $isFav ? 'true' : 'false' }}"
                     class="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 rounded-full bg-black/20 hover:bg-white backdrop-blur-md transition-all duration-300 group/heart shadow-lg">
                 <svg class="w-4 h-4 sm:w-5 sm:h-5 transition-colors {{ $isFav ? 'text-[#C81424] fill-[#C81424]' : 'text-white fill-none group-hover/heart:text-[#C81424]' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -94,7 +94,7 @@
         <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-50 dark:bg-[#252525] mb-4">
             <svg class="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
         </div>
-        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Nu am gasit anunturi</h3>
-        <p class="text-gray-500 dark:text-gray-400 mt-2">Incearca sa resetezi filtrele pentru a vedea mai multe rezultate.</p>
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Nu am găsit anunțuri</h3>
+        <p class="text-gray-500 dark:text-gray-400 mt-2">Încearcă să resetezi filtrele pentru a vedea mai multe rezultate.</p>
     </div>
 @endforelse

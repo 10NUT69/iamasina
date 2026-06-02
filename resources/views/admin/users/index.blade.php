@@ -15,7 +15,7 @@
     <div class="flex flex-col md:flex-row justify-between items-end mb-6 gap-4">
         <div>
             <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Utilizatori</h1>
-            <p class="text-sm text-slate-500 mt-1">Gestioneaza conturile si anunturile lor.</p>
+            <p class="text-sm text-slate-500 mt-1">Gestionează conturile și anunțurile lor.</p>
         </div>
 
         <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full md:w-auto">
@@ -23,7 +23,7 @@
                 @csrf
                 <button type="submit"
                         class="w-full sm:w-auto inline-flex items-center justify-center rounded-lg bg-slate-800 px-3 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-slate-900">
-                    Export emailuri cu anunturi
+                    Export emailuri cu anunțuri
                 </button>
             </form>
 
@@ -31,7 +31,7 @@
                 @csrf
                 <button type="submit"
                         class="w-full sm:w-auto inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
-                    Export emailuri fara anunturi
+                    Export emailuri fără anunțuri
                 </button>
             </form>
 
@@ -42,7 +42,7 @@
     </div>
 
     <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-        Exporturile includ emailurile utilizatorilor inregistrati. Foloseste listele doar conform consimtamantului si regulilor aplicabile.
+        Exporturile includ emailurile utilizatorilor înregistrați. Folosește listele doar conform consimțământului și regulilor aplicabile.
     </div>
 
     @if(session('success'))
@@ -73,14 +73,14 @@
                             <i class="fas fa-user-cog text-xs"></i>
                         </div>
                         <select name="action" id="bulkActionSelect" class="pl-9 pr-8 py-2 bg-white border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 cursor-pointer font-medium w-full sm:w-48 shadow-sm">
-                            <option value="">Actiuni...</option>
-                            <option value="activate" class="text-green-600 font-bold">Deblocheaza</option>
-                            <option value="deactivate" class="text-orange-600 font-bold">Blocheaza</option>
-                            <option value="delete" class="text-red-600 font-black">Sterge</option>
+                            <option value="">Acțiuni...</option>
+                            <option value="activate" class="text-green-600 font-bold">Deblochează</option>
+                            <option value="deactivate" class="text-orange-600 font-bold">Blochează</option>
+                            <option value="delete" class="text-red-600 font-black">Șterge</option>
                         </select>
                     </div>
                     <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-md">
-                        Aplica
+                        Aplică
                     </button>
                 </div>
 
@@ -88,7 +88,7 @@
                     <input id="userSearchInput"
                            type="text"
                            value="{{ request('search') }}"
-                           placeholder="Cauta utilizator..."
+                           placeholder="Caută utilizator..."
                            class="w-full pl-10 pr-20 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                         <i class="fas fa-search"></i>
@@ -96,14 +96,14 @@
                     @if(request('search'))
                         <a href="{{ route('admin.users.index', request()->except(['page', 'search'])) }}"
                            class="absolute inset-y-0 right-10 px-2 flex items-center text-slate-400 hover:text-red-500"
-                           title="Sterge cautarea">
+                           title="Șterge căutarea">
                             <i class="fas fa-times"></i>
                         </a>
                     @endif
                     <button type="button"
                             onclick="applyUserSearch()"
                             class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-blue-600"
-                            title="Cauta">
+                            title="Caută">
                         <i class="fas fa-search"></i>
                     </button>
                 </div>
@@ -120,7 +120,7 @@
                             <th class="p-4">Rol</th>
                             <th class="p-4 text-center">
                                 <a href="{{ $adsSortUrl }}" class="inline-flex items-center justify-center gap-1 hover:text-blue-600">
-                                    <span>Anunturi</span>
+                                    <span>Anunțuri</span>
                                     @if($adsSortActive)
                                         <i class="fas {{ $adsSortDirection === 'desc' ? 'fa-sort-amount-down' : 'fa-sort-amount-up' }} text-[11px]"></i>
                                     @else
@@ -129,8 +129,8 @@
                                 </a>
                             </th>
                             <th class="p-4 text-center">Status</th>
-                            <th class="p-4">Inregistrat</th>
-                            <th class="p-4 text-right">Actiuni</th>
+                            <th class="p-4">Înregistrat</th>
+                            <th class="p-4 text-right">Acțiuni</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
@@ -140,7 +140,7 @@
                                     @if($user->id !== auth()->id())
                                         <input type="checkbox" value="{{ $user->id }}" class="rowCheck rounded border-slate-300 text-blue-600 cursor-pointer w-4 h-4">
                                     @else
-                                        <i class="fas fa-user-shield text-slate-300" title="Tu esti acesta"></i>
+                                        <i class="fas fa-user-shield text-slate-300" title="Tu ești acesta"></i>
                                     @endif
                                 </td>
 
@@ -201,23 +201,23 @@
     <div class="flex items-center justify-end gap-2">
         @if($user->id !== auth()->id())
             <a href="{{ route('admin.login-as', $user->id) }}"
-               onclick="return confirm('Sigur vrei sa intri in contul acestui utilizator? Vei fi delogat din contul de admin.')"
+               onclick="return confirm('Sigur vrei să intri în contul acestui utilizator? Vei fi delogat din contul de admin.')"
                class="p-2 border border-blue-200 text-blue-600 rounded-lg hover:bg-blue-50 transition shadow-sm"
-               title="Intra ca utilizator">
+               title="Intră ca utilizator">
                 <i class="fas fa-right-to-bracket"></i>
             </a>
 
             <button type="button"
                     onclick="toggleUser({{ $user->id }})"
                     class="p-2 border rounded-lg transition shadow-sm {{ $user->is_active ? 'text-amber-500 hover:bg-amber-50 hover:border-amber-200' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200' }}"
-                    title="{{ $user->is_active ? 'Blocheaza accesul' : 'Deblocheaza accesul' }}">
+                    title="{{ $user->is_active ? 'Blochează accesul' : 'Deblochează accesul' }}">
                 <i class="fas {{ $user->is_active ? 'fa-ban' : 'fa-check' }}"></i>
             </button>
 
             <button type="button"
                     onclick="deleteUser({{ $user->id }})"
                     class="p-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition shadow-sm"
-                    title="Sterge contul">
+                    title="Șterge contul">
                 <i class="fas fa-trash-alt"></i>
             </button>
         @endif
@@ -230,7 +230,7 @@
                                     <td colspan="7" class="p-0">
                                         <div class="px-4 sm:px-6 py-4 border-t border-slate-100">
                                             <div class="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                                                <h3 class="text-sm font-bold text-slate-700">Anunturile utilizatorului {{ $user->name }}</h3>
+                                                <h3 class="text-sm font-bold text-slate-700">Anunțurile utilizatorului {{ $user->name }}</h3>
                                                 <span class="text-xs text-slate-400">Total: {{ $user->all_services_count }}</span>
                                             </div>
 
@@ -252,7 +252,7 @@
                                                                     </a>
 
                                                                     @if($service->trashed())
-                                                                        <span class="px-2 py-1 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">STERS</span>
+                                                                        <span class="px-2 py-1 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">ȘTERS</span>
                                                                     @elseif($service->status === 'active')
                                                                         <span class="px-2 py-1 rounded text-[10px] font-bold bg-green-100 text-green-700 border border-green-200">ACTIV</span>
                                                                     @else
@@ -262,7 +262,7 @@
 
                                                                 <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-2 text-xs text-slate-500">
                                                                     <div><span class="font-bold text-slate-600">Categorie:</span> {{ $service->category->name ?? '-' }}</div>
-                                                                    <div><span class="font-bold text-slate-600">Judet:</span> {{ $service->county->name ?? '-' }}</div>
+                                                                    <div><span class="font-bold text-slate-600">Județ:</span> {{ $service->county->name ?? '-' }}</div>
                                                                     <div><span class="font-bold text-slate-600">Poze:</span> {{ $imageCount }}</div>
                                                                     <div><span class="font-bold text-slate-600">Publicat:</span> {{ $service->published_at ? $service->published_at->format('d.m.Y H:i') : '-' }}</div>
                                                                     <div><span class="font-bold text-slate-600">Actualizat:</span> {{ $service->updated_at ? $service->updated_at->format('d.m.Y H:i') : '-' }}</div>
@@ -272,7 +272,7 @@
                                                             <div class="flex items-center justify-start xl:justify-end gap-2 shrink-0">
                                                                 <a href="{{ route('admin.services.edit', $service->id) }}"
                                                                    class="p-2 border border-blue-200 text-blue-600 rounded-lg hover:bg-blue-50"
-                                                                   title="Editeaza anunt">
+                                                                   title="Editează anunț">
                                                                     <i class="fas fa-pen"></i>
                                                                 </a>
 
@@ -280,14 +280,14 @@
                                                                     <button type="button"
                                                                             onclick="toggleAdminService({{ $service->id }})"
                                                                             class="p-2 border rounded-lg hover:bg-slate-50 text-slate-500"
-                                                                            title="Activeaza / dezactiveaza">
+                                                                            title="Activează / dezactivează">
                                                                         <i class="fas {{ $service->status === 'active' ? 'fa-pause' : 'fa-play' }}"></i>
                                                                     </button>
 
                                                                     <button type="button"
                                                                             onclick="softDeleteAdminService({{ $service->id }})"
                                                                             class="p-2 border border-orange-200 text-orange-500 rounded-lg hover:bg-orange-50"
-                                                                            title="Muta in cos">
+                                                                            title="Mută în coș">
                                                                         <i class="fas fa-archive"></i>
                                                                     </button>
                                                                 @endif
@@ -295,7 +295,7 @@
                                                                 <button type="button"
                                                                         onclick="forceDeleteAdminService({{ $service->id }})"
                                                                         class="p-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50"
-                                                                        title="Sterge definitiv">
+                                                                        title="Șterge definitiv">
                                                                     <i class="fas fa-trash-alt"></i>
                                                                 </button>
                                                             </div>
@@ -309,7 +309,7 @@
                             @endif
                         @empty
                             <tr>
-                                <td colspan="7" class="p-12 text-center text-slate-400">Nu exista utilizatori.</td>
+                                <td colspan="7" class="p-12 text-center text-slate-400">Nu există utilizatori.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -361,7 +361,7 @@
     }
 
     function deleteUser(id) {
-        if (confirm('Stergi acest utilizator? Anunturile lui vor fi sterse automat.')) {
+        if (confirm('Ștergi acest utilizator? Anunțurile lui vor fi șterse automat.')) {
             const form = document.getElementById('deleteForm');
             form.action = deleteUrlTemplate.replace(':id', id);
             form.submit();
@@ -375,7 +375,7 @@
     }
 
     function softDeleteAdminService(id) {
-        if (confirm('Muti acest anunt in cos?')) {
+        if (confirm('Muți acest anunț în coș?')) {
             const form = document.getElementById('serviceSoftDeleteForm');
             form.action = serviceDeleteUrlTemplate.replace(':id', id);
             form.submit();
@@ -383,7 +383,7 @@
     }
 
     function forceDeleteAdminService(id) {
-        if (confirm('Stergi definitiv acest anunt? Actiunea nu se mai poate recupera.')) {
+        if (confirm('Ștergi definitiv acest anunț? Acțiunea nu se mai poate recupera.')) {
             const form = document.getElementById('serviceForceDeleteForm');
             form.action = serviceDeleteUrlTemplate.replace(':id', id);
             form.submit();
@@ -420,10 +420,10 @@
         const action = document.getElementById('bulkActionSelect').value;
         const selected = Array.from(document.querySelectorAll('.rowCheck:checked')).map(cb => cb.value);
 
-        if (selected.length === 0) { alert('Selecteaza cel putin un utilizator.'); return false; }
-        if (!action) { alert('Alege o actiune.'); return false; }
+        if (selected.length === 0) { alert('Selectează cel puțin un utilizator.'); return false; }
+        if (!action) { alert('Alege o acțiune.'); return false; }
 
-        if (action === 'delete' && !confirm('Stergi definitiv ' + selected.length + ' utilizatori?')) {
+        if (action === 'delete' && !confirm('Ștergi definitiv ' + selected.length + ' utilizatori?')) {
             return false;
         }
 

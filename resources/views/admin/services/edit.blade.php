@@ -20,11 +20,11 @@
 <div class="max-w-[1536px] mx-auto py-8 px-4 sm:px-6 lg:px-8 bg-[#F8FAFC] min-h-screen font-sans text-slate-600">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-            <h1 class="text-2xl font-bold text-slate-800">Editeaza anunt</h1>
+            <h1 class="text-2xl font-bold text-slate-800">Editează anunț</h1>
             <p class="text-sm text-slate-500 mt-1">
                 ID: #{{ $service->id }}
                 @if($service->trashed())
-                    <span class="ml-2 inline-flex px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs font-bold">STERS</span>
+                    <span class="ml-2 inline-flex px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs font-bold">ȘTERS</span>
                 @endif
             </p>
         </div>
@@ -37,7 +37,7 @@
 
             <a href="{{ route('admin.services.index') }}"
                class="px-4 py-2 rounded-lg border bg-white hover:bg-slate-50 text-sm">
-                Inapoi la lista
+                Înapoi la listă
             </a>
         </div>
     </div>
@@ -56,7 +56,7 @@
 
     @if ($errors->any())
         <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-            <b>Verifica formularul:</b>
+            <b>Verifică formularul:</b>
             <ul class="list-disc ml-5 mt-2 text-sm">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -99,7 +99,7 @@
                         <select name="status"
                                 class="w-full px-4 py-3 rounded-lg border border-slate-300 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"
                                 required>
-                            @foreach(['active' => 'Activ', 'pending' => 'In asteptare', 'expired' => 'Expirat', 'rejected' => 'Respins'] as $value => $label)
+                            @foreach(['active' => 'Activ', 'pending' => 'În așteptare', 'expired' => 'Expirat', 'rejected' => 'Respins'] as $value => $label)
                                 <option value="{{ $value }}" @selected(old('status', $service->status) === $value)>{{ $label }}</option>
                             @endforeach
                         </select>
@@ -116,7 +116,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label class="block mb-2 text-sm font-semibold text-slate-700">Pret</label>
+                        <label class="block mb-2 text-sm font-semibold text-slate-700">Preț</label>
                         <input type="number"
                                step="0.01"
                                name="price_value"
@@ -133,7 +133,7 @@
                     </div>
 
                     <div>
-                        <label class="block mb-2 text-sm font-semibold text-slate-700">Tip pret</label>
+                        <label class="block mb-2 text-sm font-semibold text-slate-700">Tip preț</label>
                         <select name="price_type" class="w-full px-4 py-3 rounded-lg border border-slate-300 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none">
                             <option value="fixed" @selected(old('price_type', $service->price_type) === 'fixed')>Fix</option>
                             <option value="negotiable" @selected(old('price_type', $service->price_type) === 'negotiable')>Negociabil</option>
@@ -162,7 +162,7 @@
                 <div class="pt-2">
                     <button type="submit"
                             class="px-5 py-3 rounded-lg bg-slate-800 hover:bg-slate-900 text-white font-semibold transition">
-                        Salveaza modificarile
+                        Salvează modificările
                     </button>
                 </div>
             </form>
@@ -186,7 +186,7 @@
 
                 @if(count($gallery) === 0)
                     <div class="text-sm text-slate-500">
-                        Nu exista imagini incarcate. Se va afisa imaginea default.
+                        Nu există imagini încărcate. Se va afișa imaginea default.
                     </div>
                 @else
                     <div class="grid grid-cols-2 gap-3">
@@ -196,13 +196,13 @@
 
                                 <form method="POST"
                                       action="{{ route('admin.services.deleteImage', $service->id) }}"
-                                      onsubmit="return confirm('Stergi aceasta imagine?')"
+                                      onsubmit="return confirm('Ștergi această imagine?')"
                                       class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                                     @csrf
                                     @method('DELETE')
                                     <input type="hidden" name="image" value="{{ $image }}">
                                     <button class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-xs font-bold">
-                                        Sterge
+                                        Șterge
                                     </button>
                                 </form>
                             </div>

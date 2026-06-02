@@ -63,7 +63,7 @@ class SavedSearchController extends Controller
 
         $savedSearch->delete();
 
-        return back()->with('success', 'Cautarea a fost stearsa.');
+        return back()->with('success', 'Căutarea a fost ștearsă.');
     }
 
     private function saveForUser(Request $request, array $data): SavedSearch
@@ -152,6 +152,6 @@ class SavedSearchController extends Controller
             Arr::get($filters, 'county'),
         ]);
 
-        return $parts ? Str::limit(implode(' ', $parts), 160, '') : 'Cautare auto';
+        return $parts ? Str::limit(implode(' ', $parts), 160, '') : 'Căutare auto';
     }
 }

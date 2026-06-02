@@ -24,7 +24,7 @@
                 data-favorite-service-id="{{ $service->id }}"
                 data-favorite-empty-class="text-gray-600 dark:text-gray-300 fill-none group-hover/heart:text-[#C81424]"
                 data-favorite-active-class="text-[#C81424] fill-[#C81424] scale-110"
-                aria-label="{{ $isFav ? 'Scoate de la favorite' : 'Adauga la favorite' }}: {{ $brandModel ?: $service->title }}"
+                aria-label="{{ $isFav ? 'Scoate de la favorite' : 'Adaugă la favorite' }}: {{ $brandModel ?: $service->title }}"
                 aria-pressed="{{ $isFav ? 'true' : 'false' }}"
                 class="absolute top-2 right-2 md:top-3 md:right-3 z-30 p-1.5 md:p-2 rounded-full backdrop-blur-md shadow-sm transition-all duration-200
                         bg-white/80 dark:bg-black/50 hover:bg-white dark:hover:bg-[#2C2C2C] group/heart border border-white/20"

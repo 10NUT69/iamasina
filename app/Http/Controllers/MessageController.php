@@ -62,7 +62,7 @@ class MessageController extends Controller
         abort_unless($seller, 404);
 
         if ($seller->id === $user->id) {
-            return back()->with('error', 'Nu poti trimite mesaj catre propriul anunt.');
+            return back()->with('error', 'Nu poți trimite mesaj către propriul anunț.');
         }
 
         $validated = $request->validate([
@@ -72,7 +72,7 @@ class MessageController extends Controller
         $body = trim($validated['body']);
         if ($body === '') {
             return back()
-                ->withErrors(['body' => 'Scrie un mesaj inainte de trimitere.'])
+                ->withErrors(['body' => 'Scrie un mesaj înainte de trimitere.'])
                 ->withInput();
         }
 
@@ -118,7 +118,7 @@ class MessageController extends Controller
         $body = trim($validated['body']);
         if ($body === '') {
             return back()
-                ->withErrors(['body' => 'Scrie un mesaj inainte de trimitere.'])
+                ->withErrors(['body' => 'Scrie un mesaj înainte de trimitere.'])
                 ->withInput();
         }
 

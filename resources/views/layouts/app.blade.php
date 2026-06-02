@@ -287,7 +287,7 @@
         @if(auth()->check())
             window.location.href = "{{ route('account.index', ['tab' => 'favorite']) }}";
         @else
-            window.iaAutoToast?.("Favoritele sunt salvate in acest browser. Creeaza cont pentru a le importa automat.", { duration: 5000 });
+            window.iaAutoToast?.("Favoritele sunt salvate în acest browser. Creează cont pentru a le importa automat.", { duration: 5000 });
         @endif
     }
 

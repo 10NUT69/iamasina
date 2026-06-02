@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Anunturi Auto Second Hand & Noi - Masini de Vanzare')
-@section('meta_title', 'Anunturi Auto - Masini de Vanzare Second Hand si Noi | iaAuto.ro')
-@section('meta_description', 'Cauti o masina? Pe iaAuto.ro gasesti masini de vanzare second hand si noi de la proprietari si parcuri auto din Romania. Adauga anuntul tau complet gratuit!')
+@section('title', 'Anunțuri Auto Second Hand & Noi - Mașini de Vânzare')
+@section('meta_title', 'Anunțuri Auto - Mașini de Vânzare Second Hand și Noi | iaAuto.ro')
+@section('meta_description', 'Cauți o mașină? Pe iaAuto.ro găsești mașini de vânzare second hand și noi de la proprietari și parcuri auto din România. Adaugă anunțul tău complet gratuit!')
 @section('meta_image', asset('images/social-share.webp'))
 @section('head')
     <link rel="preload" as="image" href="{{ asset('images/homepage-hero-car.webp') }}" fetchpriority="high" media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)">
@@ -18,7 +18,7 @@
             <picture class="homepage-hero-media absolute inset-0 -z-20 block">
                 <source media="(prefers-color-scheme: dark)" srcset="{{ asset('images/homepage-hero-car-dark.webp') }}">
                 <img src="{{ asset('images/homepage-hero-car.webp') }}"
-                     alt="Masina de vanzare pe iaAuto.ro"
+                     alt="Mașină de vânzare pe iaAuto.ro"
                      class="homepage-hero-image h-full w-full object-cover"
                      fetchpriority="high"
                      decoding="async">
@@ -123,7 +123,7 @@
             <div class="search-panel-header flex flex-col sm:flex-row sm:items-stretch sm:justify-between border-b border-red-100/70 dark:border-white/10">
                 <div class="flex min-h-12 flex-1 items-center px-7 py-3 sm:py-0">
                     <span class="text-sm font-extrabold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
-                        De unde vrei sa cumperi?
+                        De unde vrei să cumperi?
                     </span>
                 </div>
 
@@ -222,8 +222,8 @@
                                     <x-combobox
                                         id="county-input"
                                         name="county_id"
-                                        label="Judet"
-                                        placeholder="Judet"
+                                        label="Județ"
+                                        placeholder="Județ"
                                         :options="$counties"
                                         option-label="name"
                                         :selected="request('county_id', optional($currentCounty)->id)"
@@ -261,7 +261,7 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
-                                Afiseaza Rezultatele
+                                Afișează rezultatele
                             </button>
                         </div>
 
@@ -275,7 +275,7 @@
                                 <path d="M10 17h10" />
                                 <path d="M8 15v4" />
                             </svg>
-                            <span>Cautare detaliata</span>
+                            <span>Căutare detaliată</span>
                         </a>
 
                         {{-- Buton Submit --}}
@@ -284,7 +284,7 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
-                                Cauta
+                                Caută
                             </button>
                         </div>
 
@@ -358,7 +358,7 @@
                             data-favorite-service-id="{{ $service->id }}"
                             data-favorite-empty-class="text-white fill-none group-hover/heart:text-[#C81424]"
                             data-favorite-active-class="text-[#C81424] fill-[#C81424]"
-                            aria-label="{{ $isFav ? 'Scoate de la favorite' : 'Adauga la favorite' }}: {{ $listingTitle }}"
+                            aria-label="{{ $isFav ? 'Scoate de la favorite' : 'Adaugă la favorite' }}: {{ $listingTitle }}"
                             aria-pressed="{{ $isFav ? 'true' : 'false' }}"
                             class="absolute top-2 right-2 sm:top-3 sm:right-3 p-2.5 sm:p-2 rounded-full bg-black/20 hover:bg-white backdrop-blur-md transition-all duration-300 group/heart shadow-lg">
                         <svg class="w-6 h-6 sm:w-5 sm:h-5 transition-colors {{ $isFav ? 'text-[#C81424] fill-[#C81424]' : 'text-white fill-none group-hover/heart:text-[#C81424]' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -437,19 +437,19 @@
     <section class="pb-12">
         <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-[#333] dark:bg-[#1E1E1E] sm:p-8 lg:p-10">
             <p class="mb-4 text-xs font-black uppercase tracking-wide text-[#C81424]">
-                ANUNTURI AUTO IN ROMANIA
+                ANUNȚURI AUTO ÎN ROMÂNIA
             </p>
 
             <h2 class="max-w-5xl text-2xl font-black leading-tight text-gray-900 dark:text-white sm:text-3xl">
-                iaAuto.ro - Platforma ta de anunturi auto si masini de vanzare
+                iaAuto.ro - Platforma ta de anunțuri auto și mașini de vânzare
             </h2>
 
             <div class="mt-5 max-w-5xl space-y-4 text-left text-sm leading-6 text-gray-700 dark:text-gray-300 sm:text-base sm:leading-7">
                 <p>
-                    Ai intrat pe iaAuto.ro, locul unde cautarea unei masini devine simpla si rapida. Indiferent daca esti in cautarea unei masini second hand accesibile sau vrei sa achizitionezi un autoturism nou, platforma noastra aduce impreuna cumparatori, proprietari particulari si parcuri auto din intreaga Romania.
+                    Ai intrat pe iaAuto.ro, locul unde căutarea unei mașini devine simplă și rapidă. Indiferent dacă ești în căutarea unei mașini second hand accesibile sau vrei să achiziționezi un autoturism nou, platforma noastră aduce împreună cumpărători, proprietari particulari și parcuri auto din întreaga Românie.
                 </p>
                 <p>
-                    Pentru cei care doresc sa isi vanda autoturismul, procesul este simplu. Poti sa adaugi un anunt gratuit in doar cateva minute, oferind mai multa vizibilitate masinii tale in fata potentialilor cumparatori. De la masini de oras economice si SUV-uri spatioase, pana la utilitare sau masini premium, iaAuto.ro este destinatia potrivita pentru anunturi auto din mai multe categorii.
+                    Pentru cei care doresc să își vândă autoturismul, procesul este simplu. Poți să adaugi un anunț gratuit în doar câteva minute, oferind mai multă vizibilitate mașinii tale în fața potențialilor cumpărători. De la mașini de oraș economice și SUV-uri spațioase, până la utilitare sau mașini premium, iaAuto.ro este destinația potrivită pentru anunțuri auto din mai multe categorii.
                 </p>
             </div>
 
@@ -462,8 +462,8 @@
                         </svg>
                     </span>
                     <div>
-                        <h3 class="text-base font-black text-gray-900 dark:text-white">Anunturi gratuite</h3>
-                        <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">Adaugi masina de vanzare fara taxe de publicare.</p>
+                        <h3 class="text-base font-black text-gray-900 dark:text-white">Anunțuri gratuite</h3>
+                        <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">Adaugi mașina de vânzare fără taxe de publicare.</p>
                     </div>
                 </div>
 
@@ -475,8 +475,8 @@
                         </svg>
                     </span>
                     <div>
-                        <h3 class="text-base font-black text-gray-900 dark:text-white">Cautare rapida</h3>
-                        <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">Filtrezi dupa marca, model, pret, judet sau oras.</p>
+                        <h3 class="text-base font-black text-gray-900 dark:text-white">Căutare rapidă</h3>
+                        <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">Filtrezi după marcă, model, preț, județ sau oraș.</p>
                     </div>
                 </div>
 
@@ -489,13 +489,13 @@
                     </span>
                     <div>
                         <h3 class="text-base font-black text-gray-900 dark:text-white">Contact direct</h3>
-                        <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">Discuti direct cu vanzatorul, particular sau parc auto.</p>
+                        <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">Discuți direct cu vânzătorul, particular sau parc auto.</p>
                     </div>
                 </div>
             </div>
 
             <p class="mt-7 max-w-5xl text-left text-sm leading-6 text-gray-700 dark:text-gray-300 sm:text-base sm:leading-7">
-                Navigheaza printre ofertele disponibile, compara preturile si gaseste masina ideala pentru nevoile si bugetul tau. Pe iaAuto.ro, piata auto din Romania este mai accesibila ca niciodata.
+                Navighează printre ofertele disponibile, compară prețurile și găsește mașina ideală pentru nevoile și bugetul tău. Pe iaAuto.ro, piața auto din România este mai accesibilă ca niciodată.
             </p>
         </div>
     </section>

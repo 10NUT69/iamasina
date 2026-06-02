@@ -9,7 +9,7 @@
             <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Administrare Anunțuri</h1>
             <p class="text-sm text-slate-500 mt-1">Gestionează anunțurile (Total: {{ $services->total() }})</p>
         </div>
-        <form action="{{ route('admin.services.indexnow') }}" method="POST" onsubmit="return confirm('Trimitem toate anunturile active catre IndexNow?')">
+        <form action="{{ route('admin.services.indexnow') }}" method="POST" onsubmit="return confirm('Trimitem toate anunțurile active către IndexNow?')">
             @csrf
             <button type="submit" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition-all">
                 <i class="fas fa-bolt"></i>
@@ -140,7 +140,7 @@
                                         
                                         <a href="{{ route('admin.services.edit', $service->id) }}"
                                            class="p-2 border border-blue-200 text-blue-600 rounded-lg hover:bg-blue-50"
-                                           title="Editeaza anunt">
+                                           title="Editează anunț">
                                             <i class="fas fa-pen"></i>
                                         </a>
 

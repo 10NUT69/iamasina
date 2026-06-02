@@ -133,7 +133,7 @@ class ProfileController extends Controller
         if (! $this->userHasColumn('dealer_gallery')) {
             return response()->json([
                 'success' => false,
-                'message' => 'Galeria dealerului nu este disponibila momentan.',
+                'message' => 'Galeria dealerului nu este disponibilă momentan.',
                 'gallery' => [],
             ], 422);
         }
@@ -224,7 +224,7 @@ class ProfileController extends Controller
         if (! $this->userHasColumn('dealer_gallery')) {
             return response()->json([
                 'success' => false,
-                'message' => 'Galeria dealerului nu este disponibila momentan.',
+                'message' => 'Galeria dealerului nu este disponibilă momentan.',
                 'gallery' => [],
             ], 422);
         }

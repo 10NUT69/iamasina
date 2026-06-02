@@ -2,7 +2,7 @@
 
 @section('title', 'Politica de cookies')
 @section('meta_title', 'Politica de cookies - iaAuto.ro')
-@section('meta_description', 'Afla ce cookie-uri foloseste iaAuto.ro, de ce sunt necesare si cum poti gestiona preferintele pentru analytics si marketing.')
+@section('meta_description', 'Află ce cookie-uri folosește iaAuto.ro, de ce sunt necesare și cum poți gestiona preferințele pentru analytics și marketing.')
 
 @section('content')
 <div class="max-w-5xl mx-auto">
@@ -13,8 +13,8 @@
         </h1>
 
         <p class="text-sm md:text-base text-gray-600 dark:text-gray-300 max-w-3xl text-justify">
-            Aceasta pagina explica modul in care iaAuto.ro foloseste cookie-uri si tehnologii similare pentru functionarea site-ului,
-            pentru analiza si, doar cu acordul tau, pentru activitati de marketing sau masurare a campaniilor.
+            Această pagină explică modul în care iaAuto.ro folosește cookie-uri și tehnologii similare pentru funcționarea site-ului,
+            pentru analiză și, doar cu acordul tău, pentru activități de marketing sau măsurare a campaniilor.
         </p>
 
         <p class="mt-2 text-[11px] text-gray-400 dark:text-gray-500 text-justify">
@@ -30,13 +30,13 @@
             </h2>
 
             <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed text-justify">
-                Cookie-urile sunt fisiere mici sau informatii salvate in browserul tau atunci cand vizitezi un site. Ele pot ajuta site-ul sa functioneze corect,
-                sa pastreze o sesiune de autentificare, sa retina preferinte sau sa ofere informatii statistice despre modul in care este folosita platforma.
+                Cookie-urile sunt fișiere mici sau informații salvate în browserul tău atunci când vizitezi un site. Ele pot ajuta site-ul să funcționeze corect,
+                să păstreze o sesiune de autentificare, să rețină preferințe sau să ofere informații statistice despre modul în care este folosită platforma.
             </p>
 
             <p class="mt-2 text-sm text-gray-700 dark:text-gray-300 leading-relaxed text-justify">
-                Pe iaAuto.ro folosim cookie-uri strict necesare pentru functionare si, doar daca iti dai acordul, cookie-uri optionale pentru analytics sau marketing.
-                Refuzarea cookie-urilor optionale nu blocheaza folosirea site-ului.
+                Pe iaAuto.ro folosim cookie-uri strict necesare pentru funcționare și, doar dacă îți dai acordul, cookie-uri opționale pentru analytics sau marketing.
+                Refuzarea cookie-urilor opționale nu blochează folosirea site-ului.
             </p>
         </article>
 
@@ -49,24 +49,24 @@
                 <div class="rounded-xl border border-gray-100 dark:border-gray-800 p-3">
                     <h3 class="font-bold text-gray-900 dark:text-gray-100">Cookie-uri necesare</h3>
                     <p class="mt-1 text-justify">
-                        Sunt active mereu si sunt folosite pentru functionarea site-ului, securitate, sesiune, autentificare, protectie CSRF,
-                        salvarea preferintei privind cookie-urile si alte functionalitati de baza. Acestea nu pot fi dezactivate din panoul de setari.
+                        Sunt active mereu și sunt folosite pentru funcționarea site-ului, securitate, sesiune, autentificare, protecție CSRF,
+                        salvarea preferinței privind cookie-urile și alte funcționalități de bază. Acestea nu pot fi dezactivate din panoul de setări.
                     </p>
                 </div>
 
                 <div class="rounded-xl border border-gray-100 dark:border-gray-800 p-3">
                     <h3 class="font-bold text-gray-900 dark:text-gray-100">Cookie-uri de analytics</h3>
                     <p class="mt-1 text-justify">
-                        Ne pot ajuta sa intelegem cum este folosit site-ul, ce pagini sunt vizitate si unde putem imbunatati experienta. Acestea se incarca doar daca alegi
-                        sa permiti categoria Analytics.
+                        Ne pot ajuta să înțelegem cum este folosit site-ul, ce pagini sunt vizitate și unde putem îmbunătăți experiența. Acestea se încarcă doar dacă alegi
+                        să permiți categoria Analytics.
                     </p>
                 </div>
 
                 <div class="rounded-xl border border-gray-100 dark:border-gray-800 p-3">
                     <h3 class="font-bold text-gray-900 dark:text-gray-100">Cookie-uri de marketing</h3>
                     <p class="mt-1 text-justify">
-                        Pot fi folosite ulterior pentru masurarea campaniilor sau integrarea unor instrumente precum Google Ads ori Facebook Pixel. Acestea se incarca doar
-                        daca alegi sa permiti categoria Marketing.
+                        Pot fi folosite ulterior pentru măsurarea campaniilor sau integrarea unor instrumente precum Google Ads ori Facebook Pixel. Acestea se încarcă doar
+                        dacă alegi să permiți categoria Marketing.
                     </p>
                 </div>
             </div>
@@ -74,22 +74,22 @@
 
         <article class="bg-white dark:bg-[#18181B] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-4 md:p-5">
             <h2 class="text-base md:text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
-                3. Consimtamant si preferinte
+                3. Consimțământ și preferințe
             </h2>
 
             <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed text-justify">
-                La prima vizita, afisam un banner discret prin care poti accepta toate cookie-urile, refuza cookie-urile optionale sau personaliza preferintele.
-                Alegerea ta este salvata local in browser, sub cheia <strong>iaauto_cookie_consent</strong>, pentru a nu afisa bannerul la fiecare vizita.
+                La prima vizită, afișăm un banner discret prin care poți accepta toate cookie-urile, refuza cookie-urile opționale sau personaliza preferințele.
+                Alegerea ta este salvată local în browser, sub cheia <strong>iaauto_cookie_consent</strong>, pentru a nu afișa bannerul la fiecare vizită.
             </p>
 
             <p class="mt-2 text-sm text-gray-700 dark:text-gray-300 leading-relaxed text-justify">
-                Poti modifica oricand preferintele folosind butonul <strong>Setari cookies</strong> din footer.
+                Poți modifica oricând preferințele folosind butonul <strong>Setări cookies</strong> din footer.
             </p>
 
             <button type="button"
                     onclick="window.openCookieSettings && window.openCookieSettings()"
                     class="mt-4 inline-flex items-center justify-center rounded-xl bg-[#C81424] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#a6101d]">
-                Deschide setarile cookies
+                Deschide setările cookies
             </button>
         </article>
 
@@ -99,13 +99,13 @@
             </h2>
 
             <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed text-justify">
-                In prezent, site-ul este pregatit sa incarce instrumente de analytics sau marketing doar dupa consimtamant. In functie de configurarea activa,
+                În prezent, site-ul este pregătit să încarce instrumente de analytics sau marketing doar după consimțământ. În funcție de configurarea activă,
                 pot fi folosite servicii precum Google Analytics, Google Ads sau Facebook Pixel, dar numai pentru categoriile pe care le-ai acceptat.
             </p>
 
             <p class="mt-2 text-sm text-gray-700 dark:text-gray-300 leading-relaxed text-justify">
-                Daca aceste servicii sunt activate, ele pot primi informatii tehnice precum pagina vizitata, browserul, dispozitivul, interactiuni de baza sau identificatori
-                generati de serviciile respective, conform propriilor politici.
+                Dacă aceste servicii sunt activate, ele pot primi informații tehnice precum pagina vizitată, browserul, dispozitivul, interacțiuni de bază sau identificatori
+                generați de serviciile respective, conform propriilor politici.
             </p>
         </article>
 
@@ -115,14 +115,14 @@
             </h2>
 
             <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed text-justify">
-                Pe langa setarile oferite pe site, poti sterge sau bloca cookie-uri direct din browser. Retine ca blocarea cookie-urilor strict necesare poate afecta
-                autentificarea, publicarea anunturilor, mesajele sau alte functionalitati importante ale platformei.
+                Pe lângă setările oferite pe site, poți șterge sau bloca cookie-uri direct din browser. Reține că blocarea cookie-urilor strict necesare poate afecta
+                autentificarea, publicarea anunțurilor, mesajele sau alte funcționalități importante ale platformei.
             </p>
 
             <p class="mt-2 text-sm text-gray-700 dark:text-gray-300 leading-relaxed text-justify">
-                Pentru detalii despre datele personale si drepturile tale, consulta si
+                Pentru detalii despre datele personale și drepturile tale, consultă și
                 <a href="{{ route('page.privacy') }}" class="text-[#C81424] hover:underline">
-                    Politica de confidentialitate
+                    Politica de confidențialitate
                 </a>.
             </p>
         </article>
@@ -133,7 +133,7 @@
             </h2>
 
             <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed text-justify">
-                Pentru intrebari despre aceasta politica sau despre modul in care folosim cookie-urile, ne poti contacta la
+                Pentru întrebări despre această politică sau despre modul în care folosim cookie-urile, ne poți contacta la
                 <a href="mailto:contact@iaauto.ro" class="text-[#C81424] hover:underline">
                     contact@iaauto.ro
                 </a>.

@@ -264,8 +264,8 @@
                             <x-combobox
                                 id="inputTractiune"
                                 name="tractiune_id"
-                                label="Tractiune"
-                                placeholder="Tractiune"
+                                label="Tracțiune"
+                                placeholder="Tracțiune"
                                 :options="$tractiuni"
                                 option-label="nume"
                                 :selected="$savedTractiuneId"
@@ -342,8 +342,8 @@
                         <x-combobox
                             id="inputDoors"
                             name="numar_usi"
-                            label="Numar usi"
-                            placeholder="Numar usi"
+                            label="Număr uși"
+                            placeholder="Număr uși"
                             :options="collect([2, 3, 4, 5])->map(fn ($usi) => ['value' => $usi, 'label' => (string) $usi])"
                             :selected="$savedDoors"
                             :searchable="false"
@@ -354,8 +354,8 @@
                         <x-combobox
                             id="inputSeats"
                             name="numar_locuri"
-                            label="Numar locuri"
-                            placeholder="Numar locuri"
+                            label="Număr locuri"
+                            placeholder="Număr locuri"
                             :options="collect(range(2, 9))->map(fn ($locuri) => ['value' => $locuri, 'label' => (string) $locuri])"
                             :selected="$savedSeats"
                             :searchable="false"
@@ -495,8 +495,8 @@
                             <x-combobox
                                 id="county-select"
                                 name="county_id"
-                                label="Judet"
-                                placeholder="Judet"
+                                label="Județ"
+                                placeholder="Județ"
                                 :options="$counties"
                                 option-label="name"
                                 :selected="$savedCountyId"

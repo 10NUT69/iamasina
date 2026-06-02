@@ -13,7 +13,7 @@
                     <button type="button"
                             onclick="deleteMessage({{ $message->id }})"
                             class="rounded-full px-2 py-0.5 text-slate-300 opacity-80 transition hover:bg-white/10 hover:text-white sm:opacity-0 sm:group-hover:opacity-100">
-                        Sterge
+                        Șterge
                     </button>
                 @endif
             </div>

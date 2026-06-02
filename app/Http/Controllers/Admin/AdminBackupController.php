@@ -81,14 +81,14 @@ class AdminBackupController extends Controller
                 'safety_backup' => basename($safetyPath),
             ]);
 
-            return back()->with('success', 'Baza de date a fost importata cu succes. Backupul de siguranta a fost salvat in storage/app/backups/safety/.');
+            return back()->with('success', 'Baza de date a fost importată cu succes. Backupul de siguranță a fost salvat în storage/app/backups/safety/.');
         } catch (Throwable $e) {
             $this->logBackupEvent('db_import', 'failed', [
                 'error' => $this->safeErrorMessage($e),
                 'safety_backup' => $safetyPath ? basename($safetyPath) : null,
             ]);
 
-            return back()->with('error', 'Importul bazei de date a esuat. Daca backupul de siguranta a fost creat, acesta a fost pastrat in storage/app/backups/safety/. Detalii: ' . $this->publicImportError($e));
+            return back()->with('error', 'Importul bazei de date a eșuat. Dacă backupul de siguranță a fost creat, acesta a fost păstrat în storage/app/backups/safety/. Detalii: ' . $this->publicImportError($e));
         } finally {
             if ($importPath && is_file($importPath)) {
                 @unlink($importPath);
@@ -154,14 +154,14 @@ class AdminBackupController extends Controller
                 'delete_existing' => $request->boolean('delete_existing_media'),
             ]);
 
-            return back()->with('success', 'Media a fost importata cu succes. Backupul de siguranta a fost salvat in storage/app/backups/safety/.');
+            return back()->with('success', 'Media a fost importată cu succes. Backupul de siguranță a fost salvat în storage/app/backups/safety/.');
         } catch (Throwable $e) {
             $this->logBackupEvent('media_import', 'failed', [
                 'error' => $this->safeErrorMessage($e),
                 'safety_backup' => $safetyPath ? basename($safetyPath) : null,
             ]);
 
-            return back()->with('error', 'Importul media a esuat. Daca backupul de siguranta a fost creat, acesta a fost pastrat in storage/app/backups/safety/. Detalii: ' . $this->publicImportError($e));
+            return back()->with('error', 'Importul media a eșuat. Dacă backupul de siguranță a fost creat, acesta a fost păstrat în storage/app/backups/safety/. Detalii: ' . $this->publicImportError($e));
         } finally {
             if ($importPath && is_file($importPath)) {
                 @unlink($importPath);
@@ -202,7 +202,7 @@ class AdminBackupController extends Controller
                 'delete_existing' => $request->boolean('delete_existing_server_media'),
             ]);
 
-            return back()->with('success', 'Media a fost importata cu succes din fisierul de pe server. Backupul de siguranta a fost salvat in storage/app/backups/safety/.');
+            return back()->with('success', 'Media a fost importată cu succes din fișierul de pe server. Backupul de siguranță a fost salvat în storage/app/backups/safety/.');
         } catch (Throwable $e) {
             $this->logBackupEvent('media_import_server', 'failed', [
                 'source_file' => basename($importPath),
@@ -210,7 +210,7 @@ class AdminBackupController extends Controller
                 'safety_backup' => $safetyPath ? basename($safetyPath) : null,
             ]);
 
-            return back()->with('error', 'Importul media din fisierul de pe server a esuat. Daca backupul de siguranta a fost creat, acesta a fost pastrat in storage/app/backups/safety/. Detalii: ' . $this->publicImportError($e));
+            return back()->with('error', 'Importul media din fișierul de pe server a eșuat. Dacă backupul de siguranță a fost creat, acesta a fost păstrat în storage/app/backups/safety/. Detalii: ' . $this->publicImportError($e));
         }
     }
 
@@ -221,10 +221,10 @@ class AdminBackupController extends Controller
             'understand_db_import' => ['accepted'],
             'db_confirm' => ['required', 'string'],
         ], [
-            'sql_file.required' => 'Alege un fisier .sql pentru import.',
-            'sql_file.file' => 'Fisierul SQL incarcat nu este valid.',
-            'sql_file.max' => 'Fisierul SQL depaseste limita serverului (' . $this->formatBytes($this->maxUploadBytes()) . ').',
-            'understand_db_import.accepted' => 'Trebuie sa confirmi ca intelegi efectul importului.',
+            'sql_file.required' => 'Alege un fișier .sql pentru import.',
+            'sql_file.file' => 'Fișierul SQL încărcat nu este valid.',
+            'sql_file.max' => 'Fișierul SQL depășește limita serverului (' . $this->formatBytes($this->maxUploadBytes()) . ').',
+            'understand_db_import.accepted' => 'Trebuie să confirmi că înțelegi efectul importului.',
             'db_confirm.required' => 'Scrie CONFIRM IMPORT pentru a porni importul.',
         ]);
 
@@ -232,19 +232,19 @@ class AdminBackupController extends Controller
 
         if (!$file || strtolower($file->getClientOriginalExtension()) !== 'sql') {
             throw ValidationException::withMessages([
-                'sql_file' => 'Se accepta doar fisiere cu extensia .sql.',
+                'sql_file' => 'Se acceptă doar fișiere cu extensia .sql.',
             ]);
         }
 
         if ($file->getSize() < 1) {
             throw ValidationException::withMessages([
-                'sql_file' => 'Fisierul SQL nu poate fi gol.',
+                'sql_file' => 'Fișierul SQL nu poate fi gol.',
             ]);
         }
 
         if ($request->input('db_confirm') !== self::DB_CONFIRM_TEXT) {
             throw ValidationException::withMessages([
-                'db_confirm' => 'Textul de confirmare trebuie sa fie exact CONFIRM IMPORT.',
+                'db_confirm' => 'Textul de confirmare trebuie să fie exact CONFIRM IMPORT.',
             ]);
         }
     }
@@ -256,10 +256,10 @@ class AdminBackupController extends Controller
             'understand_media_import' => ['accepted'],
             'media_confirm' => ['required', 'string'],
         ], [
-            'media_file.required' => 'Alege o arhiva .zip pentru import.',
-            'media_file.file' => 'Arhiva incarcata nu este valida.',
-            'media_file.max' => 'Arhiva depaseste limita serverului (' . $this->formatBytes($this->maxUploadBytes()) . ').',
-            'understand_media_import.accepted' => 'Trebuie sa confirmi ca intelegi efectul importului media.',
+            'media_file.required' => 'Alege o arhivă .zip pentru import.',
+            'media_file.file' => 'Arhiva încărcată nu este validă.',
+            'media_file.max' => 'Arhiva depășește limita serverului (' . $this->formatBytes($this->maxUploadBytes()) . ').',
+            'understand_media_import.accepted' => 'Trebuie să confirmi că înțelegi efectul importului media.',
             'media_confirm.required' => 'Scrie CONFIRM MEDIA IMPORT pentru a porni importul.',
         ]);
 
@@ -267,19 +267,19 @@ class AdminBackupController extends Controller
 
         if (!$file || strtolower($file->getClientOriginalExtension()) !== 'zip') {
             throw ValidationException::withMessages([
-                'media_file' => 'Se accepta doar fisiere cu extensia .zip.',
+                'media_file' => 'Se acceptă doar fișiere cu extensia .zip.',
             ]);
         }
 
         if ($file->getSize() < 1) {
             throw ValidationException::withMessages([
-                'media_file' => 'Arhiva ZIP nu poate fi goala.',
+                'media_file' => 'Arhiva ZIP nu poate fi goală.',
             ]);
         }
 
         if ($request->input('media_confirm') !== self::MEDIA_CONFIRM_TEXT) {
             throw ValidationException::withMessages([
-                'media_confirm' => 'Textul de confirmare trebuie sa fie exact CONFIRM MEDIA IMPORT.',
+                'media_confirm' => 'Textul de confirmare trebuie să fie exact CONFIRM MEDIA IMPORT.',
             ]);
         }
     }
@@ -291,8 +291,8 @@ class AdminBackupController extends Controller
             'understand_server_media_import' => ['accepted'],
             'server_media_confirm' => ['required', 'string'],
         ], [
-            'server_media_file.required' => 'Alege o arhiva .zip din folderul de import manual.',
-            'understand_server_media_import.accepted' => 'Trebuie sa confirmi ca intelegi efectul importului media.',
+            'server_media_file.required' => 'Alege o arhivă .zip din folderul de import manual.',
+            'understand_server_media_import.accepted' => 'Trebuie să confirmi că înțelegi efectul importului media.',
             'server_media_confirm.required' => 'Scrie CONFIRM MEDIA IMPORT pentru a porni importul.',
         ]);
 
@@ -300,13 +300,13 @@ class AdminBackupController extends Controller
             $this->manualMediaImportPath($request->input('server_media_file'));
         } catch (Throwable) {
             throw ValidationException::withMessages([
-                'server_media_file' => 'Alege o arhiva .zip valida din folderul de import manual.',
+                'server_media_file' => 'Alege o arhivă .zip validă din folderul de import manual.',
             ]);
         }
 
         if ($request->input('server_media_confirm') !== self::MEDIA_CONFIRM_TEXT) {
             throw ValidationException::withMessages([
-                'server_media_confirm' => 'Textul de confirmare trebuie sa fie exact CONFIRM MEDIA IMPORT.',
+                'server_media_confirm' => 'Textul de confirmare trebuie să fie exact CONFIRM MEDIA IMPORT.',
             ]);
         }
     }
@@ -521,7 +521,7 @@ class AdminBackupController extends Controller
                 $normalized = $this->normalizeZipEntry($entryName);
 
                 if (!$this->isSafeMediaArchiveEntry($normalized)) {
-                    throw new \RuntimeException('Arhiva contine fisiere sau cai nepermise: ' . basename($entryName));
+                    throw new \RuntimeException('Arhiva conține fișiere sau căi nepermise: ' . basename($entryName));
                 }
             }
         } finally {
@@ -545,7 +545,7 @@ class AdminBackupController extends Controller
 
                 $normalized = $this->normalizeZipEntry($entryName);
                 if (!$this->isSafeMediaArchiveEntry($normalized)) {
-                    throw new \RuntimeException('Arhiva contine fisiere sau cai nepermise: ' . basename($entryName));
+                    throw new \RuntimeException('Arhiva conține fișiere sau căi nepermise: ' . basename($entryName));
                 }
 
                 $targetPath = $this->publicStorageDirectory() . DIRECTORY_SEPARATOR
@@ -555,13 +555,13 @@ class AdminBackupController extends Controller
 
                 $source = $zip->getStream($entryName);
                 if (!$source) {
-                    throw new \RuntimeException('Nu se poate citi fisierul din arhiva: ' . basename($entryName));
+                    throw new \RuntimeException('Nu se poate citi fișierul din arhivă: ' . basename($entryName));
                 }
 
                 $target = fopen($targetPath, 'wb');
                 if (!$target) {
                     fclose($source);
-                    throw new \RuntimeException('Nu se poate scrie fisierul media: ' . basename($entryName));
+                    throw new \RuntimeException('Nu se poate scrie fișierul media: ' . basename($entryName));
                 }
 
                 stream_copy_to_stream($source, $target);
@@ -868,7 +868,7 @@ class AdminBackupController extends Controller
         return match ($e->getMessage()) {
             'mysqldump_unavailable' => 'mysqldump nu este disponibil pe server. Exportul bazei de date nu poate fi realizat automat.',
             'unsupported_database_driver' => 'Exportul automat este disponibil doar pentru conexiuni MySQL/MariaDB.',
-            default => 'Exportul bazei de date nu a putut fi realizat. Verifica disponibilitatea mysqldump si permisiunile serverului.',
+            default => 'Exportul bazei de date nu a putut fi realizat. Verifică disponibilitatea mysqldump și permisiunile serverului.',
         };
     }
 
@@ -876,13 +876,13 @@ class AdminBackupController extends Controller
     {
         return match ($e->getMessage()) {
             'mysqldump_unavailable' => 'mysqldump nu este disponibil pe server.',
-            'mysql_unavailable' => 'Restaurarea automata necesita mysql CLI pe server.',
-            'unsupported_database_driver' => 'Operatiunea automata este disponibila doar pentru conexiuni MySQL/MariaDB.',
-            'zip_extension_unavailable' => 'Extensia PHP ZipArchive nu este disponibila.',
-            'manual_media_file_invalid' => 'Alege o arhiva .zip valida din folderul de import manual.',
-            'manual_media_file_missing' => 'Arhiva selectata nu mai exista in folderul de import manual.',
-            'manual_media_file_empty' => 'Arhiva selectata este goala.',
-            default => 'Verifica fisierul incarcat si permisiunile serverului.',
+            'mysql_unavailable' => 'Restaurarea automată necesită mysql CLI pe server.',
+            'unsupported_database_driver' => 'Operațiunea automată este disponibilă doar pentru conexiuni MySQL/MariaDB.',
+            'zip_extension_unavailable' => 'Extensia PHP ZipArchive nu este disponibilă.',
+            'manual_media_file_invalid' => 'Alege o arhivă .zip validă din folderul de import manual.',
+            'manual_media_file_missing' => 'Arhiva selectată nu mai există în folderul de import manual.',
+            'manual_media_file_empty' => 'Arhiva selectată este goală.',
+            default => 'Verifică fișierul încărcat și permisiunile serverului.',
         };
     }
 

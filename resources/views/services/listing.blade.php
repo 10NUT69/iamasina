@@ -24,32 +24,32 @@
         : ($localityName ?: $countyName);
 
     if ($hasBrandModel && $localityName && $countyName) {
-        $listingMetaTitle = 'Anunturi auto ' . $carLabel . ' in ' . $locationLabel . ' | iaAuto.ro';
-        $listingMetaDescription = 'Cauti ' . $carLabel . ' in ' . $locationLabel . '? Vezi anunturi auto cu masini ' . $carLabel . ' de vanzare, second hand sau noi, de la proprietari si parcuri auto.';
+        $listingMetaTitle = 'Anunțuri auto ' . $carLabel . ' în ' . $locationLabel . ' | iaAuto.ro';
+        $listingMetaDescription = 'Cauți ' . $carLabel . ' în ' . $locationLabel . '? Vezi anunțuri auto cu mașini ' . $carLabel . ' de vânzare, second hand sau noi, de la proprietari și parcuri auto.';
     } elseif ($hasBrandModel && $countyName) {
-        $listingMetaTitle = 'Anunturi auto ' . $carLabel . ' in ' . $countyName . ' - ' . $carLabel . ' de vanzare | iaAuto.ro';
-        $listingMetaDescription = 'Vezi anunturi auto ' . $carLabel . ' de vanzare in judetul ' . $countyName . '. Masini second hand si noi, de la proprietari si parcuri auto.';
+        $listingMetaTitle = 'Anunțuri auto ' . $carLabel . ' în ' . $countyName . ' - ' . $carLabel . ' de vânzare | iaAuto.ro';
+        $listingMetaDescription = 'Vezi anunțuri auto ' . $carLabel . ' de vânzare în județul ' . $countyName . '. Mașini second hand și noi, de la proprietari și parcuri auto.';
     } elseif ($hasBrandModel) {
-        $listingMetaTitle = 'Anunturi auto ' . $carLabel . ' - ' . $carLabel . ' de vanzare | iaAuto.ro';
-        $listingMetaDescription = 'Cauti ' . $carLabel . ' de vanzare? Vezi anunturi auto cu ' . $carLabel . ' second hand si noi din Romania, de la proprietari si parcuri auto.';
+        $listingMetaTitle = 'Anunțuri auto ' . $carLabel . ' - ' . $carLabel . ' de vânzare | iaAuto.ro';
+        $listingMetaDescription = 'Cauți ' . $carLabel . ' de vânzare? Vezi anunțuri auto cu ' . $carLabel . ' second hand și noi din România, de la proprietari și parcuri auto.';
     } elseif ($brandName && $localityName && $countyName) {
-        $listingMetaTitle = 'Anunturi auto ' . $brandName . ' in ' . $locationLabel . ' | iaAuto.ro';
-        $listingMetaDescription = 'Cauti ' . $brandName . ' in ' . $locationLabel . '? Vezi anunturi auto cu masini ' . $brandName . ' de vanzare, second hand sau noi, de la proprietari si parcuri auto.';
+        $listingMetaTitle = 'Anunțuri auto ' . $brandName . ' în ' . $locationLabel . ' | iaAuto.ro';
+        $listingMetaDescription = 'Cauți ' . $brandName . ' în ' . $locationLabel . '? Vezi anunțuri auto cu mașini ' . $brandName . ' de vânzare, second hand sau noi, de la proprietari și parcuri auto.';
     } elseif ($brandName && $countyName) {
-        $listingMetaTitle = 'Anunturi auto ' . $brandName . ' in ' . $countyName . ' - Masini ' . $brandName . ' de vanzare | iaAuto.ro';
-        $listingMetaDescription = 'Vezi anunturi auto ' . $brandName . ' de vanzare in judetul ' . $countyName . '. Masini second hand si noi, de la proprietari si parcuri auto.';
+        $listingMetaTitle = 'Anunțuri auto ' . $brandName . ' în ' . $countyName . ' - Mașini ' . $brandName . ' de vânzare | iaAuto.ro';
+        $listingMetaDescription = 'Vezi anunțuri auto ' . $brandName . ' de vânzare în județul ' . $countyName . '. Mașini second hand și noi, de la proprietari și parcuri auto.';
     } elseif ($brandName) {
-        $listingMetaTitle = 'Anunturi auto ' . $brandName . ' - Masini ' . $brandName . ' de vanzare | iaAuto.ro';
-        $listingMetaDescription = 'Vezi anunturi auto ' . $brandName . ' de vanzare in Romania. Masini second hand si noi, de la proprietari si parcuri auto. Filtreaza dupa model, pret si an.';
+        $listingMetaTitle = 'Anunțuri auto ' . $brandName . ' - Mașini ' . $brandName . ' de vânzare | iaAuto.ro';
+        $listingMetaDescription = 'Vezi anunțuri auto ' . $brandName . ' de vânzare în România. Mașini second hand și noi, de la proprietari și parcuri auto. Filtrează după model, preț și an.';
     } elseif ($localityName && $countyName) {
-        $listingMetaTitle = 'Anunturi auto ' . $locationLabel . ' - Masini de vanzare | iaAuto.ro';
-        $listingMetaDescription = 'Cauti masini de vanzare in ' . $locationLabel . '? Vezi anunturi auto second hand si noi, de la proprietari si parcuri auto.';
+        $listingMetaTitle = 'Anunțuri auto ' . $locationLabel . ' - Mașini de vânzare | iaAuto.ro';
+        $listingMetaDescription = 'Cauți mașini de vânzare în ' . $locationLabel . '? Vezi anunțuri auto second hand și noi, de la proprietari și parcuri auto.';
     } elseif ($countyName) {
-        $listingMetaTitle = 'Anunturi auto ' . $countyName . ' - Masini de vanzare in ' . $countyName . ' | iaAuto.ro';
-        $listingMetaDescription = 'Vezi anunturi auto din ' . $countyName . '. Masini de vanzare second hand si noi, de la proprietari si parcuri auto. Publica gratuit pe iaAuto.ro.';
+        $listingMetaTitle = 'Anunțuri auto ' . $countyName . ' - Mașini de vânzare în ' . $countyName . ' | iaAuto.ro';
+        $listingMetaDescription = 'Vezi anunțuri auto din ' . $countyName . '. Mașini de vânzare second hand și noi, de la proprietari și parcuri auto. Publică gratuit pe iaAuto.ro.';
     } else {
-        $listingMetaTitle = 'Anunturi auto - Masini de vanzare second hand | iaAuto.ro';
-        $listingMetaDescription = 'Cauti o masina? Vezi anunturi auto cu masini de vanzare second hand si noi din Romania. Filtreaza dupa marca, model, pret, an si kilometri.';
+        $listingMetaTitle = 'Anunțuri auto - Mașini de vânzare second hand | iaAuto.ro';
+        $listingMetaDescription = 'Cauți o mașină? Vezi anunțuri auto cu mașini de vânzare second hand și noi din România. Filtrează după marcă, model, preț, an și kilometri.';
     }
 
     $showEarlyStageBanners = $showEarlyStageBanners ?? true; // TEMP: seteaza false cand site-ul are suficiente anunturi.
@@ -72,11 +72,11 @@
         $listingMetaTitle = str_contains($listingMetaTitle, ' | iaAuto.ro')
             ? str_replace(' | iaAuto.ro', ' - ' . $pageLabel . ' | iaAuto.ro', $listingMetaTitle)
             : $listingMetaTitle . ' - ' . $pageLabel;
-        $listingMetaDescription .= ' ' . $pageLabel . ' din ' . $listingTotalPages . ' cu anunturi active.';
+        $listingMetaDescription .= ' ' . $pageLabel . ' din ' . $listingTotalPages . ' cu anunțuri active.';
     }
 @endphp
 
-@section('title', 'Anunțuri Auto - Anunturi Auto Second Hand')
+@section('title', 'Anunțuri Auto - Anunțuri Auto Second Hand')
 @section('meta_title', e($listingMetaTitle))
 @section('meta_description', e($listingMetaDescription))
 @section('meta_image', asset('images/social-share.webp'))
@@ -134,8 +134,8 @@
                             <x-combobox
                                 id="seller-type-select"
                                 name="seller_type_select"
-                                label="Vanzator"
-                                placeholder="Vanzator"
+                                label="Vânzător"
+                                placeholder="Vânzător"
                                 :options="[
                                     ['value' => 'all', 'label' => 'Parcuri + Proprietari'],
                                     ['value' => 'individual', 'label' => 'Proprietari'],
@@ -193,7 +193,7 @@
                             <div class="grid grid-cols-2 gap-2">
                                 <input type="number" id="year-min" name="year_min" placeholder="Anul de la" aria-label="Anul de la" value="{{ request('year_min', request('an_min')) }}"
                                     class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#20242b] dark:border-[#3a414b] dark:text-white dark:placeholder-white">
-                                <input type="number" id="year-max" name="year_max" placeholder="Anul pana la" aria-label="Anul pana la" value="{{ request('year_max', request('an_max')) }}"
+                                <input type="number" id="year-max" name="year_max" placeholder="Anul până la" aria-label="Anul până la" value="{{ request('year_max', request('an_max')) }}"
                                     class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#20242b] dark:border-[#3a414b] dark:text-white dark:placeholder-white">
                             </div>
                         </div>
@@ -202,16 +202,16 @@
                             <div class="grid grid-cols-2 gap-2">
                                 <input type="number" id="km-min" name="km_min" placeholder="Km de la" aria-label="Km de la" value="{{ request('km_min') }}"
                                     class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#20242b] dark:border-[#3a414b] dark:text-white dark:placeholder-white">
-                                <input type="number" id="km-max" name="km_max" placeholder="Km pana la" aria-label="Km pana la" value="{{ request('km_max') }}"
+                                <input type="number" id="km-max" name="km_max" placeholder="Km până la" aria-label="Km până la" value="{{ request('km_max') }}"
                                     class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#20242b] dark:border-[#3a414b] dark:text-white dark:placeholder-white">
                             </div>
                         </div>
 
                         <div>
                             <div class="grid grid-cols-2 gap-2">
-                                <input type="number" id="price-min" name="price_min" placeholder="Pret de la" aria-label="Pret de la" value="{{ request('price_min', request('pret_min')) }}"
+                                <input type="number" id="price-min" name="price_min" placeholder="Preț de la" aria-label="Preț de la" value="{{ request('price_min', request('pret_min')) }}"
                                     class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#20242b] dark:border-[#3a414b] dark:text-white dark:placeholder-white">
-                                <input type="number" id="price-max" name="price_max" placeholder="Pret pana la" aria-label="Pret pana la" value="{{ request('price_max', request('pret_max')) }}"
+                                <input type="number" id="price-max" name="price_max" placeholder="Preț până la" aria-label="Preț până la" value="{{ request('price_max', request('pret_max')) }}"
                                     class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#20242b] dark:border-[#3a414b] dark:text-white dark:placeholder-white">
                             </div>
                         </div>
@@ -252,8 +252,8 @@
                         <x-combobox
                             id="county-input"
                             name="county_id"
-                            label="Judet"
-                            placeholder="Judet"
+                            label="Județ"
+                            placeholder="Județ"
                             :options="$counties"
                             option-label="name"
                             :selected="request('county_id', optional($currentCounty)->id)"
@@ -348,11 +348,11 @@
                             label="Sortare"
                             placeholder="Sortare"
                             :options="[
-                                ['value' => 'newest', 'label' => 'Recomandata'],
+                                ['value' => 'newest', 'label' => 'Recomandată'],
                                 ['value' => 'price_asc', 'label' => 'Ieftine'],
                                 ['value' => 'price_desc', 'label' => 'Scumpe'],
-                                ['value' => 'km_asc', 'label' => 'Km crescator'],
-                                ['value' => 'power_asc', 'label' => 'Putere crescator'],
+                                ['value' => 'km_asc', 'label' => 'Km crescător'],
+                                ['value' => 'power_asc', 'label' => 'Putere crescător'],
                             ]"
                             :selected="request()->has('sort') ? request('sort') : null"
                             :searchable="false"
@@ -381,7 +381,7 @@
                                 <div class="relative mt-4 flex flex-1 items-end justify-center">
                                     <div class="absolute bottom-2 h-10 w-4/5 rounded-full bg-slate-900/10 blur-xl dark:bg-black/40"></div>
                                     <img src="{{ asset('images/homepage-hero-car.webp') }}"
-                                         alt="Autoturism de vanzare pe iaAuto.ro"
+                                         alt="Autoturism de vânzare pe iaAuto.ro"
                                          class="relative z-10 max-h-32 w-full object-contain drop-shadow-2xl"
                                          loading="lazy">
                                 </div>
@@ -389,11 +389,11 @@
                                 <div class="mt-4 grid grid-cols-2 gap-2 text-[11px] font-extrabold text-slate-700 dark:text-slate-200">
                                     <div class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 dark:border-white/10 dark:bg-white/10">
                                         0 lei
-                                        <span class="block text-[10px] font-bold text-slate-400 dark:text-slate-400">taxa anunt</span>
+                                        <span class="block text-[10px] font-bold text-slate-400 dark:text-slate-400">taxă anunț</span>
                                     </div>
                                     <div class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 dark:border-white/10 dark:bg-white/10">
-                                        Pe viata
-                                        <span class="block text-[10px] font-bold text-slate-400 dark:text-slate-400">anunturi gratuite</span>
+                                        Pe viață
+                                        <span class="block text-[10px] font-bold text-slate-400 dark:text-slate-400">anunțuri gratuite</span>
                                     </div>
                                 </div>
                             </div>
@@ -441,7 +441,7 @@
             @if($listingTotalPages > 1)
                 <nav id="listing-pagination"
                      class="mt-6 rounded-xl border border-gray-200 bg-white px-4 py-4 text-sm text-gray-700 shadow-sm dark:border-[#333333] dark:bg-[#1E1E1E] dark:text-gray-200"
-                     aria-label="Paginare anunturi"
+                     aria-label="Paginare anunțuri"
                      data-current-page="{{ $listingCurrentPage }}"
                      data-total-pages="{{ $listingTotalPages }}">
                     <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -450,7 +450,7 @@
                                 Pagina {{ $listingCurrentPage }} din {{ $listingTotalPages }}
                             </p>
                             <p class="mt-1 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                                {{ number_format($earlyStageTotalListings, 0, ',', '.') }} anunturi gasite
+                                {{ number_format($earlyStageTotalListings, 0, ',', '.') }} anunțuri găsite
                             </p>
                         </div>
 
@@ -458,7 +458,7 @@
                         <a id="listing-pagination-prev"
                            @if($listingPrevUrl) href="{{ $listingPrevUrl }}" rel="prev" @else aria-disabled="true" @endif
                            class="inline-flex min-h-10 items-center justify-center rounded-lg border px-3 text-sm font-black transition {{ $listingPrevUrl ? 'border-gray-200 bg-white text-gray-700 hover:border-[#C81424] hover:text-[#C81424] dark:border-[#333333] dark:bg-[#202024] dark:text-gray-100 dark:hover:border-red-700 dark:hover:text-red-200' : 'pointer-events-none cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300 dark:border-[#333333] dark:bg-[#18181B] dark:text-gray-600' }}">
-                            Inapoi
+                            Înapoi
                         </a>
 
                             <div id="listing-pagination-pages" class="flex flex-wrap items-center gap-1.5">
@@ -478,7 +478,7 @@
                         <a id="listing-pagination-next"
                            @if($listingNextUrl) href="{{ $listingNextUrl }}" rel="next" @else aria-disabled="true" @endif
                            class="inline-flex min-h-10 items-center justify-center rounded-lg border px-3 text-sm font-black transition {{ $listingNextUrl ? 'border-[#C81424] bg-[#C81424] text-white shadow-sm shadow-red-700/20 hover:bg-[#94111B]' : 'pointer-events-none cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300 dark:border-[#333333] dark:bg-[#18181B] dark:text-gray-600' }}">
-                            Inainte
+                            Înainte
                         </a>
                         </div>
                     </div>
@@ -875,7 +875,7 @@
 
     function savedSearchName(filters) {
         const parts = [filters.brand, filters.model, filters.locality, filters.county].filter(Boolean);
-        return parts.length ? parts.join(' ') : 'Cautare auto';
+        return parts.length ? parts.join(' ') : 'Căutare auto';
     }
 
     window.checkResetVisibility = function() {

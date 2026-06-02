@@ -158,7 +158,7 @@
                                 data-id="{{ $service->id }}"
                                 data-url="{{ route('services.renew', $service->id) }}"
                                 onclick="refreshService(this)"
-                                title="Reactualizeaza anuntul"
+                                title="Reactualizează anunțul"
                                 class="px-2 py-2 text-xs font-semibold bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/40 transition flex items-center justify-center gap-1">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -208,7 +208,7 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-2 10h2a2 2 0 002-2V10a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                             </svg>
-                            <span class="hidden sm:inline">Copiaza</span>
+                            <span class="hidden sm:inline">Copiază</span>
                         </button>
                     </div>
                 </div>
@@ -284,9 +284,9 @@
 
         @if($savedSearches->isEmpty())
             <div class="text-center py-16 bg-gray-50 dark:bg-[#1E1E1E] rounded-2xl border border-dashed border-gray-300 dark:border-[#333333]">
-                <p class="text-gray-500 dark:text-gray-400 text-lg">Nu ai nicio cautare favorita salvata.</p>
+                <p class="text-gray-500 dark:text-gray-400 text-lg">Nu ai nicio căutare favorită salvată.</p>
                 <a href="{{ route('cars.index') }}" class="mt-5 inline-flex items-center justify-center rounded-xl bg-[#C81424] px-5 py-3 text-sm font-black text-white transition hover:bg-[#94111B]">
-                    Cauta masini
+                    Caută mașini
                 </a>
             </div>
         @else
@@ -304,9 +304,9 @@
                                     'brand' => 'Marca',
                                     'model' => 'Model',
                                     'locality' => 'Localitate',
-                                    'county' => 'Judet',
-                                    'price_min' => 'Pret min',
-                                    'price_max' => 'Pret max',
+                                    'county' => 'Județ',
+                                    'price_min' => 'Preț min',
+                                    'price_max' => 'Preț max',
                                     'year_min' => 'An min',
                                     'year_max' => 'An max',
                                     'km_min' => 'Km min',
@@ -323,24 +323,24 @@
                             <div class="min-w-0">
                                 <h3 class="truncate text-lg font-black text-gray-900 dark:text-white">{{ $savedSearch->name }}</h3>
                                 <p class="mt-1 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                                    Salvata {{ $savedSearch->updated_at->diffForHumans() }}
+                                    Salvată {{ $savedSearch->updated_at->diffForHumans() }}
                                 </p>
                             </div>
                             <form method="POST" action="{{ route('saved-searches.destroy', $savedSearch) }}">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="rounded-lg border border-red-100 px-3 py-2 text-xs font-bold text-red-600 transition hover:bg-red-50 dark:border-red-900/40 dark:text-red-300 dark:hover:bg-red-950/30">
-                                    Sterge
+                                    Șterge
                                 </button>
                             </form>
                         </div>
 
                         <p class="mt-4 min-h-10 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
-                            {{ $filterSummary ?: 'Cautare generala de anunturi auto' }}
+                            {{ $filterSummary ?: 'Căutare generală de anunțuri auto' }}
                         </p>
 
                         <a href="{{ $savedSearch->url }}" class="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-[#C81424] px-4 py-3 text-sm font-black text-white transition hover:bg-[#94111B]">
-                            Deschide cautarea
+                            Deschide căutarea
                         </a>
                     </div>
                 @endforeach
@@ -427,7 +427,7 @@
                         <div class="min-w-0">
                             <h2 class="truncate text-base font-black text-gray-900 dark:text-white">{{ $other?->name ?? 'Utilizator' }}</h2>
                             <p class="truncate text-xs font-semibold text-gray-500 dark:text-gray-400">
-                                {{ $activeConversation->buyer_id === auth()->id() ? 'Discutie cu vanzatorul' : 'Intrebare de la cumparator' }}
+                                {{ $activeConversation->buyer_id === auth()->id() ? 'Discuție cu vânzătorul' : 'Întrebare de la cumpărător' }}
                             </p>
                         </div>
                     </div>
@@ -440,7 +440,7 @@
                         @if($service)
                             <a href="{{ $service->public_url }}"
                                class="inline-flex items-center justify-center rounded-lg bg-slate-800 px-3 py-2 text-xs font-black text-white transition hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600">
-                                Vezi anuntul
+                                Vezi anunțul
                             </a>
                         @endif
                         <form method="POST"
@@ -463,13 +463,13 @@
                              alt="{{ $service->title }}"
                              class="h-16 w-20 shrink-0 rounded-lg object-cover bg-gray-100 dark:bg-[#252525]">
                         <div class="min-w-0 flex-1">
-                            <p class="text-[11px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">Anunt asociat</p>
+                            <p class="text-[11px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">Anunț asociat</p>
                             <h3 class="mt-0.5 line-clamp-1 text-sm font-black text-gray-900 dark:text-white">{{ $service->title }}</h3>
                             <p class="mt-0.5 text-xs font-bold text-gray-600 dark:text-gray-300">
                                 @if($service->price_value)
                                     {{ number_format($service->price_value, 0, ',', '.') }} {{ $service->currency }}
                                 @else
-                                    Cere oferta
+                                    Cere ofertă
                                 @endif
                             </p>
                         </div>
@@ -487,14 +487,14 @@
 
             <form method="POST" action="{{ route('messages.store', $activeConversation) }}" class="mt-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-[#333] dark:bg-[#1E1E1E]">
                 @csrf
-                <label for="messageBody" class="mb-2 block text-xs font-black uppercase tracking-wide text-gray-500 dark:text-gray-400">Raspuns</label>
+                <label for="messageBody" class="mb-2 block text-xs font-black uppercase tracking-wide text-gray-500 dark:text-gray-400">Răspuns</label>
                 <textarea id="messageBody"
                           name="body"
                           rows="4"
                           maxlength="2000"
                           required
                           class="w-full resize-none rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/20 dark:border-[#404040] dark:bg-[#252525] dark:text-white"
-                          placeholder="Scrie mesajul tau...">{{ old('body') }}</textarea>
+                          placeholder="Scrie mesajul tău...">{{ old('body') }}</textarea>
                 @error('body')
                     <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
                 @enderror
@@ -512,8 +512,8 @@
             </script>
         @elseif($conversations->isEmpty())
             <div class="text-center py-16 bg-gray-50 dark:bg-[#1E1E1E] rounded-2xl border border-dashed border-gray-300 dark:border-[#333333]">
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Nu ai mesaje inca.</h2>
-                <p class="mt-2 text-gray-500 dark:text-gray-400">Cand contactezi un vanzator sau primesti intrebari la un anunt, conversatiile apar aici.</p>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Nu ai mesaje încă.</h2>
+                <p class="mt-2 text-gray-500 dark:text-gray-400">Când contactezi un vânzător sau primești întrebări la un anunț, conversațiile apar aici.</p>
             </div>
         @else
             <div class="grid gap-4">
@@ -540,7 +540,7 @@
                                         @endif
                                     </div>
                                     <p class="truncate text-xs font-semibold leading-4 text-gray-500 dark:text-gray-400">
-                                        {{ $conversation->buyer_id === auth()->id() ? 'Discutie cu vanzatorul' : 'Intrebare de la cumparator' }}
+                                        {{ $conversation->buyer_id === auth()->id() ? 'Discuție cu vânzătorul' : 'Întrebare de la cumpărător' }}
                                     </p>
                                 </div>
                             </a>
@@ -569,7 +569,7 @@
                                     <span class="font-black text-gray-900 dark:text-white">{{ $latest->sender_id === auth()->id() ? 'Tu:' : ($latest->sender?->name . ':') }}</span>
                                     {{ $latest->body }}
                                 @else
-                                    Conversatie noua
+                                    Conversație nouă
                                 @endif
                             </p>
 
@@ -580,7 +580,7 @@
                                          class="h-14 w-16 shrink-0 rounded-lg object-cover bg-gray-100 dark:bg-[#252525] sm:w-20">
                                     <div class="min-w-0 flex-1">
                                         <div class="flex items-center gap-2">
-                                            <p class="truncate text-[11px] font-black uppercase tracking-wide text-[#C81424]">Anunt asociat</p>
+                                            <p class="truncate text-[11px] font-black uppercase tracking-wide text-[#C81424]">Anunț asociat</p>
                                             <span class="hidden h-1 w-1 rounded-full bg-gray-300 sm:block"></span>
                                             <p class="hidden truncate text-[11px] font-semibold text-gray-400 sm:block">
                                                 {{ optional($conversation->last_message_at ?? $conversation->updated_at)->diffForHumans() }}
@@ -591,7 +591,7 @@
                                             @if($service->price_value)
                                                 {{ number_format($service->price_value, 0, ',', '.') }} {{ $service->currency }}
                                             @else
-                                                Cere oferta
+                                                Cere ofertă
                                             @endif
                                         </p>
                                     </div>
@@ -601,7 +601,7 @@
                                 </div>
                             @else
                                 <div class="flex min-h-14 items-center rounded-lg px-3 text-sm font-semibold text-gray-500 dark:text-gray-400">
-                                    Anunt indisponibil
+                                    Anunț indisponibil
                                 </div>
                             @endif
                         </a>
@@ -962,7 +962,7 @@ function refreshService(btn) {
             return;
         }
 
-        alert(data.message || "Nu am putut reactualiza anuntul.");
+        alert(data.message || "Nu am putut reactualiza anunțul.");
         btn.innerHTML = originalContent;
         btn.disabled = false;
     })
@@ -1617,7 +1617,7 @@ function pollConversation() {
 }
 
 function deleteMessage(messageId) {
-    if (!confirm('Stergi acest mesaj?')) return;
+    if (!confirm('Ștergi acest mesaj?')) return;
 
     fetch(`${window.activeConversationDeleteBaseUrl}/${messageId}`, {
         method: 'DELETE',

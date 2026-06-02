@@ -105,9 +105,9 @@
     $showLocationLabel = null;
 
     if ($countyName !== '' && $localityName !== '') {
-        $showLocationLabel = ($isBucharestCounty ? $countyName : 'Judetul ' . $countyName) . ', ' . $localityName;
+        $showLocationLabel = ($isBucharestCounty ? $countyName : 'Județul ' . $countyName) . ', ' . $localityName;
     } elseif ($countyName !== '') {
-        $showLocationLabel = $isBucharestCounty ? $countyName : 'Judetul ' . $countyName;
+        $showLocationLabel = $isBucharestCounty ? $countyName : 'Județul ' . $countyName;
     } elseif ($localityName !== '') {
         $showLocationLabel = $localityName;
     }
@@ -754,11 +754,11 @@
                                     </button>
                                 @elseif(!auth()->check())
                                     <a href="{{ route('login') }}" class="inline-flex w-full items-center justify-center bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3.5 rounded-xl transition dark:border-[#333333] dark:bg-[#252525] dark:text-gray-100 dark:hover:bg-[#333333]">
-                                        Autentifica-te pentru mesaj
+                                        Autentifică-te pentru mesaj
                                     </a>
                                 @elseif($isOwnListing)
                                     <button disabled class="w-full bg-gray-100 border border-gray-200 text-gray-400 font-bold py-3.5 rounded-xl dark:border-[#333333] dark:bg-[#252525]">
-                                        Este anuntul tau
+                                        Este anunțul tău
                                     </button>
                                 @else
                                     <button disabled class="w-full bg-gray-100 border border-gray-200 text-gray-400 font-bold py-3.5 rounded-xl dark:border-[#333333] dark:bg-[#252525]">
@@ -822,32 +822,32 @@
             <div>
                 <h2 id="seller-message-title" class="text-lg font-black text-gray-900 dark:text-white">Trimite mesaj</h2>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Catre {{ $isDealer ? ($sellerUser->company_name ?? $sellerUser->name) : ($service->author_name ?? $sellerUser->name) }}
+                    Către {{ $isDealer ? ($sellerUser->company_name ?? $sellerUser->name) : ($service->author_name ?? $sellerUser->name) }}
                 </p>
             </div>
             <button type="button" onclick="closeSellerMessageModal()" class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition hover:bg-gray-200 hover:text-gray-900 dark:bg-[#252525] dark:text-gray-300 dark:hover:bg-[#333]">
-                <span class="sr-only">Inchide</span>
+                <span class="sr-only">Închide</span>
                 &times;
             </button>
         </div>
 
         <form method="POST" action="{{ route('messages.startFromService', $service) }}" class="p-5">
             @csrf
-            <label for="seller-message-body" class="mb-2 block text-xs font-black uppercase tracking-wide text-gray-500 dark:text-gray-400">Mesajul tau</label>
+            <label for="seller-message-body" class="mb-2 block text-xs font-black uppercase tracking-wide text-gray-500 dark:text-gray-400">Mesajul tău</label>
             <textarea id="seller-message-body"
                       name="body"
                       rows="5"
                       maxlength="2000"
                       required
                       class="w-full resize-none rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/20 dark:border-[#404040] dark:bg-[#252525] dark:text-white"
-                      placeholder="Scrie intrebarea ta despre anunt...">{{ old('body') }}</textarea>
+                      placeholder="Scrie întrebarea ta despre anunț...">{{ old('body') }}</textarea>
             @error('body')
                 <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
             @enderror
 
             <div class="mt-4 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <button type="button" onclick="closeSellerMessageModal()" class="inline-flex items-center justify-center rounded-xl border border-gray-200 px-5 py-3 text-sm font-bold text-gray-700 transition hover:bg-gray-50 dark:border-[#333] dark:text-gray-200 dark:hover:bg-[#252525]">
-                    Renunta
+                    Renunță
                 </button>
                 <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-[#C81424] px-6 py-3 text-sm font-black text-white shadow-lg shadow-red-600/20 transition hover:bg-[#94111B] active:scale-95">
                     Trimite mesajul

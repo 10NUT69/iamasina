@@ -139,7 +139,7 @@
                     data-favorite-service-id="{{ $service->id }}"
                     data-favorite-empty-class="text-white fill-none"
                     data-favorite-active-class="text-red-500 fill-red-500"
-                    aria-label="{{ $isFav ? 'Scoate de la favorite' : 'Adauga la favorite' }}: {{ $listingTitle }}"
+                    aria-label="{{ $isFav ? 'Scoate de la favorite' : 'Adaugă la favorite' }}: {{ $listingTitle }}"
                     aria-pressed="{{ $isFav ? 'true' : 'false' }}"
                     class="md:hidden absolute top-3 right-3 z-20 p-2 rounded-full bg-black/30 backdrop-blur-md border border-white/20 text-white hover:bg-red-500 hover:border-red-500 transition-all">
                 <svg class="w-5 h-5 {{ $isFav ? 'text-red-500 fill-red-500' : 'text-white fill-none' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -233,7 +233,7 @@
                             data-favorite-service-id="{{ $service->id }}"
                             data-favorite-empty-class="text-gray-400 fill-none"
                             data-favorite-active-class="text-red-500 fill-red-500"
-                            aria-label="{{ $isFav ? 'Scoate de la favorite' : 'Adauga la favorite' }}: {{ $listingTitle }}"
+                            aria-label="{{ $isFav ? 'Scoate de la favorite' : 'Adaugă la favorite' }}: {{ $listingTitle }}"
                             aria-pressed="{{ $isFav ? 'true' : 'false' }}"
                             class="hidden md:flex group/btn items-center justify-center w-8 h-8 rounded-full bg-gray-50 dark:bg-[#27272a] hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-all border border-gray-100 dark:border-gray-700"
                             title="Salvează anunțul">
