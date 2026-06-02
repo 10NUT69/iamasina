@@ -192,27 +192,27 @@
                         <div>
                             <div class="grid grid-cols-2 gap-2">
                                 <input type="number" id="year-min" name="year_min" placeholder="Anul de la" aria-label="Anul de la" value="{{ request('year_min', request('an_min')) }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#20242b] dark:border-[#3a414b] dark:text-white dark:placeholder-white">
                                 <input type="number" id="year-max" name="year_max" placeholder="Anul pana la" aria-label="Anul pana la" value="{{ request('year_max', request('an_max')) }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#20242b] dark:border-[#3a414b] dark:text-white dark:placeholder-white">
                             </div>
                         </div>
 
                         <div>
                             <div class="grid grid-cols-2 gap-2">
                                 <input type="number" id="km-min" name="km_min" placeholder="Km de la" aria-label="Km de la" value="{{ request('km_min') }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#20242b] dark:border-[#3a414b] dark:text-white dark:placeholder-white">
                                 <input type="number" id="km-max" name="km_max" placeholder="Km pana la" aria-label="Km pana la" value="{{ request('km_max') }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#20242b] dark:border-[#3a414b] dark:text-white dark:placeholder-white">
                             </div>
                         </div>
 
                         <div>
                             <div class="grid grid-cols-2 gap-2">
                                 <input type="number" id="price-min" name="price_min" placeholder="Pret de la" aria-label="Pret de la" value="{{ request('price_min', request('pret_min')) }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#20242b] dark:border-[#3a414b] dark:text-white dark:placeholder-white">
                                 <input type="number" id="price-max" name="price_max" placeholder="Pret pana la" aria-label="Pret pana la" value="{{ request('price_max', request('pret_max')) }}"
-                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#2d2d2d] dark:border-[#404040] dark:text-gray-100">
+                                    class="listing-filter w-full h-[46px] px-3 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#20242b] dark:border-[#3a414b] dark:text-white dark:placeholder-white">
                             </div>
                         </div>
 
@@ -309,16 +309,20 @@
                 </p>
             </div>
 
+            @php
+                $listingActionButtonClass = 'listing-action-button inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 text-[13px] font-bold text-gray-800 shadow-sm transition hover:border-[#C81424] hover:bg-[#fff4f5] hover:text-[#C81424] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C81424]/20 dark:border-[#333333] dark:bg-[#202024] dark:text-gray-100 dark:hover:border-red-900/70 dark:hover:bg-[#2a1013] dark:hover:text-red-200';
+            @endphp
+
             <div id="listing-actions-bar" class="sticky z-40 -mx-4 mb-4 bg-[#f6f7fb]/95 px-4 py-2.5 shadow-sm ring-1 ring-gray-200/80 backdrop-blur dark:bg-[#121212]/95 dark:ring-gray-800 sm:-mx-6 sm:px-6 lg:static lg:top-auto lg:z-auto lg:mx-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:ring-0 lg:backdrop-blur-0">
                 <div class="listing-actions-row grid grid-cols-[0.58fr_0.68fr_0.9fr_1.28fr] items-stretch gap-2 lg:flex lg:items-center lg:justify-between lg:gap-3">
                     <button type="button" id="scroll-to-listing-top"
-                        class="listing-action-button inline-flex h-11 min-w-0 items-center justify-center gap-1 rounded-md border border-gray-300 bg-white px-2 text-[13px] font-bold text-[#BA1422] shadow-sm transition hover:border-[#BA1422] hover:bg-[#fff7f8] hover:text-[#BA1422] dark:border-[#333333] dark:bg-[#1E1E1E] dark:text-red-200 dark:hover:border-red-700 dark:hover:bg-[#2a1013] lg:hidden">
+                        class="{{ $listingActionButtonClass }} lg:hidden">
                         <span class="shrink-0 text-base leading-none">↑</span>
                         <span class="truncate">Sus</span>
                     </button>
 
                     <button type="button" id="open-filters"
-                        class="listing-action-button inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 text-[13px] font-semibold text-[#C81424] shadow-sm transition hover:border-[#C81424] hover:bg-[#fff4f5] dark:border-[#333333] dark:bg-[#1E1E1E] dark:text-red-200 dark:hover:border-red-700 dark:hover:bg-[#2a1013] lg:hidden">
+                        class="{{ $listingActionButtonClass }} lg:hidden">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M4 7h10" />
                             <path d="M18 7h2" />
@@ -330,8 +334,8 @@
                         <span class="truncate">Filtre</span>
                     </button>
                     <button type="button" id="save-search-btn"
-                        class="listing-action-button inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 text-[13px] font-semibold text-gray-700 shadow-sm transition hover:border-[#C81424] hover:bg-[#fff4f5] hover:text-[#C81424] dark:border-[#333333] dark:bg-[#1E1E1E] dark:text-gray-100 dark:hover:border-red-700 dark:hover:bg-[#2a1013] dark:hover:text-red-200 lg:w-auto lg:px-3 lg:text-sm lg:text-[#0F5CC0] lg:border-[#0F5CC0] lg:dark:text-red-200 lg:dark:border-red-900/50">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="hidden h-4 w-4 shrink-0 lg:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        class="{{ $listingActionButtonClass }} lg:w-auto lg:px-3 lg:text-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0h6z"/>
                         </svg>
                         <span class="truncate">Salvează</span>
@@ -1316,10 +1320,6 @@
         margin-right: -1rem;
         margin-left: -1rem;
         padding: 3px 1rem;
-        background: rgba(248, 249, 251, 0.58);
-        border-top: 1px solid rgba(229, 231, 235, 0.28);
-        border-bottom: 1px solid rgba(229, 231, 235, 0.28);
-        box-shadow: 0 6px 14px rgba(15, 23, 42, 0.025);
         -webkit-backdrop-filter: blur(6px);
         backdrop-filter: blur(6px);
     }
@@ -1333,30 +1333,15 @@
 
     .listing-action-button {
         height: 42px;
-        border: 1px solid #e5e7eb;
         border-radius: 8px;
-        background: #ffffff;
-        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
         line-height: 1.1;
         white-space: nowrap;
     }
 
     #listing-actions-bar .truncate,
     #listing-actions-bar .custom-select-label {
-        overflow: visible;
-        text-overflow: clip;
-    }
-
-    #listing-actions-bar #scroll-to-listing-top,
-    #listing-actions-bar #open-filters {
-        color: #BA1422;
-    }
-
-    #listing-actions-bar #scroll-to-listing-top:hover,
-    #listing-actions-bar #open-filters:hover {
-        border-color: #BA1422;
-        background: #fff7f8;
-        color: #BA1422;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .listing-sort-compact .custom-select-trigger {
@@ -1679,6 +1664,14 @@
             color: #e5e7eb;
         }
 
+        #filters-panel .listing-filter.ia-combobox .ia-combobox__input,
+        #filters-panel .listing-filter.ia-combobox .ia-combobox__input::placeholder,
+        #filters-panel .listing-filter.ia-combobox .ia-combobox__floating,
+        #filters-panel .listing-filter.ia-combobox .ia-combobox__clear,
+        #filters-panel .listing-filter.ia-combobox .ia-combobox__toggle {
+            color: #ffffff !important;
+        }
+
         .custom-select-option:hover,
         .custom-select-option:focus-visible {
             background: rgba(200, 20, 36, 0.16);
@@ -1697,11 +1690,5 @@
         }
     }
 
-@media (prefers-color-scheme: dark) and (max-width: 1023px) {
-    #listing-actions-bar {
-        background: rgba(18, 18, 18, 0.5);
-        border-color: rgba(55, 65, 81, 0.28);
-    }
-}
 </style>
 @endsection
