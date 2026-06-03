@@ -355,7 +355,7 @@
                     <button type="button" id="scroll-to-listing-top"
                         class="{{ $listingActionButtonClass }} lg:hidden">
                         <span class="shrink-0 text-base leading-none">↑</span>
-                        <span class="truncate">Sus</span>
+                        <span class="listing-action-label">Sus</span>
                     </button>
 
                     <button type="button" id="open-filters"
@@ -368,14 +368,14 @@
                             <path d="M10 17h10" />
                             <path d="M8 15v4" />
                         </svg>
-                        <span class="truncate">Filtre</span>
+                        <span class="listing-action-label">Filtre</span>
                     </button>
                     <button type="button" id="save-search-btn"
                         class="{{ $listingActionButtonClass }} lg:w-auto lg:px-3 lg:text-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0h6z"/>
                         </svg>
-                        <span class="truncate">Salvează</span>
+                        <span class="listing-action-label">Salvează</span>
                     </button>
 
                     <div class="listing-sort-compact min-w-0 lg:ml-auto lg:flex lg:w-auto lg:items-center lg:gap-2">
@@ -1627,16 +1627,23 @@
         }
 
     .listing-action-button {
-        height: 42px;
+        height: auto;
+        min-height: 42px;
         border-radius: 8px;
         line-height: 1.1;
-        white-space: nowrap;
+        white-space: normal;
+    }
+
+    .listing-action-label {
+        min-width: 0;
+        text-align: center;
     }
 
     #listing-actions-bar .truncate,
     #listing-actions-bar .custom-select-label {
-        overflow: hidden;
-        text-overflow: ellipsis;
+        overflow: visible;
+        text-overflow: clip;
+        white-space: normal;
     }
 
     .listing-sort-compact .custom-select-trigger {
