@@ -8,7 +8,7 @@
     'disabled' => false,
     'required' => false,
     'searchable' => true,
-    'inputAutocomplete' => 'nope',
+    'inputAutocomplete' => 'new-password',
     'id' => null,
     'optionValue' => 'id',
     'optionLabel' => null,
@@ -92,6 +92,9 @@
             placeholder="{{ $placeholder }}"
             value="{{ $selectedLabel }}"
             autocomplete="{{ $inputAutocomplete }}"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
             role="combobox"
             aria-autocomplete="list"
             aria-expanded="false"
