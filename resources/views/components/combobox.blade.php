@@ -77,6 +77,7 @@
         id="{{ $id }}"
         name="{{ $name }}"
         value="{{ $selectedValue }}"
+        autocomplete="off"
         data-combobox-value
         data-combobox-label="{{ $label }}"
         @if($required) required @endif
@@ -87,7 +88,7 @@
         <span class="ia-combobox__floating" data-combobox-floating>{{ $label }}</span>
         <input
             id="{{ $inputId }}"
-            type="text"
+            type="search"
             class="ia-combobox__input"
             placeholder="{{ $placeholder }}"
             value="{{ $selectedLabel }}"
@@ -95,6 +96,10 @@
             autocorrect="off"
             autocapitalize="off"
             spellcheck="false"
+            inputmode="search"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            data-form-type="other"
             role="combobox"
             aria-autocomplete="list"
             aria-expanded="false"
