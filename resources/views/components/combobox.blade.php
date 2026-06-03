@@ -21,7 +21,7 @@
     $selectedValue = $selectedValue === null ? '' : (string) $selectedValue;
     $placeholder = $placeholder ?: $label;
     $listboxId = $id . '-listbox';
-    $inputId = $id . '-search';
+    $inputId = $id . '_search';
 
     $readValue = function ($item, $key, $fallback = null) {
         if (!$key) {
