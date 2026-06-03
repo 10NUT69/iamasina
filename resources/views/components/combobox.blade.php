@@ -21,7 +21,9 @@
     $selectedValue = $selectedValue === null ? '' : (string) $selectedValue;
     $placeholder = $placeholder ?: $label;
     $listboxId = $id . '-listbox';
-    $inputId = $id . '_search';
+    $inputIdBase = preg_replace('/(?:_id|_select)$/', '', str_replace(['[', ']'], '_', $name));
+    $inputIdBase = trim($inputIdBase, '_');
+    $inputId = \Illuminate\Support\Str::slug($inputIdBase ?: $id, '_') . '_search';
 
     $readValue = function ($item, $key, $fallback = null) {
         if (!$key) {
@@ -104,7 +106,8 @@
             aria-autocomplete="list"
             aria-expanded="false"
             aria-controls="{{ $listboxId }}"
-            @if(!$searchable) readonly @endif
+            readonly
+            @if($searchable) data-combobox-autofill-guard="true" @endif
             @if($disabled) disabled @endif
             data-combobox-input
         >

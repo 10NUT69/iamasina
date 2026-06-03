@@ -31,11 +31,13 @@ class HybridCombobox {
         this.label = root.dataset.comboboxLabel || this.hidden?.dataset.comboboxLabel || '';
         this.placeholder = root.dataset.comboboxPlaceholder || this.label;
         this.searchable = root.dataset.comboboxSearchable !== 'false';
+        this.autofillGuarded = this.input?.dataset.comboboxAutofillGuard === 'true';
         this.options = this.readOptionsFromDom();
         this.filteredOptions = [...this.options];
         this.activeIndex = -1;
         this.suppressHiddenSync = false;
         this.dropdownSpaceFrame = null;
+        this.autofillGuardTimer = null;
 
         if (!this.root || !this.hidden || !this.input || !this.listbox) {
             return;
@@ -54,6 +56,28 @@ class HybridCombobox {
             attributes: true,
             attributeFilter: ['disabled', 'aria-invalid', 'value'],
         });
+    }
+
+    releaseAutofillGuard() {
+        if (!this.autofillGuarded || !this.searchable || this.hidden.disabled) {
+            return;
+        }
+
+        window.clearTimeout(this.autofillGuardTimer);
+        this.autofillGuardTimer = window.setTimeout(() => {
+            if (document.activeElement === this.input && !this.hidden.disabled) {
+                this.input.readOnly = false;
+            }
+        }, 250);
+    }
+
+    restoreAutofillGuard() {
+        window.clearTimeout(this.autofillGuardTimer);
+        this.autofillGuardTimer = null;
+
+        if (this.autofillGuarded) {
+            this.input.readOnly = true;
+        }
     }
 
     readOptionsFromDom() {
@@ -120,10 +144,12 @@ class HybridCombobox {
         this.input.addEventListener('focus', () => {
             if (!this.hidden.disabled) {
                 this.open();
+                this.releaseAutofillGuard();
             }
         });
 
         this.input.addEventListener('blur', () => {
+            this.restoreAutofillGuard();
             this.close();
         });
 
@@ -218,6 +244,7 @@ class HybridCombobox {
         const disabled = this.hidden.disabled;
 
         this.input.disabled = disabled;
+        this.input.readOnly = this.autofillGuarded || !this.searchable;
 
         if (this.toggleButton) {
             this.toggleButton.disabled = disabled;
