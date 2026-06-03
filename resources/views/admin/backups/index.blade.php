@@ -120,20 +120,8 @@
                            class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-red-500 focus:ring-red-500">
                 </div>
 
-                <label class="flex items-start gap-2 text-sm text-slate-700">
-                    <input type="checkbox" name="understand_db_import" value="1" class="mt-1 rounded border-slate-300 text-red-600">
-                    <span>Înțeleg că această acțiune va șterge datele existente și va importa datele din fișier.</span>
-                </label>
-
-                <div>
-                    <label for="db_confirm" class="block text-sm font-bold text-slate-700 mb-1">Confirmare</label>
-                    <input id="db_confirm" name="db_confirm" type="text" placeholder="CONFIRM IMPORT"
-                           class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-red-500 focus:ring-red-500">
-                </div>
-
                 <button type="submit"
-                        class="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-                        @disabled(!$mysqlAvailable || !$mysqldumpAvailable)>
+                        class="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-red-700">
                     Importă baza de date
                 </button>
             </form>
@@ -154,7 +142,7 @@
 
             @unless($zipAvailable)
                 <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                    Extensia PHP ZipArchive nu este disponibilă. Exportul media nu poate fi realizat automat.
+                    Exportul media necesită ZipArchive, zip sau tar pe server.
                 </div>
             @endunless
 
@@ -181,6 +169,12 @@
                 Înainte de import se creează automat un backup de siguranță.
             </div>
 
+            @unless($mediaImportAvailable)
+                <div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                    Importul media necesită ZipArchive, unzip sau tar pe server.
+                </div>
+            @endunless
+
             <form method="POST" action="{{ route('admin.backups.media.import') }}" enctype="multipart/form-data" class="mt-5 space-y-4">
                 @csrf
 
@@ -191,24 +185,12 @@
                 </div>
 
                 <label class="flex items-start gap-2 text-sm text-slate-700">
-                    <input type="checkbox" name="understand_media_import" value="1" class="mt-1 rounded border-slate-300 text-red-600">
-                    <span>Înțeleg că această acțiune poate înlocui imaginile existente.</span>
-                </label>
-
-                <div>
-                    <label for="media_confirm" class="block text-sm font-bold text-slate-700 mb-1">Confirmare</label>
-                    <input id="media_confirm" name="media_confirm" type="text" placeholder="CONFIRM MEDIA IMPORT"
-                           class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-red-500 focus:ring-red-500">
-                </div>
-
-                <label class="flex items-start gap-2 text-sm text-slate-700">
                     <input type="checkbox" name="delete_existing_media" value="1" class="mt-1 rounded border-slate-300 text-red-600">
                     <span>Șterge media existentă înainte de import</span>
                 </label>
 
                 <button type="submit"
-                        class="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-                        @disabled(!$zipAvailable)>
+                        class="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-red-700">
                     Importă media prin upload
                 </button>
             </form>
@@ -247,24 +229,12 @@
                     </div>
 
                     <label class="flex items-start gap-2 text-sm text-slate-700">
-                        <input type="checkbox" name="understand_server_media_import" value="1" class="mt-1 rounded border-slate-300 text-red-600">
-                        <span>Înțeleg că această acțiune poate înlocui imaginile existente.</span>
-                    </label>
-
-                    <div>
-                        <label for="server_media_confirm" class="block text-sm font-bold text-slate-700 mb-1">Confirmare</label>
-                        <input id="server_media_confirm" name="server_media_confirm" type="text" placeholder="CONFIRM MEDIA IMPORT"
-                               class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-red-500 focus:ring-red-500">
-                    </div>
-
-                    <label class="flex items-start gap-2 text-sm text-slate-700">
                         <input type="checkbox" name="delete_existing_server_media" value="1" class="mt-1 rounded border-slate-300 text-red-600">
                         <span>Șterge media existentă înainte de import</span>
                     </label>
 
                     <button type="submit"
-                            class="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-                            @disabled(!$zipAvailable)>
+                            class="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-red-700">
                         Importă media din server
                     </button>
                 </form>

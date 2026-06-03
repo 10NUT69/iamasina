@@ -26,6 +26,32 @@
     $savedBrandText = old('brand', $service->brand ?? '');
     $savedModelText = old('model', $service->model ?? '');
 
+    $savedBrandIdForQuery = $savedBrandId ? (int) $savedBrandId : null;
+    $savedModelOptions = $savedBrandIdForQuery
+        ? \App\Models\CarModel::query()
+            ->where('car_brand_id', $savedBrandIdForQuery)
+            ->ordered()
+            ->get(['id', 'name', 'slug'])
+        : collect();
+
+    if ($savedModelId && ! $savedModelOptions->contains(fn ($model) => (string) $model->id === (string) $savedModelId)) {
+        $currentModelOption = \App\Models\CarModel::query()
+            ->find($savedModelId, ['id', 'name', 'slug']);
+
+        if ($currentModelOption) {
+            $savedModelOptions = $savedModelOptions
+                ->push($currentModelOption)
+                ->sortBy(fn ($model) => mb_strtolower((string) $model->name))
+                ->values();
+        }
+    }
+
+    $savedYearInt = is_numeric($savedYear) ? (int) $savedYear : null;
+    $yearStart = $savedYearInt ? min(1990, $savedYearInt) : 1990;
+    $yearEnd = $savedYearInt ? max((int) now()->year, $savedYearInt) : (int) now()->year;
+    $yearOptions = collect(range($yearEnd, $yearStart))
+        ->map(fn ($year) => ['value' => $year, 'label' => (string) $year]);
+
     // pills / select-uri
     $savedColorId     = old('culoare_id', $service->culoare_id);
     $savedColorOptId  = old('culoare_opt_id', $service->culoare_opt_id);
@@ -150,9 +176,10 @@
                                         name="model_id"
                                         label="Model"
                                         placeholder="Model"
-                                        :options="[]"
+                                        :options="$savedModelOptions"
                                         :selected="$savedModelId"
-                                        :disabled="true"
+                                        :disabled="!$savedBrandId"
+                                        :required="true"
                                     />
                                 </div>
 
@@ -163,9 +190,9 @@
                                         name="an_fabricatie"
                                         label="An"
                                         placeholder="An"
-                                        :options="[]"
+                                        :options="$yearOptions"
                                         :selected="$savedYear"
-                                        :disabled="true"
+                                        :disabled="!$savedModelId"
                                         :required="true"
                                     />
                                 </div>
@@ -572,14 +599,31 @@ document.addEventListener('DOMContentLoaded', function() {
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     const submitBtn = document.getElementById('submitBtn');
+    const wizardForm = document.getElementById('wizardForm');
     const countySelect = document.getElementById('county-select');
     const localitySelect = document.getElementById('locality-select');
     const localityBaseUrl = "{{ url('/api/localities') }}";
     const presetLocalityId = "{{ $savedLocalityId }}";
+    const serverValidationErrors = @json($errors->messages());
 
-    function updateStep() {
+    function scrollToStepStart(stepEl) {
+        if (!stepEl) return;
+
+        const target = stepEl.querySelector('h2') || stepEl;
+        const top = target.getBoundingClientRect().top + window.pageYOffset - 110;
+
+        window.scrollTo({
+            top: Math.max(0, top),
+            behavior: 'smooth',
+        });
+    }
+
+    function updateStep({ scrollToStart = false } = {}) {
+        let activeStep = null;
+
         steps.forEach(s => {
             if (parseInt(s.dataset.step) === currentStep) {
+                activeStep = s;
                 s.classList.remove('hidden');
                 setTimeout(() => s.classList.remove('opacity-0'), 50);
             } else {
@@ -607,6 +651,10 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             nextBtn.classList.remove('hidden');
             submitBtn.classList.add('hidden');
+        }
+
+        if (scrollToStart && activeStep) {
+            setTimeout(() => scrollToStepStart(activeStep), 80);
         }
     }
 
@@ -671,11 +719,11 @@ document.addEventListener('DOMContentLoaded', function() {
         siblings.forEach(el => el.classList.remove('selected'));
         btnElement.classList.add('selected');
 
-        if (inputId === 'inputBodyType') document.getElementById('err-body')?.classList.add('hidden');
-        if (inputId === 'inputFuel') document.getElementById('err-fuel')?.classList.add('hidden');
-        if (inputId === 'inputTrans') document.getElementById('err-trans')?.classList.add('hidden');
-        if (inputId === 'inputTractiune') document.getElementById('err-tractiune')?.classList.add('hidden');
-    }
+        if (inputId === 'inputBodyType') clearCustomPillError(inputId, 'err-body');
+        if (inputId === 'inputFuel') clearCustomPillError(inputId, 'err-fuel');
+        if (inputId === 'inputTrans') clearCustomPillError(inputId, 'err-trans');
+        if (inputId === 'inputTractiune') clearCustomPillError(inputId, 'err-tractiune');
+    };
 
     [
         ['inputBodyType', 'err-body'],
@@ -684,58 +732,291 @@ document.addEventListener('DOMContentLoaded', function() {
         ['inputTractiune', 'err-tractiune'],
     ].forEach(([inputId, errorId]) => {
         document.getElementById(inputId)?.addEventListener('change', () => {
-            document.getElementById(errorId)?.classList.add('hidden');
-            window.iaCombobox?.setInvalid(document.getElementById(inputId), false);
+            clearCustomPillError(inputId, errorId);
         });
     });
 
     // ================== 3) VALIDATION (ca în create) ==================
-    function validateCurrentStep() {
-        let valid = true;
-        const currentEl = document.querySelector(`.step-content[data-step="${currentStep}"]`);
-        const inputs = currentEl.querySelectorAll('input[required], select[required], textarea[required]');
+    function ensureStepErrorBox(stepEl) {
+        let box = stepEl.querySelector('[data-step-error]');
+        if (box) return box;
 
-        inputs.forEach(inp => {
-            const isComboboxValue = inp.matches('[data-combobox-value]');
-            if (inp.disabled) return;
+        box = document.createElement('div');
+        box.dataset.stepError = 'true';
+        box.className = 'hidden mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-100';
+        box.setAttribute('role', 'alert');
+        box.setAttribute('tabindex', '-1');
 
-            if (!inp.value) {
-                valid = false;
-                inp.classList.add('ring-2', 'ring-red-500', 'border-red-500');
-                window.iaCombobox?.setInvalid(inp, true);
-                inp.addEventListener('change', () => {
-                    inp.classList.remove('ring-2', 'ring-red-500', 'border-red-500');
-                    window.iaCombobox?.setInvalid(inp, false);
-                }, { once:true });
+        const heading = stepEl.querySelector('h2');
+        if (heading) {
+            heading.insertAdjacentElement('afterend', box);
+        } else {
+            stepEl.prepend(box);
+        }
+
+        return box;
+    }
+
+    function hideStepError(stepEl) {
+        const box = stepEl?.querySelector('[data-step-error]');
+        if (!box) return;
+        box.textContent = '';
+        box.classList.add('hidden');
+    }
+
+    function showStepError(stepEl, messages) {
+        const box = ensureStepErrorBox(stepEl);
+        const uniqueMessages = [...new Set(messages.filter(Boolean))];
+        box.textContent = uniqueMessages.length > 1
+            ? `Verifică aceste câmpuri: ${uniqueMessages.join(', ')}.`
+            : (uniqueMessages[0] || 'Verifică câmpurile evidențiate înainte să continui.');
+        box.classList.remove('hidden');
+    }
+
+    function fieldLabel(input) {
+        const fieldLabels = {
+            brand_id: 'marca',
+            model_id: 'modelul',
+            an_fabricatie: 'anul',
+            culoare_id: 'culoarea',
+            km: 'rulajul',
+            putere: 'puterea',
+            title: 'titlul anunțului',
+            description: 'descrierea',
+            price_value: 'prețul',
+            phone: 'telefonul',
+            county_id: 'județul',
+            locality_id: 'orașul',
+        };
+
+        if (fieldLabels[input.name]) {
+            return fieldLabels[input.name];
+        }
+
+        const explicitLabel = input.id ? document.querySelector(`label[for="${input.id}"]`) : null;
+        let nearbyLabel = null;
+        let parent = input.parentElement;
+
+        while (parent && !parent.classList.contains('step-content')) {
+            nearbyLabel = Array.from(parent.children).find(child => child.tagName === 'LABEL');
+            if (nearbyLabel) break;
+            parent = parent.parentElement;
+        }
+
+        const selectPlaceholder = input.tagName === 'SELECT' ? input.options?.[0]?.textContent : '';
+        const text = (explicitLabel?.textContent || nearbyLabel?.textContent || selectPlaceholder || input.placeholder || input.name || 'acest câmp')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        return text.replace(/[:*]+$/, '').toLowerCase();
+    }
+
+    function validationMessageFor(input) {
+        const label = fieldLabel(input);
+
+        if (input.validity?.valueMissing || !input.value) {
+            return `Completează ${label}.`;
+        }
+
+        if (input.validity?.typeMismatch && input.type === 'email') {
+            return 'Introdu o adresă de email validă.';
+        }
+
+        return input.validationMessage || `Verifică ${label}.`;
+    }
+
+    function markInvalidInput(input) {
+        input.classList.add('ring-2', 'ring-red-500', 'border-red-500');
+        input.setAttribute('aria-invalid', 'true');
+        window.iaCombobox?.setInvalid(input, true);
+
+        const clear = () => {
+            const isComboboxValue = input.matches('[data-combobox-value]');
+            const isValid = isComboboxValue
+                ? (!input.required || !!input.value)
+                : input.checkValidity();
+
+            if (isValid) {
+                input.classList.remove('ring-2', 'ring-red-500', 'border-red-500');
+                input.removeAttribute('aria-invalid');
+                window.iaCombobox?.setInvalid(input, false);
+            }
+        };
+
+        input.addEventListener('input', clear);
+        input.addEventListener('change', clear);
+    }
+
+    function clearCustomPillError(inputId, errorId) {
+        const input = document.getElementById(inputId);
+        const wrapper = input?.closest('div');
+        input?.classList.remove('ring-2', 'ring-red-500', 'border-red-500');
+        input?.removeAttribute('aria-invalid');
+        window.iaCombobox?.setInvalid(input, false);
+        wrapper?.querySelectorAll('.pill-btn').forEach(btn => {
+            btn.classList.remove('ring-2', 'ring-red-500', 'border-red-500');
+        });
+        document.getElementById(errorId)?.classList.add('hidden');
+    }
+
+    function markCustomPillInvalid(inputId, errorId, message) {
+        const input = document.getElementById(inputId);
+        const wrapper = input?.closest('div');
+        const error = document.getElementById(errorId);
+
+        error?.classList.remove('hidden');
+        const buttons = wrapper?.querySelectorAll('.pill-btn') || [];
+
+        buttons.forEach(btn => {
+            btn.classList.add('ring-2', 'ring-red-500', 'border-red-500');
+        });
+
+        if (!buttons.length && input) {
+            input.classList.add('ring-2', 'ring-red-500', 'border-red-500');
+            input.setAttribute('aria-invalid', 'true');
+            window.iaCombobox?.setInvalid(input, true);
+        }
+
+        return {
+            target: wrapper?.querySelector('.pill-btn') || window.iaCombobox?.get(input)?.root || input || error,
+            message,
+        };
+    }
+
+    function scrollToValidationTarget(target) {
+        if (!target) return;
+
+        const comboState = window.iaCombobox?.get(target);
+        const visibleTarget = comboState?.root || target;
+
+        visibleTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => {
+            const focusTarget = comboState?.input || visibleTarget;
+            if (typeof focusTarget.focus === 'function') {
+                focusTarget.focus({ preventScroll: true });
+            }
+        }, 350);
+    }
+
+    function validateStep(stepNumber, { reveal = true } = {}) {
+        const stepEl = document.querySelector(`.step-content[data-step="${stepNumber}"]`);
+        if (!stepEl) return { valid: true, messages: [], firstTarget: null };
+
+        const invalidItems = [];
+        const inputs = stepEl.querySelectorAll('input, select, textarea');
+
+        inputs.forEach(input => {
+            const isComboboxValue = input.matches('[data-combobox-value]');
+            if (input.disabled || (input.type === 'hidden' && !isComboboxValue)) return;
+
+            const isInvalidCombobox = isComboboxValue && input.required && !input.value;
+            if (isInvalidCombobox || !input.checkValidity()) {
+                const message = validationMessageFor(input);
+                invalidItems.push({ target: input, message });
+                if (reveal) markInvalidInput(input);
             }
         });
 
-        if (currentStep === 1) {
+        if (stepNumber === 1) {
             [
-                ['inputBodyType', 'err-body'],
-                ['inputFuel', 'err-fuel'],
-                ['inputTrans', 'err-trans'],
-                ['inputTractiune', 'err-tractiune'],
-            ].forEach(([inputId, errorId]) => {
-                const input = document.getElementById(inputId);
-                if (!input?.value) {
-                    document.getElementById(errorId)?.classList.remove('hidden');
-                    window.iaCombobox?.setInvalid(input, true);
-                    valid = false;
+                ['inputBodyType', 'err-body', 'Selectează caroseria'],
+                ['inputFuel', 'err-fuel', 'Alege combustibilul'],
+                ['inputTrans', 'err-trans', 'Alege transmisia'],
+                ['inputTractiune', 'err-tractiune', 'Alege tracțiunea'],
+            ].forEach(([inputId, errorId, message]) => {
+                if (!document.getElementById(inputId)?.value) {
+                    const item = reveal
+                        ? markCustomPillInvalid(inputId, errorId, message + '.')
+                        : { target: document.getElementById(inputId), message: message + '.' };
+                    invalidItems.push(item);
                 }
             });
         }
 
-        return valid;
+        if (invalidItems.length) {
+            if (reveal) showStepError(stepEl, invalidItems.map(item => item.message));
+            return {
+                valid: false,
+                messages: invalidItems.map(item => item.message),
+                firstTarget: invalidItems[0]?.target || stepEl,
+            };
+        }
+
+        if (reveal) hideStepError(stepEl);
+        return { valid: true, messages: [], firstTarget: null };
+    }
+
+    function validateCurrentStep() {
+        const result = validateStep(currentStep);
+        if (!result.valid) {
+            scrollToValidationTarget(result.firstTarget);
+        }
+
+        return result.valid;
+    }
+
+    function validateAllSteps() {
+        for (let stepNumber = 1; stepNumber <= totalSteps; stepNumber++) {
+            const result = validateStep(stepNumber, { reveal: stepNumber === currentStep });
+
+            if (!result.valid) {
+                currentStep = stepNumber;
+                updateStep();
+
+                setTimeout(() => {
+                    const visibleResult = validateStep(stepNumber);
+                    scrollToValidationTarget(visibleResult.firstTarget);
+                }, 80);
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function findFieldForError(fieldName) {
+        const normalizedName = String(fieldName).replace(/\.\d+$/, '');
+        const allFields = wizardForm ? Array.from(wizardForm.querySelectorAll('[name]')) : [];
+
+        return allFields.find(field => {
+            return field.name === normalizedName || field.name === `${normalizedName}[]`;
+        }) || null;
+    }
+
+    function applyServerValidationErrors(errors) {
+        const entries = Object.entries(errors || {});
+        if (!entries.length) return false;
+
+        const firstField = findFieldForError(entries[0][0]);
+        const firstStep = firstField?.closest('.step-content');
+        currentStep = Number(firstStep?.dataset.step || 1);
+        updateStep();
+
+        setTimeout(() => {
+            const stepEl = document.querySelector(`.step-content[data-step="${currentStep}"]`);
+            const messages = entries.flatMap(([, fieldMessages]) => Array.isArray(fieldMessages) ? fieldMessages : [String(fieldMessages)]);
+            const target = firstField || stepEl;
+
+            if (stepEl) {
+                showStepError(stepEl, messages);
+            }
+            if (firstField) {
+                markInvalidInput(firstField);
+            }
+            scrollToValidationTarget(target);
+        }, 100);
+
+        return true;
     }
 
     nextBtn.addEventListener('click', () => {
         if (validateCurrentStep()) {
             currentStep++;
-            updateStep();
+            updateStep({ scrollToStart: true });
         }
     });
-    prevBtn.addEventListener('click', () => { currentStep--; updateStep(); });
+    prevBtn.addEventListener('click', () => { currentStep--; updateStep({ scrollToStart: true }); });
 
     if (countySelect) {
         countySelect.addEventListener('change', () => {
@@ -760,9 +1041,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const savedYear    = @json($savedYear);
 
     function populateYears(start, end, selectedYear = null) {
-        const finalEnd = end || new Date().getFullYear();
+        const selectedYearNumber = Number(selectedYear);
+        const hasSelectedYear = Number.isFinite(selectedYearNumber) && selectedYearNumber > 0;
+        const finalStart = hasSelectedYear ? Math.min(start, selectedYearNumber) : start;
+        const finalEnd = hasSelectedYear ? Math.max(end || new Date().getFullYear(), selectedYearNumber) : (end || new Date().getFullYear());
         const years = [];
-        for (let i = finalEnd; i >= start; i--) {
+        for (let i = finalEnd; i >= finalStart; i--) {
             years.push({ value: i, label: String(i) });
         }
 
@@ -852,7 +1136,7 @@ document.addEventListener('DOMContentLoaded', function() {
         resetSelect(yearSel, 'An');
 
         if (brandId && modelId && carData[brandId]) {
-            populateYears(1990, new Date().getFullYear(), savedYear);
+            populateYears(1990, new Date().getFullYear());
         }
     });
 
@@ -886,7 +1170,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const imageError = document.getElementById('imageError');
     const primaryImageIndex = document.getElementById('primaryImageIndex');
     const primaryExistingImage = document.getElementById('primaryExistingImage');
-    const wizardForm = document.getElementById('wizardForm');
     const submitOverlay = document.getElementById('submitOverlay');
     const maxImages = 10;
     const maxImageBytes = 15 * 1024 * 1024;
@@ -1061,7 +1344,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (wizardForm) {
         wizardForm.addEventListener('submit', function(event) {
-            if (!validateCurrentStep()) {
+            if (!validateAllSteps()) {
                 event.preventDefault();
                 return;
             }
@@ -1076,7 +1359,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // init
     initCascadeFromSaved();
-    updateStep();
+    if (!applyServerValidationErrors(serverValidationErrors)) {
+        updateStep();
+    }
 });
 </script>
 

@@ -843,7 +843,7 @@ public function edit($id)
 {
     $service = Service::where('id', $id)
         ->where('user_id', auth()->id())
-        ->with(['generation.model.brand'])
+        ->with(['generation.model.brand', 'modelRel'])
         ->firstOrFail();
 
     // EXACT ca la create()
@@ -859,6 +859,7 @@ public function edit($id)
     $colorOpts    = CuloareOpt::orderBy('id')->get(); // Mat / Metalizată / Perlat
 
     $carData = $this->buildCarData();
+    $this->ensureCurrentServiceModelInCarData($carData, $service);
 
     $autoCategoryId = Category::where('slug', 'autoturisme')->value('id')
         ?? Category::where('name', 'Autoturisme')->value('id');
@@ -883,6 +884,41 @@ public function edit($id)
         'normePoluare'   => $normePoluare,
         'colorOpts'      => $colorOpts,
     ]);
+}
+
+private function ensureCurrentServiceModelInCarData(array &$carData, Service $service): void
+{
+    if (! $service->brand_id || ! $service->model_id) {
+        return;
+    }
+
+    $currentModel = $service->relationLoaded('modelRel')
+        ? $service->modelRel
+        : CarModel::query()->find($service->model_id);
+
+    if (! $currentModel) {
+        return;
+    }
+
+    $brandId = (string) $service->brand_id;
+    $models = collect($carData[$brandId] ?? []);
+    $hasCurrentModel = $models->contains(
+        fn ($model) => (string) data_get($model, 'id') === (string) $service->model_id
+    );
+
+    if ($hasCurrentModel) {
+        return;
+    }
+
+    $carData[$brandId] = $models
+        ->push([
+            'id' => $currentModel->id,
+            'name' => $currentModel->name,
+            'slug' => $currentModel->slug,
+        ])
+        ->sortBy(fn ($model) => mb_strtolower((string) data_get($model, 'name')))
+        ->values()
+        ->all();
 }
 
 

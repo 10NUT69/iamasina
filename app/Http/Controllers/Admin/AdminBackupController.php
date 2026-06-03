@@ -15,8 +15,6 @@ use ZipArchive;
 
 class AdminBackupController extends Controller
 {
-    private const DB_CONFIRM_TEXT = 'CONFIRM IMPORT';
-    private const MEDIA_CONFIRM_TEXT = 'CONFIRM MEDIA IMPORT';
     private const MEDIA_ARCHIVE_ROOTS = ['services', 'dealers'];
     private const ALLOWED_MEDIA_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'];
 
@@ -25,7 +23,8 @@ class AdminBackupController extends Controller
         return view('admin.backups.index', [
             'mysqldumpAvailable' => (bool) $this->findExecutable('mysqldump'),
             'mysqlAvailable' => (bool) $this->findExecutable('mysql'),
-            'zipAvailable' => class_exists(ZipArchive::class),
+            'zipAvailable' => $this->mediaZipCreateAvailable(),
+            'mediaImportAvailable' => $this->mediaImportAvailable(),
             'mediaDirectories' => $this->mediaDirectories(),
             'safetyDirectory' => $this->safetyBackupDirectory(),
             'manualMediaImportDirectory' => $this->manualMediaImportDirectory(),
@@ -218,14 +217,10 @@ class AdminBackupController extends Controller
     {
         $request->validate([
             'sql_file' => ['required', 'file', 'max:' . $this->maxUploadKilobytes()],
-            'understand_db_import' => ['accepted'],
-            'db_confirm' => ['required', 'string'],
         ], [
             'sql_file.required' => 'Alege un fișier .sql pentru import.',
             'sql_file.file' => 'Fișierul SQL încărcat nu este valid.',
             'sql_file.max' => 'Fișierul SQL depășește limita serverului (' . $this->formatBytes($this->maxUploadBytes()) . ').',
-            'understand_db_import.accepted' => 'Trebuie să confirmi că înțelegi efectul importului.',
-            'db_confirm.required' => 'Scrie CONFIRM IMPORT pentru a porni importul.',
         ]);
 
         $file = $request->file('sql_file');
@@ -242,25 +237,16 @@ class AdminBackupController extends Controller
             ]);
         }
 
-        if ($request->input('db_confirm') !== self::DB_CONFIRM_TEXT) {
-            throw ValidationException::withMessages([
-                'db_confirm' => 'Textul de confirmare trebuie să fie exact CONFIRM IMPORT.',
-            ]);
-        }
     }
 
     private function validateMediaImportRequest(Request $request): void
     {
         $request->validate([
             'media_file' => ['required', 'file', 'max:' . $this->maxUploadKilobytes()],
-            'understand_media_import' => ['accepted'],
-            'media_confirm' => ['required', 'string'],
         ], [
             'media_file.required' => 'Alege o arhivă .zip pentru import.',
             'media_file.file' => 'Arhiva încărcată nu este validă.',
             'media_file.max' => 'Arhiva depășește limita serverului (' . $this->formatBytes($this->maxUploadBytes()) . ').',
-            'understand_media_import.accepted' => 'Trebuie să confirmi că înțelegi efectul importului media.',
-            'media_confirm.required' => 'Scrie CONFIRM MEDIA IMPORT pentru a porni importul.',
         ]);
 
         $file = $request->file('media_file');
@@ -277,23 +263,14 @@ class AdminBackupController extends Controller
             ]);
         }
 
-        if ($request->input('media_confirm') !== self::MEDIA_CONFIRM_TEXT) {
-            throw ValidationException::withMessages([
-                'media_confirm' => 'Textul de confirmare trebuie să fie exact CONFIRM MEDIA IMPORT.',
-            ]);
-        }
     }
 
     private function validateServerMediaImportRequest(Request $request): void
     {
         $request->validate([
             'server_media_file' => ['required', 'string'],
-            'understand_server_media_import' => ['accepted'],
-            'server_media_confirm' => ['required', 'string'],
         ], [
             'server_media_file.required' => 'Alege o arhivă .zip din folderul de import manual.',
-            'understand_server_media_import.accepted' => 'Trebuie să confirmi că înțelegi efectul importului media.',
-            'server_media_confirm.required' => 'Scrie CONFIRM MEDIA IMPORT pentru a porni importul.',
         ]);
 
         try {
@@ -304,11 +281,6 @@ class AdminBackupController extends Controller
             ]);
         }
 
-        if ($request->input('server_media_confirm') !== self::MEDIA_CONFIRM_TEXT) {
-            throw ValidationException::withMessages([
-                'server_media_confirm' => 'Textul de confirmare trebuie să fie exact CONFIRM MEDIA IMPORT.',
-            ]);
-        }
     }
 
     private function exportDatabaseToFile(string $filePath): void
@@ -428,7 +400,7 @@ class AdminBackupController extends Controller
             $environment['MYSQL_PWD'] = $options['password'];
         }
 
-        $process = proc_open($command, $descriptors, $pipes, base_path(), $environment);
+        $process = proc_open($command, $descriptors, $pipes, $options['cwd'] ?? base_path(), $environment);
 
         if (!is_resource($process)) {
             throw new \RuntimeException('process_start_failed');
@@ -449,17 +421,22 @@ class AdminBackupController extends Controller
             @unlink($stderrPath);
         }
 
+        $stdoutLimit = array_key_exists('stdout_limit', $options) ? $options['stdout_limit'] : 1000;
+        $stderrLimit = array_key_exists('stderr_limit', $options) ? $options['stderr_limit'] : 2000;
+
         return [
             'exit_code' => $exitCode,
-            'stdout' => mb_substr($stdout, 0, 1000),
-            'stderr' => mb_substr($stderr, 0, 2000),
+            'stdout' => $stdoutLimit === null ? $stdout : mb_substr($stdout, 0, $stdoutLimit),
+            'stderr' => $stderrLimit === null ? $stderr : mb_substr($stderr, 0, $stderrLimit),
         ];
     }
 
     private function createMediaZip(string $zipPath): void
     {
         if (!class_exists(ZipArchive::class)) {
-            throw new \RuntimeException('zip_extension_unavailable');
+            $this->createMediaZipWithCli($zipPath);
+
+            return;
         }
 
         File::ensureDirectoryExists(dirname($zipPath));
@@ -478,6 +455,50 @@ class AdminBackupController extends Controller
         }
 
         $zip->close();
+    }
+
+    private function createMediaZipWithCli(string $zipPath): void
+    {
+        File::ensureDirectoryExists(dirname($zipPath));
+        $this->ensureMediaDirectoriesExist();
+
+        $roots = array_keys($this->mediaDirectories());
+        $zipExecutable = $this->findExecutable('zip');
+
+        if ($zipExecutable) {
+            $command = array_merge([$zipExecutable, '-r', $zipPath], $roots);
+
+            foreach (self::ALLOWED_MEDIA_EXTENSIONS as $extension) {
+                $command[] = '-i';
+                $command[] = '*.' . $extension;
+            }
+
+            $result = $this->runCliProcess($command, [
+                'cwd' => $this->publicStorageDirectory(),
+            ]);
+
+            if ($result['exit_code'] === 0 && is_file($zipPath) && filesize($zipPath) > 0) {
+                return;
+            }
+
+            @unlink($zipPath);
+        }
+
+        $tarExecutable = PHP_OS_FAMILY === 'Windows' ? $this->findExecutable('tar') : null;
+
+        if ($tarExecutable) {
+            $result = $this->runCliProcess(array_merge([$tarExecutable, '-a', '-cf', $zipPath], $roots), [
+                'cwd' => $this->publicStorageDirectory(),
+            ]);
+
+            if ($result['exit_code'] === 0 && is_file($zipPath) && filesize($zipPath) > 0) {
+                return;
+            }
+
+            @unlink($zipPath);
+        }
+
+        throw new \RuntimeException('zip_create_unavailable');
     }
 
     private function addDirectoryToZip(ZipArchive $zip, string $directory, string $archiveRoot): void
@@ -506,6 +527,12 @@ class AdminBackupController extends Controller
 
     private function validateMediaZip(string $zipPath): void
     {
+        if (!class_exists(ZipArchive::class)) {
+            $this->validateMediaZipWithCli($zipPath);
+
+            return;
+        }
+
         $zip = new ZipArchive();
         if ($zip->open($zipPath) !== true) {
             throw new \RuntimeException('Arhiva ZIP nu poate fi citita.');
@@ -529,8 +556,66 @@ class AdminBackupController extends Controller
         }
     }
 
+    private function validateMediaZipWithCli(string $zipPath): void
+    {
+        $entries = $this->listZipEntriesWithCli($zipPath);
+        $fileCount = 0;
+
+        foreach ($entries as $entryName) {
+            if ($entryName === '' || str_ends_with($entryName, '/')) {
+                continue;
+            }
+
+            $fileCount++;
+            $normalized = $this->normalizeZipEntry($entryName);
+
+            if (!$this->isSafeMediaArchiveEntry($normalized)) {
+                throw new \RuntimeException('Arhiva conține fișiere sau căi nepermise: ' . basename($entryName));
+            }
+        }
+
+        if ($fileCount < 1) {
+            throw new \RuntimeException('Arhiva ZIP nu conține fișiere media valide.');
+        }
+    }
+
+    private function listZipEntriesWithCli(string $zipPath): array
+    {
+        $unzipExecutable = $this->findExecutable('unzip');
+
+        if ($unzipExecutable) {
+            $result = $this->runCliProcess([$unzipExecutable, '-Z1', $zipPath], [
+                'stdout_limit' => 20 * 1024 * 1024,
+            ]);
+
+            if ($result['exit_code'] === 0 && trim($result['stdout']) !== '') {
+                return preg_split('/\R/u', trim($result['stdout'])) ?: [];
+            }
+        }
+
+        $tarExecutable = PHP_OS_FAMILY === 'Windows' ? $this->findExecutable('tar') : null;
+
+        if ($tarExecutable) {
+            $result = $this->runCliProcess([$tarExecutable, '-tf', $zipPath], [
+                'stdout_limit' => 20 * 1024 * 1024,
+            ]);
+
+            if ($result['exit_code'] === 0 && trim($result['stdout']) !== '') {
+                return preg_split('/\R/u', trim($result['stdout'])) ?: [];
+            }
+        }
+
+        throw new \RuntimeException('zip_import_unavailable');
+    }
+
     private function extractMediaZip(string $zipPath): void
     {
+        if (!class_exists(ZipArchive::class)) {
+            $this->extractMediaZipWithCli($zipPath);
+
+            return;
+        }
+
         $zip = new ZipArchive();
         if ($zip->open($zipPath) !== true) {
             throw new \RuntimeException('Arhiva ZIP nu poate fi citita.');
@@ -570,6 +655,58 @@ class AdminBackupController extends Controller
             }
         } finally {
             $zip->close();
+        }
+    }
+
+    private function extractMediaZipWithCli(string $zipPath): void
+    {
+        $temporaryDirectory = $this->temporaryBackupDirectory() . DIRECTORY_SEPARATOR . 'media-extract-' . uniqid('', true);
+        File::ensureDirectoryExists($temporaryDirectory);
+
+        try {
+            $unzipExecutable = $this->findExecutable('unzip');
+
+            if ($unzipExecutable) {
+                $result = $this->runCliProcess([$unzipExecutable, '-oq', $zipPath, '-d', $temporaryDirectory]);
+            } else {
+                $tarExecutable = PHP_OS_FAMILY === 'Windows' ? $this->findExecutable('tar') : null;
+
+                if (! $tarExecutable) {
+                    throw new \RuntimeException('zip_import_unavailable');
+                }
+
+                $result = $this->runCliProcess([$tarExecutable, '-xf', $zipPath, '-C', $temporaryDirectory]);
+            }
+
+            if ($result['exit_code'] !== 0) {
+                throw new \RuntimeException('zip_extract_failed: ' . $result['stderr']);
+            }
+
+            $iterator = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($temporaryDirectory, RecursiveDirectoryIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::SELF_FIRST
+            );
+
+            foreach ($iterator as $item) {
+                if (! $item->isFile()) {
+                    continue;
+                }
+
+                $relativePath = $this->relativePath($temporaryDirectory, $item->getPathname());
+                $normalized = $this->normalizeZipEntry($relativePath);
+
+                if (! $this->isSafeMediaArchiveEntry($normalized)) {
+                    throw new \RuntimeException('Arhiva conține fișiere sau căi nepermise: ' . basename($item->getPathname()));
+                }
+
+                $targetPath = $this->publicStorageDirectory() . DIRECTORY_SEPARATOR
+                    . str_replace('/', DIRECTORY_SEPARATOR, $normalized);
+                $this->ensurePathIsInsideMediaDirectories($targetPath);
+                File::ensureDirectoryExists(dirname($targetPath));
+                File::copy($item->getPathname(), $targetPath);
+            }
+        } finally {
+            File::deleteDirectory($temporaryDirectory);
         }
     }
 
@@ -684,6 +821,20 @@ class AdminBackupController extends Controller
         usort($files, fn (array $a, array $b) => $b['timestamp'] <=> $a['timestamp']);
 
         return array_slice($files, 0, 50);
+    }
+
+    private function mediaImportAvailable(): bool
+    {
+        return class_exists(ZipArchive::class)
+            || (bool) $this->findExecutable('unzip')
+            || (PHP_OS_FAMILY === 'Windows' && (bool) $this->findExecutable('tar'));
+    }
+
+    private function mediaZipCreateAvailable(): bool
+    {
+        return class_exists(ZipArchive::class)
+            || (bool) $this->findExecutable('zip')
+            || (PHP_OS_FAMILY === 'Windows' && (bool) $this->findExecutable('tar'));
     }
 
     private function findExecutable(string $name): ?string
@@ -879,6 +1030,8 @@ class AdminBackupController extends Controller
             'mysql_unavailable' => 'Restaurarea automată necesită mysql CLI pe server.',
             'unsupported_database_driver' => 'Operațiunea automată este disponibilă doar pentru conexiuni MySQL/MariaDB.',
             'zip_extension_unavailable' => 'Extensia PHP ZipArchive nu este disponibilă.',
+            'zip_import_unavailable' => 'Importul media necesită ZipArchive, unzip sau tar pe server.',
+            'zip_create_unavailable' => 'Backupul de siguranță media necesită ZipArchive, zip sau tar pe server.',
             'manual_media_file_invalid' => 'Alege o arhivă .zip validă din folderul de import manual.',
             'manual_media_file_missing' => 'Arhiva selectată nu mai există în folderul de import manual.',
             'manual_media_file_empty' => 'Arhiva selectată este goală.',

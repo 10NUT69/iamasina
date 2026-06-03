@@ -59,6 +59,10 @@
             'options' => collect(data_get($group, 'options', []))->map($normaliseOption)->values(),
         ];
     })->filter(fn ($group) => $group['options']->isNotEmpty())->values();
+    $selectedOption = $renderedGroups
+        ->flatMap(fn ($group) => $group['options'])
+        ->first(fn ($option) => $selectedValue !== '' && $option['value'] === $selectedValue);
+    $selectedLabel = $selectedOption['label'] ?? '';
 @endphp
 
 <div
@@ -86,6 +90,7 @@
             type="text"
             class="ia-combobox__input"
             placeholder="{{ $placeholder }}"
+            value="{{ $selectedLabel }}"
             autocomplete="{{ $inputAutocomplete }}"
             role="combobox"
             aria-autocomplete="list"
