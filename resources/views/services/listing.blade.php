@@ -1381,10 +1381,21 @@
 
         const nav = document.getElementById('main-nav');
         let cachedNavHeight = nav ? Math.ceil(nav.offsetHeight) : 56;
-        let currentNavVisibleHeight = Number(nav?.dataset.mobileVisibleHeight || cachedNavHeight);
+        let currentMobileFiltersTop = cachedNavHeight;
 
         const applyMobileFiltersOffset = () => {
-            document.documentElement.style.setProperty('--mobile-filters-top', `${Math.max(0, currentNavVisibleHeight)}px`);
+            document.documentElement.style.setProperty('--mobile-filters-top', `${Math.max(0, currentMobileFiltersTop)}px`);
+        };
+
+        const measureMobileFiltersTop = () => {
+            if (!nav) {
+                return cachedNavHeight;
+            }
+
+            const rect = nav.getBoundingClientRect();
+            const viewportHeight = window.visualViewport?.height || window.innerHeight || document.documentElement.clientHeight || cachedNavHeight;
+
+            return Math.max(0, Math.min(Math.ceil(rect.bottom), Math.ceil(viewportHeight)));
         };
 
         const setMobileFiltersOffset = (height = null) => {
@@ -1394,7 +1405,7 @@
                 cachedNavHeight = Math.ceil(nav.offsetHeight) || cachedNavHeight;
             }
 
-            currentNavVisibleHeight = Number(nav?.dataset.mobileVisibleHeight || cachedNavHeight);
+            currentMobileFiltersTop = measureMobileFiltersTop();
             applyMobileFiltersOffset();
         };
 
@@ -1411,6 +1422,7 @@
             filterPanel?.classList.remove('hidden');
             filterPanel?.querySelector('.filters-panel-sheet')?.scrollTo({ top: 0 });
             document.body.style.overflow = 'hidden';
+            window.requestAnimationFrame(() => setMobileFiltersOffset());
         };
 
         if (openFilters && filterOverlay && filterPanel) {
@@ -1447,11 +1459,16 @@
         });
 
         window.addEventListener('main-nav-visibility-change', (event) => {
-            currentNavVisibleHeight = Number(event.detail?.visibleHeight ?? cachedNavHeight);
-            applyMobileFiltersOffset();
+            if (Number.isFinite(Number(event.detail?.visibleHeight))) {
+                cachedNavHeight = Math.max(cachedNavHeight, Math.ceil(Number(event.detail.visibleHeight)));
+            }
+
+            setMobileFiltersOffset();
         });
 
         window.addEventListener('resize', () => setMobileFiltersOffset(), { passive: true });
+        window.visualViewport?.addEventListener('resize', () => setMobileFiltersOffset(), { passive: true });
+        window.visualViewport?.addEventListener('scroll', () => setMobileFiltersOffset(), { passive: true });
         if (nav && 'ResizeObserver' in window) {
             new ResizeObserver((entries) => {
                 setMobileFiltersOffset(Math.ceil(entries[0].contentRect.height));
