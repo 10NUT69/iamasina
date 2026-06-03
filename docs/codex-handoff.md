@@ -26,6 +26,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - 2026-06-03: Updated the shared combobox component to generate visible search input ids from field names, e.g. `tractiune_search`, keeping the real submitted value only on the hidden input.
 - 2026-06-03: Added a combobox autofill guard: visible searchable inputs render as readonly initially and JS releases readonly shortly after real focus/click, preventing Chrome password manager from attaching to fields like Tracțiune.
 
+- 2026-06-03: Removed the early-stage promotional listing banner/card from the listing controller data and listing Blade DOM, so listing pages start directly with real service cards.
+
 ## Verification
 
 - Ran `git status --short --branch`; repository was clean on `main`.
@@ -50,6 +52,9 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - Ran Vite build through the local Node runtime after the combobox JS guard change; build completed.
 - Verified the rendered create listing page in Edge headless at `http://127.0.0.1:8010/anunturi-auto-de-vanzare/adauga-anunt`: the visible Tracțiune combobox input has `id="tractiune_search"`, `type="search"`, `autocomplete="new-password"`, no `name`, and no duplicate ids; the hidden input has `id="inputTractiune"` and `name="tractiune_id"`.
 - Verified real click behavior in Edge headless: before click the visible Tracțiune input is readonly, immediately after click it remains readonly while the dropdown opens, and after 400ms JS releases readonly for normal combobox search.
+
+- Ran `php -l app/Http/Controllers/ServiceController.php`, `php -l resources/views/services/listing.blade.php`, and `git diff --check`; all passed after removing the early-stage listing banner.
+- Verified the rendered local listing page at `http://127.0.0.1:8010/anunturi-auto-de-vanzare`: no `Nou pe pia`, `Start gratuit`, or `homepage-hero-car` content remains, `data-service-card` appears 20 times, and the first rendered `<article>` is a real service card.
 
 ## Open Items
 

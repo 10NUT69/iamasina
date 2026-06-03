@@ -52,9 +52,7 @@
         $listingMetaDescription = 'Cauți o mașină? Vezi anunțuri auto cu mașini de vânzare second hand și noi din România. Filtrează după marcă, model, preț, an și kilometri.';
     }
 
-    $showEarlyStageBanners = $showEarlyStageBanners ?? true; // TEMP: seteaza false cand site-ul are suficiente anunturi.
-    $listingHasActiveFilters = $listingHasActiveFilters ?? false;
-    $earlyStageTotalListings = isset($totalCount)
+    $listingTotalCount = isset($totalCount)
         ? (int) $totalCount
         : (isset($services) && method_exists($services, 'total')
             ? (int) $services->total()
@@ -400,68 +398,6 @@
             </div>
 
             <div id="services-container" class="flex flex-col gap-4">
-                @if($showEarlyStageBanners && !$listingHasActiveFilters && $earlyStageTotalListings < 500)
-                    {{-- EARLY STAGE BANNER START --}}
-                    <article class="relative flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-[#27272a] dark:bg-[#18181B] md:flex-row">
-                        <div class="relative hidden w-full overflow-hidden bg-gradient-to-br from-[#fff4f5] via-white to-[#f4f6f8] p-5 dark:from-[#2a1013] dark:via-[#18181B] dark:to-[#111113] md:flex md:min-h-[220px] md:w-[320px] lg:w-[340px]">
-                            <div class="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#C81424]/12 to-transparent"></div>
-                            <div class="relative flex min-h-[190px] w-full flex-col justify-between rounded-2xl border border-white/70 bg-white/70 p-4 shadow-[0_18px_50px_rgba(15,23,42,0.10)] backdrop-blur-sm dark:border-white/10 dark:bg-white/5">
-                                <div class="flex items-center justify-between gap-3">
-                                    <span class="rounded-full bg-[#C81424] px-3 py-1 text-[10px] font-black uppercase tracking-wide text-white shadow-sm">
-                                        Start gratuit
-                                    </span>
-                                    <span class="rounded-full border border-red-100 bg-white px-3 py-1 text-[10px] font-black uppercase tracking-wide text-[#C81424] dark:border-white/10 dark:bg-white/10 dark:text-red-100">
-                                        IaAuto.ro
-                                    </span>
-                                </div>
-
-                                <div class="relative mt-4 flex flex-1 items-end justify-center">
-                                    <div class="absolute bottom-2 h-10 w-4/5 rounded-full bg-slate-900/10 blur-xl dark:bg-black/40"></div>
-                                    <img src="{{ asset('images/homepage-hero-car.webp') }}"
-                                         alt="Autoturism de vânzare pe iaAuto.ro"
-                                         class="relative z-10 max-h-32 w-full object-contain drop-shadow-2xl"
-                                         loading="lazy">
-                                </div>
-
-                                <div class="mt-4 grid grid-cols-2 gap-2 text-[11px] font-extrabold text-slate-700 dark:text-slate-200">
-                                    <div class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 dark:border-white/10 dark:bg-white/10">
-                                        0 lei
-                                        <span class="block text-[10px] font-bold text-slate-400 dark:text-slate-400">taxă anunț</span>
-                                    </div>
-                                    <div class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 dark:border-white/10 dark:bg-white/10">
-                                        Pe viață
-                                        <span class="block text-[10px] font-bold text-slate-400 dark:text-slate-400">anunțuri gratuite</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex min-w-0 flex-1 flex-col p-5 sm:p-6">
-                            <div>
-                                <h2 class="text-xl font-black leading-tight text-gray-950 dark:text-white sm:text-2xl">
-                                    Nou pe piață: iaAuto.ro
-                                </h2>
-                                <p class="mt-2 max-w-3xl text-sm font-semibold leading-relaxed text-gray-600 dark:text-gray-300 sm:text-base">
-                                    Publică anunțuri auto
-                                    <strong class="font-extrabold text-gray-900 dark:text-white">GRATUIT pe viață</strong>,
-                                    <strong class="font-extrabold text-gray-900 dark:text-white">fără limite</strong>
-                                    și
-                                    <strong class="font-extrabold text-gray-900 dark:text-white">fără taxe ascunse</strong>.
-                                    Adaugă mașina acum și profită de vizibilitatea unei platforme aflate la început, unde anunțul tău nu se pierde în mulțime.
-                                </p>
-                            </div>
-
-                            <div class="mt-5 border-t border-gray-100 pt-4 dark:border-[#333]">
-                                <a href="{{ route('services.create') }}"
-                                   class="inline-flex w-full items-center justify-center rounded-xl bg-[#C81424] px-5 py-3 text-sm font-black uppercase tracking-wide text-white shadow-lg shadow-red-700/20 transition hover:bg-[#94111B] active:scale-[0.98] sm:w-auto">
-                                    + Publică anunț gratuit
-                                </a>
-                            </div>
-                        </div>
-                    </article>
-                    {{-- EARLY STAGE BANNER END --}}
-                @endif
-
                 @include('services.partials.service_cards_horizontal', ['services' => $services])
             </div>
 
@@ -487,7 +423,7 @@
                                 Pagina {{ $listingCurrentPage }} din {{ $listingTotalPages }}
                             </p>
                             <p id="listing-total-summary" class="mt-1 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                                {{ number_format($earlyStageTotalListings, 0, ',', '.') }} anunțuri găsite
+                                {{ number_format($listingTotalCount, 0, ',', '.') }} anunțuri găsite
                             </p>
                         </div>
 

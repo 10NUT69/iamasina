@@ -270,15 +270,11 @@ class ServiceController extends Controller
     });
 
     $view = $request->routeIs('services.index') ? 'services.index' : 'services.listing';
-    $showEarlyStageBanners = true; // TEMP: Seteaza false cand site-ul are suficiente anunturi.
-    $listingHasActiveFilters = !$isHomepage && $this->listingHasActiveFilters($request);
 
     return view($view, [
         'services'        => $services,
         'hasMore'         => $hasMore,
         'totalCount'      => $totalCount,
-        'showEarlyStageBanners' => $showEarlyStageBanners,
-        'listingHasActiveFilters' => $listingHasActiveFilters,
         'counties'        => $counties,
         'categories'      => $categories,
         'currentCategory' => $request->attributes->get('currentCategory'),
@@ -1662,29 +1658,6 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
             array_keys($query->all()),
             ['brand_id', 'model_id', 'county_id', 'locality_id', 'price_min', 'price_max', 'year_min', 'year_max']
         )) > 0;
-    }
-
-    private function listingHasActiveFilters(Request $request): bool
-    {
-        if (
-            $request->attributes->has('currentBrand')
-            || $request->attributes->has('currentModel')
-            || $request->attributes->has('currentCounty')
-            || $request->attributes->has('currentLocality')
-        ) {
-            return true;
-        }
-
-        $originalQuery = $this->originalAutoQuery($request);
-
-        if (!empty($this->cleanAdvancedQuery($request, $originalQuery))) {
-            return true;
-        }
-
-        return collect($originalQuery)
-            ->only(['brand_id', 'model_id', 'county_id', 'locality_id'])
-            ->filter(fn ($value) => $value !== null && $value !== '')
-            ->isNotEmpty();
     }
 
     private function originalAutoQuery(Request $request): array
