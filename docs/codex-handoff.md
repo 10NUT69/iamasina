@@ -23,7 +23,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - 2026-06-03: Hid browser-native clear controls on combobox search inputs so only the custom `ia-combobox__clear` button is shown.
 - 2026-06-03: Removed mobile sticky listing action-bar text truncation by replacing `truncate` labels and disabling ellipsis inside `#listing-actions-bar`.
 - 2026-06-03: Adjusted the mobile listing filters panel offset to use the actual rendered bottom edge of `#main-nav`, so the opened filters panel starts immediately after the visible header even when the mobile header is partially hidden.
-- 2026-06-03: Updated the shared combobox component to generate visible search input ids as `{id}_search`, keeping the real submitted value only on the hidden input.
+- 2026-06-03: Updated the shared combobox component to generate visible search input ids from field names, e.g. `tractiune_search`, keeping the real submitted value only on the hidden input.
+- 2026-06-03: Added a combobox autofill guard: visible searchable inputs render as readonly initially and JS releases readonly shortly after real focus/click, preventing Chrome password manager from attaching to fields like Tracțiune.
 
 ## Verification
 
@@ -45,8 +46,10 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - Ran `php -l resources/views/services/listing.blade.php` and `git diff --check`; both passed after the mobile filters offset change.
 - Ran Vite build through the local Node runtime after the mobile filters offset change; build completed.
 - Verified the listing filters panel at 390px mobile width in Edge headless for three states: top of page, partial header hide after `scrollY=24`, and fully hidden header after `scrollY=700`. In all cases `#filters-panel` and `#filters-overlay` started exactly at the measured bottom of `#main-nav` (`gapPanelToHeader = 0`, `gapOverlayToHeader = 0`).
-- Ran `php -l resources/views/components/combobox.blade.php` and `git diff --check`; both passed after the combobox visible input id change.
-- Verified the rendered create listing page in Edge headless at `http://127.0.0.1:8010/anunturi-auto-de-vanzare/adauga-anunt`: the visible Tracțiune combobox input has `id="inputTractiune_search"`, `type="search"`, `autocomplete="new-password"`, no `name`, and no duplicate ids; the hidden input has `id="inputTractiune"` and `name="tractiune_id"`.
+- Ran `php -l resources/views/components/combobox.blade.php` and `git diff --check`; both passed after the combobox visible input id and autofill guard changes.
+- Ran Vite build through the local Node runtime after the combobox JS guard change; build completed.
+- Verified the rendered create listing page in Edge headless at `http://127.0.0.1:8010/anunturi-auto-de-vanzare/adauga-anunt`: the visible Tracțiune combobox input has `id="tractiune_search"`, `type="search"`, `autocomplete="new-password"`, no `name`, and no duplicate ids; the hidden input has `id="inputTractiune"` and `name="tractiune_id"`.
+- Verified real click behavior in Edge headless: before click the visible Tracțiune input is readonly, immediately after click it remains readonly while the dropdown opens, and after 400ms JS releases readonly for normal combobox search.
 
 ## Open Items
 
