@@ -1,5 +1,7 @@
 @forelse($services as $service)
     @php
+        $cardIndex = $loop->index;
+
         // 1. Logica Favorite
         $isFav = auth()->check() && $service->isFavoritedBy(auth()->user());
 
@@ -48,7 +50,7 @@
     @endphp
 
     {{-- CARD ANUNȚ (DESIGN 2025-2026) --}}
-    <article class="group relative flex w-full min-w-0 flex-col md:flex-row bg-white dark:bg-[#18181b] rounded-xl border border-gray-200 dark:border-[#27272a] shadow-sm hover:shadow-xl hover:border-[#C81424]/30 transition-all duration-300 overflow-hidden mb-5">
+    <article data-service-card class="group relative flex w-full min-w-0 flex-col md:flex-row bg-white dark:bg-[#18181b] rounded-xl border border-gray-200 dark:border-[#27272a] shadow-sm hover:shadow-xl hover:border-[#C81424]/30 transition-all duration-300 overflow-hidden mb-5">
         
         {{-- A. ZONA FOTO (Slider + Badges) --}}
         <div class="relative w-full md:w-[320px] lg:w-[340px] shrink-0 aspect-[4/3] md:aspect-auto md:min-h-[240px] overflow-hidden bg-gray-100 dark:bg-[#09090b]"
@@ -80,6 +82,7 @@
                     @foreach($sliderImages as $index => $img)
                         @php
                             $imageUrl = $service->imageCardUrl($img);
+                            $isPriorityImage = $index === 0 && $cardIndex < 4;
                         @endphp
                         @if($imageUrl)
                             <img src="{{ $imageUrl }}" 
@@ -88,7 +91,10 @@
                                  x-transition:enter-start="opacity-0 scale-105"
                                  x-transition:enter-end="opacity-100 scale-100"
                                  class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105"
-                                 alt="{{ $imageAlt }} - poza {{ $index + 1 }}" loading="lazy">
+                                 alt="{{ $imageAlt }} - poza {{ $index + 1 }}"
+                                 loading="{{ $isPriorityImage ? 'eager' : 'lazy' }}"
+                                 decoding="async"
+                                 @if($isPriorityImage) fetchpriority="high" @endif>
                         @endif
                     @endforeach
                 @else

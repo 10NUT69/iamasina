@@ -486,7 +486,7 @@
                             <p id="listing-pagination-summary" class="text-sm font-black text-gray-900 dark:text-white">
                                 Pagina {{ $listingCurrentPage }} din {{ $listingTotalPages }}
                             </p>
-                            <p class="mt-1 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                            <p id="listing-total-summary" class="mt-1 text-xs font-semibold text-gray-500 dark:text-gray-400">
                                 {{ number_format($earlyStageTotalListings, 0, ',', '.') }} anunțuri găsite
                             </p>
                         </div>
@@ -542,6 +542,10 @@
     let isLoading = false;
     let currentPage = Number(document.getElementById('load-more-trigger')?.dataset.nextPage || {{ $listingCurrentPage + 1 }});
     let hasMore = document.getElementById('load-more-trigger')?.dataset.hasMore === 'true';
+    let activeListUrl = window.location.href;
+    let listingRequestId = 0;
+    let activeListingController = null;
+    let closeMobileFilters = () => {};
 
     const localityBaseUrl = "{{ url('/api/localities') }}";
     const initialLocalityId = @json(optional($currentLocality)->id);
@@ -572,6 +576,7 @@
         sellerType: document.getElementById('seller-type'),
         pagination: document.getElementById('listing-pagination'),
         paginationSummary: document.getElementById('listing-pagination-summary'),
+        totalSummary: document.getElementById('listing-total-summary'),
         paginationPages: document.getElementById('listing-pagination-pages'),
         paginationPrev: document.getElementById('listing-pagination-prev'),
         paginationNext: document.getElementById('listing-pagination-next'),
@@ -1139,6 +1144,47 @@
         return `${baseUrl}${path}${queryString ? `?${queryString}` : ''}`;
     }
 
+    function listingAjaxUrl(page, sourceUrl = activeListUrl) {
+        const url = new URL(sourceUrl || window.location.href, window.location.origin);
+        url.searchParams.set('page', String(page));
+        url.searchParams.set('ajax', '1');
+
+        return url.toString();
+    }
+
+    function updateBrowserListingUrl(url, replace = false) {
+        activeListUrl = url;
+
+        if (url !== window.location.href) {
+            window.history[replace ? 'replaceState' : 'pushState']({ listingUrl: url }, '', url);
+        }
+    }
+
+    function applyListingFilters({ replace = false } = {}) {
+        const targetUrl = buildSearchUrl();
+
+        if (isMobileView()) {
+            closeMobileFilters();
+        }
+
+        return window.loadServices(1, targetUrl).then((loaded) => {
+            if (loaded === false) {
+                window.location.href = targetUrl;
+                return false;
+            }
+
+            if (loaded !== true) {
+                return false;
+            }
+
+            updateBrowserListingUrl(targetUrl, replace);
+            window.checkResetVisibility();
+            window.scrollTo({ top: 0, behavior: 'auto' });
+
+            return true;
+        });
+    }
+
     function selectedOptionLabel(el) {
         if (!el || !el.value) return '';
 
@@ -1286,13 +1332,22 @@
         renderPaginationPages(meta.pages);
     }
 
-    window.loadServices = function(page) {
-        const isNewFilter = page === 1;
-        if (isLoading) return;
-        if (!hasMore && !isNewFilter) return;
+    window.loadServices = function(page, sourceUrl = null) {
+        const numericPage = Number(page) || 1;
+        const isNewFilter = numericPage === 1;
+
+        if (isLoading && !isNewFilter) return Promise.resolve(false);
+        if (!hasMore && !isNewFilter) return Promise.resolve(false);
+
+        if (isNewFilter && activeListingController) {
+            activeListingController.abort();
+        }
+
+        const requestId = ++listingRequestId;
+        const controller = new AbortController();
+        activeListingController = controller;
 
         if (isNewFilter) {
-            currentPage = 2;
             hasMore = true;
             if (domElements.container) domElements.container.style.opacity = '0.5';
             if (domElements.trigger) domElements.trigger.dataset.hasMore = 'true';
@@ -1302,33 +1357,18 @@
         }
 
         isLoading = true;
+        const requestUrl = listingAjaxUrl(numericPage, sourceUrl || activeListUrl);
 
-        const params = new URLSearchParams({
-            page: page,
-            ajax: 1,
-            vehicle_type: domElements.vehicleType?.value || '',
-            seller_type: domElements.sellerType?.value || 'all',
-            brand_id: domElements.brand?.value || '',
-            model_id: domElements.model?.value || '',
-            caroserie_id: domElements.body?.value || '',
-            combustibil_id: domElements.fuel?.value || '',
-            cutie_viteze_id: domElements.gear?.value || '',
-            county_id: domElements.county?.value || '',
-            locality_id: domElements.locality?.value || '',
-            price_min: domElements.priceMin?.value || '',
-            price_max: domElements.priceMax?.value || '',
-            km_min: domElements.kmMin?.value || '',
-            km_max: domElements.kmMax?.value || '',
-            year_min: domElements.yearMin?.value || '',
-            year_max: domElements.yearMax?.value || '',
-            sort: domElements.sort?.value || '',
-        });
-
-        fetch(`${listUrl}?${params.toString()}`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        return fetch(requestUrl, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            signal: controller.signal,
         })
         .then(res => res.json())
         .then(data => {
+            if (requestId !== listingRequestId) {
+                return null;
+            }
+
             if (isNewFilter) {
                 if (domElements.container) {
                     domElements.container.innerHTML = data.html;
@@ -1342,19 +1382,34 @@
 
             hasMore = !!data.hasMore;
             if (domElements.trigger) domElements.trigger.dataset.hasMore = hasMore ? 'true' : 'false';
+            currentPage = numericPage + 1;
+            if (domElements.trigger) domElements.trigger.dataset.nextPage = String(currentPage);
+            if (domElements.totalSummary && typeof data.total !== 'undefined') {
+                domElements.totalSummary.textContent = `${Number(data.total).toLocaleString('ro-RO')} anunțuri găsite`;
+            }
             updateListingPagination(data.pagination);
-
-            if (hasMore) currentPage++;
 
             if (hasMore && domElements.trigger) {
                 observer.unobserve(domElements.trigger);
                 observer.observe(domElements.trigger);
             }
+
+            return true;
         })
-        .catch(err => console.error(err))
+        .catch(err => {
+            if (err.name === 'AbortError') {
+                return null;
+            }
+
+            console.error(err);
+            return false;
+        })
         .finally(() => {
-            isLoading = false;
-            if (domElements.loader) domElements.loader.classList.add('hidden');
+            if (requestId === listingRequestId) {
+                isLoading = false;
+                activeListingController = null;
+                if (domElements.loader) domElements.loader.classList.add('hidden');
+            }
         });
     };
 
@@ -1409,7 +1464,7 @@
             applyMobileFiltersOffset();
         };
 
-        const closeMobileFilters = () => {
+        closeMobileFilters = () => {
             filterOverlay?.classList.add('hidden');
             filterPanel?.classList.add('hidden');
             document.body.style.overflow = '';
@@ -1480,10 +1535,7 @@
         if (searchForm) {
             searchForm.addEventListener('submit', (event) => {
                 event.preventDefault();
-                if (isMobileView()) {
-                    closeMobileFilters();
-                }
-                window.location.href = buildSearchUrl();
+                applyListingFilters();
             });
         }
 
@@ -1508,7 +1560,7 @@
         if (domElements.sort) {
             domElements.sort.addEventListener('change', () => {
                 if (isMobileView()) {
-                    window.location.href = buildSearchUrl();
+                    applyListingFilters();
                     return;
                 }
                 window.checkResetVisibility();
@@ -1594,6 +1646,10 @@
         });
 
         if (domElements.trigger) observer.observe(domElements.trigger);
+    });
+
+    window.addEventListener('popstate', () => {
+        window.location.reload();
     });
 
     document.addEventListener('click', (event) => {
