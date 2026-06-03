@@ -133,12 +133,20 @@ class HybridCombobox {
         this.input.addEventListener('pointerdown', (event) => {
             if (this.hidden.disabled) return;
 
+            this.releaseAutofillGuard();
+
             if (document.activeElement !== this.input) return;
             if (!this.root.classList.contains('is-open')) return;
 
             event.preventDefault();
             event.stopPropagation();
             this.finishInteraction();
+        });
+
+        this.input.addEventListener('click', () => {
+            if (!this.hidden.disabled) {
+                this.releaseAutofillGuard();
+            }
         });
 
         this.input.addEventListener('focus', () => {
