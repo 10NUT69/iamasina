@@ -20,6 +20,7 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 - 2026-06-03: Added project handoff workflow via `AGENTS.md` and this file.
 - 2026-06-03: Added Romanian display names with diacritics for localities, updated `CountiesSeeder` to use them, added migrations to update existing `localities.name`, and synchronized legacy `services.city` from `localities.name`.
+- 2026-06-03: Hid browser-native clear controls on combobox search inputs so only the custom `ia-combobox__clear` button is shown.
 
 ## Verification
 
@@ -31,6 +32,10 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - Verified `Str::slug(localities.name)` matches existing `localities.slug` for all localities.
 - Ran `php artisan optimize:clear`.
 - Ran `php artisan test`; existing suite still has unrelated failures in auth/profile tests and SQLite test setup (`services` table missing for `/`). Location-related checks passed manually.
+- Verified combobox clear source exactly: each combobox has one `data-combobox-clear` button in DOM, while inputs are `type="search"`, so the duplicate X came from the browser-native search cancel control.
+- Ran Vite build through the local Node runtime: `node node_modules/vite/bin/vite.js build`; build completed.
+- Verified the CSS served by Vite contains the new `::-webkit-search-cancel-button` and `::-ms-clear` rules.
+- Opened local listing at `http://127.0.0.1:8010/anunturi-auto-de-vanzare?brand_id=11`; selected brand combobox had one visible custom clear button.
 
 ## Open Items
 

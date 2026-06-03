@@ -81,6 +81,22 @@
     opacity: 1;
 }
 
+.ia-combobox__input::-webkit-search-cancel-button,
+.ia-combobox__input::-webkit-search-decoration,
+.ia-combobox__input::-webkit-search-results-button,
+.ia-combobox__input::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+    display: none;
+}
+
+.ia-combobox__input::-ms-clear,
+.ia-combobox__input::-ms-reveal {
+    display: none;
+    height: 0;
+    width: 0;
+}
+
 .ia-combobox__floating {
     color: #6b7280;
     font-size: 0.66rem;
