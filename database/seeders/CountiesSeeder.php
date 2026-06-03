@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Support\RomanianLocalityNames;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -308,12 +309,14 @@ class CountiesSeeder extends Seeder
             foreach (self::COUNTIES as $county) {
                 foreach (self::LOCALITY_TYPES as $group => $type) {
                     foreach ($county[$group] as $name => $sirutaCode) {
+                        $displayName = RomanianLocalityNames::displayName($sirutaCode, $name);
+
                         $localities[] = [
                             'siruta_code' => $sirutaCode,
                             'type' => $type,
                             'county_id' => $county['id'],
-                            'name' => $name,
-                            'slug' => Str::slug($name),
+                            'name' => $displayName,
+                            'slug' => Str::slug($displayName),
                             'latitude' => null,
                             'longitude' => null,
                         ];

@@ -11,22 +11,31 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Working Notes
 
-- No application code was changed when this handoff file was created.
 - Conversation history is not synchronized by git automatically; this file is the shared project memory.
 - If something behaves differently between machines, compare `.env`, PHP/Composer/Node/npm versions, database state, cache, `vendor/`, and `node_modules/`.
+- Location logic rule: use `locality_id` for create/edit/filter logic, `localities.slug` for URLs, and `localities.name` only for display text.
+- Do not reseed `localities` on an existing database unless you are intentionally rebuilding location data; existing ads depend on stable locality IDs.
 
 ## Latest Changes
 
 - 2026-06-03: Added project handoff workflow via `AGENTS.md` and this file.
+- 2026-06-03: Added Romanian display names with diacritics for localities, updated `CountiesSeeder` to use them, added migrations to update existing `localities.name`, and synchronized legacy `services.city` from `localities.name`.
 
 ## Verification
 
 - Ran `git status --short --branch`; repository was clean on `main`.
+- Ran `php -l` on the new support class, both new migrations, and `CountiesSeeder.php`; no syntax errors.
+- Ran `php artisan migrate`; both location migrations completed.
+- Verified examples in DB: `Brașov` keeps slug `brasov`, `Iași` keeps slug `iasi`, `Târgu Mureș` keeps slug `targu-mures`.
+- Verified all services with `locality_id` have `services.city` matching `localities.name`.
+- Verified `Str::slug(localities.name)` matches existing `localities.slug` for all localities.
+- Ran `php artisan optimize:clear`.
+- Ran `php artisan test`; existing suite still has unrelated failures in auth/profile tests and SQLite test setup (`services` table missing for `/`). Location-related checks passed manually.
 
 ## Open Items
 
 - Add project-specific setup commands once they are confirmed.
-- Add any known fragile areas of the application before the next cross-machine handoff.
+- Test environment needs cleanup: SQLite test database does not have the full app schema for the homepage test, `/profile` tests expect routes that currently return 404/405, and registration test does not authenticate the created user.
 
 ## Machine Handoff Checklist
 
