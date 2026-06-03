@@ -130,17 +130,13 @@ class SendMissingServiceImageReminders extends Command
                         'id',
                         'user_id',
                         'title',
-                        'brand',
-                        'model',
                         'brand_id',
                         'model_id',
                         'published_at',
-                        'images',
-                        'status',
                     ])
                     ->with([
-                        'brandRel:id,name,slug',
-                        'modelRel:id,name,slug',
+                        'brandRel:id,name',
+                        'modelRel:id,name',
                     ])
                     ->orderBy('published_at')
                     ->orderBy('id');
@@ -155,9 +151,12 @@ class SendMissingServiceImageReminders extends Command
             ->whereNotNull('published_at')
             ->whereBetween('published_at', [$periodStart, $periodEnd])
             ->where(function (Builder $query): void {
+                $imagesColumn = $query->getQuery()->getGrammar()->wrap('images');
+
                 $query->whereNull('images')
-                    ->orWhere('images', '[]')
-                    ->orWhereJsonLength('images', 0);
+                    ->orWhereRaw("CAST({$imagesColumn} AS CHAR) = ?", ['[]'])
+                    ->orWhereRaw("CAST({$imagesColumn} AS CHAR) = ?", [''])
+                    ->orWhereRaw("CAST({$imagesColumn} AS CHAR) = ?", ['null']);
             });
     }
 

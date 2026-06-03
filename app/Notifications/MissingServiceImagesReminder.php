@@ -63,9 +63,15 @@ class MissingServiceImagesReminder extends Notification
 
     private function listingLabel(Service $service): string
     {
-        $brand = $service->brandRel?->name ?: $service->brand;
-        $model = $service->modelRel?->name ?: $service->model;
+        $brand = $service->relationLoaded('brandRel') ? $service->brandRel?->name : null;
+        $model = $service->relationLoaded('modelRel') ? $service->modelRel?->name : null;
         $label = trim(collect([$brand, $model])->filter()->implode(' '));
+
+        if ($label !== '') {
+            return $label;
+        }
+
+        $label = trim(collect([$service->brand, $service->model])->filter()->implode(' '));
 
         return $label !== '' ? $label : $service->title;
     }
