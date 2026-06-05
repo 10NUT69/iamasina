@@ -8,7 +8,7 @@
             return null;
         }
 
-        return trim(preg_replace('/\s+/', ' ', \Illuminate\Support\Str::ascii($value)));
+        return trim(preg_replace('/\s+/', ' ', $value));
     };
 
     $brandName = $cleanMetaLabel(optional($currentBrand ?? null)->name);
@@ -72,6 +72,57 @@
             : $listingMetaTitle . ' - ' . $pageLabel;
         $listingMetaDescription .= ' ' . $pageLabel . ' din ' . $listingTotalPages . ' cu anunțuri active.';
     }
+
+    $autoListingUrl = static fn (...$segments): string => url('/' . implode('/', array_merge(
+        ['anunturi-auto-de-vanzare'],
+        array_map(fn ($segment) => \Illuminate\Support\Str::slug($segment), array_values(array_filter($segments)))
+    )));
+
+    $brandSlug = optional($currentBrand ?? null)->slug ?: ($brandName ? \Illuminate\Support\Str::slug($brandName) : null);
+    $modelSlug = optional($currentModel ?? null)->slug ?: ($modelName ? \Illuminate\Support\Str::slug($modelName) : null);
+    $countySlug = optional($currentCounty ?? null)->slug ?: ($countyName ? \Illuminate\Support\Str::slug($countyName) : null);
+    $localitySlug = optional($currentLocality ?? null)->slug ?: ($localityName ? \Illuminate\Support\Str::slug($localityName) : null);
+
+    $breadcrumbItems = [
+        ['name' => 'Acasă', 'item' => url('/')],
+        ['name' => 'Autoturisme', 'item' => $autoListingUrl()],
+    ];
+
+    if ($brandName && $brandSlug) {
+        $breadcrumbItems[] = ['name' => $brandName, 'item' => $autoListingUrl($brandSlug)];
+    }
+
+    if ($modelName && $brandSlug && $modelSlug) {
+        $breadcrumbItems[] = ['name' => $modelName, 'item' => $autoListingUrl($brandSlug, $modelSlug)];
+    }
+
+    if ($countyName && $countySlug) {
+        $breadcrumbItems[] = ['name' => $countyName, 'item' => $autoListingUrl($brandSlug, $brandSlug ? $modelSlug : null, $countySlug)];
+    }
+
+    if ($localityName && $countySlug && $localitySlug) {
+        $breadcrumbItems[] = ['name' => $localityName, 'item' => $autoListingUrl($brandSlug, $brandSlug ? $modelSlug : null, $countySlug, $localitySlug)];
+    }
+
+    $lastBreadcrumbIndex = array_key_last($breadcrumbItems);
+    if ($lastBreadcrumbIndex !== null) {
+        unset($breadcrumbItems[$lastBreadcrumbIndex]['item']);
+    }
+
+    $breadcrumbSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => array_map(
+            static fn ($item, $index) => array_filter([
+                '@type' => 'ListItem',
+                'position' => $index + 1,
+                'name' => $item['name'],
+                'item' => $item['item'] ?? null,
+            ], fn ($value) => $value !== null && $value !== ''),
+            array_values($breadcrumbItems),
+            array_keys(array_values($breadcrumbItems))
+        ),
+    ];
 @endphp
 
 @section('title', 'Anunțuri Auto - Anunțuri Auto Second Hand')
@@ -86,6 +137,12 @@
     @if($listingNextUrl)
         <link rel="next" href="{{ $listingNextUrl }}">
     @endif
+@endsection
+
+@section('schema')
+<script type="application/ld+json">
+@json($breadcrumbSchema)
+</script>
 @endsection
 
 @section('content')

@@ -27,6 +27,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - 2026-06-03: Added a combobox autofill guard: visible searchable inputs render as readonly initially and JS releases readonly shortly after real focus/click, preventing Chrome password manager from attaching to fields like Tracțiune.
 
 - 2026-06-03: Removed the early-stage promotional listing banner/card from the listing controller data and listing Blade DOM, so listing pages start directly with real service cards.
+- 2026-06-05: Added minimal BreadcrumbList JSON-LD to the car detail and listing Blade views, using existing view data only and leaving routes, controllers, URLs, filters, canonical links, and visual breadcrumbs unchanged.
+- 2026-06-05: Preserved diacritics in listing meta and BreadcrumbList names by removing ASCII transliteration from `cleanMetaLabel`; URL slugs still use `Str::slug`.
 
 ## Verification
 
@@ -55,6 +57,12 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 - Ran `php -l app/Http/Controllers/ServiceController.php`, `php -l resources/views/services/listing.blade.php`, and `git diff --check`; all passed after removing the early-stage listing banner.
 - Verified the rendered local listing page at `http://127.0.0.1:8010/anunturi-auto-de-vanzare`: no `Nou pe pia`, `Start gratuit`, or `homepage-hero-car` content remains, `data-service-card` appears 20 times, and the first rendered `<article>` is a real service card.
+- Ran `git diff --check`; passed after adding BreadcrumbList JSON-LD.
+- Ran `php artisan view:cache`; Blade templates compiled successfully after adding BreadcrumbList JSON-LD.
+- Ran `php artisan view:clear`; compiled view cache was cleared after verification.
+- Ran `git diff --check`; passed after preserving diacritics in listing labels.
+- Ran `php artisan view:cache`; Blade templates compiled successfully after preserving diacritics in listing labels.
+- Ran `php artisan view:clear`; compiled view cache was cleared after verification.
 
 ## Open Items
 

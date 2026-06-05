@@ -211,6 +211,63 @@
         ] : null,
     ];
     $schemaData = array_filter($schemaData, fn ($value) => $value !== null && $value !== '');
+
+    $autoListingUrl = static fn (...$segments): string => url('/' . implode('/', array_merge(
+        ['anunturi-auto-de-vanzare'],
+        array_map(fn ($segment) => Str::slug($segment), array_values(array_filter($segments)))
+    )));
+
+    $brandSlug = optional($service->brandRel ?? null)->slug
+        ?: optional(optional(optional($service->generation)->model)->brand)->slug
+        ?: ($brandName ? Str::slug($brandName) : null);
+    $modelSlug = optional($service->modelRel ?? null)->slug
+        ?: optional(optional($service->generation)->model)->slug
+        ?: ($modelName ? Str::slug($modelName) : null);
+    $countySlug = optional($service->county ?? null)->slug ?: ($countyName ? Str::slug($countyName) : null);
+    $localitySlug = optional($service->locality ?? null)->slug ?: ($localityName ? Str::slug($localityName) : null);
+
+    $breadcrumbItems = [
+        ['name' => 'Acasă', 'item' => url('/')],
+        ['name' => 'Autoturisme', 'item' => $autoListingUrl()],
+    ];
+
+    if ($brandName && $brandSlug) {
+        $breadcrumbItems[] = ['name' => $brandName, 'item' => $autoListingUrl($brandSlug)];
+    }
+
+    if ($modelName && $brandSlug && $modelSlug) {
+        $breadcrumbItems[] = ['name' => $modelName, 'item' => $autoListingUrl($brandSlug, $modelSlug)];
+    }
+
+    if ($countyName && $countySlug) {
+        $breadcrumbItems[] = ['name' => $countyName, 'item' => $autoListingUrl($brandSlug, $brandSlug ? $modelSlug : null, $countySlug)];
+    }
+
+    if ($localityName && $countySlug && $localitySlug) {
+        $breadcrumbItems[] = ['name' => $localityName, 'item' => $autoListingUrl($brandSlug, $brandSlug ? $modelSlug : null, $countySlug, $localitySlug)];
+    }
+
+    $breadcrumbItems[] = ['name' => trim((string) $service->title) ?: $seoVehicleTitle];
+
+    $lastBreadcrumbIndex = array_key_last($breadcrumbItems);
+    if ($lastBreadcrumbIndex !== null) {
+        unset($breadcrumbItems[$lastBreadcrumbIndex]['item']);
+    }
+
+    $breadcrumbSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => array_map(
+            static fn ($item, $index) => array_filter([
+                '@type' => 'ListItem',
+                'position' => $index + 1,
+                'name' => $item['name'],
+                'item' => $item['item'] ?? null,
+            ], fn ($value) => $value !== null && $value !== ''),
+            array_values($breadcrumbItems),
+            array_keys(array_values($breadcrumbItems))
+        ),
+    ];
 @endphp
 
 @section('title', $fullSeoTitle)
@@ -225,6 +282,9 @@
 @section('schema')
 <script type="application/ld+json">
 {!! json_encode($schemaData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+</script>
+<script type="application/ld+json">
+@json($breadcrumbSchema)
 </script>
 @endsection
 
