@@ -30,6 +30,7 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - 2026-06-05: Added minimal BreadcrumbList JSON-LD to the car detail and listing Blade views, using existing view data only and leaving routes, controllers, URLs, filters, canonical links, and visual breadcrumbs unchanged.
 - 2026-06-05: Preserved diacritics in listing meta and BreadcrumbList names by removing ASCII transliteration from `cleanMetaLabel`; URL slugs still use `Str::slug`.
 - 2026-06-05: Updated the shared listing date label accessor to display `Astăzi` with diacritics across show, homepage, and listing cards.
+- 2026-06-05: Changed the deleted listing disabled contact button label from `Contact dezactivat` to `Anunt indisponibil` on desktop and mobile show views.
 
 ## Verification
 
@@ -66,6 +67,9 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - Ran `php artisan view:clear`; compiled view cache was cleared after verification.
 - Ran `php -l app/Models/Service.php`; no syntax errors after updating the listing date label.
 - Ran `git diff --check`; passed after updating the listing date label.
+- Ran `git diff --check`; passed after changing the deleted listing button label.
+- Ran `php artisan view:cache`; Blade templates compiled successfully after changing the deleted listing button label.
+- Ran `php artisan view:clear`; compiled view cache was cleared after verification.
 
 ## Open Items
 

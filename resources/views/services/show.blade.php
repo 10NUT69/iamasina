@@ -796,7 +796,7 @@
                         {{-- ACTION BUTTONS DESKTOP --}}
                         <div class="mt-4 space-y-3 hidden md:block">
                             @if($isDeleted)
-                                <button disabled class="w-full bg-gray-200 text-gray-500 py-3.5 rounded-xl font-bold dark:bg-[#333333] dark:text-gray-400">Contact dezactivat</button>
+                                <button disabled class="w-full bg-gray-200 text-gray-500 py-3.5 rounded-xl font-bold dark:bg-[#333333] dark:text-gray-400">Anunt indisponibil</button>
                                 @if($isDealer && !empty($sellerUser->dealer_public_url))
                                     <a href="{{ $sellerUser->dealer_public_url }}"
                                        class="inline-flex w-full items-center justify-center rounded-xl border border-[#C81424]/20 bg-[#fff4f5] px-4 py-3 text-sm font-bold text-[#C81424] transition hover:border-[#C81424] hover:bg-white dark:border-red-900/40 dark:bg-[#2a1013] dark:text-red-200 dark:hover:bg-[#18181B]">
@@ -854,7 +854,7 @@
 <div class="fixed bottom-0 left-0 right-0 z-40 lg:hidden glass border-t border-gray-200 dark:border-[#333333] px-4 py-3 safe-area-pb">
     <div class="flex gap-3">
         @if($isDeleted)
-            <button class="w-full bg-gray-200 py-3 rounded-lg font-bold text-gray-500 dark:bg-[#333333] dark:text-gray-400" disabled>Contact dezactivat</button>
+            <button class="w-full bg-gray-200 py-3 rounded-lg font-bold text-gray-500 dark:bg-[#333333] dark:text-gray-400" disabled>Anunt indisponibil</button>
         @else
             @if($canMessageSeller)
                 <button type="button" onclick="openSellerMessageModal()" class="flex-1 bg-white border border-gray-300 text-gray-800 font-bold py-3 rounded-xl dark:border-[#333333] dark:bg-[#252525] dark:text-gray-100">Mesaj</button>
