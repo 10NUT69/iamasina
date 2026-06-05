@@ -287,7 +287,7 @@ class Service extends Model
         }
 
         if ($listingDate->isToday()) {
-            return 'Astazi ' . $listingDate->format('H:i');
+            return 'Astăzi ' . $listingDate->format('H:i');
         }
 
         if ($listingDate->isYesterday()) {
