@@ -18,6 +18,7 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Latest Changes
 
+- 2026-06-06: Updated the shared combobox autofill guard so touch/pen/coarse-pointer interactions release `readonly` immediately, restoring the mobile keyboard path while keeping the delayed desktop release used for password-manager suppression.
 - 2026-06-03: Added project handoff workflow via `AGENTS.md` and this file.
 - 2026-06-03: Added Romanian display names with diacritics for localities, updated `CountiesSeeder` to use them, added migrations to update existing `localities.name`, and synchronized legacy `services.city` from `localities.name`.
 - 2026-06-03: Hid browser-native clear controls on combobox search inputs so only the custom `ia-combobox__clear` button is shown.
@@ -34,6 +35,11 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Verification
 
+- Ran `git fetch --prune` and `git status --short --branch`; local `main` was aligned with `origin/main` before the combobox mobile-keyboard fix.
+- Ran `git diff --check`; passed after the combobox touch-release change.
+- Ran Vite build through the bundled Codex Node runtime after the combobox touch-release change; build completed.
+- Started the local Laravel server at `http://127.0.0.1:8010`, confirmed the create listing page returned HTTP 200, then stopped the temporary PHP server.
+- Further mobile/browser automation was stopped at user request; real-device mobile testing is still expected.
 - Ran `git status --short --branch`; repository was clean on `main`.
 - Ran `php -l` on the new support class, both new migrations, and `CountiesSeeder.php`; no syntax errors.
 - Ran `php artisan migrate`; both location migrations completed.
@@ -71,10 +77,17 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - Ran `php artisan view:cache`; Blade templates compiled successfully after changing the deleted listing button label.
 - Ran `php artisan view:clear`; compiled view cache was cleared after verification.
 
+## Environment Assumptions
+
+- Local Windows environment used PHP 8.3.26 from Laragon.
+- The Vite dev server was already serving assets from `http://[::1]:5173`.
+- The bundled Codex Node runtime was used for Vite build because `node.exe` from PATH returned `Access denied`.
+
 ## Open Items
 
 - Add project-specific setup commands once they are confirmed.
 - Test environment needs cleanup: SQLite test database does not have the full app schema for the homepage test, `/profile` tests expect routes that currently return 404/405, and registration test does not authenticate the created user.
+- User should test the shared combobox behavior on a real mobile device, especially create/edit/listing filters and the original Tractiune/password-manager case.
 
 ## Machine Handoff Checklist
 
