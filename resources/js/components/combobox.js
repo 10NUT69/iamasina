@@ -58,15 +58,26 @@ class HybridCombobox {
         });
     }
 
-    releaseAutofillGuard() {
+    releaseAutofillGuard({ immediate = false } = {}) {
         if (!this.autofillGuarded || !this.searchable || this.hidden.disabled) {
             return;
         }
 
         window.clearTimeout(this.autofillGuardTimer);
+        const release = () => {
+            if (!this.hidden.disabled) {
+                this.input.readOnly = false;
+            }
+        };
+
+        if (immediate) {
+            release();
+            return;
+        }
+
         this.autofillGuardTimer = window.setTimeout(() => {
             if (document.activeElement === this.input && !this.hidden.disabled) {
-                this.input.readOnly = false;
+                release();
             }
         }, 250);
     }
@@ -133,7 +144,12 @@ class HybridCombobox {
         this.input.addEventListener('pointerdown', (event) => {
             if (this.hidden.disabled) return;
 
-            this.releaseAutofillGuard();
+            // Mobile keyboards require readonly to be lifted during the touch gesture.
+            const shouldReleaseImmediately = event.pointerType === 'touch'
+                || event.pointerType === 'pen'
+                || window.matchMedia?.('(pointer: coarse)').matches;
+
+            this.releaseAutofillGuard({ immediate: shouldReleaseImmediately });
 
             if (document.activeElement !== this.input) return;
             if (!this.root.classList.contains('is-open')) return;
@@ -142,6 +158,12 @@ class HybridCombobox {
             event.stopPropagation();
             this.finishInteraction();
         });
+
+        this.input.addEventListener('touchstart', () => {
+            if (!this.hidden.disabled) {
+                this.releaseAutofillGuard({ immediate: true });
+            }
+        }, { passive: true });
 
         this.input.addEventListener('click', () => {
             if (!this.hidden.disabled) {
