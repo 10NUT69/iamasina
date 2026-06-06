@@ -24,6 +24,16 @@
     // --- PRET ---
     $formattedPrice = number_format($service->price_value ?? 0, 0, '.', ' ');
     $currency       = $service->currency ?? 'EUR';
+    $priceTypeBadge = null;
+    $priceTypeBadgeClass = null;
+
+    if ($service->price_type === 'negotiable') {
+        $priceTypeBadge = 'Negociabil';
+        $priceTypeBadgeClass = 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-200';
+    } elseif ($service->price_type === 'fixed') {
+        $priceTypeBadge = 'PREȚ FIX';
+        $priceTypeBadgeClass = 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-200';
+    }
 
     // --- DATE AUTO (brand/model pe FK, cu fallback vechi discret) ---
     $brandName =
@@ -498,8 +508,11 @@
                         <span>Publicat: {{ $showPublishedLabel }}</span>
                     </div>
                 </div>
-                <div class="md:hidden pt-2">
+                <div class="md:hidden flex flex-wrap items-center gap-2 pt-2">
                     <span class="text-3xl font-extrabold text-[#E03E2D]">{{ $formattedPrice }} {{ $currency }}</span>
+                    @if($priceTypeBadge)
+                        <span class="relative top-px inline-block px-2 py-1 text-xs font-bold rounded uppercase md:top-0 {{ $priceTypeBadgeClass }}">{{ $priceTypeBadge }}</span>
+                    @endif
                 </div>
             </div>
 
@@ -708,8 +721,8 @@
                         <span class="text-4xl font-extrabold text-gray-900 dark:text-white">{{ $formattedPrice }}</span>
                         <span class="text-xl font-bold text-gray-500 dark:text-gray-400">{{ $currency }}</span>
                     </div>
-                    @if($service->price_type === 'negotiable')
-                        <span class="inline-block px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded uppercase dark:bg-green-900/20 dark:text-green-200">Negociabil</span>
+                    @if($priceTypeBadge)
+                        <span class="inline-block px-2 py-1 text-xs font-bold rounded uppercase {{ $priceTypeBadgeClass }}">{{ $priceTypeBadge }}</span>
                     @endif
                 </div>
 

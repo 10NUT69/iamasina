@@ -18,6 +18,11 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Latest Changes
 
+- 2026-06-06: Nudged the mobile price-type badges down by 1px on both listing cards and the show page so they align better with the price text without changing size, shape, or colors.
+- 2026-06-06: Tightened the mobile listing price-type badge shape further to `rounded` so it reads as a compact rectangle instead of a pill, while keeping `rounded-md` on desktop.
+- 2026-06-06: Added the price-type badge to the listing show page on mobile and desktop so fixed-price ads show `PREȚ FIX` in red with the same dimensions as the existing negotiable badge.
+- 2026-06-06: Tuned mobile listing price-type badge sizing by reducing badge padding and line height while keeping the rectangular shape, green/red colors, and larger desktop treatment.
+- 2026-06-06: Restyled listing price-type badges to be slightly larger rectangular badges with lightly rounded corners, green for `NEGOCIABIL` and red for `PREȚ FIX`, across the responsive horizontal listing cards.
 - 2026-06-06: Updated listing horizontal service cards so priced fixed ads show the `PREȚ FIX` badge while negotiable ads continue to show `NEGOCIABIL`.
 - 2026-06-06: Added helper text under the optional account password field on the create listing form, suggesting a stronger password and restating the 6-character minimum.
 - 2026-06-06: Updated the shared combobox autofill guard so touch/pen/coarse-pointer interactions release `readonly` immediately, restoring the mobile keyboard path while keeping the delayed desktop release used for password-manager suppression.
@@ -37,6 +42,22 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Verification
 
+- Ran `php -l resources/views/services/partials/service_cards_horizontal.blade.php` and `php -l resources/views/services/show.blade.php`; no syntax errors after the mobile badge alignment tweak.
+- Ran `git diff --check`; passed after the mobile badge alignment tweak.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the mobile badge alignment tweak.
+- Ran `php -l resources/views/services/partials/service_cards_horizontal.blade.php`; no syntax errors after reducing the mobile listing badge corner radius.
+- Ran `git diff --check`; passed after reducing the mobile listing badge corner radius.
+- Ran `php artisan view:clear`; cleared compiled Blade views after the mobile listing badge shape adjustment.
+- Ran `php -l resources/views/services/show.blade.php`; no syntax errors after adding fixed-price badges to the show page.
+- Ran `git diff --check`; passed after adding fixed-price badges to the show page.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the show-page price-type badge update.
+- Ran `php -l resources/views/services/partials/service_cards_horizontal.blade.php`; no syntax errors after tightening mobile listing price-type badge sizing.
+- Ran `git diff --check`; passed after tightening mobile listing price-type badge sizing.
+- Rendered `services.partials.service_cards_horizontal` in CLI with fake fixed and negotiable services; confirmed the generated badge classes keep `rounded-md`, use tighter mobile `px-2 py-0.5 leading-none`, and preserve desktop `md:px-2.5 md:py-1`.
+- Ran `php -l resources/views/services/partials/service_cards_horizontal.blade.php`; no syntax errors after restyling the listing price-type badges.
+- Ran `git diff --check`; passed after restyling the listing price-type badges.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after restyling the listing price-type badges.
+- Rendered `services.partials.service_cards_horizontal` in CLI with fake fixed and negotiable services; confirmed the generated HTML includes `PREȚ FIX`, `NEGOCIABIL`, red fixed styling, green negotiable styling, larger badge classes, and rectangular `rounded-md` shape rather than `rounded-full`.
 - Ran `php -l resources/views/services/partials/service_cards_horizontal.blade.php`; no syntax errors after the listing price badge change.
 - Ran `git diff --check`; passed after the listing price badge change.
 - Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the listing price badge change.

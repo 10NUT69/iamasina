@@ -49,8 +49,8 @@
         $dateLabel = $service->listing_date_label;
         $priceTypeBadge = $service->price_type === 'negotiable' ? 'NEGOCIABIL' : 'PREȚ FIX';
         $priceTypeBadgeClass = $service->price_type === 'negotiable'
-            ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
-            : 'text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800/70';
+            ? 'border-green-200 bg-green-100 text-green-700 shadow-green-700/10 ring-green-600/10 dark:border-green-700/40 dark:bg-green-500/15 dark:text-green-300 dark:ring-green-300/10'
+            : 'border-[#C81424]/25 bg-[#C81424]/10 text-[#C81424] shadow-red-700/10 ring-[#C81424]/10 dark:border-red-500/40 dark:bg-red-500/15 dark:text-red-300 dark:ring-red-300/10';
     @endphp
 
     {{-- CARD ANUNȚ (DESIGN 2025-2026) --}}
@@ -184,7 +184,7 @@
                             <span class="whitespace-nowrap text-xl md:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
                                 {{ number_format($service->price_value, 0, ',', '.') }} <span class="text-base font-semibold">{{ $service->currency }}</span>
                             </span>
-                            <span class="text-[10px] uppercase tracking-wide {{ $priceTypeBadgeClass }} font-bold px-1.5 py-0.5 rounded md:mt-1">
+                            <span class="relative top-px inline-flex items-center rounded border px-2 py-0.5 text-[11px] font-black uppercase leading-none tracking-wide shadow-sm ring-1 md:top-0 md:mt-1 md:px-2.5 md:py-1 md:rounded-md md:text-xs {{ $priceTypeBadgeClass }}">
                                 {{ $priceTypeBadge }}
                             </span>
                         @else
