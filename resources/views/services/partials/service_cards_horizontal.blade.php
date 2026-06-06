@@ -47,6 +47,10 @@
 
         // 6. Data afisata ramane data publicarii/reactualizarii, nu data editarii.
         $dateLabel = $service->listing_date_label;
+        $priceTypeBadge = $service->price_type === 'negotiable' ? 'NEGOCIABIL' : 'PREȚ FIX';
+        $priceTypeBadgeClass = $service->price_type === 'negotiable'
+            ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
+            : 'text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800/70';
     @endphp
 
     {{-- CARD ANUNȚ (DESIGN 2025-2026) --}}
@@ -180,11 +184,9 @@
                             <span class="whitespace-nowrap text-xl md:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
                                 {{ number_format($service->price_value, 0, ',', '.') }} <span class="text-base font-semibold">{{ $service->currency }}</span>
                             </span>
-                            @if($service->price_type === 'negotiable')
-                                <span class="text-[10px] uppercase tracking-wide text-green-600 dark:text-green-400 font-bold bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded md:mt-1">
-                                    Negociabil
-                                </span>
-                            @endif
+                            <span class="text-[10px] uppercase tracking-wide {{ $priceTypeBadgeClass }} font-bold px-1.5 py-0.5 rounded md:mt-1">
+                                {{ $priceTypeBadge }}
+                            </span>
                         @else
                             <span class="whitespace-nowrap text-lg font-bold text-[#C81424]">La cerere</span>
                         @endif

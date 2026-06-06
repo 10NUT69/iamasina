@@ -18,6 +18,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Latest Changes
 
+- 2026-06-06: Updated listing horizontal service cards so priced fixed ads show the `PREȚ FIX` badge while negotiable ads continue to show `NEGOCIABIL`.
+- 2026-06-06: Added helper text under the optional account password field on the create listing form, suggesting a stronger password and restating the 6-character minimum.
 - 2026-06-06: Updated the shared combobox autofill guard so touch/pen/coarse-pointer interactions release `readonly` immediately, restoring the mobile keyboard path while keeping the delayed desktop release used for password-manager suppression.
 - 2026-06-03: Added project handoff workflow via `AGENTS.md` and this file.
 - 2026-06-03: Added Romanian display names with diacritics for localities, updated `CountiesSeeder` to use them, added migrations to update existing `localities.name`, and synchronized legacy `services.city` from `localities.name`.
@@ -35,6 +37,13 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Verification
 
+- Ran `php -l resources/views/services/partials/service_cards_horizontal.blade.php`; no syntax errors after the listing price badge change.
+- Ran `git diff --check`; passed after the listing price badge change.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the listing price badge change.
+- Rendered `services.partials.service_cards_horizontal` in CLI with fake fixed and negotiable services; confirmed one `PREȚ FIX` badge and one `NEGOCIABIL` badge in the generated HTML.
+- Started a temporary local Laravel server at `http://127.0.0.1:8010` for browser verification, but the listing route could not be verified live because local MySQL refused the configured connection; stopped the temporary server afterward.
+- Ran `php -l resources/views/services/create.blade.php`; no syntax errors after the password helper text change.
+- Ran `git diff --check`; passed after the password helper text change.
 - Ran `git fetch --prune` and `git status --short --branch`; local `main` was aligned with `origin/main` before the combobox mobile-keyboard fix.
 - Ran `git diff --check`; passed after the combobox touch-release change.
 - Ran Vite build through the bundled Codex Node runtime after the combobox touch-release change; build completed.

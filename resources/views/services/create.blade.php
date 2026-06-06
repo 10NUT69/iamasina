@@ -484,6 +484,7 @@
                         <div>
                             <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Parolă</label>
                             <input type="password" name="password" minlength="6" placeholder="Minim 6 caractere" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-slate-300 focus:ring-2 focus:ring-slate-900/5 dark:border-[#444] dark:bg-[#252525] dark:text-white">
+                            <p class="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">Alege o parolă cât mai puternică. Minim 6 caractere.</p>
                         </div>
                     </div>
                 </div>
