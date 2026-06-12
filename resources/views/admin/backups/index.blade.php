@@ -142,18 +142,80 @@
 
             @unless($zipAvailable)
                 <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                    Exportul media necesită ZipArchive, zip sau tar pe server.
+                    Exportul media necesită ZipArchive sau utilitarul zip pe server.
                 </div>
             @endunless
 
-            <form method="POST" action="{{ route('admin.backups.media.export') }}" class="mt-5">
-                @csrf
-                <button type="submit"
-                        class="inline-flex items-center justify-center rounded-lg bg-slate-800 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
-                        @disabled(!$zipAvailable)>
-                    Exportă media
-                </button>
-            </form>
+            @if(!$mediaExport || $mediaExport->status === \App\Models\BackupExport::STATUS_DELETED)
+                <form method="POST" action="{{ route('admin.backups.media.export') }}" class="mt-5">
+                    @csrf
+                    <button type="submit"
+                            class="inline-flex items-center justify-center rounded-lg bg-slate-800 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+                            @disabled(!$zipAvailable)>
+                        Generează arhiva media
+                    </button>
+                </form>
+            @elseif(in_array($mediaExport->status, [\App\Models\BackupExport::STATUS_PENDING, \App\Models\BackupExport::STATUS_PROCESSING], true))
+                <div class="mt-5 rounded-lg border border-sky-200 bg-sky-50 p-4 text-sm text-sky-800">
+                    <p class="font-bold">Arhiva media se generează în fundal.</p>
+                    @if($mediaExport->started_at)
+                        <p class="mt-1">Pornită la: {{ $mediaExport->started_at->format('d.m.Y H:i') }}</p>
+                    @endif
+                </div>
+                <a href="{{ route('admin.backups.index') }}"
+                   class="mt-4 inline-flex items-center justify-center rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50">
+                    Actualizează starea
+                </a>
+            @elseif($mediaExport->status === \App\Models\BackupExport::STATUS_COMPLETED)
+                <div class="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+                    <p class="font-bold">Arhiva media este disponibilă.</p>
+                    <dl class="mt-3 space-y-1">
+                        <div class="flex flex-col gap-0.5 sm:flex-row sm:gap-2">
+                            <dt class="font-bold">Nume:</dt>
+                            <dd class="break-all">{{ $mediaExport->filename }}</dd>
+                        </div>
+                        <div class="flex flex-col gap-0.5 sm:flex-row sm:gap-2">
+                            <dt class="font-bold">Dimensiune:</dt>
+                            <dd>{{ $mediaExportSize }}</dd>
+                        </div>
+                        @if($mediaExport->completed_at)
+                            <div class="flex flex-col gap-0.5 sm:flex-row sm:gap-2">
+                                <dt class="font-bold">Generată la:</dt>
+                                <dd>{{ $mediaExport->completed_at->format('d.m.Y H:i') }}</dd>
+                            </div>
+                        @endif
+                    </dl>
+                </div>
+                <div class="mt-4 flex flex-wrap gap-3">
+                    <a href="{{ route('admin.backups.media.download', $mediaExport) }}"
+                       class="inline-flex items-center justify-center rounded-lg bg-slate-800 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-900">
+                        Descarcă arhiva
+                    </a>
+                    <form method="POST" action="{{ route('admin.backups.media.destroy', $mediaExport) }}">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-red-700">
+                            Șterge arhiva
+                        </button>
+                    </form>
+                </div>
+            @elseif($mediaExport->status === \App\Models\BackupExport::STATUS_FAILED)
+                <div class="mt-5 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                    <p class="font-bold">Generarea arhivei media a eșuat.</p>
+                    @if($mediaExport->error_message)
+                        <p class="mt-1">{{ $mediaExport->error_message }}</p>
+                    @endif
+                </div>
+                <form method="POST" action="{{ route('admin.backups.media.export') }}" class="mt-5">
+                    @csrf
+                    <button type="submit"
+                            class="inline-flex items-center justify-center rounded-lg bg-slate-800 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+                            @disabled(!$zipAvailable)>
+                        Încearcă din nou
+                    </button>
+                </form>
+            @endif
         </section>
 
         <section class="bg-white rounded-xl shadow-sm border border-slate-100 p-5">

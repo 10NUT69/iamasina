@@ -12,3 +12,8 @@ Schedule::command('services:send-missing-image-reminders')
     ->dailyAt('08:00')
     ->timezone(config('app.timezone', 'Europe/Bucharest'))
     ->withoutOverlapping(60);
+
+Schedule::command('backups:cleanup-media-exports')
+    ->hourly()
+    ->timezone(config('app.timezone', 'Europe/Bucharest'))
+    ->withoutOverlapping(60);

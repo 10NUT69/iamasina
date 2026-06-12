@@ -5,7 +5,7 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 ## Current Status
 
 - Branch: `main`
-- Last checked: 2026-06-03
+- Last checked: 2026-06-12
 - Git status at setup: clean
 - Purpose: keep work context, decisions, verification steps, and known environment differences visible across machines.
 
@@ -18,6 +18,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Latest Changes
 
+- 2026-06-12: Reworked the admin manual media export so `admin.backups.media.export` now creates a `backup_exports` record and dispatches `GenerateMediaBackup` on `database_backups/backups` instead of building the ZIP in the HTTP request.
+- 2026-06-12: Added private manual media export archives under `storage/app/private/backups/media-exports`, atomic `.zip.part` generation, completed/download/delete states in the admin Backup page, and a scheduled `backups:cleanup-media-exports` cleanup command.
 - 2026-06-06: Nudged the mobile price-type badges down by 1px on both listing cards and the show page so they align better with the price text without changing size, shape, or colors.
 - 2026-06-06: Tightened the mobile listing price-type badge shape further to `rounded` so it reads as a compact rectangle instead of a pill, while keeping `rounded-md` on desktop.
 - 2026-06-06: Added the price-type badge to the listing show page on mobile and desktop so fixed-price ads show `PREȚ FIX` in red with the same dimensions as the existing negotiable badge.
@@ -42,6 +44,12 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Verification
 
+- Ran `php artisan test --filter=AdminMediaBackupExportTest`; 11 tests / 47 assertions passed for the async manual media export flow.
+- Ran `php -l` on `BackupExport.php`, `GenerateMediaBackup.php`, `ManualMediaBackupArchiver.php`, `CleanupMediaBackupExports.php`, `AdminBackupController.php`, the new `backup_exports` migration, and `AdminMediaBackupExportTest.php`; no syntax errors.
+- Ran `php artisan route:list --name=backups`; confirmed the admin backup routes include media export start, media download, and media delete routes.
+- Ran `php artisan list backups`; confirmed `backups:cleanup-media-exports` is registered.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the Backup page change.
+- Ran `git diff --check`; passed after the async manual media export change.
 - Ran `php -l resources/views/services/partials/service_cards_horizontal.blade.php` and `php -l resources/views/services/show.blade.php`; no syntax errors after the mobile badge alignment tweak.
 - Ran `git diff --check`; passed after the mobile badge alignment tweak.
 - Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the mobile badge alignment tweak.
@@ -109,12 +117,36 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Environment Assumptions
 
+- Manual media exports are stored on the local/private disk path `storage/app/private/backups/media-exports`; database rows store only relative paths like `backups/media-exports/<file>.zip`.
+- Production must run the migration with OpenLiteSpeed PHP from `/home/iaAuto.ro/public_html`: `sudo -u iaauto /usr/local/lsws/lsphp83/bin/php artisan migrate --force`.
+- Because `config/queue.php` changed, production must refresh Laravel config cache before starting the backup worker: `sudo -u iaauto /usr/local/lsws/lsphp83/bin/php artisan optimize:clear`, then `sudo -u iaauto /usr/local/lsws/lsphp83/bin/php artisan config:cache`.
+- Production needs a separate Supervisor worker for `queue:work database_backups --queue=backups --sleep=3 --tries=1 --timeout=7200`; use Linux user `iaauto`, not the `iaAuto.ro` folder/domain name, and do not reuse the image-processing worker for this queue.
+- Supervisor config to add manually on production:
+  ```ini
+  [program:iaauto-backup-worker]
+  process_name=%(program_name)s_%(process_num)02d
+  command=/usr/local/lsws/lsphp83/bin/php /home/iaAuto.ro/public_html/artisan queue:work database_backups --queue=backups --sleep=3 --tries=1 --timeout=7200
+  directory=/home/iaAuto.ro/public_html
+  user=iaauto
+  numprocs=1
+  autostart=true
+  autorestart=true
+  stopasgroup=true
+  killasgroup=true
+  redirect_stderr=true
+  stdout_logfile=/home/iaAuto.ro/public_html/storage/logs/backup-worker.log
+  stdout_logfile_maxbytes=20MB
+  stdout_logfile_backups=5
+  stopwaitsecs=7500
+  ```
+- Optional `.env` keys are `DB_BACKUP_QUEUE` and `DB_BACKUP_QUEUE_RETRY_AFTER`; defaults are `backups` and `7500`.
 - Local Windows environment used PHP 8.3.26 from Laragon.
 - The Vite dev server was already serving assets from `http://[::1]:5173`.
 - The bundled Codex Node runtime was used for Vite build because `node.exe` from PATH returned `Access denied`.
 
 ## Open Items
 
+- Production deployment still needs the new migration and manual Supervisor worker setup for the backup queue; no production migration or Supervisor changes were executed locally. Correct order after deploy: `cd /home/iaAuto.ro/public_html`, `sudo -u iaauto git pull`, `sudo -u iaauto /usr/local/lsws/lsphp83/bin/php artisan optimize:clear`, `sudo -u iaauto /usr/local/lsws/lsphp83/bin/php artisan migrate --force`, `sudo -u iaauto /usr/local/lsws/lsphp83/bin/php artisan config:cache`, then `sudo supervisorctl reread`, `sudo supervisorctl update`, `sudo supervisorctl status`.
 - Add project-specific setup commands once they are confirmed.
 - Test environment needs cleanup: SQLite test database does not have the full app schema for the homepage test, `/profile` tests expect routes that currently return 404/405, and registration test does not authenticate the created user.
 - User should test the shared combobox behavior on a real mobile device, especially create/edit/listing filters and the original Tractiune/password-manager case.

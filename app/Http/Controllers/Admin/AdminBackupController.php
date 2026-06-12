@@ -3,6 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\GenerateMediaBackup;
+use App\Models\BackupExport;
+use App\Support\ManualMediaBackupArchiver;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
@@ -20,6 +24,8 @@ class AdminBackupController extends Controller
 
     public function index()
     {
+        $mediaExport = $this->currentMediaExport();
+
         return view('admin.backups.index', [
             'mysqldumpAvailable' => (bool) $this->findExecutable('mysqldump'),
             'mysqlAvailable' => (bool) $this->findExecutable('mysql'),
@@ -30,6 +36,8 @@ class AdminBackupController extends Controller
             'manualMediaImportDirectory' => $this->manualMediaImportDirectory(),
             'manualMediaImports' => $this->manualMediaImportFiles(),
             'maxUploadSize' => $this->formatBytes($this->maxUploadBytes()),
+            'mediaExport' => $mediaExport,
+            'mediaExportSize' => $mediaExport?->size ? $this->formatBytes($mediaExport->size) : null,
         ]);
     }
 
@@ -97,29 +105,103 @@ class AdminBackupController extends Controller
 
     public function exportMedia()
     {
-        $this->logBackupEvent('media_export', 'started');
+        $this->logBackupEvent('media_export', 'queue_requested');
+
+        if (! $this->mediaZipCreateAvailable()) {
+            return back()->with('error', 'Exportul media necesită ZipArchive sau utilitarul zip pe server.');
+        }
+
+        if ($blockingExport = $this->blockingMediaExport()) {
+            if ($blockingExport->status === BackupExport::STATUS_COMPLETED) {
+                return back()->with('error', 'Există deja o arhivă media finalizată. Șterge arhiva existentă înainte de a genera alta.');
+            }
+
+            return back()->with('error', 'Arhiva media este deja în curs de generare. Reîncarcă pagina peste câteva minute.');
+        }
+
+        $export = null;
 
         try {
-            $fileName = 'iaauto-media-backup-' . now()->format('Y-m-d-H-i-s') . '.zip';
-            $filePath = $this->temporaryBackupDirectory() . DIRECTORY_SEPARATOR . $fileName;
-
-            $this->createMediaZip($filePath);
-
-            $this->logBackupEvent('media_export', 'success', [
-                'file' => $fileName,
-                'bytes' => filesize($filePath) ?: 0,
+            $export = BackupExport::create([
+                'type' => BackupExport::TYPE_MEDIA,
+                'status' => BackupExport::STATUS_PENDING,
+                'started_at' => now(),
+                'active_key' => BackupExport::ACTIVE_MEDIA_KEY,
             ]);
 
-            return response()->download($filePath, $fileName, [
-                'Content-Type' => 'application/zip',
-            ])->deleteFileAfterSend(true);
+            GenerateMediaBackup::dispatch($export->id);
+
+            $this->logBackupEvent('media_export', 'queued', [
+                'backup_export_id' => $export->id,
+            ]);
+
+            return back()->with('success', 'Generarea arhivei media a fost pornită în fundal. Reîncarcă pagina peste câteva minute pentru starea curentă.');
+        } catch (QueryException $e) {
+            if ($this->isUniqueConstraintViolation($e)) {
+                return back()->with('error', 'Arhiva media este deja în curs de generare. Reîncarcă pagina peste câteva minute.');
+            }
+
+            throw $e;
         } catch (Throwable $e) {
+            if ($export) {
+                $export->forceFill([
+                    'status' => BackupExport::STATUS_FAILED,
+                    'error_message' => 'Jobul de export media nu a putut fi pornit.',
+                    'active_key' => null,
+                ])->save();
+            }
+
             $this->logBackupEvent('media_export', 'failed', [
                 'error' => $this->safeErrorMessage($e),
             ]);
 
-            return back()->with('error', 'Exportul media nu a putut fi realizat. Detalii: ' . $this->publicImportError($e));
+            return back()->with('error', 'Jobul de export media nu a putut fi pornit. Verifică logurile serverului.');
         }
+    }
+
+    public function downloadMediaExport(BackupExport $backupExport)
+    {
+        if ($backupExport->type !== BackupExport::TYPE_MEDIA || $backupExport->status !== BackupExport::STATUS_COMPLETED) {
+            abort(404);
+        }
+
+        $filePath = $this->mediaExportPath($backupExport);
+
+        if (! $filePath || ! is_file($filePath)) {
+            abort(404);
+        }
+
+        return response()->download($filePath, $backupExport->filename ?: basename($filePath), [
+            'Content-Type' => 'application/zip',
+        ]);
+    }
+
+    public function destroyMediaExport(BackupExport $backupExport)
+    {
+        if ($backupExport->type !== BackupExport::TYPE_MEDIA || $backupExport->status !== BackupExport::STATUS_COMPLETED) {
+            abort(404);
+        }
+
+        $filePath = $this->mediaExportPath($backupExport);
+
+        if ($filePath && is_file($filePath)) {
+            @unlink($filePath);
+        }
+
+        $backupExport->forceFill([
+            'status' => BackupExport::STATUS_DELETED,
+            'filename' => null,
+            'relative_path' => null,
+            'size' => null,
+            'active_key' => null,
+            'error_message' => null,
+        ])->save();
+
+        $this->logBackupEvent('media_export', 'deleted', [
+            'backup_export_id' => $backupExport->id,
+        ]);
+
+        return back()->with('success', 'Arhiva media a fost ștearsă.');
     }
 
     public function importMedia(Request $request)
@@ -832,9 +914,68 @@ class AdminBackupController extends Controller
 
     private function mediaZipCreateAvailable(): bool
     {
-        return class_exists(ZipArchive::class)
-            || (bool) $this->findExecutable('zip')
-            || (PHP_OS_FAMILY === 'Windows' && (bool) $this->findExecutable('tar'));
+        return ManualMediaBackupArchiver::available();
+    }
+
+    private function currentMediaExport(): ?BackupExport
+    {
+        foreach ([
+            [BackupExport::STATUS_PENDING, BackupExport::STATUS_PROCESSING],
+            [BackupExport::STATUS_COMPLETED],
+            [BackupExport::STATUS_FAILED],
+        ] as $statuses) {
+            $export = BackupExport::query()
+                ->media()
+                ->whereIn('status', $statuses)
+                ->latest('updated_at')
+                ->latest('id')
+                ->first();
+
+            if ($export) {
+                return $export;
+            }
+        }
+
+        return null;
+    }
+
+    private function blockingMediaExport(): ?BackupExport
+    {
+        return BackupExport::query()
+            ->media()
+            ->whereIn('status', [
+                BackupExport::STATUS_PENDING,
+                BackupExport::STATUS_PROCESSING,
+                BackupExport::STATUS_COMPLETED,
+            ])
+            ->latest('updated_at')
+            ->latest('id')
+            ->first();
+    }
+
+    private function mediaExportPath(BackupExport $backupExport): ?string
+    {
+        if (! $backupExport->relative_path) {
+            return null;
+        }
+
+        $path = ManualMediaBackupArchiver::resolveExportPath($backupExport->relative_path);
+
+        if (! $path || strtolower(pathinfo($path, PATHINFO_EXTENSION)) !== 'zip') {
+            return null;
+        }
+
+        return $path;
+    }
+
+    private function isUniqueConstraintViolation(QueryException $e): bool
+    {
+        $sqlState = (string) $e->getCode();
+        $message = $e->getMessage();
+
+        return str_starts_with($sqlState, '23')
+            || str_contains($message, 'Duplicate entry')
+            || str_contains($message, 'UNIQUE constraint failed');
     }
 
     private function findExecutable(string $name): ?string
