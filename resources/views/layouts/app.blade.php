@@ -466,9 +466,6 @@
     @media (min-width: 360px) {
         .xs\:inline { display: inline !important; }
     }
-    html, body {
-        overscroll-behavior-y: none;
-    }
     </style>
 
 </body>
