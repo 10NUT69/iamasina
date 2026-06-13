@@ -47,20 +47,40 @@ function ensureToastElement() {
     return toast;
 }
 
+function runToastHideCallback(detail = {}) {
+    const onHide = window.__iaAutoToastOnHide;
+    window.__iaAutoToastOnHide = null;
+
+    if (typeof onHide !== 'function') {
+        return;
+    }
+
+    try {
+        onHide(detail);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 window.iaAutoToast = function iaAutoToast(message, options = {}) {
     const toast = ensureToastElement();
     const duration = Number(options.duration || 5000);
+
+    clearTimeout(window.__iaAutoToastTimeout);
+    clearTimeout(window.__iaAutoToastHideTimeout);
+    runToastHideCallback({ reason: 'replaced' });
+    window.__iaAutoToastOnHide = typeof options.onHide === 'function' ? options.onHide : null;
 
     toast.textContent = message;
     toast.style.display = 'block';
     toast.style.opacity = '1';
 
-    clearTimeout(window.__iaAutoToastTimeout);
     window.__iaAutoToastTimeout = setTimeout(() => {
         toast.style.opacity = '0';
 
-        setTimeout(() => {
+        window.__iaAutoToastHideTimeout = setTimeout(() => {
             toast.style.display = 'none';
+            runToastHideCallback({ reason: 'timeout' });
         }, 180);
     }, duration);
 };

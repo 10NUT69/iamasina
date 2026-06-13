@@ -69,6 +69,28 @@ function saveLocalSearch(payload) {
     return writeLocalSearches([normalized, ...existing]);
 }
 
+function emitSavedSearchFeedback(active, detail = {}) {
+    window.dispatchEvent(new CustomEvent('iaauto:saved-search-feedback', {
+        detail: {
+            ...detail,
+            active: Boolean(active),
+        },
+    }));
+}
+
+function showSavedSearchToast(message, detail = {}) {
+    if (!window.iaAutoToast) {
+        emitSavedSearchFeedback(false, detail);
+        return;
+    }
+
+    window.iaAutoToast(message, {
+        duration: 5000,
+        onHide: () => emitSavedSearchFeedback(false, detail),
+    });
+    emitSavedSearchFeedback(true, detail);
+}
+
 async function saveRemoteSearch(payload) {
     const response = await fetch(config().savedSearchStoreUrl, {
         method: 'POST',
@@ -128,21 +150,21 @@ window.iaAutoSavedSearches = {
     async save(payload) {
         if (!config().isAuthenticated) {
             saveLocalSearch(payload);
-            window.iaAutoToast?.('Am salvat. Pentru a putea reveni la cautarile favorite este nevoie de cont', { duration: 5000 });
+            showSavedSearchToast('Am salvat. Pentru a putea reveni la cautarile favorite este nevoie de cont', { status: 'guest' });
             return { status: 'guest' };
         }
 
         try {
             const data = await saveRemoteSearch(payload);
-            window.iaAutoToast?.(
+            showSavedSearchToast(
                 data.status === 'updated' ? 'Cautarea era deja salvata la favorite.' : 'Cautarea a fost salvata la favorite.',
-                { duration: 5000 }
+                { status: data.status || 'saved' }
             );
 
             return data;
         } catch (error) {
             console.error(error);
-            window.iaAutoToast?.('Nu am putut salva cautarea. Incearca din nou.', { duration: 5000 });
+            showSavedSearchToast('Nu am putut salva cautarea. Incearca din nou.', { status: 'error' });
             return { status: 'error' };
         }
     },

@@ -421,13 +421,15 @@
             </div>
 
             @php
-                $listingActionButtonClass = 'listing-action-button inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 text-[13px] font-bold text-gray-800 shadow-sm transition hover:border-[#C81424] hover:bg-[#fff4f5] hover:text-[#C81424] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C81424]/20 dark:border-[#333333] dark:bg-[#202024] dark:text-gray-100 dark:hover:border-red-900/70 dark:hover:bg-[#2a1013] dark:hover:text-red-200';
+                $listingActionButtonBaseClass = 'listing-action-button inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 text-[13px] font-bold text-gray-800 shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C81424]/20 dark:border-[#333333] dark:bg-[#202024] dark:text-gray-100';
+                $listingActionButtonClass = $listingActionButtonBaseClass . ' listing-action-button--interactive';
+                $listingActionButtonPassiveClass = $listingActionButtonBaseClass . ' listing-action-button--passive';
             @endphp
 
             <div id="listing-actions-bar" class="sticky z-40 -mx-4 mb-4 bg-[#f6f7fb]/95 px-4 py-2.5 shadow-sm ring-1 ring-gray-200/80 backdrop-blur dark:bg-[#121212]/95 dark:ring-gray-800 sm:-mx-6 sm:px-6 lg:static lg:top-auto lg:z-auto lg:mx-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:ring-0 lg:backdrop-blur-0">
                 <div class="listing-actions-row grid grid-cols-[0.58fr_0.68fr_0.9fr_1.28fr] items-stretch gap-2 lg:flex lg:items-center lg:justify-between lg:gap-3">
                     <button type="button" id="scroll-to-listing-top"
-                        class="{{ $listingActionButtonClass }} lg:hidden">
+                        class="{{ $listingActionButtonPassiveClass }} lg:hidden">
                         <span class="shrink-0 text-base leading-none">↑</span>
                         <span class="listing-action-label">Sus</span>
                     </button>
@@ -446,9 +448,6 @@
                     </button>
                     <button type="button" id="save-search-btn"
                         class="{{ $listingActionButtonClass }} lg:w-auto lg:px-3 lg:text-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0h6z"/>
-                        </svg>
                         <span class="listing-action-label">Salvează</span>
                     </button>
 
@@ -596,6 +595,10 @@
 
     function isMobileView() {
         return mobileQuery.matches;
+    }
+
+    function setSaveSearchButtonActive(isActive) {
+        domElements.saveSearch?.classList.toggle('listing-action-button--active', Boolean(isActive));
     }
 
     function resetSelect(el, placeholder) {
@@ -1431,9 +1434,20 @@
 
         window.checkResetVisibility();
 
+        window.addEventListener('iaauto:saved-search-feedback', (event) => {
+            setSaveSearchButtonActive(Boolean(event.detail?.active));
+        });
+
         domElements.saveSearch?.addEventListener('click', () => {
             const filters = collectSavedSearchFilters();
-            window.iaAutoSavedSearches?.save({
+            setSaveSearchButtonActive(true);
+
+            if (!window.iaAutoSavedSearches?.save) {
+                setSaveSearchButtonActive(false);
+                return;
+            }
+
+            window.iaAutoSavedSearches.save({
                 url: buildSearchUrl(),
                 name: savedSearchName(filters),
                 filters,
@@ -1739,6 +1753,27 @@
 <style>
     :root {
         --mobile-filters-top: 56px;
+    }
+
+    .listing-action-button--active {
+        border-color: #C81424 !important;
+        background: #C81424 !important;
+        color: #ffffff !important;
+        box-shadow: 0 8px 18px rgba(200, 20, 36, 0.18);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        .listing-action-button--interactive:hover {
+            border-color: #C81424;
+            background: #fff4f5;
+            color: #C81424;
+        }
+
+        .dark .listing-action-button--interactive:hover {
+            border-color: rgba(127, 29, 29, 0.7);
+            background: #2a1013;
+            color: #fecaca;
+        }
     }
 
     @media (max-width: 1023px) {

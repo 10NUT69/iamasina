@@ -18,6 +18,9 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Latest Changes
 
+- 2026-06-13: Updated the mobile listing action bar so `Sus` is a passive scroll-only button that stays neutral, while `Salveaza` no longer shows the bell icon and uses saved-search toast lifecycle to stay red only while feedback is visible.
+- 2026-06-13: Added an optional `onHide` callback to the shared toast helper and wired saved-search feedback events to the listing save button state; no routes, controllers, listing queries, or filter behavior were changed.
+
 - 2026-06-13: Changed the Home seller tab label from `Toate` to `Toți` while keeping the submitted `seller_type=all` value unchanged.
 - 2026-06-13: Refined the Home and listing seller tabs into a flatter segmented-control palette: active `#30323A` with white text and no shadow, inactive `#F7F8FA`/`#687080`, divider/border `#E6E8EC`, and inactive hover `#EEF1F4`/`#30323A`.
 - 2026-06-13: Matched the Home page seller source tabs to the listing filter styling by using the anthracite active state (`#2F3137`), white text, and neutral shadow for `Toate` / `Proprietari` / `Parcuri Auto`.
@@ -59,6 +62,12 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - 2026-06-05: Changed the deleted listing disabled contact button label from `Contact dezactivat` to `Anunt indisponibil` on desktop and mobile show views.
 
 ## Verification
+
+- Ran `git diff --check`; passed after the mobile listing action-bar feedback update.
+- Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after the mobile listing action-bar feedback update.
+- Ran Vite build through the bundled Codex Node runtime after changing the saved-search/toast JavaScript; build completed.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the mobile listing action-bar feedback update.
+- Verified `http://auto.test/anunturi-auto-de-vanzare` in the in-app browser at 390x844 mobile viewport: `Salveaza` has no SVG icon, `Sus` scrolls from `window.scrollY=1100` back to `0` while staying white/neutral, and `Salveaza` turns red while the saved-search toast is visible then returns to white when the toast hides.
 
 - Ran `php -l resources/views/services/index.blade.php`; no syntax errors after changing the Home seller tab label to `Toți`.
 - Ran `git diff --check`; passed after changing the Home seller tab label to `Toți`.
