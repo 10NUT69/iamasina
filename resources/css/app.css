@@ -81,6 +81,33 @@
     opacity: 1;
 }
 
+#filters-panel .listing-filter.ia-combobox .ia-combobox__input {
+    font-size: 0.9rem;
+    padding-left: 0.75rem !important;
+    padding-right: 2.25rem !important;
+}
+
+#filters-panel .listing-filter.ia-combobox.has-value .ia-combobox__input {
+    padding-right: 2.25rem !important;
+}
+
+#filters-panel .listing-filter.ia-combobox .ia-combobox__floating {
+    font-size: 0.58rem;
+    left: 0.75rem;
+}
+
+#filters-panel .listing-filter.ia-combobox .ia-combobox__clear {
+    right: 0.2rem;
+}
+
+#filters-panel .listing-filter.ia-combobox .ia-combobox__toggle {
+    right: 0.2rem;
+}
+
+#filters-panel .listing-filter.ia-combobox.has-value .ia-combobox__toggle {
+    display: none;
+}
+
 .ia-combobox__input::-webkit-search-cancel-button,
 .ia-combobox__input::-webkit-search-decoration,
 .ia-combobox__input::-webkit-search-results-button,
@@ -353,11 +380,6 @@
         overflow: hidden !important;
     }
 
-    body:has(#filters-panel:not(.hidden)) main:has(#filters-panel) {
-        position: relative;
-        z-index: 20000 !important;
-    }
-
     #filters-overlay:not(.hidden) {
         background: rgba(0, 0, 0, 0.4);
         bottom: 0 !important;
@@ -367,7 +389,7 @@
         pointer-events: auto !important;
         position: fixed !important;
         right: 0 !important;
-        top: var(--mobile-filters-top, 0px) !important;
+        top: 0 !important;
         width: auto !important;
         z-index: 20001 !important;
     }
@@ -381,17 +403,19 @@
         pointer-events: auto !important;
         position: fixed !important;
         right: 0 !important;
-        top: var(--mobile-filters-top, 0px) !important;
+        top: 0 !important;
         width: auto !important;
         z-index: 20002 !important;
     }
 
     #filters-panel:not(.hidden) .filters-panel-sheet {
-        height: calc(100dvh - var(--mobile-filters-top, 0px)) !important;
-        max-height: calc(100dvh - var(--mobile-filters-top, 0px)) !important;
+        height: auto !important;
+        max-height: 100dvh !important;
         overflow-y: auto !important;
         overscroll-behavior: contain;
         position: relative;
+        border-bottom-left-radius: 0.75rem;
+        border-bottom-right-radius: 0.75rem;
         -webkit-overflow-scrolling: touch;
         z-index: 1;
     }

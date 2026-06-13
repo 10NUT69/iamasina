@@ -43,7 +43,12 @@
         if ($imgCount === 0 && $service->main_image_url) {
             $sliderImages = [$service->main_image_url];
         }
-        $slideCount = count($sliderImages);
+        $sliderImageUrls = collect($sliderImages)
+            ->map(fn ($img) => $service->imageCardUrl($img))
+            ->filter()
+            ->values()
+            ->all();
+        $slideCount = count($sliderImageUrls);
 
         // 6. Data afisata ramane data publicarii/reactualizarii, nu data editarii.
         $dateLabel = $service->listing_date_label;
@@ -61,10 +66,75 @@
              x-data="{ 
                 activeSlide: 0, 
                 slides: {{ $slideCount > 0 ? $slideCount : 1 }},
-                next() { this.activeSlide = (this.activeSlide === this.slides - 1) ? 0 : this.activeSlide + 1 },
-                prev() { this.activeSlide = (this.activeSlide === 0) ? this.slides - 1 : this.activeSlide - 1 },
+                imageUrls: @js($sliderImageUrls),
+                loadedSlides: {{ $slideCount > 0 ? '[0]' : '[]' }},
+                loadingSlides: [],
+                pendingSlide: null,
                 touchStartX: null,
-                onTouchStart(event) { this.touchStartX = event.changedTouches[0].clientX },
+                init() { this.observeForPreload() },
+                isLoaded(index) { return this.loadedSlides.includes(index) },
+                nextIndex(index = this.activeSlide) { return this.slides < 2 ? 0 : (index === this.slides - 1 ? 0 : index + 1) },
+                prevIndex(index = this.activeSlide) { return this.slides < 2 ? 0 : (index === 0 ? this.slides - 1 : index - 1) },
+                next() { this.goTo(this.nextIndex()) },
+                prev() { this.goTo(this.prevIndex()) },
+                goTo(index) {
+                    if (this.slides < 2 || index === this.activeSlide) return;
+                    if (this.isLoaded(index)) {
+                        this.setActive(index);
+                        return;
+                    }
+                    this.preload(index, true);
+                },
+                setActive(index) {
+                    this.activeSlide = index;
+                    this.preload(this.nextIndex(index));
+                },
+                preloadAdjacent() {
+                    if (this.slides > 1) this.preload(this.nextIndex());
+                },
+                preload(index, activate = false) {
+                    if (this.slides < 1 || !this.imageUrls[index]) return;
+                    if (this.isLoaded(index)) {
+                        if (activate) this.setActive(index);
+                        return;
+                    }
+                    if (activate) this.pendingSlide = index;
+                    if (this.loadingSlides.includes(index)) return;
+                    this.loadingSlides.push(index);
+                    const image = new Image();
+                    image.decoding = 'async';
+                    image.onload = () => {
+                        if (!this.loadedSlides.includes(index)) this.loadedSlides.push(index);
+                        this.loadingSlides = this.loadingSlides.filter((slide) => slide !== index);
+                        if (this.pendingSlide === index) {
+                            this.pendingSlide = null;
+                            this.setActive(index);
+                        }
+                    };
+                    image.onerror = () => {
+                        this.loadingSlides = this.loadingSlides.filter((slide) => slide !== index);
+                        if (this.pendingSlide === index) this.pendingSlide = null;
+                    };
+                    image.src = this.imageUrls[index];
+                },
+                observeForPreload() {
+                    if (this.slides < 2) return;
+                    if (!('IntersectionObserver' in window)) {
+                        this.preloadAdjacent();
+                        return;
+                    }
+                    const observer = new IntersectionObserver((entries) => {
+                        if (entries.some((entry) => entry.isIntersecting)) {
+                            this.preloadAdjacent();
+                            observer.disconnect();
+                        }
+                    }, { rootMargin: '450px 0px' });
+                    observer.observe(this.$el);
+                },
+                onTouchStart(event) {
+                    this.preloadAdjacent();
+                    this.touchStartX = event.changedTouches[0].clientX;
+                },
                 onTouchEnd(event) {
                     if (this.touchStartX === null || this.slides < 2) return;
 
@@ -77,28 +147,42 @@
                     this.touchStartX = null;
                 }
              }"
+             @mouseenter="preloadAdjacent()"
              @touchstart.passive="onTouchStart($event)"
              @touchend.passive="onTouchEnd($event)">
 
             {{-- Link principal pe imagine --}}
             <a href="{{ $service->public_url }}" class="block w-full h-full relative group/img">
                 @if($slideCount > 0)
-                    @foreach($sliderImages as $index => $img)
+                    @foreach($sliderImageUrls as $index => $imageUrl)
                         @php
-                            $imageUrl = $service->imageCardUrl($img);
                             $isPriorityImage = $index === 0 && $cardIndex < 4;
                         @endphp
                         @if($imageUrl)
-                            <img src="{{ $imageUrl }}" 
-                                 x-show="activeSlide === {{ $index }}"
-                                 x-transition:enter="transition transform duration-500 ease-out"
-                                 x-transition:enter-start="opacity-0 scale-105"
-                                 x-transition:enter-end="opacity-100 scale-100"
-                                 class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105"
-                                 alt="{{ $imageAlt }} - poza {{ $index + 1 }}"
-                                 loading="{{ $isPriorityImage ? 'eager' : 'lazy' }}"
-                                 decoding="async"
-                                 @if($isPriorityImage) fetchpriority="high" @endif>
+                            @if($index === 0)
+                                <img src="{{ $imageUrl }}"
+                                     x-show="activeSlide === {{ $index }}"
+                                     x-transition:enter="transition transform duration-500 ease-out"
+                                     x-transition:enter-start="opacity-0 scale-105"
+                                     x-transition:enter-end="opacity-100 scale-100"
+                                     class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105"
+                                     alt="{{ $imageAlt }} - poza {{ $index + 1 }}"
+                                     loading="{{ $isPriorityImage ? 'eager' : 'lazy' }}"
+                                     decoding="async"
+                                     @if($isPriorityImage) fetchpriority="high" @endif>
+                            @else
+                                <template x-if="isLoaded({{ $index }})">
+                                    <img src="{{ $imageUrl }}"
+                                         x-show="activeSlide === {{ $index }}"
+                                         x-transition:enter="transition transform duration-500 ease-out"
+                                         x-transition:enter-start="opacity-0 scale-105"
+                                         x-transition:enter-end="opacity-100 scale-100"
+                                         class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105"
+                                         alt="{{ $imageAlt }} - poza {{ $index + 1 }}"
+                                         loading="lazy"
+                                         decoding="async">
+                                </template>
+                            @endif
                         @endif
                     @endforeach
                 @else

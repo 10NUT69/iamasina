@@ -369,15 +369,19 @@
     <div class="flex-1 w-full h-full relative overflow-hidden">
         <div class="swiper lightbox-swiper w-full h-full">
             <div class="swiper-wrapper">
-                @foreach($fullImageUrls as $url)
+                @foreach($fullImageUrls as $index => $url)
                     <div class="swiper-slide">
                         <div class="swiper-zoom-container">
                             <img 
-                                src="{{ $url }}" 
+                                data-gallery-image
+                                data-gallery-index="{{ $index }}"
+                                data-gallery-src="{{ $url }}"
                                 class="max-h-full max-w-full object-contain select-none" 
                                 alt="{{ $imageAlt }} - poza {{ $loop->iteration }}"
                                 style="-webkit-user-drag: none; -webkit-touch-callout: none;" 
                                 draggable="false"
+                                loading="lazy"
+                                decoding="async"
                             >
                         </div>
                     </div>
@@ -430,7 +434,15 @@
                         <div class="swiper-wrapper">
                             @foreach($fullImageUrls as $index => $url)
                                 <div class="swiper-slide cursor-pointer" onclick="openGallery({{ $index }})">
-                                    <img src="{{ $url }}" alt="{{ $imageAlt }} - poza {{ $index + 1 }}" class="w-full h-full object-cover">
+                                    <img
+                                        @if($index < 2) src="{{ $url }}" @else data-gallery-src="{{ $url }}" @endif
+                                        data-gallery-image
+                                        data-gallery-index="{{ $index }}"
+                                        alt="{{ $imageAlt }} - poza {{ $index + 1 }}"
+                                        class="w-full h-full object-cover"
+                                        loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                                        decoding="async"
+                                        @if($index === 0) fetchpriority="high" @elseif($index === 1) fetchpriority="low" @endif>
                                 </div>
                             @endforeach
                         </div>
@@ -450,20 +462,20 @@
                 <div class="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-[480px] cursor-pointer">
                     @if(isset($fullImageUrls[0]))
                         <div class="col-span-3 row-span-2 relative overflow-hidden group" onclick="openGallery(0)">
-                            <img src="{{ $fullImageUrls[0] }}" alt="{{ $imageAlt }} - poza 1" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                            <img src="{{ $fullImageUrls[0] }}" alt="{{ $imageAlt }} - poza 1" class="w-full h-full object-cover transition duration-500 group-hover:scale-105" loading="eager" decoding="async" fetchpriority="high">
                             <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition"></div>
                         </div>
                     @endif
 
                     @if(isset($fullImageUrls[1]))
                         <div class="col-span-1 row-span-1 relative overflow-hidden group" onclick="openGallery(1)">
-                            <img src="{{ $fullImageUrls[1] }}" alt="{{ $imageAlt }} - poza 2" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                            <img src="{{ $fullImageUrls[1] }}" alt="{{ $imageAlt }} - poza 2" class="w-full h-full object-cover transition duration-500 group-hover:scale-105" loading="eager" decoding="async" fetchpriority="low">
                         </div>
                     @endif
 
                     @if(isset($fullImageUrls[2]))
                         <div class="col-span-1 row-span-1 relative overflow-hidden group" onclick="openGallery(2)">
-                            <img src="{{ $fullImageUrls[2] }}" alt="{{ $imageAlt }} - poza 3" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                            <img src="{{ $fullImageUrls[2] }}" alt="{{ $imageAlt }} - poza 3" class="w-full h-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" decoding="async" fetchpriority="low">
                             @if(count($fullImageUrls) > 3)
                                 <div class="absolute inset-0 bg-black/60 flex items-center justify-center group-hover:bg-black/50 transition">
                                     <span class="text-white font-bold text-lg tracking-wide flex flex-col items-center">
@@ -959,6 +971,44 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+        const galleryImageCount = {{ count($fullImageUrls) }};
+
+        function normalizeGalleryIndex(index) {
+            if (galleryImageCount < 1) return 0;
+
+            return ((index % galleryImageCount) + galleryImageCount) % galleryImageCount;
+        }
+
+        function loadGalleryImage(index) {
+            if (galleryImageCount < 1) return;
+
+            const normalizedIndex = normalizeGalleryIndex(index);
+            document.querySelectorAll(`[data-gallery-image][data-gallery-index="${normalizedIndex}"][data-gallery-src]`).forEach((image) => {
+                if (image.getAttribute('src')) return;
+
+                image.setAttribute('src', image.dataset.gallerySrc);
+            });
+        }
+
+        function loadGalleryWindow(index) {
+            loadGalleryImage(index);
+            loadGalleryImage(index + 1);
+        }
+
+        function loadGalleryImageWhenIdle(index) {
+            if (galleryImageCount <= index) return;
+
+            if ('requestIdleCallback' in window) {
+                window.requestIdleCallback(() => loadGalleryImage(index), { timeout: 2000 });
+                return;
+            }
+
+            window.setTimeout(() => loadGalleryImage(index), 1200);
+        }
+
+        loadGalleryImage(0);
+        loadGalleryImage(1);
+        loadGalleryImageWhenIdle(2);
 
         // 1. Mobile Inline Slider (Actualizat cu Navigare)
         const mobileSwiper = new Swiper('.mobile-hero-swiper', {
@@ -974,6 +1024,7 @@
                     const index = this.realIndex + 1;
                     const counters = document.querySelectorAll('.mobile-counter');
                     counters.forEach(c => c.innerText = index);
+                    loadGalleryWindow(this.realIndex);
                 }
             }
         });
@@ -983,6 +1034,10 @@
         let lightboxSwiperInstance = null;
 
         window.openGallery = function(index) {
+            loadGalleryImage(index - 1);
+            loadGalleryImage(index);
+            loadGalleryImage(index + 1);
+
             lightbox.classList.remove('hidden');
             lightbox.classList.add('flex');
 
@@ -1003,6 +1058,7 @@
                     on: {
                         slideChange: function () {
                             document.getElementById('lb-current').innerText = this.activeIndex + 1;
+                            loadGalleryWindow(this.activeIndex);
                         }
                     }
                 });

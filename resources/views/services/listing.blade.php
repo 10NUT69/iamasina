@@ -149,7 +149,7 @@
 <div class="listing-page-shell w-full pt-0 lg:pt-6 pb-12">
     <div class="flex flex-col gap-0 lg:flex-row lg:gap-6">
         {{-- Sidebar filtre (desktop) --}}
-        <aside class="lg:w-[300px] lg:shrink-0">
+        <aside class="lg:w-[340px] lg:shrink-0">
             <div class="hidden lg:block mb-5">
                 <nav class="flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">
                     <a href="{{ route('services.index') }}"
@@ -172,34 +172,47 @@
             <div id="filters-panel"
                  class="fixed inset-0 z-[1001] hidden pointer-events-none lg:static lg:block lg:z-auto lg:pointer-events-auto">
                 <div class="filters-panel-sheet pointer-events-auto bg-white dark:bg-[#1E1E1E] h-full lg:h-auto w-full max-w-md lg:max-w-none lg:rounded-2xl lg:shadow-md border border-gray-200 dark:border-[#333333] overflow-y-auto lg:overflow-visible">
-                    <div class="sticky top-0 z-20 flex items-center justify-between px-4 py-4 border-b border-gray-200 bg-white dark:bg-[#1E1E1E] dark:border-[#333333] lg:hidden">
+                    <div class="sticky top-0 z-20 flex items-center justify-between px-4 py-2.5 border-b border-gray-200 bg-white dark:bg-[#1E1E1E] dark:border-[#333333] lg:hidden">
                         <h2 class="text-lg font-bold text-gray-900 dark:text-white">Filtrează</h2>
-                        <button type="button" id="close-filters" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:border-[#C81424] hover:text-[#C81424] dark:border-[#333333] dark:bg-[#2d2d2d] dark:text-gray-200">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <button type="button" id="close-filters" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:border-[#C81424] hover:text-[#C81424] dark:border-[#333333] dark:bg-[#2d2d2d] dark:text-gray-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
                             </svg>
                         </button>
                     </div>
 
-                    <form id="search-form" class="p-4 space-y-4">
-                        <input type="hidden" name="vehicle_type" id="vehicle-type" value="anunturi-auto-de-vanzare">
-                        <input type="hidden" name="seller_type" id="seller-type" value="{{ request('seller_type', 'all') }}">
+                    <form id="search-form" class="space-y-3 p-3 sm:space-y-4 sm:p-4">
+                        @php
+                            $selectedSellerType = in_array(request('seller_type'), ['all', 'individual', 'dealer'], true)
+                                ? request('seller_type')
+                                : 'all';
+                            $sellerTypeOptions = [
+                                ['value' => 'all', 'label' => 'Toți'],
+                                ['value' => 'individual', 'label' => 'Proprietari'],
+                                ['value' => 'dealer', 'label' => 'Parcuri'],
+                            ];
+                        @endphp
+
+                        <input type="hidden" name="vehicle_type" id="vehicle-type" value="anunturi-auto-de-vanzare" hidden>
+                        <input type="hidden" name="seller_type" id="seller-type" value="{{ $selectedSellerType }}" hidden>
 
                         <div>
-                            <x-combobox
-                                id="seller-type-select"
-                                name="seller_type_select"
-                                label="Vânzător"
-                                placeholder="Vânzător"
-                                :options="[
-                                    ['value' => 'all', 'label' => 'Parcuri + Proprietari'],
-                                    ['value' => 'individual', 'label' => 'Proprietari'],
-                                    ['value' => 'dealer', 'label' => 'Parcuri'],
-                                ]"
-                                :selected="request()->has('seller_type') ? request('seller_type') : null"
-                                :searchable="false"
-                                class="listing-filter"
-                            />
+                            <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-300">Tip Vânzător</span>
+                            <div class="grid grid-cols-3 overflow-hidden rounded-lg border border-[#E6E8EC] bg-white dark:border-[#3a414b] dark:bg-[#20242b]">
+                                @foreach($sellerTypeOptions as $sellerTypeOption)
+                                    @php
+                                        $isSelectedSellerType = $selectedSellerType === $sellerTypeOption['value'];
+                                    @endphp
+                                    <button
+                                        type="button"
+                                        data-seller-filter="{{ $sellerTypeOption['value'] }}"
+                                        aria-pressed="{{ $isSelectedSellerType ? 'true' : 'false' }}"
+                                        class="seller-filter-tab h-10 min-w-0 border-b-2 px-2 text-xs font-bold sm:text-sm {{ $isSelectedSellerType ? 'border-b-[#C81424] bg-white text-[#C81424] hover:bg-white hover:text-[#C81424]' : 'border-b-transparent bg-white text-[#687080] hover:bg-[#F7F8FA] hover:text-[#30323A] dark:bg-transparent dark:text-gray-400 dark:hover:bg-[#2a2f36] dark:hover:text-white' }}"
+                                    >
+                                        {{ $sellerTypeOption['label'] }}
+                                    </button>
+                                @endforeach
+                            </div>
                         </div>
 
                         @php
@@ -257,27 +270,29 @@
                             $numericFilterClearClass = 'ia-combobox__clear !right-1.5';
                         @endphp
 
-                        <x-combobox
-                            id="brand-filter"
-                            name="brand_id"
-                            label="Marca"
-                            placeholder="Marca"
-                            :options="$brands"
-                            option-label="name"
-                            :selected="$selectedBrandId"
-                            class="listing-filter"
-                        />
+                        <div class="grid grid-cols-2 gap-2">
+                            <x-combobox
+                                id="brand-filter"
+                                name="brand_id"
+                                label="Marca"
+                                placeholder="Marca"
+                                :options="$brands"
+                                option-label="name"
+                                :selected="$selectedBrandId"
+                                class="listing-filter"
+                            />
 
-                        <x-combobox
-                            id="model-filter"
-                            name="model_id"
-                            label="Model"
-                            placeholder="Model"
-                            :options="$currentModel ? collect([$currentModel]) : collect()"
-                            :selected="$selectedModelId"
-                            :disabled="!$selectedBrandId"
-                            class="listing-filter"
-                        />
+                            <x-combobox
+                                id="model-filter"
+                                name="model_id"
+                                label="Model"
+                                placeholder="Model"
+                                :options="$currentModel ? collect([$currentModel]) : collect()"
+                                :selected="$selectedModelId"
+                                :disabled="!$selectedBrandId"
+                                class="listing-filter"
+                            />
+                        </div>
 
                         @foreach($numericFilterGroups as $numericFilterGroup)
                             <div>
@@ -307,49 +322,53 @@
                             </div>
                         @endforeach
 
-                        <x-combobox
-                            id="body-filter"
-                            name="caroserie_id"
-                            label="Tip caroserie"
-                            placeholder="Tip caroserie"
-                            :options="$bodies"
-                            option-label="nume"
-                            :selected="request('caroserie_id')"
-                            class="listing-filter"
-                        />
+                        <div class="grid grid-cols-2 gap-2">
+                            <x-combobox
+                                id="body-filter"
+                                name="caroserie_id"
+                                label="Tip caroserie"
+                                placeholder="Tip caroserie"
+                                :options="$bodies"
+                                option-label="nume"
+                                :selected="request('caroserie_id')"
+                                class="listing-filter"
+                            />
 
-                        <x-combobox
-                            id="fuel-filter"
-                            name="combustibil_id"
-                            label="Combustibil"
-                            placeholder="Combustibil"
-                            :options="$fuels"
-                            option-label="nume"
-                            :selected="request('combustibil_id')"
-                            class="listing-filter"
-                        />
+                            <x-combobox
+                                id="fuel-filter"
+                                name="combustibil_id"
+                                label="Combustibil"
+                                placeholder="Combustibil"
+                                :options="$fuels"
+                                option-label="nume"
+                                :selected="request('combustibil_id')"
+                                class="listing-filter"
+                            />
+                        </div>
 
-                        <x-combobox
-                            id="gearbox-filter"
-                            name="cutie_viteze_id"
-                            label="Transmisie"
-                            placeholder="Transmisie"
-                            :options="$transmissions"
-                            option-label="nume"
-                            :selected="request('cutie_viteze_id')"
-                            class="listing-filter"
-                        />
+                        <div class="grid grid-cols-2 gap-2">
+                            <x-combobox
+                                id="gearbox-filter"
+                                name="cutie_viteze_id"
+                                label="Transmisie"
+                                placeholder="Transmisie"
+                                :options="$transmissions"
+                                option-label="nume"
+                                :selected="request('cutie_viteze_id')"
+                                class="listing-filter"
+                            />
 
-                        <x-combobox
-                            id="county-input"
-                            name="county_id"
-                            label="Județ"
-                            placeholder="Județ"
-                            :options="$counties"
-                            option-label="name"
-                            :selected="$selectedCountyId"
-                            class="listing-filter"
-                        />
+                            <x-combobox
+                                id="county-input"
+                                name="county_id"
+                                label="Județ"
+                                placeholder="Județ"
+                                :options="$counties"
+                                option-label="name"
+                                :selected="$selectedCountyId"
+                                class="listing-filter"
+                            />
+                        </div>
 
                         <x-combobox
                             id="locality-input"
@@ -1425,7 +1444,14 @@
         const filterPanel = document.getElementById('filters-panel');
         const openFilters = document.getElementById('open-filters');
         const closeFilters = document.getElementById('close-filters');
-        const sellerSelect = document.getElementById('seller-type-select');
+        const sellerButtons = document.querySelectorAll('[data-seller-filter]');
+        const filterPortalAnchor = filterOverlay?.parentNode && filterPanel
+            ? document.createComment('filters-panel-portal')
+            : null;
+
+        if (filterPortalAnchor && filterOverlay?.parentNode) {
+            filterOverlay.parentNode.insertBefore(filterPortalAnchor, filterOverlay);
+        }
 
         const nav = document.getElementById('main-nav');
         let cachedNavHeight = nav ? Math.ceil(nav.offsetHeight) : 56;
@@ -1457,20 +1483,44 @@
             applyMobileFiltersOffset();
         };
 
+        const filtersArePortaled = () => (
+            filterOverlay?.parentNode === document.body || filterPanel?.parentNode === document.body
+        );
+
+        const portalMobileFilters = () => {
+            if (!filterOverlay || !filterPanel || !mobileQuery.matches || filtersArePortaled()) {
+                return;
+            }
+
+            document.body.appendChild(filterOverlay);
+            document.body.appendChild(filterPanel);
+        };
+
+        const restoreMobileFilters = () => {
+            if (!filterOverlay || !filterPanel || !filterPortalAnchor?.parentNode || !filtersArePortaled()) {
+                return;
+            }
+
+            const originalParent = filterPortalAnchor.parentNode;
+            originalParent.insertBefore(filterOverlay, filterPortalAnchor.nextSibling);
+            originalParent.insertBefore(filterPanel, filterOverlay.nextSibling);
+        };
+
         closeMobileFilters = () => {
             filterOverlay?.classList.add('hidden');
             filterPanel?.classList.add('hidden');
             document.body.style.overflow = '';
             closeCustomSelects();
+            restoreMobileFilters();
+            setMobileFiltersOffset();
         };
 
         const openMobileFilters = () => {
-            setMobileFiltersOffset();
+            portalMobileFilters();
             filterOverlay?.classList.remove('hidden');
             filterPanel?.classList.remove('hidden');
             filterPanel?.querySelector('.filters-panel-sheet')?.scrollTo({ top: 0 });
             document.body.style.overflow = 'hidden';
-            window.requestAnimationFrame(() => setMobileFiltersOffset());
         };
 
         if (openFilters && filterOverlay && filterPanel) {
@@ -1508,7 +1558,7 @@
 
         window.addEventListener('main-nav-visibility-change', (event) => {
             if (Number.isFinite(Number(event.detail?.visibleHeight))) {
-                cachedNavHeight = Math.max(cachedNavHeight, Math.ceil(Number(event.detail.visibleHeight)));
+                cachedNavHeight = Math.ceil(Number(event.detail.visibleHeight));
             }
 
             setMobileFiltersOffset();
@@ -1560,13 +1610,37 @@
             });
         }
 
-        if (sellerSelect) {
-            sellerSelect.addEventListener('change', () => {
-                if (domElements.sellerType) {
-                    domElements.sellerType.value = sellerSelect.value || 'all';
-                }
-                window.checkResetVisibility();
+        const sellerActiveClasses = ['border-b-[#C81424]', 'bg-white', 'text-[#C81424]', 'hover:bg-white', 'hover:text-[#C81424]'];
+        const sellerInactiveClasses = ['border-b-transparent', 'bg-white', 'text-[#687080]', 'hover:bg-[#F7F8FA]', 'hover:text-[#30323A]', 'dark:bg-transparent', 'dark:text-gray-400', 'dark:hover:bg-[#2a2f36]', 'dark:hover:text-white'];
+        const sellerLegacyClasses = ['border-[#C81424]', 'border-transparent', 'bg-[#30323A]', 'text-white', 'hover:bg-[#30323A]', 'bg-[#F7F8FA]', 'hover:bg-[#EEF1F4]', 'bg-[#2F3137]', 'shadow-[0_8px_18px_rgba(17,24,39,0.18)]', 'hover:bg-[#26282D]', 'bg-[#BA1C23]', 'shadow-[0_6px_16px_rgba(186,28,35,0.24)]', 'hover:bg-[#A8171F]', 'bg-[#fff0f2]', 'shadow-sm', 'dark:bg-[#3a171c]'];
+        const updateSellerButtons = (selectedSellerType = 'all') => {
+            const normalizedSellerType = ['all', 'individual', 'dealer'].includes(selectedSellerType)
+                ? selectedSellerType
+                : 'all';
+
+            sellerButtons.forEach((button) => {
+                const isSelected = button.dataset.sellerFilter === normalizedSellerType;
+                button.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+                button.classList.remove(...(isSelected ? sellerInactiveClasses : sellerActiveClasses), ...sellerLegacyClasses);
+                button.classList.add(...(isSelected ? sellerActiveClasses : sellerInactiveClasses));
             });
+        };
+
+        if (sellerButtons.length) {
+            sellerButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    const sellerType = button.dataset.sellerFilter || 'all';
+
+                    if (domElements.sellerType) {
+                        domElements.sellerType.value = sellerType;
+                    }
+
+                    updateSellerButtons(sellerType);
+                    window.checkResetVisibility();
+                });
+            });
+
+            updateSellerButtons(domElements.sellerType?.value || 'all');
         }
 
         loadOnFirstComboboxOpen(domElements.brand, ensureBrandsLoaded);
@@ -1732,14 +1806,16 @@
 
         #filters-overlay,
         #filters-panel {
-            top: var(--mobile-filters-top);
+            top: 0;
             bottom: 0;
             height: auto;
         }
 
         #filters-panel .filters-panel-sheet {
-            height: calc(100dvh - var(--mobile-filters-top));
-            max-height: calc(100dvh - var(--mobile-filters-top));
+            height: auto;
+            max-height: 100dvh;
+            border-bottom-left-radius: 0.75rem;
+            border-bottom-right-radius: 0.75rem;
             border-top-left-radius: 0;
             border-top-right-radius: 0;
         }

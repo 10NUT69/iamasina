@@ -115,17 +115,17 @@
                 </div>
 
                 {{-- Toggle Tabs --}}
-                <div class="seller-tabs grid min-w-0 grid-cols-3 bg-white dark:bg-[#151515] border-t border-red-100/80 dark:border-white/10 sm:border-t-0 sm:border-l w-full sm:w-[430px] rounded-t-xl sm:rounded-tl-lg sm:rounded-tr-xl">
+                <div class="seller-tabs grid min-w-0 grid-cols-3 overflow-hidden bg-white dark:bg-[#151515] border-t border-[#E6E8EC] dark:border-white/10 sm:border-t-0 sm:border-l w-full sm:w-[430px] rounded-t-xl sm:rounded-tl-lg sm:rounded-tr-xl">
                     <button type="button" data-seller="all"
-                    class="seller-tab min-w-0 px-2 sm:px-4 py-3 text-[11px] sm:text-xs font-bold transition-all duration-200 text-gray-900 bg-[#fff0f2] dark:text-white dark:bg-[#3a171c] rounded-tl-xl sm:rounded-tl-lg">
-                        Toate
+                    class="seller-tab min-w-0 border-b-2 border-b-[#C81424] bg-white px-2 py-3 text-[11px] font-bold text-[#C81424] hover:bg-white hover:text-[#C81424] sm:px-4 sm:text-xs">
+                        Toți
                     </button>
                     <button type="button" data-seller="individual"
-                        class="seller-tab min-w-0 px-2 sm:px-4 py-3 text-[11px] sm:text-xs font-bold transition-all duration-200 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                        class="seller-tab min-w-0 border-b-2 border-b-transparent bg-white px-2 py-3 text-[11px] font-bold text-[#687080] hover:bg-[#F7F8FA] hover:text-[#30323A] dark:bg-transparent dark:text-gray-400 dark:hover:bg-[#2a2f36] dark:hover:text-white sm:px-4 sm:text-xs">
                         Proprietari
                     </button>
                     <button type="button" data-seller="dealer"
-                        class="seller-tab min-w-0 px-2 sm:px-4 py-3 text-[11px] sm:text-xs font-bold transition-all duration-200 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-tr-xl">
+                        class="seller-tab min-w-0 border-b-2 border-b-transparent bg-white px-2 py-3 text-[11px] font-bold text-[#687080] hover:bg-[#F7F8FA] hover:text-[#30323A] dark:bg-transparent dark:text-gray-400 dark:hover:bg-[#2a2f36] dark:hover:text-white sm:px-4 sm:text-xs">
                         Parcuri Auto
                     </button>
                 </div>
@@ -997,15 +997,18 @@
 
         const sellerTabs = document.querySelectorAll('.seller-tab');
         const sellerInput = domElements.sellerType;
+        const sellerActiveClasses = ['border-b-[#C81424]', 'bg-white', 'text-[#C81424]', 'hover:bg-white', 'hover:text-[#C81424]'];
+        const sellerInactiveClasses = ['border-b-transparent', 'bg-white', 'text-[#687080]', 'hover:bg-[#F7F8FA]', 'hover:text-[#30323A]', 'dark:bg-transparent', 'dark:text-gray-400', 'dark:hover:bg-[#2a2f36]', 'dark:hover:text-white'];
+        const sellerLegacyClasses = ['border-[#C81424]', 'border-transparent', 'text-gray-900', 'text-[#8f111a]', 'bg-[#fff0f2]', 'dark:text-white', 'dark:bg-[#3a171c]', 'dark:bg-[#333]', 'bg-transparent', 'text-gray-500', 'hover:text-gray-900', 'bg-[#30323A]', 'hover:bg-[#30323A]', 'bg-[#F7F8FA]', 'hover:bg-[#EEF1F4]', 'bg-[#2F3137]', 'shadow-[0_8px_18px_rgba(17,24,39,0.18)]', 'hover:bg-[#26282D]', 'rounded-md'];
         const setActiveSellerTab = (val) => {
             sellerTabs.forEach(tab => {
                 const isActive = tab.dataset.seller === val;
                 if (isActive) {
-                    tab.classList.remove('text-gray-500', 'text-gray-900', 'hover:text-gray-900', 'bg-transparent', 'bg-white', 'dark:text-gray-400', 'dark:hover:text-white', 'dark:bg-[#333]');
-                    tab.classList.add('text-[#8f111a]', 'bg-[#fff0f2]', 'dark:text-white', 'dark:bg-[#3a171c]');
+                    tab.classList.remove(...sellerInactiveClasses, ...sellerLegacyClasses);
+                    tab.classList.add(...sellerActiveClasses);
                 } else {
-                    tab.classList.add('text-gray-500', 'hover:text-gray-900', 'bg-transparent', 'dark:text-gray-400', 'dark:hover:text-white');
-                    tab.classList.remove('text-[#8f111a]', 'bg-[#fff0f2]', 'dark:text-white', 'dark:bg-[#3a171c]');
+                    tab.classList.remove(...sellerActiveClasses, ...sellerLegacyClasses);
+                    tab.classList.add(...sellerInactiveClasses);
                 }
             });
         };

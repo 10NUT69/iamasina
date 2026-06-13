@@ -18,6 +18,22 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Latest Changes
 
+- 2026-06-13: Changed the Home seller tab label from `Toate` to `Toți` while keeping the submitted `seller_type=all` value unchanged.
+- 2026-06-13: Refined the Home and listing seller tabs into a flatter segmented-control palette: active `#30323A` with white text and no shadow, inactive `#F7F8FA`/`#687080`, divider/border `#E6E8EC`, and inactive hover `#EEF1F4`/`#30323A`.
+- 2026-06-13: Matched the Home page seller source tabs to the listing filter styling by using the anthracite active state (`#2F3137`), white text, and neutral shadow for `Toate` / `Proprietari` / `Parcuri Auto`.
+- 2026-06-13: Changed the active `Tip Vânzător` listing filter tab from primary red to an anthracite selected state (`#2F3137`), keeping conversion actions visually owned by the main red buttons.
+- 2026-06-13: Updated the active `Tip Vânzător` listing filter tab to use the darker primary red (`#BA1C23`), white text, and a subtle red shadow instead of the pale red selected state.
+- 2026-06-13: Updated the mobile listing filters popup to portal `#filters-overlay` and `#filters-panel` into `document.body` while open, then restore them to the filters sidebar on close, so the popup can cover the fixed header without raising the whole listing `<main>`.
+- 2026-06-13: Removed the mobile filters-open rule that raised the whole listing `<main>` to `z-index: 20000`; only the filters overlay and panel keep high z-index now, preventing listing cards from sitting above the header while the popup is open.
+- 2026-06-13: Simplified the mobile listing filters popup so the overlay and sheet always start at viewport top (`top: 0`) instead of using the dynamic header offset; the sticky listing action bar can still use `--mobile-filters-top`.
+- 2026-06-12: Changed the mobile listing filters sheet to auto-height with a viewport max-height, so the white container ends shortly after the reset/search buttons instead of continuing to the bottom of the screen.
+- 2026-06-12: Compact the mobile listing filters panel header and form spacing so more filters fit in the first viewport; the hidden filter inputs are now explicitly marked `hidden` so Tailwind `space-y` does not add dead space before the first visible control.
+- 2026-06-12: Fixed the mobile listing filters panel offset so opening filters locks the panel top to the header visibility at tap time: hidden header opens from viewport top, visible header opens below the header.
+- 2026-06-12: Updated listing filter combobox icon behavior so, inside `#filters-panel`, the clear `x` replaces the dropdown arrow while a value is selected; clearing the value hides `x` and shows the arrow again.
+- 2026-06-12: Tightened the source combobox CSS for all listing filter comboboxes inside `#filters-panel` so two-column filter fields have more usable text space before the clear/toggle controls.
+- 2026-06-12: Widened the desktop listing filters sidebar from 300px to 340px by changing the existing `lg:w-[300px]` definition in `resources/views/services/listing.blade.php`; mobile remains fluid.
+- 2026-06-12: Adjusted the listing filters layout only in `resources/views/services/listing.blade.php`: seller type now uses three buttons backed by the existing `seller_type` hidden input, brand/model, body/fuel, and transmission/county are paired on rows, and locality remains full-width.
+- 2026-06-12: Optimized listing/show image gallery loading without route/controller changes: listing cards now keep only the first image in initial markup and progressively preload secondary images, while the show page defers hidden lightbox/mobile images and warms nearby gallery images.
 - 2026-06-12: Reworked the admin manual media export so `admin.backups.media.export` now creates a `backup_exports` record and dispatches `GenerateMediaBackup` on `database_backups/backups` instead of building the ZIP in the HTTP request.
 - 2026-06-12: Added private manual media export archives under `storage/app/private/backups/media-exports`, atomic `.zip.part` generation, completed/download/delete states in the admin Backup page, and a scheduled `backups:cleanup-media-exports` cleanup command.
 - 2026-06-06: Nudged the mobile price-type badges down by 1px on both listing cards and the show page so they align better with the price text without changing size, shape, or colors.
@@ -44,6 +60,76 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Verification
 
+- Ran `php -l resources/views/services/index.blade.php`; no syntax errors after changing the Home seller tab label to `Toți`.
+- Ran `git diff --check`; passed after changing the Home seller tab label to `Toți`.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after changing the Home seller tab label.
+- Ran `php -l resources/views/services/index.blade.php` and `php -l resources/views/services/listing.blade.php`; no syntax errors after refining the seller tabs segmented-control palette.
+- Ran `git diff --check`; passed after refining the seller tabs segmented-control palette.
+- Ran Vite build through the bundled Codex Node runtime after adding the new seller tab arbitrary color classes; build completed.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after refining the seller tabs segmented-control palette.
+- Verified `http://auto.test/` and `http://auto.test/anunturi-auto-de-vanzare` in the in-app browser: seller tab containers render with `rgb(247, 248, 250)` and `rgb(230, 232, 236)`, active tabs settle to `rgb(48, 50, 58)`/white/no shadow, inactive tabs settle to `rgb(247, 248, 250)`/`rgb(104, 112, 128)`, and clicking dealer/parcuri keeps the hidden `seller_type` value as `dealer`.
+- Ran `php -l resources/views/services/index.blade.php`; no syntax errors after matching the Home seller tabs to the anthracite active state.
+- Ran `git diff --check`; passed after matching the Home seller tabs to the anthracite active state.
+- Ran Vite build through the bundled Codex Node runtime after updating the Home seller tab classes; build completed.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after matching the Home seller tabs to the anthracite active state.
+- Verified `http://auto.test/` in the in-app browser: the default `Toate` tab renders with `rgb(47, 49, 55)`, white text, and neutral shadow; clicking `Parcuri Auto` moves the same anthracite active styling and keeps the hidden `seller_type` value as `dealer`.
+- Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after switching the seller filter active state to anthracite.
+- Ran `git diff --check`; passed after switching the seller filter active state to anthracite.
+- Ran Vite build through the bundled Codex Node runtime after adding the anthracite Tailwind arbitrary color/shadow classes; build completed.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after switching the seller filter active state to anthracite.
+- Verified `http://auto.test/anunturi-auto-de-vanzare` in the in-app browser at mobile viewport: the default `Toți` tab renders with `rgb(47, 49, 55)`, white text, and neutral shadow; clicking `Parcuri` moves the same anthracite active styling and keeps the hidden `seller_type` value as `dealer`.
+- Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after the seller filter active-state color update.
+- Ran `git diff --check`; passed after the seller filter active-state color update.
+- Ran Vite build through the bundled Codex Node runtime after adding the new Tailwind arbitrary color/shadow classes; build completed.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the seller filter active-state color update.
+- Verified `http://auto.test/anunturi-auto-de-vanzare` in the in-app browser at mobile viewport: the default `Toți` tab renders with `rgb(186, 28, 35)`/white text/shadow, and clicking `Parcuri` moves the same active styling while keeping the hidden `seller_type` value as `dealer`.
+- Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after adding the mobile filters body portal.
+- Ran `git diff --check`; passed after adding the mobile filters body portal.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after adding the mobile filters body portal.
+- Verified `http://auto.test/anunturi-auto-de-vanzare` in the in-app browser at a mobile viewport: with the header visible and hidden after scroll, opening filters moved `#filters-overlay` and `#filters-panel` under `BODY`, both started at viewport top `0`, the popup layered above the header/card content, and closing filters restored both elements to the original `ASIDE` while `<main>` stayed at computed `z-index: 0`.
+- Ran `git diff --check`; passed after removing the filters-open `<main>` z-index lift.
+- Ran Vite build through the bundled Codex Node runtime after removing the filters-open `<main>` z-index lift; build completed.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after removing the filters-open `<main>` z-index lift.
+- Verified `http://auto.test/anunturi-auto-de-vanzare` in the in-app browser at 390x844 mobile viewport with filters open after scroll: `<main>` computed z-index stayed `0`, listing cards stayed `auto`, header stayed `50`, overlay/panel stayed `20001/20002`, and only the filter popup/overlay layered over the page.
+- Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after making the mobile filters popup start at top.
+- Ran `git diff --check`; passed after making the mobile filters popup start at top.
+- Ran Vite build through the bundled Codex Node runtime after making the mobile filters popup start at top; build completed.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after making the mobile filters popup start at top.
+- Verified `http://auto.test/anunturi-auto-de-vanzare` in the in-app browser at 390x844 mobile viewport using coordinate clicks: with the header visible and with it hidden after scroll, `#filters-panel`, `#filters-overlay`, and `.filters-panel-sheet` all opened at top `0`; the sheet remained auto-height and ended about 13px below the submit button.
+- Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after changing the mobile filters sheet to auto-height.
+- Ran `git diff --check`; passed after changing the mobile filters sheet to auto-height.
+- Ran Vite build through the bundled Codex Node runtime after changing the mobile filters sheet to auto-height; build completed.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after changing the mobile filters sheet to auto-height.
+- Verified `http://auto.test/anunturi-auto-de-vanzare` in the in-app browser at 390x844 mobile viewport: the overlay still covers the screen, while `.filters-panel-sheet` ended about 13px below the submit button instead of extending to the viewport bottom.
+- Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after compacting the mobile filters panel.
+- Ran `git diff --check`; passed after compacting the mobile filters panel.
+- Ran Vite build through the bundled Codex Node runtime after compacting the mobile filters panel; build completed.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after compacting the mobile filters panel.
+- Verified `http://auto.test/anunturi-auto-de-vanzare` in the in-app browser at 390x844 mobile viewport: the filters panel header measured 57px, the gap from the header to `Tip Vânzător` measured 12px, and the submit button fit within the viewport.
+- Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after the mobile filters offset lock.
+- Ran `git diff --check`; passed after the mobile filters offset lock.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the mobile filters offset lock.
+- Verified `http://auto.test/anunturi-auto-de-vanzare` in the in-app browser at 390x844 mobile viewport using coordinate clicks: after scrolling until the header is hidden, opening filters keeps `#filters-panel` and `#filters-overlay` at top `0`; from page top with the header visible, opening filters keeps the panel at top `56px` under the header.
+- Ran `git diff --check`; passed after making the listing filter clear icon replace the dropdown arrow for selected values.
+- Ran Vite build through the bundled Codex Node runtime after the listing filter icon behavior change; build completed.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the listing filter icon behavior change.
+- Verified `http://auto.test/anunturi-auto-de-vanzare?caroserie_id=4` in the in-app browser on desktop and at 390x844 mobile viewport with the filters panel open: with `Hatchback` selected, the clear `x` sits in the arrow position and the dropdown arrow is hidden; after clicking `x` on desktop, the value clears and the arrow reappears.
+- Ran `git diff --check`; passed after the listing filter combobox text-spacing change.
+- Ran Vite build through the bundled Codex Node runtime after the listing filter combobox text-spacing change; build completed.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the listing filter combobox text-spacing change.
+- Verified `http://auto.test/anunturi-auto-de-vanzare?caroserie_id=4` in the in-app browser on desktop and at 390x844 mobile viewport with the filters panel open: all listing filter comboboxes (`Marca`, `Model`, `Tip caroserie`, `Combustibil`, `Transmisie`, `Județ`, `Localitate`) used the updated spacing, and `Hatchback` rendered fully.
+- Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after widening the desktop filters sidebar.
+- Ran `git diff --check`; passed after widening the desktop filters sidebar.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after widening the desktop filters sidebar.
+- Verified `http://auto.test/anunturi-auto-de-vanzare` in the in-app browser at 1280px desktop viewport: the listing filters `<aside>` and `.filters-panel-sheet` both measured 340px wide.
+- Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after the listing filters layout change.
+- Ran `git diff --check`; passed after the listing filters layout change.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the listing filters layout change.
+- Verified `http://auto.test/anunturi-auto-de-vanzare` in the in-app browser on desktop and at 390x844 mobile viewport: seller buttons render with `Toți` active by default, clicking `Parcuri` updates the existing hidden `seller_type` value to `dealer`, brand/model share a row, body/fuel share a row, transmission/county share a row, and locality stays full-width.
+- Ran `php artisan view:clear` and `php artisan view:cache`; Blade templates compiled after the progressive image-loading change.
+- Ran `php -l resources/views/services/partials/service_cards_horizontal.blade.php` and `php -l resources/views/services/show.blade.php`; no syntax errors after the progressive image-loading change.
+- Ran `git diff --check`; passed after the progressive image-loading change.
+- Verified `git diff --name-only` only listed `resources/views/services/partials/service_cards_horizontal.blade.php` and `resources/views/services/show.blade.php` before updating this handoff; no routes/controllers were changed for the image-loading optimization.
 - Ran `php artisan test --filter=AdminMediaBackupExportTest`; 11 tests / 47 assertions passed for the async manual media export flow.
 - Ran `php -l` on `BackupExport.php`, `GenerateMediaBackup.php`, `ManualMediaBackupArchiver.php`, `CleanupMediaBackupExports.php`, `AdminBackupController.php`, the new `backup_exports` migration, and `AdminMediaBackupExportTest.php`; no syntax errors.
 - Ran `php artisan route:list --name=backups`; confirmed the admin backup routes include media export start, media download, and media delete routes.
