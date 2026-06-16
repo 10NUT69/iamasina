@@ -18,6 +18,21 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Latest Changes
 
+- 2026-06-14: Moved the desktop listing breadcrumb into a full-width row directly under the public header so long breadcrumb fragments no longer share the row with `Salveaza` / `Sortare`; the right-side listing controls now start underneath the breadcrumb. Also made the `no-scrollbar` utility global and changed the service show visual breadcrumb to stop at the last navigable listing segment instead of showing the current ad title.
+
+- 2026-06-14: Tightened public breadcrumb placement so listing, service show, and dealer portfolio breadcrumbs sit about 10px below the fixed header. On the service show page, the breadcrumb now renders above the `Înapoi` button, with the back button on its own row below.
+- 2026-06-14: Added a shared segmented breadcrumb component and replaced the visual breadcrumbs on the listing page, service show page, and dealer portfolio page. Breadcrumb segments now match the supplied chevron-chip style on desktop and mobile, every visible segment is rendered as a link, and the dealer county breadcrumb falls back to the county slug URL when the dealer account has no `county_id`.
+- 2026-06-14: Updated the dealer portfolio hero CTAs so `Vezi anunțurile` is the secondary outlined action matching the Home/index secondary CTA style, while `Sună acum` is the red primary action. Replaced the stock section title/subtitle pair (`Stocul parcului auto` + `3 rezultate`) with a single heading like `3 anunțuri auto oferite de <nume parc>`. Confirmed the dealer page still builds phone display from all three dealer phone fields (`phone`, `phone_2`, `phone_3`) when present.
+- 2026-06-14: Simplified the dealer portfolio `Despre` section so it renders only real dealer description text, capped to the same 3,000-character limit used in the account form, removes the previous trust cards (`Stoc actualizat`, `Anunțuri active`, `Date publice`, `Contact direct`), changes the heading to `Despre <nume parc>`, and hides the `Despre parc` stock-nav tab when no description exists. Added a `Pagina parcului` link to the `Contul meu` tabs for dealer accounts with a public dealer URL.
+- 2026-06-14: Restyled the public service show page secondary message actions, dealer portfolio links, and safety recommendation card with the requested neutral/premium and amber palettes; the primary `Sună` phone CTA was left unchanged, and the safety copy now uses the safer "Recomandare de siguranță" wording.
+- 2026-06-14: Updated the dealer portfolio page so the main gallery image opens the gallery when clicked, the dealer stock filters use the shared combobox component while still showing only brands/models available in that dealer's stock, and public car card/gallery images on Home, AJAX Home cards, Listing, Show, generic card partials, and dealer stock cards explicitly crop from the visual center with `object-center`.
+- 2026-06-14: Centered the dealer portfolio gallery crop by adding explicit `object-center` positioning to the main dealer gallery image and gallery thumbnails, so cover-cropped images keep the visual middle instead of favoring the top edge.
+- 2026-06-14: Compact the dealer portfolio hero so the desktop dealer info card and gallery occupy roughly half the previous vertical space: the gallery/card row now measures about 320px tall on desktop, with internal thumbnail rows constrained to the same height; mobile remains stacked and unchanged in overall behavior.
+- 2026-06-14: Restyled the public dealer portfolio page (`services.dealer-portfolio`) to follow the supplied dealer-page mockup using only existing account/dealer data: breadcrumb, dealer info card, gallery with main image plus thumbnails, stock tabs/filter/card section, about block, location/contact block, and mobile actions; no routes or controllers were changed.
+- 2026-06-14: Made the mobile header auto-hide behavior global for all pages using the shared public app layout by setting the existing `main-nav` scroll logic to always participate on mobile; removed the unused legacy `mainHeader` / `header-scrolled` / `logo-main` scroll-shrink code from `resources/js/app.js` and `resources/css/app.css`.
+- 2026-06-14: Updated the service show page mobile layout: important-detail cards now stay two per row on phone widths, dealer seller cards no longer show the green `Verificat` badge, and dealer listings now show a mobile `Vezi portofoliu dealer` button immediately before the safety warning; the existing desktop portfolio button text was changed to the same label.
+- 2026-06-14: Added dark-mode active-state classes to the Home seller source tabs and listing seller type tabs, and kept the JavaScript class toggles in sync so `Toți` / `Proprietari` / `Parcuri` remain dark-theme aware after interaction.
+- 2026-06-13: Removed the global `html, body { overscroll-behavior-y: none; }` rule from the public app layout so iOS Safari can use native page overscroll/pull-to-refresh again; mobile listing filter popup scroll-lock rules were left unchanged.
 - 2026-06-13: Updated the mobile listing action bar so `Sus` is a passive scroll-only button that stays neutral, while `Salveaza` no longer shows the bell icon and uses saved-search toast lifecycle to stay red only while feedback is visible.
 - 2026-06-13: Added an optional `onHide` callback to the shared toast helper and wired saved-search feedback events to the listing save button state; no routes, controllers, listing queries, or filter behavior were changed.
 
@@ -63,6 +78,86 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Verification
 
+- Verified in the in-app browser at 1884x900 for `http://auto.test/anunturi-auto-de-vanzare/bmw/seria-3/arad/chisineu-cris`: the desktop breadcrumb spans the listing page width, `Salveaza` and `Sortare` start below it, there is no overlap, `scrollbar-width` computes to `none`, and the page has no horizontal overflow.
+- Verified the same listing path at 390x844 mobile: exactly one breadcrumb is visible, the internal scrollbar is hidden, and it does not overlap `Filtre` or `Salveaza`.
+- Verified `http://auto.test/anunturi-auto-de-vanzare/dacia/logan/buzau/nehoiu/dadfsadas-281` in the in-app browser at 1884x900 and 390x844: the visual breadcrumb stops at `Nehoiu`, the current ad title is absent from the breadcrumb, all six visible segments are links, `Inapoi` stays on the next row, and no horizontal page overflow appears.
+- Ran `php -l resources/views/components/breadcrumbs.blade.php`, `php -l resources/views/services/show.blade.php`, and `php -l resources/views/services/listing.blade.php`; no syntax errors after the latest breadcrumb/layout update.
+- Ran `git diff --check`; passed with the existing line-ending warning for `resources/views/services/dealer-portfolio.blade.php`.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the latest breadcrumb/layout update.
+- Ran Vite build through the bundled Codex Node runtime after moving the global `no-scrollbar` utility; build completed with only existing baseline-browser-mapping/Browserslist age warnings.
+
+- Verified in the in-app browser after tightening breadcrumb placement: service show breadcrumbs measure 10px below `#main-nav` on desktop and mobile, the `Înapoi` button is on the next row and not sharing a row with the breadcrumb, listing breadcrumbs measure 10px below the header on desktop and mobile, dealer breadcrumbs measure 10px below the header on desktop and mobile, and no page overflow or console errors were reported.
+- Ran `php -l resources/views/layouts/app.blade.php`, `php -l resources/views/services/show.blade.php`, `php -l resources/views/services/listing.blade.php`, `php -l resources/views/services/dealer-portfolio.blade.php`, and `php -l resources/views/components/breadcrumbs.blade.php`; no syntax errors after the breadcrumb placement update.
+- Ran `git diff --check`; passed with the existing line-ending warning for `resources/views/services/dealer-portfolio.blade.php`.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the breadcrumb placement update.
+- Ran Vite build through the bundled Codex Node runtime after the breadcrumb spacing classes changed; build completed with only existing baseline-browser-mapping/Browserslist age warnings.
+- Ran `php -l resources/views/components/breadcrumbs.blade.php`, `php -l resources/views/services/show.blade.php`, `php -l resources/views/services/listing.blade.php`, and `php -l resources/views/services/dealer-portfolio.blade.php`; no syntax errors after adding the shared breadcrumb component and wiring it into listing/show/dealer pages.
+- Ran `git diff --check`; passed with the existing line-ending warning for `resources/views/services/dealer-portfolio.blade.php`.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the breadcrumb update.
+- Ran Vite build through the bundled Codex Node runtime after adding the new breadcrumb classes; build completed with only existing baseline-browser-mapping/Browserslist age warnings.
+- Verified in the in-app browser at desktop 1280x720 and mobile 390x844 for `/anunturi-auto-de-vanzare`, the local Audi A3 show page, and `/anunturi-auto-de-vanzare/parc-auto/buzau/buzau/ayy-auto-park`: each page renders exactly one visible breadcrumb, every visible breadcrumb segment is an anchor, the show-page mobile breadcrumb scrolls horizontally instead of causing page overflow, dealer `Buzău` links to `/anunturi-auto-de-vanzare/buzau?seller_type=dealer`, and no console errors were reported.
+- Ran `php -l resources/views/services/dealer-portfolio.blade.php`; no syntax errors after the dealer CTA and stock-heading update.
+- Ran `git diff --check`; passed with the existing line-ending warning for `resources/views/services/dealer-portfolio.blade.php`.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the dealer CTA and stock-heading update.
+- Ran Vite build through the bundled Codex Node runtime after the dealer CTA class changes; build completed with only existing baseline-browser-mapping/Browserslist age warnings.
+- Verified `http://auto.test/anunturi-auto-de-vanzare/parc-auto/buzau/buzau/ayy-auto-park` in the in-app browser on desktop: `Vezi anunțurile` rendered as white/outlined secondary (`rgb(255,255,255)` background, red border/text), `Sună acum` rendered as the red primary action, the stock heading rendered as `3 anunțuri auto oferite de AYY AUTO PARK`, old `Stocul parcului auto` / `3 rezultate` text was absent, and there were no console errors.
+- Verified the same dealer page at 390x844 mobile viewport: the two hero CTAs fit side-by-side without horizontal overflow and the stock heading wrapped cleanly.
+- Checked the first local dealer record: it only has `phone` populated while `phone_2` and `phone_3` are null; the Blade still collects all three fields and renders each non-empty phone in the hero and location sections.
+- Ran `php -l resources/views/services/dealer-portfolio.blade.php` and `php -l resources/views/account/index.blade.php`; no syntax errors after simplifying the dealer about section and adding the account dealer-page link.
+- Ran `git diff --check`; passed with the existing line-ending warning for `resources/views/services/dealer-portfolio.blade.php`.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the dealer about/account tab update.
+- Ran Vite build through the bundled Codex Node runtime after adding the account tab grid variant; build completed with only existing baseline-browser-mapping/Browserslist age warnings.
+- Verified `http://auto.test/anunturi-auto-de-vanzare/parc-auto/buzau/buzau/ayy-auto-park` in the in-app browser: `#dealer-about` exists, the heading renders as `Despre AYY AUTO PARK`, the previous trust-card labels are absent, and the section contains no SVG/card icons.
+- Rendered `account.index` in CLI after logging in the first local dealer user; the HTML included `Pagina parcului`, `grid-cols-6`, and a blank-target marker for the dealer public URL. Direct browser verification of `/contul-meu` was not possible because the in-app browser session was logged out and redirected to `/login`.
+- Ran `php -l resources/views/services/show.blade.php`; no syntax errors after the show-page message/dealer/safety color update.
+- Ran `git diff --check`; passed after the show-page message/dealer/safety color update.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the show-page message/dealer/safety color update.
+- Ran Vite build through the bundled Codex Node runtime after adding the new Tailwind arbitrary colors; build completed with only existing baseline-browser-mapping/Browserslist age warnings.
+- Verified `http://auto.test/anunturi-auto-de-vanzare/audi/a3/buzau/buzau/audi-a-3-posibilitate-de-9` in the in-app browser at 390x844 mobile and 1280x720 desktop: message action computed to white `rgb(255,255,255)` / border `rgb(215,222,231)` / text `rgb(23,32,51)`, dealer portfolio link computed to `rgb(248,250,252)` with the same border/text and one chevron, safety card computed to `rgb(255,248,232)` / border `rgb(241,211,138)` with amber title/icon and brown body text, and the phone CTA stayed red `rgb(224,62,45)`; no browser console errors were reported.
+- Ran `php -l resources/views/services/dealer-portfolio.blade.php`, `php -l resources/views/services/partials/service_cards_horizontal.blade.php`, `php -l resources/views/services/partials/service_cards_home.blade.php`, `php -l resources/views/services/partials/service_cards.blade.php`, `php -l resources/views/services/index.blade.php`, and `php -l resources/views/services/show.blade.php`; no syntax errors after making the dealer main photo clickable, switching dealer filters to comboboxes, and centering card/show image crops.
+- Ran `git diff --check`; passed after the dealer combobox/gallery and image-centering updates.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the updates.
+- Ran Vite build through the bundled Codex Node runtime; build completed with only existing Browserslist/baseline age warnings.
+- Verified `http://auto.test/anunturi-auto-de-vanzare/parc-auto/buzau/buzau/ayy-auto-park` in the in-app browser: the dealer main gallery image opens the gallery modal when clicked, the modal closes cleanly, the brand/model filters render as shared comboboxes, the available brand list contains the dealer stock brand (`Audi`), selecting it enables the model combobox with the available model (`A3`), clearing the brand disables and empties the model combobox with the `Alege marca` placeholder, and the dealer gallery image computes to `object-fit: cover` / `object-position: 50% 50%`.
+- Verified `http://auto.test/`, `http://auto.test/anunturi-auto-de-vanzare`, and the local Audi A3 show page in the in-app browser: visible Home cards, Listing cards, and Show gallery images compute to `object-fit: cover` and `object-position: 50% 50%`; no console errors were reported.
+- Ran `rg --pcre2 -n "object-cover(?! object-center)" resources/views/services -g "*.blade.php"`; the remaining public-page match is the Home hero image, while the other remaining matches are create/edit image previews, not Home/Listing/Show listing cards.
+- Ran `php -l resources/views/services/dealer-portfolio.blade.php`; no syntax errors after centering the dealer gallery crop.
+- Ran `git diff --check`; passed after centering the dealer gallery crop.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after centering the dealer gallery crop.
+- Ran Vite build through the bundled Codex Node runtime after adding `object-center` to the dealer gallery images; build completed with only existing Browserslist/baseline age warnings.
+- Verified `http://auto.test/anunturi-auto-de-vanzare/parc-auto/buzau/buzau/ayy-auto-park` in the in-app browser: the main dealer gallery image and all visible thumbnails computed to `object-fit: cover` and `object-position: 50% 50%`, with no horizontal overflow and no console errors.
+- Ran `php -l resources/views/services/dealer-portfolio.blade.php`; no syntax errors after compacting the dealer hero.
+- Ran `git diff --check`; passed after compacting the dealer hero.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after compacting the dealer hero.
+- Ran Vite build through the bundled Codex Node runtime after adding the compact dealer gallery height/grid classes; build completed with only existing Browserslist/baseline age warnings.
+- Verified `http://auto.test/anunturi-auto-de-vanzare/parc-auto/buzau/buzau/ayy-auto-park` in the in-app browser on desktop: hero, info card, and gallery measured 320px tall, the gallery image and thumbnail column were constrained inside that height, the stock section moved up to about 468px from the viewport top, and there were no console errors.
+- Verified the same dealer page at 390x844 mobile viewport after the compacting change: layout stayed stacked, no horizontal overflow appeared, gallery/card behavior remained intact, and there were no console errors.
+- Ran `php -l resources/views/services/dealer-portfolio.blade.php`; no syntax errors after the dealer page restyle.
+- Ran `git diff --check`; passed after the dealer page restyle.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the dealer page restyle.
+- Ran Vite build through the bundled Codex Node runtime after adding the new dealer portfolio Tailwind classes; build completed with only existing Browserslist/baseline age warnings.
+- Verified `http://auto.test/anunturi-auto-de-vanzare/parc-auto/buzau/buzau/ayy-auto-park` in the in-app browser on desktop: the page rendered the new dealer info/gallery hero, breadcrumb, stock tabs, two listing cards, about section, and location section with no console errors.
+- Verified the same dealer page at 390x844 mobile viewport: hero sections stacked correctly, there was no horizontal overflow, the mobile stock button text fit, the gallery modal opened with an image/counter and closed cleanly, and the filter selects were populated from the dealer's available stock.
+- Ran `rg` for `mainHeader`, `header-scrolled`, and `logo-main` across source files excluding build/vendor/node_modules/storage compiled views; no source references remained after removing the unused legacy header logic.
+- Ran `php -l resources/views/layouts/app.blade.php`; no syntax errors after making mobile header auto-hide global.
+- Ran `git diff --check`; passed after the global mobile header auto-hide cleanup.
+- Ran Vite build through the bundled Codex Node runtime after removing the unused header JS/CSS; build completed with only existing Browserslist/baseline age warnings.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the global mobile header auto-hide cleanup.
+- Verified in the in-app browser at 390x844 using real scroll gestures on a non-listing show page (`/anunturi-auto-de-vanzare/audi/a3/buzau/buzau/audi-a-3-posibilitate-de-9`): scrolling down hid `#main-nav` to `translateY(-56px)` with `data-mobile-hidden=true`, and scrolling back up returned it to `translateY(0)` with `data-mobile-hidden=false`.
+- Verified in the in-app browser at 390x844 on the create listing page (`/anunturi-auto-de-vanzare/adauga-anunt`), which has no `#listing-actions-bar`: scrolling down hid `#main-nav` to `translateY(-56px)` with `data-mobile-hidden=true`, confirming the behavior is no longer limited to Home/Listing.
+- Ran `php -l resources/views/services/show.blade.php`; no syntax errors after the show-page mobile/dealer update.
+- Ran `git diff --check`; passed after the show-page mobile/dealer update.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the show-page mobile/dealer update.
+- Verified `http://auto.test/anunturi-auto-de-vanzare/audi/a3/buzau/buzau/audi-a-3-posibilitate-de-9` in the in-app browser at 390x844: `.important-details-grid` computed as two columns (`148.8px 148.8px`), the first two important-detail cards shared the same row, one visible `Vezi portofoliu dealer` link appeared before the safety warning with a 24px gap, old `Vezi portofoliul parcului` text was absent, and exact `Verificat` text was absent from the seller card.
+- Ran `php -l resources/views/services/index.blade.php` and `php -l resources/views/services/listing.blade.php`; no syntax errors after the seller tab dark-mode update.
+- Ran `git diff --check`; passed after the seller tab dark-mode update.
+- Ran Vite build through the bundled Codex Node runtime after adding the seller tab dark-mode classes; build completed with only existing Browserslist/baseline age warnings.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the seller tab dark-mode update.
+- Verified `http://auto.test/` and `http://auto.test/anunturi-auto-de-vanzare` in the in-app browser while `prefers-color-scheme: dark` was true: active seller tabs rendered with dark red background `rgb(42, 16, 19)` and red text `rgb(252, 165, 165)`, inactive tabs stayed transparent/gray, and clicking `Parcuri` moved the active dark styling while keeping `seller_type=dealer`.
+- Ran `php -l resources/views/layouts/app.blade.php`; no syntax errors after removing the global overscroll rule.
+- Ran `rg` for `overscroll-behavior`, filter `:has(...)` scroll-lock selectors, and `document.body.style.overflow`; confirmed only the mobile filters popup keeps `html/body` overflow lock and `.filters-panel-sheet` keeps `overscroll-behavior: contain`.
+- Ran `git diff --check`; passed after the global overscroll removal.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the global overscroll removal.
 - Ran `git diff --check`; passed after the mobile listing action-bar feedback update.
 - Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after the mobile listing action-bar feedback update.
 - Ran Vite build through the bundled Codex Node runtime after changing the saved-search/toast JavaScript; build completed.
@@ -212,6 +307,15 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Environment Assumptions
 
+- Local PowerShell did not expose `npm` in PATH during this update, so Vite verification used the bundled Codex Node executable against the project's local `node_modules/vite/bin/vite.js`; no environment keys or secrets are involved.
+- Breadcrumbs use only existing public routes and view data; dealer county links prefer the county slug path (for example `/anunturi-auto-de-vanzare/buzau?seller_type=dealer`) so dealer accounts without `county_id` still get a clickable county breadcrumb. No new environment keys, controllers, migrations, or tables were added.
+- The account dealer-page link depends on the existing `User::dealer_public_url` accessor and only appears for users whose `user_type` is `dealer` and whose company data yields a public URL; no new routes, controllers, tables, or environment keys were added.
+- Show-page color verification used the local `auto.test` host and an existing local dealer listing (`id=9`) while logged out, so the desktop message action rendered as `Autentifică-te pentru mesaj` and the mobile action rendered as `Mesaj`; no environment keys or secrets are required for this update.
+- Dealer filter comboboxes still use the existing dealer stock data passed to the view; no routes, controllers, migrations, or environment keys were changed for this update.
+- Dealer page restyle uses only data already collected on dealer accounts (`company_name`, phones, county/city/address, description, gallery) and service stock filters; because there is no dedicated dealer schedule field yet, the page shows a neutral "contactează dealerul" program message.
+- Public mobile header auto-hide is now driven only by the shared `#main-nav` logic in `resources/views/layouts/app.blade.php`; the older `mainHeader`/`header-scrolled` source code path was confirmed unused before removal.
+- Show-page browser verification used the local `auto.test` host and an existing local dealer listing (`id=9`) that has a dealer portfolio URL and two important details; no new environment keys are required.
+- Public dark theme is still driven by Tailwind `darkMode: 'media'` / `prefers-color-scheme`; no manual theme toggle or `.dark` root class was added for the seller tab update.
 - Manual media exports are stored on the local/private disk path `storage/app/private/backups/media-exports`; database rows store only relative paths like `backups/media-exports/<file>.zip`.
 - Production must run the migration with OpenLiteSpeed PHP from `/home/iaAuto.ro/public_html`: `sudo -u iaauto /usr/local/lsws/lsphp83/bin/php artisan migrate --force`.
 - Because `config/queue.php` changed, production must refresh Laravel config cache before starting the backup worker: `sudo -u iaauto /usr/local/lsws/lsphp83/bin/php artisan optimize:clear`, then `sudo -u iaauto /usr/local/lsws/lsphp83/bin/php artisan config:cache`.
@@ -241,6 +345,15 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Open Items
 
+- No new known follow-up from the shared breadcrumb update; a real-device visual pass remains useful after deploy, especially for long show-page breadcrumbs on narrow phones.
+- No new known follow-up from the dealer about/account tab update; a logged-in real-browser pass remains useful after deploy for the `Pagina parcului` tab.
+- No new known follow-up from the show-page message/dealer/safety color update; a real-device visual pass remains useful after deploy.
+- No new known follow-up from the dealer combobox/gallery click and image-centering update; a real-device visual pass remains useful after deploy.
+- No new known follow-up from the dealer portfolio restyle; a real-device visual pass is still useful after deploy, especially for the gallery and bottom mobile action bar around the cookie banner.
+- No new known follow-up from the global mobile header auto-hide cleanup; existing real-device/mobile checks below remain unchanged.
+- No new known follow-up from the service show page mobile/dealer update; existing real-device/mobile checks below remain unchanged.
+- No new known follow-up from the seller tab dark-mode update; existing real-device/mobile checks below remain unchanged.
+- Verify on a real iOS Safari device after deploy that native pull-to-refresh works on normal pages and that the mobile listing filters popup still locks background scroll while open.
 - Production deployment still needs the new migration and manual Supervisor worker setup for the backup queue; no production migration or Supervisor changes were executed locally. Correct order after deploy: `cd /home/iaAuto.ro/public_html`, `sudo -u iaauto git pull`, `sudo -u iaauto /usr/local/lsws/lsphp83/bin/php artisan optimize:clear`, `sudo -u iaauto /usr/local/lsws/lsphp83/bin/php artisan migrate --force`, `sudo -u iaauto /usr/local/lsws/lsphp83/bin/php artisan config:cache`, then `sudo supervisorctl reread`, `sudo supervisorctl update`, `sudo supervisorctl status`.
 - Add project-specific setup commands once they are confirmed.
 - Test environment needs cleanup: SQLite test database does not have the full app schema for the homepage test, `/profile` tests expect routes that currently return 404/405, and registration test does not authenticate the created user.

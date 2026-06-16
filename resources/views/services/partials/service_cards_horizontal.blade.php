@@ -165,7 +165,7 @@
                                      x-transition:enter="transition transform duration-500 ease-out"
                                      x-transition:enter-start="opacity-0 scale-105"
                                      x-transition:enter-end="opacity-100 scale-100"
-                                     class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105"
+                                     class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover/img:scale-105"
                                      alt="{{ $imageAlt }} - poza {{ $index + 1 }}"
                                      loading="{{ $isPriorityImage ? 'eager' : 'lazy' }}"
                                      decoding="async"
@@ -177,7 +177,7 @@
                                          x-transition:enter="transition transform duration-500 ease-out"
                                          x-transition:enter-start="opacity-0 scale-105"
                                          x-transition:enter-end="opacity-100 scale-100"
-                                         class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105"
+                                         class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover/img:scale-105"
                                          alt="{{ $imageAlt }} - poza {{ $index + 1 }}"
                                          loading="lazy"
                                          decoding="async">

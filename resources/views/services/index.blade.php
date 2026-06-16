@@ -117,7 +117,7 @@
                 {{-- Toggle Tabs --}}
                 <div class="seller-tabs grid min-w-0 grid-cols-3 overflow-hidden bg-white dark:bg-[#151515] border-t border-[#E6E8EC] dark:border-white/10 sm:border-t-0 sm:border-l w-full sm:w-[430px] rounded-t-xl sm:rounded-tl-lg sm:rounded-tr-xl">
                     <button type="button" data-seller="all"
-                    class="seller-tab min-w-0 border-b-2 border-b-[#C81424] bg-white px-2 py-3 text-[11px] font-bold text-[#C81424] hover:bg-white hover:text-[#C81424] sm:px-4 sm:text-xs">
+                    class="seller-tab min-w-0 border-b-2 border-b-[#C81424] bg-white px-2 py-3 text-[11px] font-bold text-[#C81424] hover:bg-white hover:text-[#C81424] dark:bg-[#2a1013] dark:text-red-300 dark:hover:bg-[#3a171c] dark:hover:text-red-200 sm:px-4 sm:text-xs">
                         Toți
                     </button>
                     <button type="button" data-seller="individual"
@@ -298,7 +298,7 @@
 
              <article class="group relative bg-white dark:bg-[#1E1E1E] border border-gray-100 dark:border-[#333] rounded-2xl overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
                 <a href="{{ $service->public_url }}" class="block relative w-full aspect-[4/3] overflow-hidden bg-gray-200 dark:bg-[#121212]">
-                    <img src="{{ $img }}" alt="{{ $imageAlt }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-in-out" loading="lazy">
+                    <img src="{{ $img }}" alt="{{ $imageAlt }}" class="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-700 ease-in-out" loading="lazy">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-80"></div>
 
                     {{-- Preț --}}
@@ -997,7 +997,7 @@
 
         const sellerTabs = document.querySelectorAll('.seller-tab');
         const sellerInput = domElements.sellerType;
-        const sellerActiveClasses = ['border-b-[#C81424]', 'bg-white', 'text-[#C81424]', 'hover:bg-white', 'hover:text-[#C81424]'];
+        const sellerActiveClasses = ['border-b-[#C81424]', 'bg-white', 'text-[#C81424]', 'hover:bg-white', 'hover:text-[#C81424]', 'dark:bg-[#2a1013]', 'dark:text-red-300', 'dark:hover:bg-[#3a171c]', 'dark:hover:text-red-200'];
         const sellerInactiveClasses = ['border-b-transparent', 'bg-white', 'text-[#687080]', 'hover:bg-[#F7F8FA]', 'hover:text-[#30323A]', 'dark:bg-transparent', 'dark:text-gray-400', 'dark:hover:bg-[#2a2f36]', 'dark:hover:text-white'];
         const sellerLegacyClasses = ['border-[#C81424]', 'border-transparent', 'text-gray-900', 'text-[#8f111a]', 'bg-[#fff0f2]', 'dark:text-white', 'dark:bg-[#3a171c]', 'dark:bg-[#333]', 'bg-transparent', 'text-gray-500', 'hover:text-gray-900', 'bg-[#30323A]', 'hover:bg-[#30323A]', 'bg-[#F7F8FA]', 'hover:bg-[#EEF1F4]', 'bg-[#2F3137]', 'shadow-[0_8px_18px_rgba(17,24,39,0.18)]', 'hover:bg-[#26282D]', 'rounded-md'];
         const setActiveSellerTab = (val) => {

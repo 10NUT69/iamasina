@@ -17,6 +17,8 @@
                 ->where('seller_id', auth()->id())
                 ->whereNull('seller_deleted_at')))
         ->count();
+    $accountUser = auth()->user();
+    $accountDealerUrl = $accountUser->user_type === 'dealer' ? $accountUser->dealer_public_url : null;
 @endphp
 
 <div id="accountFloatingMsg" class="fixed left-1/2 top-24 z-[90] hidden w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 rounded-2xl px-4 py-3 text-sm font-bold shadow-2xl ring-1 backdrop-blur transition-all sm:px-5"></div>
@@ -44,7 +46,11 @@
     </div>
 
     <div class="border-b border-gray-200 dark:border-[#333333] mb-8">
-        <ul class="grid grid-cols-5 items-end gap-0 text-[11px] font-semibold min-[380px]:text-xs sm:flex sm:gap-8 sm:text-lg sm:font-medium">
+        <ul @class([
+            'grid items-end gap-0 text-[11px] font-semibold min-[380px]:text-xs sm:flex sm:gap-8 sm:text-lg sm:font-medium',
+            'grid-cols-6' => $accountDealerUrl,
+            'grid-cols-5' => ! $accountDealerUrl,
+        ])>
             <li>
                 <a href="?tab=anunturi"
                    class="flex h-full items-end justify-center px-0.5 pb-3 text-center leading-tight transition-colors sm:inline-block sm:px-0 sm:text-left sm:leading-normal
@@ -93,6 +99,15 @@
                    Setări
                 </a>
             </li>
+            @if($accountDealerUrl)
+                <li>
+                    <a href="{{ $accountDealerUrl }}" target="_blank" rel="noopener"
+                       class="flex h-full items-end justify-center px-0.5 pb-3 text-center leading-tight text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 sm:inline-block sm:px-0 sm:text-left sm:leading-normal">
+                        <span class="sm:hidden">Parc</span>
+                        <span class="hidden sm:inline">Pagina parcului</span>
+                    </a>
+                </li>
+            @endif
         </ul>
     </div>
 

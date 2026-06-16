@@ -109,6 +109,12 @@
         unset($breadcrumbItems[$lastBreadcrumbIndex]['item']);
     }
 
+    $visualBreadcrumbItems = $breadcrumbItems;
+    $visualLastBreadcrumbIndex = array_key_last($visualBreadcrumbItems);
+    if ($visualLastBreadcrumbIndex !== null) {
+        $visualBreadcrumbItems[$visualLastBreadcrumbIndex]['item'] = url()->full();
+    }
+
     $breadcrumbSchema = [
         '@context' => 'https://schema.org',
         '@type' => 'BreadcrumbList',
@@ -146,20 +152,16 @@
 @endsection
 
 @section('content')
-<div class="listing-page-shell w-full pt-0 lg:pt-6 pb-12">
+<div class="listing-page-shell w-full pt-3.5 pb-12 lg:pt-2.5">
+    <div class="mb-3 hidden lg:block">
+        <x-breadcrumbs :items="$visualBreadcrumbItems" data-listing-breadcrumb class="max-w-full" />
+    </div>
+
     <div class="flex flex-col gap-0 lg:flex-row lg:gap-6">
         {{-- Sidebar filtre (desktop) --}}
         <aside class="lg:w-[340px] lg:shrink-0">
             <div class="hidden lg:block mb-5">
-                <nav class="flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">
-                    <a href="{{ route('services.index') }}"
-                       class="rounded bg-blue-50 px-2 py-1 font-medium text-gray-800 transition hover:bg-blue-100 hover:text-[#C81424] dark:bg-[#1f2937] dark:text-gray-100 dark:hover:bg-[#2d3748] dark:hover:text-red-200">
-                        Acasă
-                    </a>
-                    <span class="text-gray-400">/</span>
-                    <span class="font-medium text-gray-900 dark:text-gray-100">Autoturisme</span>
-                </nav>
-                <p class="mt-4 text-3xl font-extrabold leading-tight text-gray-950 dark:text-white">Autoturisme</p>
+                <p class="text-3xl font-extrabold leading-tight text-gray-950 dark:text-white">Autoturisme</p>
                 <p class="mt-1 text-sm leading-snug text-gray-600 dark:text-gray-300">
                     Autoturisme de vânzare - Găsește mașina potrivită pentru tine
                 </p>
@@ -207,7 +209,7 @@
                                         type="button"
                                         data-seller-filter="{{ $sellerTypeOption['value'] }}"
                                         aria-pressed="{{ $isSelectedSellerType ? 'true' : 'false' }}"
-                                        class="seller-filter-tab h-10 min-w-0 border-b-2 px-2 text-xs font-bold sm:text-sm {{ $isSelectedSellerType ? 'border-b-[#C81424] bg-white text-[#C81424] hover:bg-white hover:text-[#C81424]' : 'border-b-transparent bg-white text-[#687080] hover:bg-[#F7F8FA] hover:text-[#30323A] dark:bg-transparent dark:text-gray-400 dark:hover:bg-[#2a2f36] dark:hover:text-white' }}"
+                                        class="seller-filter-tab h-10 min-w-0 border-b-2 px-2 text-xs font-bold sm:text-sm {{ $isSelectedSellerType ? 'border-b-[#C81424] bg-white text-[#C81424] hover:bg-white hover:text-[#C81424] dark:bg-[#2a1013] dark:text-red-300 dark:hover:bg-[#3a171c] dark:hover:text-red-200' : 'border-b-transparent bg-white text-[#687080] hover:bg-[#F7F8FA] hover:text-[#30323A] dark:bg-transparent dark:text-gray-400 dark:hover:bg-[#2a2f36] dark:hover:text-white' }}"
                                     >
                                         {{ $sellerTypeOption['label'] }}
                                     </button>
@@ -405,14 +407,7 @@
 
         <div class="min-w-0 flex-1">
             <div class="listing-mobile-heading lg:hidden mb-3">
-                <nav class="flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">
-                    <a href="{{ route('services.index') }}"
-                       class="rounded bg-blue-50 px-2 py-1 font-medium text-gray-800 transition hover:bg-blue-100 hover:text-[#C81424] dark:bg-[#1f2937] dark:text-gray-100 dark:hover:bg-[#2d3748] dark:hover:text-red-200">
-                        Acasă
-                    </a>
-                    <span class="text-gray-400">/</span>
-                    <span class="px-1 font-medium text-gray-900 dark:text-gray-100">Autoturisme</span>
-                </nav>
+                <x-breadcrumbs :items="$visualBreadcrumbItems" data-listing-breadcrumb />
 
                 <h1 class="mt-3 text-3xl font-extrabold leading-tight text-gray-950 dark:text-white">Autoturisme</h1>
                 <p class="mt-1 max-w-2xl text-base leading-snug text-gray-700 dark:text-gray-300">
@@ -591,6 +586,7 @@
         paginationPages: document.getElementById('listing-pagination-pages'),
         paginationPrev: document.getElementById('listing-pagination-prev'),
         paginationNext: document.getElementById('listing-pagination-next'),
+        breadcrumbs: Array.from(document.querySelectorAll('[data-listing-breadcrumb]')),
     };
 
     function isMobileView() {
@@ -1107,6 +1103,100 @@
         return option?.slug || option?.dataset?.slug || '';
     }
 
+    function escapeBreadcrumbHtml(value) {
+        const element = document.createElement('span');
+        element.textContent = String(value || '');
+
+        return element.innerHTML;
+    }
+
+    function autoListingPath(...segments) {
+        const cleanSegments = segments.filter(Boolean);
+        const path = ['anunturi-auto-de-vanzare', ...cleanSegments].join('/');
+
+        return `${baseUrl.replace(/\/+$/, '')}/${path}`;
+    }
+
+    function listingBreadcrumbItems(targetUrl = window.location.href) {
+        const brandOption = selectedOptionMeta(domElements.brand);
+        const modelOption = selectedOptionMeta(domElements.model);
+        const countyOption = selectedOptionMeta(domElements.county);
+        const localityOption = selectedOptionMeta(domElements.locality);
+        const brandSlug = optionSlug(brandOption);
+        const modelSlug = optionSlug(modelOption);
+        const countySlug = optionSlug(countyOption);
+        const citySlug = optionSlug(localityOption);
+        const items = [
+            { label: 'Acasă', url: `${baseUrl.replace(/\/+$/, '')}/` },
+            { label: 'Autoturisme', url: autoListingPath() },
+        ];
+
+        if (brandSlug) {
+            items.push({
+                label: brandOption.label || brandOption.name,
+                url: autoListingPath(brandSlug),
+            });
+        }
+
+        if (brandSlug && modelSlug) {
+            items.push({
+                label: modelOption.label || modelOption.name,
+                url: autoListingPath(brandSlug, modelSlug),
+            });
+        }
+
+        if (countySlug) {
+            items.push({
+                label: countyOption.label || countyOption.name,
+                url: autoListingPath(brandSlug || countySlug, brandSlug ? (modelSlug || null) : null, brandSlug ? countySlug : null),
+            });
+        }
+
+        if (countySlug && citySlug) {
+            items.push({
+                label: localityOption.label || localityOption.name,
+                url: autoListingPath(brandSlug || countySlug, brandSlug ? (modelSlug || null) : citySlug, brandSlug ? countySlug : null, brandSlug ? citySlug : null),
+            });
+        }
+
+        const currentUrl = new URL(targetUrl, window.location.origin).toString();
+        items[items.length - 1].url = currentUrl;
+
+        return items.filter((item) => item.label && item.url);
+    }
+
+    function renderListingBreadcrumbs(targetUrl = window.location.href) {
+        if (!domElements.breadcrumbs.length) return;
+
+        const segmentBaseClass = 'inline-flex h-7 max-w-[11rem] items-center bg-[#EEF2F8] text-[#172033] transition hover:bg-[#E5EBF4] active:bg-[#DCE4EF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C81424]/20 dark:bg-[#1F2937] dark:text-gray-100 dark:hover:bg-[#273449] sm:max-w-[14rem]';
+        const currentClass = 'inline-flex h-7 max-w-[12rem] items-center pl-2.5 text-[#172033] transition hover:text-[#C81424] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C81424]/20 dark:text-gray-100 sm:max-w-[18rem]';
+        const items = listingBreadcrumbItems(targetUrl);
+        const html = items.map((item, index) => {
+            const isFirst = index === 0;
+            const isCurrent = index === items.length - 1;
+            const clipPath = isFirst
+                ? 'polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%)'
+                : 'polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%)';
+            const itemClass = isFirst ? '' : '-ml-[7px]';
+            const label = escapeBreadcrumbHtml(item.label);
+            const href = escapeBreadcrumbHtml(item.url);
+
+            if (isCurrent) {
+                return `<li class="${itemClass}"><a href="${href}" class="${currentClass}" aria-current="page"><span class="truncate">${label}</span></a></li>`;
+            }
+
+            const paddingClass = isFirst ? 'pl-2 pr-4' : 'pl-4 pr-4';
+            const linkClass = `${paddingClass} ${segmentBaseClass}`;
+
+            return `<li class="${itemClass}"><a href="${href}" class="${linkClass}" style="clip-path: ${clipPath};"><span class="truncate">${label}</span></a></li>`;
+        }).join('');
+
+        domElements.breadcrumbs.forEach((breadcrumb) => {
+            breadcrumb.innerHTML = `<ol class="flex min-w-max items-center whitespace-nowrap text-[13px] font-semibold">${html}</ol>`;
+            breadcrumb.scrollLeft = 0;
+        });
+    }
+
     function buildSearchUrl() {
         const brandOption = selectedOptionMeta(domElements.brand);
         const modelOption = selectedOptionMeta(domElements.model);
@@ -1193,6 +1283,7 @@
             }
 
             updateBrowserListingUrl(targetUrl, replace);
+            renderListingBreadcrumbs(targetUrl);
             window.checkResetVisibility();
             window.scrollTo({ top: 0, behavior: 'auto' });
 
@@ -1624,7 +1715,7 @@
             });
         }
 
-        const sellerActiveClasses = ['border-b-[#C81424]', 'bg-white', 'text-[#C81424]', 'hover:bg-white', 'hover:text-[#C81424]'];
+        const sellerActiveClasses = ['border-b-[#C81424]', 'bg-white', 'text-[#C81424]', 'hover:bg-white', 'hover:text-[#C81424]', 'dark:bg-[#2a1013]', 'dark:text-red-300', 'dark:hover:bg-[#3a171c]', 'dark:hover:text-red-200'];
         const sellerInactiveClasses = ['border-b-transparent', 'bg-white', 'text-[#687080]', 'hover:bg-[#F7F8FA]', 'hover:text-[#30323A]', 'dark:bg-transparent', 'dark:text-gray-400', 'dark:hover:bg-[#2a2f36]', 'dark:hover:text-white'];
         const sellerLegacyClasses = ['border-[#C81424]', 'border-transparent', 'bg-[#30323A]', 'text-white', 'hover:bg-[#30323A]', 'bg-[#F7F8FA]', 'hover:bg-[#EEF1F4]', 'bg-[#2F3137]', 'shadow-[0_8px_18px_rgba(17,24,39,0.18)]', 'hover:bg-[#26282D]', 'bg-[#BA1C23]', 'shadow-[0_6px_16px_rgba(186,28,35,0.24)]', 'hover:bg-[#A8171F]', 'bg-[#fff0f2]', 'shadow-sm', 'dark:bg-[#3a171c]'];
         const updateSellerButtons = (selectedSellerType = 'all') => {

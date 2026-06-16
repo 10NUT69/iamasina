@@ -264,6 +264,11 @@
         unset($breadcrumbItems[$lastBreadcrumbIndex]['item']);
     }
 
+    $visualBreadcrumbItems = array_values(array_filter(
+        $breadcrumbItems,
+        static fn ($item) => filled($item['item'] ?? null)
+    ));
+
     $breadcrumbSchema = [
         '@context' => 'https://schema.org',
         '@type' => 'BreadcrumbList',
@@ -323,10 +328,6 @@
         .glass { background: rgba(24, 24, 27, 0.94); }
     }
 
-    /* Custom Scrollbar */
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
     .important-details-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 180px));
@@ -337,7 +338,7 @@
 
     @media (max-width: 429px) {
         .important-details-grid {
-            grid-template-columns: minmax(0, 1fr);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
     }
 
@@ -396,34 +397,21 @@
 </div>
 
 {{-- ===================== 2. PAGINA PROPRIU-ZISĂ ===================== --}}
-<div class="bg-[#F8F9FA] dark:bg-[#121212] min-h-screen font-sans text-gray-800 dark:text-gray-200 pb-32 lg:pb-12 pt-6">
+<div class="bg-[#F8F9FA] dark:bg-[#121212] min-h-screen font-sans text-gray-800 dark:text-gray-200 pb-32 pt-2.5 lg:pb-12">
+
+    <div class="mb-3 space-y-2">
+        <x-breadcrumbs :items="$visualBreadcrumbItems" :mark-last-current="false" class="max-w-full" />
+
+        <button onclick="history.back()" class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-gray-700 shadow-sm transition-all hover:shadow-md dark:border-[#333] dark:bg-[#1E1E1E] dark:text-gray-200">
+            <svg class="h-4 w-4 text-[#E03E2D]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            Înapoi
+        </button>
+    </div>
 
     <div class="w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         {{-- === STÂNGA (Galerie, Info, Descriere) === --}}
         <div class="lg:col-span-8 space-y-6">
-
-            {{-- NAVIGATION TOP BAR (Back + Breadcrumbs) --}}
-            <div class="flex flex-col md:flex-row md:items-center gap-4 mb-2">
-                <button onclick="history.back()" class="self-start inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#1E1E1E] text-gray-700 dark:text-gray-200 rounded-full shadow-sm hover:shadow-md border border-gray-200 dark:border-[#333] transition-all text-sm font-bold">
-                    <svg class="w-4 h-4 text-[#E03E2D]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                    Înapoi
-                </button>
-
-                <div class="flex items-center text-sm overflow-x-auto no-scrollbar whitespace-nowrap gap-2">
-                    <a href="/" class="font-bold text-gray-400 hover:text-[#E03E2D] transition">Acasă</a>
-                    <span class="text-gray-300">/</span>
-                    @if($brandName)
-                        <span class="font-bold text-[#C81424] dark:text-red-300">{{ $brandName }}</span>
-                    @endif
-                    @if($modelName)
-                        <span class="text-gray-300">/</span>
-                        <span class="font-bold text-[#C81424] dark:text-red-300">{{ $modelName }}</span>
-                    @endif
-                    <span class="text-gray-300">/</span>
-                    <span class="text-gray-800 dark:text-gray-200 truncate max-w-[150px]">{{ Str::limit($service->title, 20) }}</span>
-                </div>
-            </div>
 
             {{-- GALERIE MOZAIC (Desktop) / SLIDER (Mobil) --}}
             <div class="rounded-2xl overflow-hidden shadow-sm bg-white dark:bg-[#1E1E1E] relative select-none border border-gray-100 dark:border-[#333]">
@@ -439,7 +427,7 @@
                                         data-gallery-image
                                         data-gallery-index="{{ $index }}"
                                         alt="{{ $imageAlt }} - poza {{ $index + 1 }}"
-                                        class="w-full h-full object-cover"
+                                        class="w-full h-full object-cover object-center"
                                         loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
                                         decoding="async"
                                         @if($index === 0) fetchpriority="high" @elseif($index === 1) fetchpriority="low" @endif>
@@ -462,20 +450,20 @@
                 <div class="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-[480px] cursor-pointer">
                     @if(isset($fullImageUrls[0]))
                         <div class="col-span-3 row-span-2 relative overflow-hidden group" onclick="openGallery(0)">
-                            <img src="{{ $fullImageUrls[0] }}" alt="{{ $imageAlt }} - poza 1" class="w-full h-full object-cover transition duration-500 group-hover:scale-105" loading="eager" decoding="async" fetchpriority="high">
+                            <img src="{{ $fullImageUrls[0] }}" alt="{{ $imageAlt }} - poza 1" class="w-full h-full object-cover object-center transition duration-500 group-hover:scale-105" loading="eager" decoding="async" fetchpriority="high">
                             <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition"></div>
                         </div>
                     @endif
 
                     @if(isset($fullImageUrls[1]))
                         <div class="col-span-1 row-span-1 relative overflow-hidden group" onclick="openGallery(1)">
-                            <img src="{{ $fullImageUrls[1] }}" alt="{{ $imageAlt }} - poza 2" class="w-full h-full object-cover transition duration-500 group-hover:scale-105" loading="eager" decoding="async" fetchpriority="low">
+                            <img src="{{ $fullImageUrls[1] }}" alt="{{ $imageAlt }} - poza 2" class="w-full h-full object-cover object-center transition duration-500 group-hover:scale-105" loading="eager" decoding="async" fetchpriority="low">
                         </div>
                     @endif
 
                     @if(isset($fullImageUrls[2]))
                         <div class="col-span-1 row-span-1 relative overflow-hidden group" onclick="openGallery(2)">
-                            <img src="{{ $fullImageUrls[2] }}" alt="{{ $imageAlt }} - poza 3" class="w-full h-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" decoding="async" fetchpriority="low">
+                            <img src="{{ $fullImageUrls[2] }}" alt="{{ $imageAlt }} - poza 3" class="w-full h-full object-cover object-center transition duration-500 group-hover:scale-105" loading="lazy" decoding="async" fetchpriority="low">
                             @if(count($fullImageUrls) > 3)
                                 <div class="absolute inset-0 bg-black/60 flex items-center justify-center group-hover:bg-black/50 transition">
                                     <span class="text-white font-bold text-lg tracking-wide flex flex-col items-center">
@@ -743,12 +731,8 @@
                     <div class="p-6">
                         @if($isDealer)
                             {{-- === DEALER MODE === --}}
-                            <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center mb-4">
                                 <span class="bg-[#E03E2D] text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">Dealer Autorizat</span>
-                                <div class="flex items-center text-green-600 text-xs font-bold gap-1">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                                    Verificat
-                                </div>
                             </div>
 
                             <div class="flex items-center gap-4 mb-5">
@@ -824,8 +808,9 @@
                                 <button disabled class="w-full bg-gray-200 text-gray-500 py-3.5 rounded-xl font-bold dark:bg-[#333333] dark:text-gray-400">Anunt indisponibil</button>
                                 @if($isDealer && !empty($sellerUser->dealer_public_url))
                                     <a href="{{ $sellerUser->dealer_public_url }}"
-                                       class="inline-flex w-full items-center justify-center rounded-xl border border-[#C81424]/20 bg-[#fff4f5] px-4 py-3 text-sm font-bold text-[#C81424] transition hover:border-[#C81424] hover:bg-white dark:border-red-900/40 dark:bg-[#2a1013] dark:text-red-200 dark:hover:bg-[#18181B]">
-                                        Vezi portofoliul parcului
+                                       class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#D7DEE7] bg-[#F8FAFC] px-4 py-3 text-sm font-bold text-[#172033] transition hover:bg-[#F1F5F9] active:bg-[#EAF0F6]">
+                                        <span>Vezi portofoliu dealer</span>
+                                        <svg class="h-4 w-4 flex-shrink-0 text-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                                     </a>
                                 @endif
                             @else
@@ -834,11 +819,11 @@
                                     <span id="txt-phone-desktop">Arată Numărul</span>
                                 </button>
                                 @if($canMessageSeller)
-                                    <button type="button" onclick="openSellerMessageModal()" class="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3.5 rounded-xl transition dark:border-[#333333] dark:bg-[#252525] dark:text-gray-100 dark:hover:bg-[#333333]">
+                                    <button type="button" onclick="openSellerMessageModal()" class="w-full rounded-xl border border-[#D7DEE7] bg-white py-3.5 font-bold text-[#172033] transition hover:bg-[#F8FAFC] active:bg-[#F1F5F9]">
                                         Trimite Mesaj
                                     </button>
                                 @elseif(!auth()->check())
-                                    <a href="{{ route('login') }}" class="inline-flex w-full items-center justify-center bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3.5 rounded-xl transition dark:border-[#333333] dark:bg-[#252525] dark:text-gray-100 dark:hover:bg-[#333333]">
+                                    <a href="{{ route('login') }}" class="inline-flex w-full items-center justify-center rounded-xl border border-[#D7DEE7] bg-white py-3.5 font-bold text-[#172033] transition hover:bg-[#F8FAFC] active:bg-[#F1F5F9]">
                                         Autentifică-te pentru mesaj
                                     </a>
                                 @elseif($isOwnListing)
@@ -852,8 +837,9 @@
                                 @endif
                                 @if($isDealer && !empty($sellerUser->dealer_public_url))
                                     <a href="{{ $sellerUser->dealer_public_url }}"
-                                       class="inline-flex w-full items-center justify-center rounded-xl border border-[#C81424]/20 bg-[#fff4f5] px-4 py-3 text-sm font-bold text-[#C81424] transition hover:border-[#C81424] hover:bg-white dark:border-red-900/40 dark:bg-[#2a1013] dark:text-red-200 dark:hover:bg-[#18181B]">
-                                        Vezi portofoliul parcului
+                                       class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#D7DEE7] bg-[#F8FAFC] px-4 py-3 text-sm font-bold text-[#172033] transition hover:bg-[#F1F5F9] active:bg-[#EAF0F6]">
+                                        <span>Vezi portofoliu dealer</span>
+                                        <svg class="h-4 w-4 flex-shrink-0 text-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                                     </a>
                                 @endif
                             @endif
@@ -861,12 +847,20 @@
                     </div>
                 </div>
 
+                @if($isDealer && !empty($sellerUser->dealer_public_url))
+                    <a href="{{ $sellerUser->dealer_public_url }}"
+                       class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#D7DEE7] bg-[#F8FAFC] px-4 py-3 text-sm font-bold text-[#172033] transition hover:bg-[#F1F5F9] active:bg-[#EAF0F6] md:hidden">
+                        <span>Vezi portofoliu dealer</span>
+                        <svg class="h-4 w-4 flex-shrink-0 text-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    </a>
+                @endif
+
                 {{-- CARD SIGURANTA --}}
-                <div class="bg-[#fff4f5] dark:bg-[#2a1013] p-4 rounded-xl border border-red-100 dark:border-red-900/40 flex gap-3 items-start">
-                    <svg class="w-5 h-5 text-[#C81424] flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                <div class="flex items-start gap-3 rounded-xl border border-[#F1D38A] bg-[#FFF8E8] p-4">
+                    <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-[#9A6700]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                     <div>
-                        <h5 class="font-bold text-[#7f1d1d] dark:text-red-200 text-sm">Siguranță</h5>
-                        <p class="text-xs text-[#8f111a] dark:text-red-300 mt-1 leading-snug">Verificați istoricul mașinii înainte de achiziție. Nu plătiți în avans.</p>
+                        <h5 class="text-sm font-bold text-[#9A6700]">Recomandare de siguranță</h5>
+                        <p class="mt-1 text-xs leading-snug text-[#5F4B1F]">Verificați actele și informațiile vehiculului înainte de achiziție. Evitați plățile în avans și confirmați identitatea vânzătorului.</p>
                     </div>
                 </div>
 
@@ -882,9 +876,9 @@
             <button class="w-full bg-gray-200 py-3 rounded-lg font-bold text-gray-500 dark:bg-[#333333] dark:text-gray-400" disabled>Anunt indisponibil</button>
         @else
             @if($canMessageSeller)
-                <button type="button" onclick="openSellerMessageModal()" class="flex-1 bg-white border border-gray-300 text-gray-800 font-bold py-3 rounded-xl dark:border-[#333333] dark:bg-[#252525] dark:text-gray-100">Mesaj</button>
+                <button type="button" onclick="openSellerMessageModal()" class="flex-1 rounded-xl border border-[#D7DEE7] bg-white py-3 font-bold text-[#172033] transition hover:bg-[#F8FAFC] active:bg-[#F1F5F9]">Mesaj</button>
             @elseif(!auth()->check())
-                <a href="{{ route('login') }}" class="flex-1 bg-white border border-gray-300 text-gray-800 font-bold py-3 rounded-xl text-center dark:border-[#333333] dark:bg-[#252525] dark:text-gray-100">Mesaj</a>
+                <a href="{{ route('login') }}" class="flex-1 rounded-xl border border-[#D7DEE7] bg-white py-3 text-center font-bold text-[#172033] transition hover:bg-[#F8FAFC] active:bg-[#F1F5F9]">Mesaj</a>
             @else
                 <button class="flex-1 bg-gray-100 border border-gray-200 text-gray-400 font-bold py-3 rounded-xl dark:border-[#333333] dark:bg-[#252525]" disabled>Mesaj</button>
             @endif

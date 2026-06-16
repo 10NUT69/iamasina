@@ -193,7 +193,19 @@
 
     {{-- MAIN CONTENT --}}
     {{-- Condiția care protejează paginile interne să nu intre sub header --}}
-    <main class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-grow relative z-0 {{ !View::hasSection('hero') ? 'pt-20 md:pt-24' : '' }}">
+    @php
+        $hasTightPublicBreadcrumb = request()->routeIs(
+            'cars.index',
+            'brand.index',
+            'brand.model.index',
+            'brand.model.county.index',
+            'brand.model.city.index',
+            'service.show.car',
+            'dealers.show'
+        );
+    @endphp
+
+    <main class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-grow relative z-0 {{ !View::hasSection('hero') ? ($hasTightPublicBreadcrumb ? 'pt-14 md:pt-[72px]' : 'pt-20 md:pt-24') : '' }}">
         @if(session('success'))
             <div class="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800 shadow-sm dark:border-green-900/50 dark:bg-green-950/40 dark:text-green-200">
                 {{ session('success') }}
@@ -295,14 +307,12 @@
     // LOGICA HEADER SCROLL & MOBILE HIDE
     // ============================================================
 
-    const isHomepage = {{ request()->routeIs('services.index') ? 'true' : 'false' }};
     let lastScrollY = 0;
     const nav = document.getElementById('main-nav');
     const logo = document.getElementById('logo-img');
     const mobileViewportQuery = window.matchMedia('(max-width: 1023px)');
     let isMobileViewport = mobileViewportQuery.matches;
     let navScrollTicking = false;
-    const shouldAutoHideMobileNav = isHomepage || !!document.getElementById('listing-actions-bar');
     let mobileNavHiddenOffset = 0;
     let mobileNavHeight = nav ? Math.ceil(nav.offsetHeight) : 56;
 
@@ -321,7 +331,7 @@
     }
 
     function updateMobileNavTransitionMode() {
-        if (shouldAutoHideMobileNav && isMobileViewport) {
+        if (isMobileViewport) {
             nav.style.transitionProperty = 'height, box-shadow, border-color, background-color';
         } else {
             nav.style.transitionProperty = '';
@@ -357,7 +367,7 @@
         }
 
         // --- 2. LOGICA OLX (ASCUNDE/ARATĂ PE MOBIL) ---
-        if (shouldAutoHideMobileNav && isMobileViewport) {
+        if (isMobileViewport) {
 
             const scrollDelta = currentScrollY - lastScrollY;
 
@@ -383,7 +393,7 @@
         isMobileViewport = mobileViewportQuery.matches;
         mobileNavHeight = nav ? Math.ceil(nav.offsetHeight) || mobileNavHeight : mobileNavHeight;
         updateMobileNavTransitionMode();
-        if (!isMobileViewport || !shouldAutoHideMobileNav) {
+        if (!isMobileViewport) {
             setMobileNavOffset(0);
         }
     }, { passive: true });

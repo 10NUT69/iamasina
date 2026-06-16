@@ -44,7 +44,7 @@
             {{-- Image Area --}}
             <div class="relative w-full aspect-[4/3] bg-gray-100 dark:bg-[#121212] overflow-hidden">
                 <img src="{{ $service->main_image_url }}"
-                    class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    class="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
                     alt="{{ $imageAlt }}"
                     @if($loop->index < 2) loading="eager" fetchpriority="high" @else loading="lazy" @endif
                     width="400" height="300">
