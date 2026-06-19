@@ -196,9 +196,10 @@
 
                     <div class="mt-2 grid grid-cols-3 gap-2">
                         <button type="button"
-                                data-url="{{ $service->public_url }}"
-                                onclick="setShareUrl(this); shareFacebook()"
-                                class="w-full px-2 py-2 text-xs font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/35 transition flex items-center justify-center gap-2">
+        data-url="{{ $service->public_url }}"
+        data-title="{{ e($service->title) }}"
+        onclick="setShareUrl(this); shareFacebook()"
+        class="w-full px-2 py-2 text-xs font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/35 transition flex items-center justify-center gap-2">
                             <svg class="w-4 h-4 text-blue-600 dark:text-blue-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                                 <path d="M22 12a10 10 0 10-11.5 9.9v-7H8v-3h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.4h-1.2c-1.2 0-1.6.8-1.6 1.6V12H16.9l-.4 3h-2.2v7A10 10 0 0022 12z"/>
                             </svg>
@@ -995,10 +996,24 @@ function setShareUrl(btn) {
 
 function shareFacebook() {
     if (!currentShareUrl) return;
-    window.open(
-        'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(currentShareUrl),
-        '_blank'
-    );
+
+    // 1. Preluăm App ID-ul tău din Laravel în mod securizat
+    const appId = '{{ config("services.facebook.app_id") }}';
+
+    // 2. Construim textul precompletat folosind titlul mașinii (care vine din data-title)
+    // Poți modifica acest mesaj cum crezi că sună mai bine!
+    const quoteMessage = "Uite acest anunț: " + currentShareTitle + ". Ce părere ai?";
+
+    // 3. Generăm link-ul corect pentru Facebook Dialog API folosind URLSearchParams
+    const shareUrl = 'https://www.facebook.com/dialog/share?' + new URLSearchParams({
+        app_id: appId,
+        display: 'popup',
+        href: currentShareUrl,
+        quote: quoteMessage
+    }).toString();
+
+    // 4. Deschidem fereastra
+    window.open(shareUrl, '_blank');
 }
 
 function shareWhatsapp() {
