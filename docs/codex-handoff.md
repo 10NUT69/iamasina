@@ -18,6 +18,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Latest Changes
 
+- 2026-06-19: Updated the account listing Facebook share action so desktop keeps the existing Share Dialog popup behavior, while mobile tries to open the Facebook app via Android intent / `fb://` faceweb modal and falls back to the mobile web Share Dialog when the app handoff is unavailable. The share data still comes from the existing ad URL/title and `services.facebook.app_id` / `FACEBOOK_APP_ID` config path; no secrets were added.
+
 - 2026-06-14: Moved the desktop listing breadcrumb into a full-width row directly under the public header so long breadcrumb fragments no longer share the row with `Salveaza` / `Sortare`; the right-side listing controls now start underneath the breadcrumb. Also made the `no-scrollbar` utility global and changed the service show visual breadcrumb to stop at the last navigable listing segment instead of showing the current ad title.
 
 - 2026-06-14: Tightened public breadcrumb placement so listing, service show, and dealer portfolio breadcrumbs sit about 10px below the fixed header. On the service show page, the breadcrumb now renders above the `Înapoi` button, with the back button on its own row below.
@@ -77,6 +79,10 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - 2026-06-05: Changed the deleted listing disabled contact button label from `Contact dezactivat` to `Anunt indisponibil` on desktop and mobile show views.
 
 ## Verification
+
+- Ran `php -l resources/views/account/index.blade.php`; no syntax errors after the Facebook mobile-share update.
+- Ran `git diff --check`; passed after the Facebook mobile-share update.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the Facebook mobile-share update.
 
 - Verified in the in-app browser at 1884x900 for `http://auto.test/anunturi-auto-de-vanzare/bmw/seria-3/arad/chisineu-cris`: the desktop breadcrumb spans the listing page width, `Salveaza` and `Sortare` start below it, there is no overlap, `scrollbar-width` computes to `none`, and the page has no horizontal overflow.
 - Verified the same listing path at 390x844 mobile: exactly one breadcrumb is visible, the internal scrollbar is hidden, and it does not overlap `Filtre` or `Salveaza`.
@@ -307,6 +313,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Environment Assumptions
 
+- Facebook mobile app handoff depends on `FACEBOOK_APP_ID` being configured through `config/services.php`, plus the user's mobile OS/browser and whether the Facebook app is installed. No `.env` values or secrets were read or committed.
+
 - Local PowerShell did not expose `npm` in PATH during this update, so Vite verification used the bundled Codex Node executable against the project's local `node_modules/vite/bin/vite.js`; no environment keys or secrets are involved.
 - Breadcrumbs use only existing public routes and view data; dealer county links prefer the county slug path (for example `/anunturi-auto-de-vanzare/buzau?seller_type=dealer`) so dealer accounts without `county_id` still get a clickable county breadcrumb. No new environment keys, controllers, migrations, or tables were added.
 - The account dealer-page link depends on the existing `User::dealer_public_url` accessor and only appears for users whose `user_type` is `dealer` and whose company data yields a public URL; no new routes, controllers, tables, or environment keys were added.
@@ -344,6 +352,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - The bundled Codex Node runtime was used for Vite build because `node.exe` from PATH returned `Access denied`.
 
 ## Open Items
+
+- Verify the account-page Facebook button on real Android and iOS devices after deploy: desktop should keep the current web popup, mobile should open the Facebook app when installed, and should fall back to the mobile web dialog otherwise.
 
 - No new known follow-up from the shared breadcrumb update; a real-device visual pass remains useful after deploy, especially for long show-page breadcrumbs on narrow phones.
 - No new known follow-up from the dealer about/account tab update; a logged-in real-browser pass remains useful after deploy for the `Pagina parcului` tab.

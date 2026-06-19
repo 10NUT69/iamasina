@@ -923,6 +923,7 @@
 <script>
 let currentShareUrl = '';
 let currentShareTitle = '';
+const facebookAppId = @json(config('services.facebook.app_id'));
 let accountFloatingMsgTimer = null;
 
 function showAccountFloatingMessage(message, success = true) {
@@ -994,26 +995,80 @@ function setShareUrl(btn) {
     currentShareTitle = btn.dataset.title || '';
 }
 
+function buildFacebookShareUrl(display = 'popup') {
+    const quoteMessage = currentShareTitle
+        ? `Uite acest anunț: ${currentShareTitle}. Ce părere ai?`
+        : 'Uite acest anunț.';
+
+    if (!facebookAppId) {
+        const fallbackParams = new URLSearchParams({
+            u: currentShareUrl,
+            quote: quoteMessage
+        });
+
+        return 'https://www.facebook.com/sharer/sharer.php?' + fallbackParams.toString();
+    }
+
+    const params = new URLSearchParams({
+        app_id: facebookAppId,
+        display: display,
+        href: currentShareUrl,
+        quote: quoteMessage
+    });
+
+    return 'https://www.facebook.com/dialog/share?' + params.toString();
+}
+
+function isMobileFacebookShare() {
+    const userAgent = navigator.userAgent || navigator.vendor || '';
+    const platform = navigator.platform || '';
+
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)
+        || (platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function openFacebookMobileShare() {
+    const mobileShareUrl = buildFacebookShareUrl('touch');
+    const encodedFallbackUrl = encodeURIComponent(mobileShareUrl);
+    const userAgent = navigator.userAgent || '';
+
+    if (/Android/i.test(userAgent)) {
+        window.location.href = 'intent://facewebmodal/f?href=' + encodedFallbackUrl
+            + '#Intent;scheme=fb;package=com.facebook.katana;S.browser_fallback_url='
+            + encodedFallbackUrl
+            + ';end';
+        return;
+    }
+
+    let fallbackTimer = null;
+    const removeFallback = () => {
+        window.clearTimeout(fallbackTimer);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+    const handleVisibilityChange = () => {
+        if (document.hidden) {
+            removeFallback();
+        }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    fallbackTimer = window.setTimeout(() => {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        window.location.href = mobileShareUrl;
+    }, 1200);
+
+    window.location.href = 'fb://facewebmodal/f?href=' + encodedFallbackUrl;
+}
+
 function shareFacebook() {
     if (!currentShareUrl) return;
 
-    // 1. Preluăm App ID-ul tău din Laravel în mod securizat
-    const appId = '{{ config("services.facebook.app_id") }}';
+    if (isMobileFacebookShare()) {
+        openFacebookMobileShare();
+        return;
+    }
 
-    // 2. Construim textul precompletat folosind titlul mașinii (care vine din data-title)
-    // Poți modifica acest mesaj cum crezi că sună mai bine!
-    const quoteMessage = "Uite acest anunț: " + currentShareTitle + ". Ce părere ai?";
-
-    // 3. Generăm link-ul corect pentru Facebook Dialog API folosind URLSearchParams
-    const shareUrl = 'https://www.facebook.com/dialog/share?' + new URLSearchParams({
-        app_id: appId,
-        display: 'popup',
-        href: currentShareUrl,
-        quote: quoteMessage
-    }).toString();
-
-    // 4. Deschidem fereastra
-    window.open(shareUrl, '_blank');
+    window.open(buildFacebookShareUrl('popup'), '_blank');
 }
 
 function shareWhatsapp() {
