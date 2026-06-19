@@ -54,4 +54,7 @@ return [
     'geoip' => [
         'external_lookup_enabled' => env('GEOIP_EXTERNAL_LOOKUP_ENABLED', false),
     ],
+	'facebook' => [
+        'app_id' => env('FACEBOOK_APP_ID'),
+    ],
 ];
