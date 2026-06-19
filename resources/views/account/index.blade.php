@@ -999,6 +999,7 @@ function shareFacebook() {
 
     // 1. Preluăm App ID-ul tău din Laravel în mod securizat
     const appId = '{{ config("services.facebook.app_id") }}';
+	console.log("ID-ul detectat este:", appId); //
 
     // 2. Construim textul precompletat folosind titlul mașinii (care vine din data-title)
     // Poți modifica acest mesaj cum crezi că sună mai bine!
