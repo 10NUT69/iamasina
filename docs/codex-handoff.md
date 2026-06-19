@@ -18,7 +18,7 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Latest Changes
 
-- 2026-06-19: Updated the account listing Facebook share action so desktop keeps the existing Share Dialog popup behavior, while mobile tries to open the Facebook app via Android intent / `fb://` faceweb modal and falls back to the mobile web Share Dialog when the app handoff is unavailable. The share data still comes from the existing ad URL/title and `services.facebook.app_id` / `FACEBOOK_APP_ID` config path; no secrets were added.
+- 2026-06-19: Updated the account listing Facebook share action so desktop keeps the existing Share Dialog popup behavior, while mobile opens the supported Facebook Share Dialog with `display=touch` in a new tab instead of trying unsupported `fb://` / Android intent routes. The share data still comes from the existing ad URL/title and `services.facebook.app_id` / `FACEBOOK_APP_ID` config path; no secrets were added.
 
 - 2026-06-14: Moved the desktop listing breadcrumb into a full-width row directly under the public header so long breadcrumb fragments no longer share the row with `Salveaza` / `Sortare`; the right-side listing controls now start underneath the breadcrumb. Also made the `no-scrollbar` utility global and changed the service show visual breadcrumb to stop at the last navigable listing segment instead of showing the current ad title.
 
@@ -313,7 +313,7 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Environment Assumptions
 
-- Facebook mobile app handoff depends on `FACEBOOK_APP_ID` being configured through `config/services.php`, plus the user's mobile OS/browser and whether the Facebook app is installed. No `.env` values or secrets were read or committed.
+- Facebook sharing depends on `FACEBOOK_APP_ID` being configured through `config/services.php`. Meta does not provide a reliable supported browser-to-Facebook-app deep link that opens a prefilled composer, and platform policy blocks pre-filling the user's message text; this implementation sends the ad URL/title to the Share Dialog and leaves the user's comment empty. No `.env` values or secrets were read or committed.
 
 - Local PowerShell did not expose `npm` in PATH during this update, so Vite verification used the bundled Codex Node executable against the project's local `node_modules/vite/bin/vite.js`; no environment keys or secrets are involved.
 - Breadcrumbs use only existing public routes and view data; dealer county links prefer the county slug path (for example `/anunturi-auto-de-vanzare/buzau?seller_type=dealer`) so dealer accounts without `county_id` still get a clickable county breadcrumb. No new environment keys, controllers, migrations, or tables were added.
@@ -353,7 +353,7 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Open Items
 
-- Verify the account-page Facebook button on real Android and iOS devices after deploy: desktop should keep the current web popup, mobile should open the Facebook app when installed, and should fall back to the mobile web dialog otherwise.
+- Verify the account-page Facebook button on real Android and iOS devices after deploy: desktop should keep the current web popup, mobile should open the Facebook Share Dialog in a new tab so the iaAuto account page is not replaced. The user's own Facebook post text cannot be prefilled by policy.
 
 - No new known follow-up from the shared breadcrumb update; a real-device visual pass remains useful after deploy, especially for long show-page breadcrumbs on narrow phones.
 - No new known follow-up from the dealer about/account tab update; a logged-in real-browser pass remains useful after deploy for the `Pagina parcului` tab.
