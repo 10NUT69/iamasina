@@ -18,6 +18,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Latest Changes
 
+- 2026-06-19: Applied the same supported Facebook Share Dialog behavior to the public service show page: the Facebook share control now builds a Dialog URL with `FACEBOOK_APP_ID`, opens desktop as `display=popup`, opens mobile as `display=touch`, and always uses a new tab so the listing page is not replaced. No routes/controllers were changed.
+
 - 2026-06-19: Updated the account listing Facebook share action so desktop keeps the existing Share Dialog popup behavior, while mobile opens the supported Facebook Share Dialog with `display=touch` in a new tab instead of trying unsupported `fb://` / Android intent routes. The share data still comes from the existing ad URL/title and `services.facebook.app_id` / `FACEBOOK_APP_ID` config path; no secrets were added.
 
 - 2026-06-14: Moved the desktop listing breadcrumb into a full-width row directly under the public header so long breadcrumb fragments no longer share the row with `Salveaza` / `Sortare`; the right-side listing controls now start underneath the breadcrumb. Also made the `no-scrollbar` utility global and changed the service show visual breadcrumb to stop at the last navigable listing segment instead of showing the current ad title.
@@ -79,6 +81,10 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - 2026-06-05: Changed the deleted listing disabled contact button label from `Contact dezactivat` to `Anunt indisponibil` on desktop and mobile show views.
 
 ## Verification
+
+- Ran `php -l resources/views/services/show.blade.php`; no syntax errors after applying the Facebook Share Dialog behavior to the show page.
+- Ran `git diff --check`; passed after the show-page Facebook share update.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the show-page Facebook share update.
 
 - Ran `php -l resources/views/account/index.blade.php`; no syntax errors after the Facebook mobile-share update.
 - Ran `git diff --check`; passed after the Facebook mobile-share update.
