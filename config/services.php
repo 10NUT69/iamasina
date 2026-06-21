@@ -56,5 +56,6 @@ return [
     ],
 	'facebook' => [
         'app_id' => env('FACEBOOK_APP_ID'),
+        'pixel_id' => env('META_PIXEL_ID'),
     ],
 ];

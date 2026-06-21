@@ -83,8 +83,14 @@
         (function () {
             const storageKey = 'iaauto_cookie_consent';
             const analyticsId = @json(config('services.google.analytics_id'));
+            const metaPixelId = @json(config('services.facebook.pixel_id'));
             let analyticsLoaded = false;
-            let marketingLoaded = false;
+            let metaPixelLoading = false;
+            let metaPixelLoaded = false;
+            let metaPixelInitialized = false;
+            let metaPixelPageViewSent = false;
+            let metaPixelConsentGranted = false;
+            let marketingConsentActive = false;
 
             function getStoredConsent() {
                 try {
@@ -145,26 +151,167 @@
                 document.head.appendChild(script);
             };
 
-            window.loadMarketingScripts = function () {
-                if (marketingLoaded) {
+            function hasMarketingConsent() {
+                return Boolean(marketingConsentActive);
+            }
+
+            function canUseMetaPixel() {
+                return Boolean(metaPixelId && hasMarketingConsent() && metaPixelLoaded && typeof window.fbq === 'function');
+            }
+
+            window.iaAutoMetaPixel = window.iaAutoMetaPixel || {};
+            window.iaAutoMetaPixel.track = function (eventName, parameters, options) {
+                if (!eventName || !canUseMetaPixel()) {
+                    return false;
+                }
+
+                if (typeof options === 'undefined') {
+                    window.fbq('track', eventName, parameters || {});
+                } else {
+                    window.fbq('track', eventName, parameters || {}, options);
+                }
+
+                return true;
+            };
+            window.iaAutoMetaPixel.trackCustom = function (eventName, parameters, options) {
+                if (!eventName || !canUseMetaPixel()) {
+                    return false;
+                }
+
+                if (typeof options === 'undefined') {
+                    window.fbq('trackCustom', eventName, parameters || {});
+                } else {
+                    window.fbq('trackCustom', eventName, parameters || {}, options);
+                }
+
+                return true;
+            };
+            window.iaAutoMetaPixel.isReady = canUseMetaPixel;
+
+            function ensureMetaPixelQueue() {
+                if (window.fbq) {
                     return;
                 }
 
-                marketingLoaded = true;
-                // Adauga aici ulterior coduri precum Google Ads sau Facebook Pixel.
-            };
+                const fbq = function () {
+                    if (fbq.callMethod) {
+                        fbq.callMethod.apply(fbq, arguments);
+                    } else {
+                        fbq.queue.push(arguments);
+                    }
+                };
+
+                if (!window._fbq) {
+                    window._fbq = fbq;
+                }
+
+                fbq.push = fbq;
+                fbq.loaded = true;
+                fbq.version = '2.0';
+                fbq.queue = [];
+                window.fbq = fbq;
+            }
+
+            function initializeMetaPixel() {
+                if (metaPixelInitialized || !canUseMetaPixel()) {
+                    return;
+                }
+
+                grantMetaPixelConsent();
+                window.fbq('set', 'autoConfig', 'false', metaPixelId);
+                window.fbq('init', metaPixelId);
+                metaPixelInitialized = true;
+            }
+
+            function sendMetaPixelPageView() {
+                if (metaPixelPageViewSent || !canUseMetaPixel()) {
+                    return;
+                }
+
+                initializeMetaPixel();
+
+                if (!metaPixelInitialized) {
+                    return;
+                }
+
+                window.fbq('track', 'PageView');
+                metaPixelPageViewSent = true;
+            }
+
+            function grantMetaPixelConsent() {
+                if (metaPixelConsentGranted || !canUseMetaPixel()) {
+                    return;
+                }
+
+                window.fbq('consent', 'grant');
+                metaPixelConsentGranted = true;
+            }
+
+            function revokeMetaPixelConsent() {
+                if (metaPixelLoaded && typeof window.fbq === 'function') {
+                    window.fbq('consent', 'revoke');
+                    metaPixelConsentGranted = false;
+                }
+            }
+
+            function activateMetaPixel() {
+                if (!metaPixelId || !hasMarketingConsent()) {
+                    return;
+                }
+
+                ensureMetaPixelQueue();
+
+                if (metaPixelLoaded) {
+                    grantMetaPixelConsent();
+                    sendMetaPixelPageView();
+                    return;
+                }
+
+                if (metaPixelLoading) {
+                    return;
+                }
+
+                metaPixelLoading = true;
+
+                const script = document.createElement('script');
+                script.async = true;
+                script.id = 'iaauto-meta-pixel-script';
+                script.src = 'https://connect.facebook.net/en_US/fbevents.js';
+                script.onload = function () {
+                    metaPixelLoading = false;
+                    metaPixelLoaded = true;
+
+                    if (hasMarketingConsent()) {
+                        sendMetaPixelPageView();
+                    } else {
+                        revokeMetaPixelConsent();
+                    }
+                };
+                script.onerror = function () {
+                    metaPixelLoading = false;
+                    script.remove();
+                };
+                document.head.appendChild(script);
+            }
+
+            window.loadMarketingScripts = activateMetaPixel;
 
             function applyConsent(consent) {
                 if (!consent) {
                     return;
                 }
 
+                const hadMarketingConsent = marketingConsentActive;
+                marketingConsentActive = Boolean(consent.marketing);
+
                 if (consent.analytics) {
                     window.loadAnalyticsScripts();
                 }
 
-                if (consent.marketing) {
+                if (marketingConsentActive) {
                     window.loadMarketingScripts();
+                } else if (hadMarketingConsent) {
+                    revokeMetaPixelConsent();
                 }
             }
 

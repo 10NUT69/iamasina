@@ -18,6 +18,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Latest Changes
 
+- 2026-06-21: Added a consent-gated Meta Pixel integration to the existing cookie consent component. The Pixel ID is read from `META_PIXEL_ID` through `config('services.facebook.pixel_id')`; no Pixel ID is hardcoded in Blade/JS. Meta Pixel is loaded only when the saved/live Marketing consent is active, sends one PageView per page load, calls `fbq('consent', 'revoke')` when Marketing is withdrawn after load, disables Meta auto configuration before `init`, and exposes `window.iaAutoMetaPixel.track(...)` / `trackCustom(...)` for future events. No `noscript` tracking image, conversion events, Conversions API, or advanced matching data were added.
+
 - 2026-06-19: Applied the same supported Facebook Share Dialog behavior to the public service show page: the Facebook share control now builds a Dialog URL with `FACEBOOK_APP_ID`, opens desktop as `display=popup`, opens mobile as `display=touch`, and always uses a new tab so the listing page is not replaced. No routes/controllers were changed.
 
 - 2026-06-19: Updated the account listing Facebook share action so desktop keeps the existing Share Dialog popup behavior, while mobile opens the supported Facebook Share Dialog with `display=touch` in a new tab instead of trying unsupported `fb://` / Android intent routes. The share data still comes from the existing ad URL/title and `services.facebook.app_id` / `FACEBOOK_APP_ID` config path; no secrets were added.
@@ -81,6 +83,13 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - 2026-06-05: Changed the deleted listing disabled contact button label from `Contact dezactivat` to `Anunt indisponibil` on desktop and mobile show views.
 
 ## Verification
+
+- Ran `php -l config/services.php` and `php -l resources/views/components/cookie-consent.blade.php`; no syntax errors after the Meta Pixel integration.
+- Ran `git diff --check`; passed.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared.
+- Verified `http://auto.test/politica-cookies` rendered `const metaPixelId = null` while local `META_PIXEL_ID` was unset; the Meta URL exists only inside the gated JS function, and the rendered page had no `<noscript>` block.
+- Started a temporary Laravel server on `127.0.0.1:8011` with only the process-level `META_PIXEL_ID=1348462176729702`; before consent, browser inspection showed `fbq` undefined, helper not ready, banner visible, and no `connect.facebook.net` / `facebook.com` scripts, elements, or performance resources.
+- Verified consent transitions in an in-memory browser harness using the real cookie-consent script and a fake no-op Meta script to avoid sending test data: no-consent helper returned false with no `fbq`; accepting Marketing without refresh produced exactly one script load, one `consent grant`, one `autoConfig false`, one `init`, and one `PageView`; helper events queued only after consent; withdrawing Marketing queued exactly one `consent revoke` and disabled helper sends; repeated reaccepts did not duplicate script/init/PageView; saved Marketing consent sent one PageView on page load; saved denied consent loaded no Pixel.
 
 - Ran `php -l resources/views/services/show.blade.php`; no syntax errors after applying the Facebook Share Dialog behavior to the show page.
 - Ran `git diff --check`; passed after the show-page Facebook share update.
@@ -319,6 +328,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Environment Assumptions
 
+- Meta Pixel is disabled unless `META_PIXEL_ID` is configured. Keep `META_PIXEL_ID` unset in local/dev unless intentionally testing, and refresh Laravel config after changing it (`php artisan optimize:clear` / `php artisan config:cache` as appropriate for the environment). No `.env` values or secrets were read or committed.
+
 - Facebook sharing depends on `FACEBOOK_APP_ID` being configured through `config/services.php`. Meta does not provide a reliable supported browser-to-Facebook-app deep link that opens a prefilled composer, and platform policy blocks pre-filling the user's message text; this implementation sends the ad URL/title to the Share Dialog and leaves the user's comment empty. No `.env` values or secrets were read or committed.
 
 - Local PowerShell did not expose `npm` in PATH during this update, so Vite verification used the bundled Codex Node executable against the project's local `node_modules/vite/bin/vite.js`; no environment keys or secrets are involved.
@@ -358,6 +369,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - The bundled Codex Node runtime was used for Vite build because `node.exe` from PATH returned `Access denied`.
 
 ## Open Items
+
+- After deployment with `META_PIXEL_ID` configured, verify in Meta Events Manager Test Events that PageView appears only after accepting Marketing, and verify in DevTools Network that no `connect.facebook.net` or `facebook.com` request is made before Marketing consent.
 
 - Verify the account-page Facebook button on real Android and iOS devices after deploy: desktop should keep the current web popup, mobile should open the Facebook Share Dialog in a new tab so the iaAuto account page is not replaced. The user's own Facebook post text cannot be prefilled by policy.
 
