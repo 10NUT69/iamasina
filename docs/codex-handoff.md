@@ -18,6 +18,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Latest Changes
 
+- 2026-06-21: Added the Meta Pixel `ListingPublished` custom event for successful public listing publication. The only server-side trigger is `ServiceController::store()` after the service has been saved and marked active/published; it flashes `meta_listing_published_event.meta_event_id` with a fresh UUID and redirects through the existing success flow. The shared app layout consumes that flash once after redirect and calls `window.iaAutoMetaPixel.trackCustom('ListingPublished', { content_category: 'vehicle_listing' }, { eventID: metaEventId })` only when the consent-gated Pixel helper is ready. Pending events stay in page memory only, are canceled on explicit Marketing refusal or page leave, and are not added to edit, renew/reactivation, delete, admin, import, or promotion flows.
+
 - 2026-06-21: Added a consent-gated Meta Pixel integration to the existing cookie consent component. The Pixel ID is read from `META_PIXEL_ID` through `config('services.facebook.pixel_id')`; no Pixel ID is hardcoded in Blade/JS. Meta Pixel is loaded only when the saved/live Marketing consent is active, sends one PageView per page load, calls `fbq('consent', 'revoke')` when Marketing is withdrawn after load, disables Meta auto configuration before `init`, and exposes `window.iaAutoMetaPixel.track(...)` / `trackCustom(...)` for future events. No `noscript` tracking image, conversion events, Conversions API, or advanced matching data were added.
 
 - 2026-06-19: Applied the same supported Facebook Share Dialog behavior to the public service show page: the Facebook share control now builds a Dialog URL with `FACEBOOK_APP_ID`, opens desktop as `display=popup`, opens mobile as `display=touch`, and always uses a new tab so the listing page is not replaced. No routes/controllers were changed.
@@ -83,6 +85,14 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - 2026-06-05: Changed the deleted listing disabled contact button label from `Contact dezactivat` to `Anunt indisponibil` on desktop and mobile show views.
 
 ## Verification
+
+- Identified publication flows before implementation: the public create form posts only to `services.store` (`POST /anunturi-auto-de-vanzare/adauga-anunt`), which covers authenticated users, guests without accounts, guests creating an account, individual owners, and dealer accounts through the same path. Edit/update (`services.update`), renew/reactualizare (`services.renew`), delete/deactivate, and admin service routes are separate and were not wired to the event.
+- Rendered `layouts.app` with a flashed `meta_listing_published_event` and confirmed the HTML contains `ListingPublished`, `vehicle_listing`, `eventID`, and the UUID only; no email/user/listing internal id literals were present.
+- Verified `ListingPublished` behavior in an in-memory browser harness using the real cookie-consent and layout scripts with a fake no-op Meta script: saved Marketing consent produced exactly one PageView and one `trackCustom ListingPublished` with the expected `eventID`; no Marketing consent produced no event until Marketing was accepted on the same page; explicit Marketing denial canceled the pending event; repeated `iaauto:meta-pixel-ready` signals did not duplicate the event.
+- Ran `php -l app/Http/Controllers/ServiceController.php`, `php -l resources/views/components/cookie-consent.blade.php`, and `php -l resources/views/layouts/app.blade.php`; no syntax errors after the `ListingPublished` event integration.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the `ListingPublished` event integration.
+- Ran `php artisan test --filter=ServicePublishedConfirmationTest`; passed (1 test / 7 assertions).
+- Ran `git diff --check`; passed after the `ListingPublished` event integration.
 
 - Ran `php -l config/services.php` and `php -l resources/views/components/cookie-consent.blade.php`; no syntax errors after the Meta Pixel integration.
 - Ran `git diff --check`; passed.
@@ -369,6 +379,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - The bundled Codex Node runtime was used for Vite build because `node.exe` from PATH returned `Access denied`.
 
 ## Open Items
+
+- After deployment with `META_PIXEL_ID` configured, verify in Meta Events Manager Test Events that `ListingPublished` appears once after a successful public listing submission and only after accepting Marketing; then create the Meta custom conversion separately after the event is visible.
 
 - After deployment with `META_PIXEL_ID` configured, verify in Meta Events Manager Test Events that PageView appears only after accepting Marketing, and verify in DevTools Network that no `connect.facebook.net` or `facebook.com` request is made before Marketing consent.
 

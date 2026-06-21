@@ -826,8 +826,12 @@ public function indexAutoPath(
     $redirectUrl = $service->user_id
         ? url('/contul-meu?tab=anunturi')
         : route('cars.index');
+    $metaEventId = (string) Str::uuid();
 
     return redirect()->to($redirectUrl)
+        ->with('meta_listing_published_event', [
+            'meta_event_id' => $metaEventId,
+        ])
         ->with('success', 'Anunțul a fost trimis către aprobare. Îl procesăm și îl publicăm automat în scurt timp.');
 }
 

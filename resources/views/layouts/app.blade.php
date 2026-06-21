@@ -293,6 +293,80 @@
 
     <x-cookie-consent />
 
+    @php
+        $metaListingPublishedEvent = session('meta_listing_published_event');
+        $metaListingPublishedEventId = is_array($metaListingPublishedEvent)
+            ? ($metaListingPublishedEvent['meta_event_id'] ?? null)
+            : null;
+    @endphp
+    @if(is_string($metaListingPublishedEventId) && $metaListingPublishedEventId !== '')
+        <script>
+            (function () {
+                const metaEventId = @json($metaListingPublishedEventId);
+                let sent = false;
+                let canceled = false;
+
+                function removeListeners() {
+                    window.removeEventListener('iaauto:meta-pixel-ready', sendListingPublishedEvent);
+                    window.removeEventListener('iaauto:cookie-consent-applied', handleCookieConsentApplied);
+                }
+
+                function sendListingPublishedEvent() {
+                    if (sent || canceled || !metaEventId || !window.iaAutoMetaPixel?.trackCustom) {
+                        return;
+                    }
+
+                    const tracked = window.iaAutoMetaPixel.trackCustom(
+                        'ListingPublished',
+                        {
+                            content_category: 'vehicle_listing',
+                        },
+                        {
+                            eventID: metaEventId,
+                        }
+                    );
+
+                    if (tracked) {
+                        sent = true;
+                        removeListeners();
+                    }
+                }
+
+                function handleCookieConsentApplied(event) {
+                    if (sent || canceled) {
+                        return;
+                    }
+
+                    const detail = event.detail || {};
+                    if (detail.source && detail.source !== 'stored' && detail.marketing === false) {
+                        canceled = true;
+                        removeListeners();
+                        return;
+                    }
+
+                    sendListingPublishedEvent();
+                }
+
+                function cancelPendingEvent() {
+                    if (!sent) {
+                        canceled = true;
+                        removeListeners();
+                    }
+                }
+
+                window.addEventListener('iaauto:meta-pixel-ready', sendListingPublishedEvent);
+                window.addEventListener('iaauto:cookie-consent-applied', handleCookieConsentApplied);
+                window.addEventListener('pagehide', cancelPendingEvent, { once: true });
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', sendListingPublishedEvent, { once: true });
+                } else {
+                    sendListingPublishedEvent();
+                }
+            })();
+        </script>
+    @endif
+
     {{-- SCRIPTURI --}}
     <script>
        function goToFavorites() {
