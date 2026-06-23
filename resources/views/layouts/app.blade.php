@@ -293,6 +293,83 @@
 
     <x-cookie-consent />
 
+    @if(session('ga4_listing_published_event') === true)
+        <script>
+            (function () {
+                const storageKey = 'iaauto_cookie_consent';
+                let sent = false;
+                let canceled = false;
+                let analyticsConsentActive = hasStoredAnalyticsConsent();
+
+                function hasStoredAnalyticsConsent() {
+                    try {
+                        const stored = localStorage.getItem(storageKey);
+                        const consent = stored ? JSON.parse(stored) : null;
+
+                        return Boolean(consent && consent.analytics);
+                    } catch (error) {
+                        return false;
+                    }
+                }
+
+                function removeListeners() {
+                    window.removeEventListener('iaauto:cookie-consent-applied', handleCookieConsentApplied);
+                }
+
+                function canSendGa4Event() {
+                    return Boolean(analyticsConsentActive || hasStoredAnalyticsConsent())
+                        && typeof window.gtag === 'function';
+                }
+
+                function sendListingPublishedEvent() {
+                    if (sent || canceled || !canSendGa4Event()) {
+                        return;
+                    }
+
+                    window.gtag('event', 'listing_published');
+                    sent = true;
+                    removeListeners();
+                }
+
+                function handleCookieConsentApplied(event) {
+                    if (sent || canceled) {
+                        return;
+                    }
+
+                    const detail = event.detail || {};
+
+                    if (detail.analytics === true) {
+                        analyticsConsentActive = true;
+                    }
+
+                    if (detail.source && detail.source !== 'stored' && detail.analytics === false) {
+                        canceled = true;
+                        removeListeners();
+                        return;
+                    }
+
+                    sendListingPublishedEvent();
+                }
+
+                function cancelPendingEvent() {
+                    if (!sent) {
+                        canceled = true;
+                        removeListeners();
+                    }
+                }
+
+                window.addEventListener('iaauto:cookie-consent-applied', handleCookieConsentApplied);
+                window.addEventListener('pagehide', cancelPendingEvent, { once: true });
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', sendListingPublishedEvent, { once: true });
+                } else {
+                    sendListingPublishedEvent();
+                }
+            })();
+        </script>
+    @endif
+
     @php
         $metaListingPublishedEvent = session('meta_listing_published_event');
         $metaListingPublishedEventId = is_array($metaListingPublishedEvent)

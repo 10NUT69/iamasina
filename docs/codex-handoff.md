@@ -18,6 +18,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Latest Changes
 
+- 2026-06-23: Added the GA4 `listing_published` event for successful public listing publication. The exact publication flow is the create form at `GET /anunturi-auto-de-vanzare/adauga-anunt`, posting to `POST /anunturi-auto-de-vanzare/adauga-anunt` (`services.store`), handled by `ServiceController::store()`. The controller now flashes `ga4_listing_published_event` only after the service is saved and marked active/published, then redirects through the existing success flow. The shared app layout consumes that flash once after redirect and calls `gtag('event', 'listing_published')` only when Analytics consent is active and `gtag` is available. The existing Meta Pixel `ListingPublished` event and payload were left unchanged.
+
 - 2026-06-21: Added the Meta Pixel `ListingPublished` custom event for successful public listing publication. The only server-side trigger is `ServiceController::store()` after the service has been saved and marked active/published; it flashes `meta_listing_published_event.meta_event_id` with a fresh UUID and redirects through the existing success flow. The shared app layout consumes that flash once after redirect and calls `window.iaAutoMetaPixel.trackCustom('ListingPublished', { content_category: 'vehicle_listing' }, { eventID: metaEventId })` only when the consent-gated Pixel helper is ready. Pending events stay in page memory only, are canceled on explicit Marketing refusal or page leave, and are not added to edit, renew/reactivation, delete, admin, import, or promotion flows.
 
 - 2026-06-21: Added a consent-gated Meta Pixel integration to the existing cookie consent component. The Pixel ID is read from `META_PIXEL_ID` through `config('services.facebook.pixel_id')`; no Pixel ID is hardcoded in Blade/JS. Meta Pixel is loaded only when the saved/live Marketing consent is active, sends one PageView per page load, calls `fbq('consent', 'revoke')` when Marketing is withdrawn after load, disables Meta auto configuration before `init`, and exposes `window.iaAutoMetaPixel.track(...)` / `trackCustom(...)` for future events. No `noscript` tracking image, conversion events, Conversions API, or advanced matching data were added.
@@ -85,6 +87,12 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - 2026-06-05: Changed the deleted listing disabled contact button label from `Contact dezactivat` to `Anunt indisponibil` on desktop and mobile show views.
 
 ## Verification
+
+- Identified the GA4 publication flow before implementation: the create Blade form posts to `services.store` (`POST /anunturi-auto-de-vanzare/adauga-anunt`), which is handled by `ServiceController::store()`. Validation happens before the service model is created, the service is saved before redirect, and edit/update, renew/reactivation, delete/deactivate, admin, import, and promotion flows are separate and were not wired to the GA4 event.
+- Verified the GA4 event is server-gated by the new `ga4_listing_published_event` flash, set only after `$service->save()` succeeds, and is client-gated by Analytics consent plus `typeof window.gtag === 'function'`. The layout script uses an in-page `sent` guard and Laravel flash semantics so it does not fire on button click, validation failure, failed save, duplicate consent events, or refresh of the confirmation page.
+- Ran `php -l app/Http/Controllers/ServiceController.php` and `php -l resources/views/layouts/app.blade.php`; no syntax errors after the GA4 `listing_published` event integration.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the GA4 `listing_published` event integration.
+- Ran `git diff --check`; passed after the GA4 `listing_published` event integration.
 
 - Identified publication flows before implementation: the public create form posts only to `services.store` (`POST /anunturi-auto-de-vanzare/adauga-anunt`), which covers authenticated users, guests without accounts, guests creating an account, individual owners, and dealer accounts through the same path. Edit/update (`services.update`), renew/reactualizare (`services.renew`), delete/deactivate, and admin service routes are separate and were not wired to the event.
 - Rendered `layouts.app` with a flashed `meta_listing_published_event` and confirmed the HTML contains `ListingPublished`, `vehicle_listing`, `eventID`, and the UUID only; no email/user/listing internal id literals were present.
@@ -338,6 +346,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Environment Assumptions
 
+- GA4 remains disabled unless `GOOGLE_ANALYTICS_ID` is configured and the user has granted Analytics cookie consent. No `.env` values or secrets were read or committed.
+
 - Meta Pixel is disabled unless `META_PIXEL_ID` is configured. Keep `META_PIXEL_ID` unset in local/dev unless intentionally testing, and refresh Laravel config after changing it (`php artisan optimize:clear` / `php artisan config:cache` as appropriate for the environment). No `.env` values or secrets were read or committed.
 
 - Facebook sharing depends on `FACEBOOK_APP_ID` being configured through `config/services.php`. Meta does not provide a reliable supported browser-to-Facebook-app deep link that opens a prefilled composer, and platform policy blocks pre-filling the user's message text; this implementation sends the ad URL/title to the Share Dialog and leaves the user's comment empty. No `.env` values or secrets were read or committed.
@@ -379,6 +389,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - The bundled Codex Node runtime was used for Vite build because `node.exe` from PATH returned `Access denied`.
 
 ## Open Items
+
+- After deployment with `GOOGLE_ANALYTICS_ID` configured, verify in GA4 DebugView/Realtime that `listing_published` appears once after a successful public listing submission and only after accepting Analytics cookies.
 
 - After deployment with `META_PIXEL_ID` configured, verify in Meta Events Manager Test Events that `ListingPublished` appears once after a successful public listing submission and only after accepting Marketing; then create the Meta custom conversion separately after the event is visible.
 

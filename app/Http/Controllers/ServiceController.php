@@ -829,6 +829,7 @@ public function indexAutoPath(
     $metaEventId = (string) Str::uuid();
 
     return redirect()->to($redirectUrl)
+        ->with('ga4_listing_published_event', true)
         ->with('meta_listing_published_event', [
             'meta_event_id' => $metaEventId,
         ])
