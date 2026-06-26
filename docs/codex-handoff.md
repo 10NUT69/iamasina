@@ -18,6 +18,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Latest Changes
 
+- 2026-06-26: Updated the public dealer portfolio SEO/share metadata in `resources/views/services/dealer-portfolio.blade.php`. The dealer page now builds dynamic title/meta title as `<Nume dealer> - anunțuri auto din <Oraș>, <Județ>` when location data exists, and dynamic meta description with the active listing count, dealer name, city/county location, and the requested iaAuto.ro callout. Social share image now uses the first dealer profile/gallery image when present, then falls back to the first visible dealer listing image, then the existing site default. The existing dealer page route/controller behavior was left unchanged.
+
 - 2026-06-23: Added the GA4 `listing_published` event for successful public listing publication. The exact publication flow is the create form at `GET /anunturi-auto-de-vanzare/adauga-anunt`, posting to `POST /anunturi-auto-de-vanzare/adauga-anunt` (`services.store`), handled by `ServiceController::store()`. The controller now flashes `ga4_listing_published_event` only after the service is saved and marked active/published, then redirects through the existing success flow. The shared app layout consumes that flash once after redirect and calls `gtag('event', 'listing_published')` only when Analytics consent is active and `gtag` is available. The existing Meta Pixel `ListingPublished` event and payload were left unchanged.
 
 - 2026-06-21: Added the Meta Pixel `ListingPublished` custom event for successful public listing publication. The only server-side trigger is `ServiceController::store()` after the service has been saved and marked active/published; it flashes `meta_listing_published_event.meta_event_id` with a fresh UUID and redirects through the existing success flow. The shared app layout consumes that flash once after redirect and calls `window.iaAutoMetaPixel.trackCustom('ListingPublished', { content_category: 'vehicle_listing' }, { eventID: metaEventId })` only when the consent-gated Pixel helper is ready. Pending events stay in page memory only, are canceled on explicit Marketing refusal or page leave, and are not added to edit, renew/reactivation, delete, admin, import, or promotion flows.
@@ -87,6 +89,9 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - 2026-06-05: Changed the deleted listing disabled contact button label from `Contact dezactivat` to `Anunt indisponibil` on desktop and mobile show views.
 
 ## Verification
+
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the dealer portfolio SEO/share metadata update.
+- Ran `git diff --check`; passed after the dealer portfolio SEO/share metadata update.
 
 - Identified the GA4 publication flow before implementation: the create Blade form posts to `services.store` (`POST /anunturi-auto-de-vanzare/adauga-anunt`), which is handled by `ServiceController::store()`. Validation happens before the service model is created, the service is saved before redirect, and edit/update, renew/reactivation, delete/deactivate, admin, import, and promotion flows are separate and were not wired to the GA4 event.
 - Verified the GA4 event is server-gated by the new `ga4_listing_published_event` flash, set only after `$service->save()` succeeds, and is client-gated by Analytics consent plus `typeof window.gtag === 'function'`. The layout script uses an in-page `sent` guard and Laravel flash semantics so it does not fire on button click, validation failure, failed save, duplicate consent events, or refresh of the confirmation page.
@@ -345,6 +350,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - Ran `php artisan view:clear`; compiled view cache was cleared after verification.
 
 ## Environment Assumptions
+
+- Dealer portfolio SEO/share metadata uses only existing dealer account fields (`company_name`, `name`, `city`, `county`, `dealer_gallery`) and the active listing collection/count already passed to the view; no new environment keys, secrets, routes, migrations, or tables were added.
 
 - GA4 remains disabled unless `GOOGLE_ANALYTICS_ID` is configured and the user has granted Analytics cookie consent. No `.env` values or secrets were read or committed.
 

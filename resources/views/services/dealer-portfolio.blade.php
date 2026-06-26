@@ -1,12 +1,47 @@
 @extends('layouts.app')
 
-@section('title', ($dealer->company_name ?: 'Parc auto') . ' - parc auto')
-@section('meta_title', ($dealer->company_name ?: 'Parc auto') . ' - anunțuri auto')
-@section('meta_description', $dealer->dealer_description ?: 'Vezi anunțurile publicate de acest parc auto pe iaAuto.ro.')
+@php
+    $cleanDealerSeoValue = static function ($value) {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        return trim(preg_replace('/\s+/', ' ', $value));
+    };
+
+    $dealerDisplayName = $cleanDealerSeoValue($dealer->company_name ?: $dealer->name) ?: 'Parc auto';
+    $dealerSeoCity = $cleanDealerSeoValue($dealer->city);
+    $dealerSeoCounty = $cleanDealerSeoValue($dealer->county);
+    $dealerSeoLocation = trim(implode(', ', array_filter([$dealerSeoCity, $dealerSeoCounty])));
+    $activeCount = isset($totalCount)
+        ? (int) $totalCount
+        : (isset($services) && method_exists($services, 'count') ? (int) $services->count() : 0);
+    $activeCountSeoLabel = number_format($activeCount, 0, ',', '.') . ' ' . ($activeCount === 1 ? 'anunț auto' : 'anunțuri auto');
+
+    $dealerSeoTitle = $dealerDisplayName . ' - anunțuri auto';
+    if ($dealerSeoLocation !== '') {
+        $dealerSeoTitle .= ' din ' . $dealerSeoLocation;
+    }
+
+    $dealerSeoDescription = 'Vezi ' . $activeCountSeoLabel . ' de la ' . $dealerDisplayName . ', parc auto';
+    $dealerSeoDescription .= $dealerSeoLocation !== '' ? ' din ' . $dealerSeoLocation : '';
+    $dealerSeoDescription .= '. Mașini disponibile, prețuri, fotografii și contact pe iaAuto.ro.';
+
+    $galleryUrls = $dealer->dealer_gallery_urls;
+    $firstDealerGalleryUrl = count($galleryUrls) ? $galleryUrls[0] : null;
+    $firstDealerService = isset($services) && method_exists($services, 'first') ? $services->first() : null;
+    $dealerSeoImage = $firstDealerGalleryUrl ?: ($firstDealerService?->main_image_url ?: asset('images/social-share.webp'));
+@endphp
+
+@section('title', $dealerSeoTitle)
+@section('meta_title', e($dealerSeoTitle))
+@section('meta_description', e($dealerSeoDescription))
+@section('meta_image', $dealerSeoImage)
 
 @section('content')
 @php
-    $galleryUrls = $dealer->dealer_gallery_urls;
     $firstGalleryUrl = count($galleryUrls) ? $galleryUrls[0] : null;
     $phones = collect([$dealer->phone, $dealer->phone_2, $dealer->phone_3])->filter()->values();
     $primaryPhone = $phones->first();
@@ -30,9 +65,7 @@
         'label' => $formatPhoneDisplay($phone),
     ])->values();
     $primaryPhoneHref = $phoneItems->first()['href'] ?? null;
-    $dealerDisplayName = preg_replace('/\s+/', ' ', trim($dealer->company_name ?: $dealer->name));
     $dealerUrl = $dealer->dealer_public_url ?: url()->current();
-    $activeCount = $totalCount ?? $services->count();
     $dealerSubtitle = 'Parc auto';
 
     if ($dealer->county && $dealer->city) {
