@@ -303,6 +303,17 @@ public function showDealerPortfolio(Request $request, string $countySlug, string
         return redirect()->to($canonicalUrl, 301);
     }
 
+    $dealerLocality = $dealer->locality_id
+        ? Locality::query()->select('id', 'county_id', 'name', 'slug')->find($dealer->locality_id)
+        : null;
+    $dealerCounty = $dealer->county_id
+        ? County::query()->select('id', 'name', 'slug')->find($dealer->county_id)
+        : null;
+
+    if (!$dealerCounty && $dealerLocality?->county_id) {
+        $dealerCounty = County::query()->select('id', 'name', 'slug')->find($dealerLocality->county_id);
+    }
+
     $baseQuery = Service::query()
         ->where('status', 'active')
         ->where('user_id', $dealer->id);
@@ -392,6 +403,8 @@ public function showDealerPortfolio(Request $request, string $countySlug, string
 
     return view('services.dealer-portfolio', [
         'dealer' => $dealer,
+        'dealerCounty' => $dealerCounty,
+        'dealerLocality' => $dealerLocality,
         'services' => $services,
         'totalCount' => $totalCount,
         'brands' => $brands,

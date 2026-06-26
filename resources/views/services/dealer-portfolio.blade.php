@@ -12,8 +12,10 @@
     };
 
     $dealerDisplayName = $cleanDealerSeoValue($dealer->company_name ?: $dealer->name) ?: 'Parc auto';
-    $dealerSeoCity = $cleanDealerSeoValue($dealer->city);
-    $dealerSeoCounty = $cleanDealerSeoValue($dealer->county);
+    $dealerLocationCity = $cleanDealerSeoValue(($dealerLocality ?? null)?->name ?? $dealer->city);
+    $dealerLocationCounty = $cleanDealerSeoValue(($dealerCounty ?? null)?->name ?? $dealer->county);
+    $dealerSeoCity = $dealerLocationCity;
+    $dealerSeoCounty = $dealerLocationCounty;
     $dealerSeoLocation = trim(implode(', ', array_filter([$dealerSeoCity, $dealerSeoCounty])));
     $activeCount = isset($totalCount)
         ? (int) $totalCount
@@ -68,39 +70,40 @@
     $dealerUrl = $dealer->dealer_public_url ?: url()->current();
     $dealerSubtitle = 'Parc auto';
 
-    if ($dealer->county && $dealer->city) {
-        $dealerSubtitle = 'Parc auto în județul ' . $dealer->county . ', ' . $dealer->city;
-    } elseif ($dealer->county) {
-        $dealerSubtitle = 'Parc auto în județul ' . $dealer->county;
-    } elseif ($dealer->city) {
-        $dealerSubtitle = 'Parc auto în ' . $dealer->city;
+    if ($dealerLocationCounty && $dealerLocationCity) {
+        $dealerSubtitle = 'Parc auto în județul ' . $dealerLocationCounty . ', ' . $dealerLocationCity;
+    } elseif ($dealerLocationCounty) {
+        $dealerSubtitle = 'Parc auto în județul ' . $dealerLocationCounty;
+    } elseif ($dealerLocationCity) {
+        $dealerSubtitle = 'Parc auto în ' . $dealerLocationCity;
     }
 
-    $mapsQuery = trim(implode(', ', array_filter([$dealer->address, $dealer->city, $dealer->county])));
+    $mapsQuery = trim(implode(', ', array_filter([$dealer->address, $dealerLocationCity, $dealerLocationCounty])));
     $mapsUrl = $mapsQuery ? 'https://www.google.com/maps/search/?api=1&query=' . urlencode($mapsQuery) : null;
     $modelSelectDisabled = ! $selectedBrandId || $models->isEmpty();
     $activeCountLabel = number_format($activeCount, 0, ',', '.') . ' ' . ($activeCount === 1 ? 'anunț activ' : 'anunțuri active');
     $stockHeadingLabel = number_format($totalCount, 0, ',', '.') . ' ' . ($totalCount === 1 ? 'anunț auto oferit de ' : 'anunțuri auto oferite de ') . $dealerDisplayName;
     $galleryPhotoLabel = count($galleryUrls) === 1 ? '1 fotografie' : count($galleryUrls) . ' fotografii';
     $galleryThumbUrls = array_slice($galleryUrls, 1, 3);
-    $dealerPlaceLine = trim(implode(', ', array_filter([$dealer->city, $dealer->county])));
-    $dealerAddressDisplay = trim(implode(', ', array_filter([$dealer->address, $dealer->city, $dealer->county])));
+    $dealerPlaceLine = trim(implode(', ', array_filter([$dealerLocationCity, $dealerLocationCounty])));
+    $dealerAddressDisplay = trim(implode(', ', array_filter([$dealer->address, $dealerLocationCity, $dealerLocationCounty])));
     $dealerDescriptionLimit = 3000;
     $dealerDescriptionRaw = trim((string) $dealer->dealer_description);
     $dealerDescriptionDisplay = \Illuminate\Support\Str::limit($dealerDescriptionRaw, $dealerDescriptionLimit, '');
     $hasDealerDescription = $dealerDescriptionDisplay !== '';
-    $dealerCountySlug = $dealer->county ? \Illuminate\Support\Str::slug($dealer->county) : null;
+    $dealerCountySlug = ($dealerCounty ?? null)?->slug ?: ($dealerLocationCounty ? \Illuminate\Support\Str::slug($dealerLocationCounty) : null);
+    $dealerCountyId = ($dealerCounty ?? null)?->id ?: $dealer->county_id;
     $dealerBreadcrumbItems = [
         ['name' => 'Acasă', 'item' => route('services.index')],
         ['name' => 'Dealeri auto', 'item' => route('cars.index', ['seller_type' => 'dealer'])],
     ];
 
-    if ($dealer->county) {
+    if ($dealerLocationCounty) {
         $dealerBreadcrumbItems[] = [
-            'name' => $dealer->county,
+            'name' => $dealerLocationCounty,
             'item' => $dealerCountySlug
                 ? route('brand.index', ['segment1' => $dealerCountySlug, 'seller_type' => 'dealer'])
-                : ($dealer->county_id ? route('cars.index', ['seller_type' => 'dealer', 'county_id' => $dealer->county_id]) : null),
+                : ($dealerCountyId ? route('cars.index', ['seller_type' => 'dealer', 'county_id' => $dealerCountyId]) : null),
         ];
     }
 
@@ -350,7 +353,7 @@
     @endif
 
 
-    @if($dealer->county || $dealer->city || $dealer->address || $phoneItems->isNotEmpty())
+    @if($dealerAddressDisplay || $phoneItems->isNotEmpty())
         <section id="dealer-location" class="scroll-mt-24 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-[#303033] dark:bg-[#18181B] sm:p-6">
             <div class="grid gap-6 lg:grid-cols-[minmax(280px,0.46fr)_minmax(0,1fr)]">
                 <div class="min-w-0">
@@ -420,7 +423,7 @@
                         </div>
 
                         @if($dealerPlaceLine)
-                            <span class="absolute right-4 top-4 text-xs font-black uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ $dealerPlaceLine }}</span>
+                            <span class="absolute right-4 top-4 text-xs font-black tracking-wide text-gray-500 dark:text-gray-400">{{ $dealerPlaceLine }}</span>
                         @endif
                     </div>
 
