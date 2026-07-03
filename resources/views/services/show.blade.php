@@ -102,6 +102,7 @@
         return asset('storage/services/' . $path);
     }, $images);
     $fullImageUrls = array_values(array_filter($fullImageUrls));
+    $schemaImageUrls = $fullImageUrls;
 
     // fallback dacă nu sunt imagini (nu crăpăm swiper/mozaic)
     if (empty($fullImageUrls) && $service->main_image_url) {
@@ -176,6 +177,19 @@
         $seoSpecs[] = 'cutie ' . mb_strtolower($transName, 'UTF-8');
     }
 
+    $limitTextAtWord = static function (string $value, int $limit): string {
+        $value = trim(preg_replace('/\s+/', ' ', strip_tags($value)) ?: '');
+
+        if (mb_strlen($value, 'UTF-8') <= $limit) {
+            return $value;
+        }
+
+        $limited = mb_substr($value, 0, $limit, 'UTF-8');
+        $lastSpace = mb_strrpos($limited, ' ', 0, 'UTF-8');
+
+        return rtrim($lastSpace === false ? $limited : mb_substr($limited, 0, $lastSpace, 'UTF-8'), ' .,;-');
+    };
+
     $seoDescription = $seoVehicleDescription . ' de vânzare';
     if ($seoLocation && $seoLocation !== 'România') {
         $seoDescription .= ' în ' . $seoLocation;
@@ -185,7 +199,8 @@
         $seoDescription .= ' Detalii: ' . implode(', ', $seoSpecs) . '.';
     }
     $seoDescription .= ' Vezi poze și contactează vânzătorul pe iaAuto.ro.';
-    $seoDescription = Str::limit(strip_tags($seoDescription), 160, '');
+    $schemaDescription = trim(preg_replace('/\s+/', ' ', strip_tags($seoDescription)) ?: '');
+    $seoDescription = $limitTextAtWord($schemaDescription, 160);
 
     $rawShareImages = is_string($service->images)
         ? (json_decode($service->images, true) ?: [])
@@ -206,30 +221,169 @@
         }
     }
 
-    $schemaData = [
+    $schemaText = static function (mixed $value): ?string {
+        if (!is_scalar($value)) {
+            return null;
+        }
+
+        $text = trim(preg_replace('/\s+/', ' ', (string) $value) ?: '');
+
+        return $text === '' ? null : $text;
+    };
+
+    $schemaNumber = static function (mixed $value): ?int {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $number = (int) $value;
+
+        return $number > 0 ? $number : null;
+    };
+
+    $cleanSchemaValue = static function (mixed $value) use (&$cleanSchemaValue): mixed {
+        if (is_array($value)) {
+            $filtered = [];
+
+            foreach ($value as $key => $item) {
+                $cleaned = $cleanSchemaValue($item);
+
+                if ($cleaned !== null && $cleaned !== '' && $cleaned !== []) {
+                    $filtered[$key] = $cleaned;
+                }
+            }
+
+            return array_is_list($value) ? array_values($filtered) : $filtered;
+        }
+
+        return $value;
+    };
+
+    $generation = $service->generation;
+    $generationLabel = $schemaText($generation?->name);
+    if ($generationLabel) {
+        $generationYears = trim(implode(' - ', array_filter([
+            $generation->year_start,
+            $generation->year_end ?: ($generation->year_start ? 'Prezent' : null),
+        ])));
+
+        if ($generationYears !== '' && !str_contains($generationLabel, (string) $generation->year_start)) {
+            $generationLabel .= ' [' . $generationYears . ']';
+        }
+    }
+
+    $schemaAdditionalProperties = [];
+    $addSchemaAdditionalProperty = static function (mixed $label) use (&$schemaAdditionalProperties, $schemaText): void {
+        $label = $schemaText($label);
+
+        if (!$label) {
+            return;
+        }
+
+        $key = Str::lower(Str::ascii($label));
+
+        if (isset($schemaAdditionalProperties[$key])) {
+            return;
+        }
+
+        $schemaAdditionalProperties[$key] = [
+            '@type' => 'PropertyValue',
+            'name' => $label,
+            'value' => 'Da',
+        ];
+    };
+
+    foreach ($service->active_feature_options as $featureLabel) {
+        $addSchemaAdditionalProperty($featureLabel);
+    }
+
+    foreach ($importantDetails as $detail) {
+        $addSchemaAdditionalProperty($detail['label'] ?? null);
+    }
+
+    $schemaAdditionalProperties = array_values($schemaAdditionalProperties);
+
+    $schemaPlace = ($localityName || $countyName) ? [
+        '@type' => 'Place',
+        'name' => trim(implode(', ', array_filter([$localityName, $countyName]))),
+        'address' => [
+            '@type' => 'PostalAddress',
+            'addressLocality' => $localityName ?: null,
+            'addressRegion' => $countyName ?: null,
+            'addressCountry' => 'RO',
+        ],
+    ] : null;
+
+    $sellerSchemaName = $isDealer
+        ? ($schemaText($sellerUser?->company_name) ?: $schemaText($sellerUser?->name))
+        : ($schemaText($sellerUser?->name) ?: $schemaText($service->contact_name));
+    $sellerSchema = $sellerSchemaName ? [
+        '@type' => $isDealer ? 'AutoDealer' : 'Person',
+        'name' => $sellerSchemaName,
+    ] : null;
+
+    $offerIsAvailable = !$isDeleted
+        && $service->status === 'active'
+        && (!$service->expires_at || $service->expires_at->isFuture());
+    $schemaColorFinish = $colorName && $colorOptName ? Str::lower($colorOptName) : $colorOptName;
+    $schemaColor = trim(implode(' ', array_filter([$colorName, $schemaColorFinish])));
+
+    $schemaData = $cleanSchemaValue([
         '@context' => 'https://schema.org',
-        '@type' => 'Car',
-        'name' => $fullSeoTitle,
-        'description' => $seoDescription,
-        'image' => $seoImage,
+        '@type' => ['Product', 'Car'],
+        '@id' => $currentUrl . '#vehicle',
+        'mainEntityOfPage' => [
+            '@type' => 'WebPage',
+            '@id' => $currentUrl,
+        ],
+        'sku' => 'IAAUTO-' . $service->id,
+        'name' => $schemaText($showHeading ?? null) ?: $fullSeoTitle,
+        'description' => $schemaDescription,
+        'image' => $schemaImageUrls,
         'url' => $currentUrl,
         'brand' => $brandName ? ['@type' => 'Brand', 'name' => $brandName] : null,
         'model' => $modelName,
-        'vehicleModelDate' => $year,
+        'productionDate' => $year ? (string) $year : null,
+        'vehicleConfiguration' => $generationLabel,
+        'bodyType' => $bodyName,
+        'fuelType' => $fuelName,
+        'vehicleTransmission' => $transName,
+        'driveWheelConfiguration' => $tractionName,
+        'meetsEmissionStandard' => $euroName,
+        'color' => $schemaColor !== '' ? $schemaColor : null,
+        'numberOfDoors' => $schemaNumber($doors),
+        'vehicleSeatingCapacity' => $schemaNumber($seats),
+        'vehicleEngine' => ($engine || $power) ? [
+            '@type' => 'EngineSpecification',
+            'engineDisplacement' => $engine ? [
+                '@type' => 'QuantitativeValue',
+                'value' => (int) $engine,
+                'unitCode' => 'CMQ',
+                'unitText' => 'cm³',
+            ] : null,
+            'enginePower' => $power ? [
+                '@type' => 'QuantitativeValue',
+                'value' => (int) $power,
+                'unitCode' => 'N12',
+                'unitText' => 'CP',
+            ] : null,
+        ] : null,
         'mileageFromOdometer' => $km ? [
             '@type' => 'QuantitativeValue',
             'value' => (int) $km,
             'unitCode' => 'KMT',
         ] : null,
-        'offers' => (!$isDeleted && $hasPriceForSeo) ? [
+        'additionalProperty' => $schemaAdditionalProperties,
+        'offers' => $hasPriceForSeo ? [
             '@type' => 'Offer',
             'priceCurrency' => $currencyUpper,
-            'price' => $service->price_value,
-            'availability' => 'https://schema.org/InStock',
+            'price' => (float) $service->price_value,
+            'availability' => $offerIsAvailable ? 'https://schema.org/InStock' : 'https://schema.org/SoldOut',
             'url' => $currentUrl,
+            'availableAtOrFrom' => $schemaPlace,
+            'seller' => $sellerSchema,
         ] : null,
-    ];
-    $schemaData = array_filter($schemaData, fn ($value) => $value !== null && $value !== '');
+    ]);
 
     $autoListingUrl = static fn (...$segments): string => url('/' . implode('/', array_merge(
         ['anunturi-auto-de-vanzare'],
@@ -418,13 +572,12 @@
 
         <div class="max-w-5xl">
             <h1 class="text-lg font-bold leading-tight text-slate-700 dark:text-slate-200 md:text-xl">
-                <span class="md:hidden">{{ $mobileShowHeading }}</span>
-                <span class="hidden md:inline">{{ $showHeading }}</span>
+                {{ $showHeading }}
             </h1>
 
             @if($mobileSpecsLine)
-                <div class="mt-1 overflow-x-auto whitespace-nowrap no-scrollbar md:hidden">
-                    <p class="inline-block text-sm font-medium text-gray-500 dark:text-gray-400">
+                <div class="mt-1 overflow-x-auto whitespace-nowrap no-scrollbar">
+                    <p class="inline-block text-sm font-medium text-gray-500 dark:text-gray-400 md:text-[15px]">
                         {{ $mobileSpecsLine }}
                     </p>
                 </div>
@@ -519,7 +672,7 @@
 
             {{-- Titlu principal & pret mobil --}}
             <div class="space-y-2 mt-4">
-                <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white leading-tight">{{ $service->title }}</h2>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-[#E03E2D] md:text-gray-900 md:dark:text-white leading-tight">{{ $service->title }}</h2>
                 <div class="md:hidden space-y-1.5 text-sm text-gray-500 dark:text-gray-400">
                     @if($showLocationLabel)
                         <div class="flex items-center gap-2">

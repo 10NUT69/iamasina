@@ -30,6 +30,7 @@
 {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": "https://iaauto.ro/#website",
     "name": "ia Auto",
     "alternateName": "iaAuto.ro",
     "url": "https://iaauto.ro"

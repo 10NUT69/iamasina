@@ -116,8 +116,8 @@
     }
 
     $breadcrumbSchema = [
-        '@context' => 'https://schema.org',
         '@type' => 'BreadcrumbList',
+        '@id' => $listingCanonicalUrl . '#breadcrumb',
         'itemListElement' => array_map(
             static fn ($item, $index) => array_filter([
                 '@type' => 'ListItem',
@@ -128,6 +128,66 @@
             array_values($breadcrumbItems),
             array_keys(array_values($breadcrumbItems))
         ),
+    ];
+
+    $listingItemUrls = collect($services ?? [])
+        ->map(function ($service) {
+            $url = trim((string) ($service->public_url ?? ''));
+
+            return $url !== '' && $url !== url('/') ? $url : null;
+        })
+        ->filter()
+        ->unique()
+        ->values();
+
+    $listingItemListId = $listingCanonicalUrl . '#itemlist';
+    $listingCollectionSchema = [
+        '@type' => 'CollectionPage',
+        '@id' => $listingCanonicalUrl . '#webpage',
+        'url' => $listingCanonicalUrl,
+        'name' => $listingMetaTitle,
+        'description' => $listingMetaDescription,
+        'inLanguage' => 'ro-RO',
+        'isPartOf' => [
+            '@id' => 'https://iaauto.ro/#website',
+        ],
+        'breadcrumb' => [
+            '@id' => $listingCanonicalUrl . '#breadcrumb',
+        ],
+    ];
+
+    $listingItemListSchema = null;
+    if ($listingItemUrls->isNotEmpty()) {
+        $listingCollectionSchema['mainEntity'] = [
+            '@id' => $listingItemListId,
+        ];
+
+        $ascendingSorts = ['price_asc', 'km_asc', 'power_asc'];
+        $listingItemListSchema = [
+            '@type' => 'ItemList',
+            '@id' => $listingItemListId,
+            'name' => $listingMetaTitle,
+            'numberOfItems' => $listingItemUrls->count(),
+            'itemListOrder' => in_array((string) request('sort', 'newest'), $ascendingSorts, true)
+                ? 'https://schema.org/ItemListOrderAscending'
+                : 'https://schema.org/ItemListOrderDescending',
+            'itemListElement' => $listingItemUrls
+                ->map(fn ($url, $index) => [
+                    '@type' => 'ListItem',
+                    'position' => $index + 1,
+                    'url' => $url,
+                ])
+                ->all(),
+        ];
+    }
+
+    $listingSchemaGraph = [
+        '@context' => 'https://schema.org',
+        '@graph' => array_values(array_filter([
+            $breadcrumbSchema,
+            $listingCollectionSchema,
+            $listingItemListSchema,
+        ])),
     ];
 @endphp
 
@@ -147,7 +207,7 @@
 
 @section('schema')
 <script type="application/ld+json">
-@json($breadcrumbSchema)
+@json($listingSchemaGraph)
 </script>
 @endsection
 

@@ -35,17 +35,22 @@ class ServiceShowHeadingTest extends TestCase
         $service->setRelation('county', new County(['name' => 'Bacău']));
 
         $this->assertSame(
-            'Skoda Fabia Break din 2012, 1.197 cmc, benzină, 105 CP, manuală, Euro 5, 168.000 km, Bacău',
+            'Skoda Fabia Break · 2012 · Euro 5, Motorizare: 1.197 cmc, benzină, 105 CP, manuală, 168.000 km, Bacău',
+            ServiceShowHeading::desktop($service)
+        );
+
+        $this->assertSame(
+            'Skoda Fabia Break · 2012 · Euro 5',
             ServiceShowHeading::make($service)
         );
 
         $this->assertSame(
-            'Skoda Fabia Break 2012',
+            'Skoda Fabia Break · 2012 · Euro 5',
             ServiceShowHeading::mobileTitle($service)
         );
 
         $this->assertSame(
-            '1,2 benzină · 105 CP · Manuală · Euro 5 · 168.000 km · Bacău',
+            'Motorizare: 1,2 benzină · 105 CP · Manuală · 168.000 km · Bacău',
             ServiceShowHeading::mobileSpecs($service)
         );
     }
@@ -62,6 +67,11 @@ class ServiceShowHeadingTest extends TestCase
 
         $this->assertSame(
             'Dacia Logan, 12.000 km',
+            ServiceShowHeading::desktop($service)
+        );
+
+        $this->assertSame(
+            'Dacia Logan',
             ServiceShowHeading::make($service)
         );
 
@@ -87,7 +97,7 @@ class ServiceShowHeadingTest extends TestCase
 
         $this->assertSame(
             'Nissan Qashqai, Râmnicu Vâlcea, Vâlcea',
-            ServiceShowHeading::make($service)
+            ServiceShowHeading::desktop($service)
         );
 
         $this->assertSame(

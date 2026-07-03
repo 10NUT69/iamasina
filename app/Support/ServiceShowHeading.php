@@ -8,7 +8,7 @@ class ServiceShowHeading
 {
     public static function make(Service $service): string
     {
-        return self::desktop($service);
+        return self::mobileTitle($service);
     }
 
     public static function desktop(Service $service): string
@@ -19,7 +19,6 @@ class ServiceShowHeading
             self::fuelSummary($service),
             self::powerSummary($service),
             self::desktopTransmissionSummary($service),
-            self::emissionsSummary($service),
             self::mileageSummary($service),
             self::locationLabel($service),
         ]));
@@ -29,19 +28,15 @@ class ServiceShowHeading
 
     public static function mobileTitle(Service $service): string
     {
-        $base = self::baseLabel($service);
-        $year = self::number($service->an_fabricatie ?? $service->year);
-
-        return $year ? "{$base} {$year}" : $base;
+        return self::headlineTitle($service);
     }
 
     public static function mobileSpecs(Service $service): string
     {
         $parts = array_values(array_filter([
-            self::mobileEngineFuelSummary($service),
+            self::mobileMotorizareSummary($service),
             self::powerSummary($service),
             self::mobileTransmissionSummary($service),
-            self::emissionsSummary($service),
             self::mileageSummary($service),
             self::locationLabel($service),
         ]));
@@ -51,10 +46,20 @@ class ServiceShowHeading
 
     private static function desktopLead(Service $service): string
     {
+        return self::headlineTitle($service);
+    }
+
+    private static function headlineTitle(Service $service): string
+    {
         $base = self::baseLabel($service);
         $year = self::number($service->an_fabricatie ?? $service->year);
+        $emissions = self::emissionsSummary($service);
 
-        return $year ? "{$base} din {$year}" : $base;
+        return implode(' · ', array_values(array_filter([
+            $base,
+            $year ? (string) $year : null,
+            $emissions,
+        ])));
     }
 
     private static function baseLabel(Service $service): string
@@ -86,7 +91,7 @@ class ServiceShowHeading
     {
         $engine = self::number($service->capacitate_cilindrica ?? $service->engine_capacity ?? $service->engine_size);
 
-        return $engine ? self::formatNumber($engine) . ' cmc' : null;
+        return $engine ? 'Motorizare: ' . self::formatNumber($engine) . ' cmc' : null;
     }
 
     private static function fuelSummary(Service $service): ?string
@@ -119,6 +124,13 @@ class ServiceShowHeading
         }
 
         return $fuel;
+    }
+
+    private static function mobileMotorizareSummary(Service $service): ?string
+    {
+        $summary = self::mobileEngineFuelSummary($service);
+
+        return $summary ? 'Motorizare: ' . $summary : null;
     }
 
     private static function desktopTransmissionSummary(Service $service): ?string

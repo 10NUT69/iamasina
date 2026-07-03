@@ -576,11 +576,10 @@ public function indexAutoPath(
             $service->increment('views');
         }
 
-        $showHeading = ServiceShowHeading::desktop($service);
-        $mobileShowHeading = ServiceShowHeading::mobileTitle($service);
+        $showHeading = ServiceShowHeading::make($service);
         $mobileSpecsLine = ServiceShowHeading::mobileSpecs($service);
 
-        return view('services.show', compact('service', 'showHeading', 'mobileShowHeading', 'mobileSpecsLine'));
+        return view('services.show', compact('service', 'showHeading', 'mobileSpecsLine'));
     }
 
     // ==========================================
