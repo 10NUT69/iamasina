@@ -420,6 +420,7 @@
         max-height: 100dvh !important;
         overflow-y: auto !important;
         overscroll-behavior: contain;
+        padding-bottom: var(--ia-filter-open-listbox-space, 0px);
         position: relative;
         border-bottom-left-radius: 0.75rem;
         border-bottom-right-radius: 0.75rem;

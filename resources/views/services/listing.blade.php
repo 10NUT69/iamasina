@@ -1924,10 +1924,16 @@
     }
 
     .listing-action-button--save-search .listing-action-label {
+        color: #6b7280;
         display: flex;
         flex-direction: column;
         align-items: center;
+        font-weight: 700;
         line-height: 1.05;
+    }
+
+    .dark .listing-action-button--save-search .listing-action-label {
+        color: #94a3b8;
     }
 
     .listing-sort-combobox .ia-combobox__control {

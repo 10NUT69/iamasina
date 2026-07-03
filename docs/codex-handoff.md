@@ -18,6 +18,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Latest Changes
 
+- 2026-07-03: Improved mobile listing filter dropdown positioning for the lower `Localitate` combobox. Mobile filter sheets now get temporary bottom scroll space only while a listing-filter dropdown is open, allowing the last field to scroll high enough for its downward dropdown without the dropdown pushing form fields. Async option updates now re-sync open dropdown positioning after options are populated. Also set the mobile saved-search button label back to bold while using the same gray tone as the `Sortare` combobox label.
+
 - 2026-07-03: Tightened the mobile listing sort combobox so `Recomandata` has enough room to render fully in the sticky action bar. The sort input now uses smaller mobile-only right padding, a slightly smaller font on very narrow screens, and a raised chevron kept at its original visual size.
 
 - 2026-07-03: Adjusted the mobile listing sticky action bar so the saved-search button label wraps as `Salvează` / `căutarea`, the saved-search column is narrower, and the sort column is wider. The change is scoped to the listing action bar markup/CSS in `resources/views/services/listing.blade.php`.
@@ -109,6 +111,12 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - 2026-06-05: Changed the deleted listing disabled contact button label from `Contact dezactivat` to `Anunt indisponibil` on desktop and mobile show views.
 
 ## Verification
+
+- Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after the mobile `Localitate` dropdown scroll-space update and saved-search font adjustment.
+- Ran `npm run build`; Vite production build completed after the mobile `Localitate` dropdown scroll-space update and saved-search font adjustment.
+- Ran `git diff --check`; passed after the mobile `Localitate` dropdown scroll-space update and saved-search font adjustment.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the mobile `Localitate` dropdown scroll-space update and saved-search font adjustment.
+- Attempted to verify the mobile `Judet` -> `Localitate` interaction in the in-app browser at `http://iamasina.test/anunturi-auto-de-vanzare` with a 390x430 viewport, but that local browser session was loading Vite assets without exposing the app JS globals (`window.iaCombobox` / listing helpers were absent), so it was not treated as a valid browser verification.
 
 - Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after tightening the mobile listing sort combobox.
 - Ran `npm run build`; Vite production build completed after tightening the mobile listing sort combobox.

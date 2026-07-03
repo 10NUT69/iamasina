@@ -552,6 +552,11 @@ class HybridCombobox {
         this.options = options.map(normaliseOption).filter((option) => option.label !== '');
         this.setValue(selectedValue, { dispatch });
         this.filter('');
+
+        if (this.root.classList.contains('is-open')) {
+            this.syncListingFilterDropdownPosition({ scrollIntoView: true });
+            this.scheduleListingFilterDropdownResync();
+        }
     }
 
     setDisabled(disabled) {
@@ -630,6 +635,9 @@ class HybridCombobox {
         const rootRect = this.root.getBoundingClientRect();
         const availableBelow = visibleBottom - rootRect.bottom - 8;
         const desiredDropdownSpace = Math.min(280, Math.max(180, visibleHeight * 0.45));
+        const scrollSpace = Math.ceil(desiredDropdownSpace + 24);
+
+        sheet.style.setProperty('--ia-filter-open-listbox-space', `${scrollSpace}px`);
 
         if (availableBelow >= desiredDropdownSpace && rootRect.top >= desiredTop) {
             return;
@@ -654,6 +662,12 @@ class HybridCombobox {
         this.root.classList.remove('opens-down');
         this.root.style.removeProperty('--ia-combobox-listbox-max-height');
         this.root.style.removeProperty('--ia-filter-open-listbox-space');
+
+        const sheet = this.root.closest('.filters-panel-sheet');
+
+        if (sheet) {
+            sheet.style.removeProperty('--ia-filter-open-listbox-space');
+        }
     }
 
     syncListingFilterDropdownPosition({ scrollIntoView = false } = {}) {
