@@ -18,6 +18,12 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Latest Changes
 
+- 2026-07-03: Adjusted the mobile listing sticky action bar so the saved-search button label wraps as `Salvează` / `căutarea`, the saved-search column is narrower, and the sort column is wider. The change is scoped to the listing action bar markup/CSS in `resources/views/services/listing.blade.php`.
+
+- 2026-07-03: Allowed desktop listing filter combobox dropdowns to overflow past the filters card/form instead of being constrained by the card. Desktop filter panel/sheet overflow is now explicitly visible, while dropdown height is bounded by the viewport rather than the filters card.
+
+- 2026-07-03: Adjusted mobile listing filter combobox dropdown behavior after iPhone testing: filter dropdowns now always open downward as overlays, while mobile fields inside `.filters-panel-sheet` auto-scroll upward when needed so lower fields have enough room below. The code schedules delayed re-syncs for iOS visual viewport/keyboard timing and keeps dropdown max-height constrained to the visible sheet/viewport space.
+
 - 2026-07-03: Updated the shared combobox behavior so opening a dropdown no longer visually highlights the first option automatically. `activeIndex` now starts unset after filtering/opening, `aria-activedescendant` is cleared until keyboard navigation actually selects an active option, and real selected values still use the existing `is-selected` state.
 
 - 2026-07-03: Changed listing filter combobox dropdowns to open as overlays instead of lengthening the filters form. Removed the listing-filter dropdown space reservation and mobile `position: static` dropdown behavior, added smart up/down positioning with a calculated max-height for filter dropdowns inside `#filters-panel`, and kept recalculation active on sheet/window/visual viewport scroll/resize so lower mobile fields can open upward.
@@ -101,6 +107,24 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - 2026-06-05: Changed the deleted listing disabled contact button label from `Contact dezactivat` to `Anunt indisponibil` on desktop and mobile show views.
 
 ## Verification
+
+- Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after resizing the mobile listing sticky action bar.
+- Ran `npm run build`; Vite production build completed after resizing the mobile listing sticky action bar.
+- Ran `git diff --check`; passed after resizing the mobile listing sticky action bar.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after resizing the mobile listing sticky action bar.
+- Reviewed the `resources/views/services/listing.blade.php` diff to confirm the mobile grid changed from `0.58fr 0.68fr 0.9fr 1.28fr` to `0.58fr 0.68fr 0.74fr 1.5fr`, giving the sort control more width while keeping `Salvează căutarea` stacked on two lines.
+
+- Ran `npm run build`; Vite production build completed after allowing desktop filter dropdowns to overflow the filters card.
+- Ran `git diff --check`; passed after allowing desktop filter dropdowns to overflow the filters card.
+- Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after allowing desktop filter dropdowns to overflow the filters card.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after allowing desktop filter dropdowns to overflow the filters card.
+- Verified locally with Playwright using system Chrome at `http://iamasina.test/anunturi-auto-de-vanzare`: desktop `#filters-panel` and `.filters-panel-sheet` computed `overflow: visible`; at 1280x760, the `Judet` dropdown height was limited by the viewport rather than the filters card; at 1280x980, the same dropdown extended below the filters card (`extendsBelowSheet = true`) while remaining open downward.
+
+- Ran `npm run build`; Vite production build completed after changing mobile filter dropdowns to always open downward with auto-scroll.
+- Ran `git diff --check`; passed after changing mobile filter dropdowns to always open downward with auto-scroll.
+- Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after changing mobile filter dropdowns to always open downward with auto-scroll.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after changing mobile filter dropdowns to always open downward with auto-scroll.
+- Verified locally with Playwright using system Chrome at `http://iamasina.test/anunturi-auto-de-vanzare`: on a 390x430 mobile viewport, opening `Marca` did not auto-scroll the sheet (`scrollTop = 0`), opened downward, and kept form height 542px; opening `Judet` after scrolling it into view auto-scrolled the sheet to `scrollTop = 276`, opened downward, kept the dropdown within the sheet bottom, and kept form height 542px; on a 390x844 viewport, `Judet` auto-scrolled to `scrollTop = 145`, opened downward, and kept form height 542px. In all checked cases the first option was not auto-highlighted (`activeCount = 0`).
 
 - Ran `npm run build`; Vite production build completed after the combobox active-option fix.
 - Ran `git diff --check`; passed after the combobox active-option fix.
@@ -391,6 +415,10 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Environment Assumptions
 
+- Desktop filter dropdown overflow is CSS/JS-only and uses existing combobox/listing filter markup. No routes, controllers, database changes, environment keys, or secrets were added.
+
+- Mobile filter dropdown auto-scroll is client-side JS/CSS only and depends on the existing fixed mobile filters panel plus `.filters-panel-sheet` scroll container. Browser verification used local Laragon host `http://iamasina.test`; no routes, controllers, database changes, environment keys, or secrets were added.
+
 - Combobox active-option refinement is client-side JS only and uses the existing `is-active` keyboard navigation and `is-selected` selected-value states. No routes, controllers, database changes, environment keys, or secrets were added.
 
 - Listing filter dropdown overlay behavior depends only on the existing shared combobox JS/CSS and the existing mobile filters sheet. Browser verification used local Laragon host `http://iamasina.test`; no routes, controllers, database changes, environment keys, or secrets were added.
@@ -447,6 +475,10 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - The bundled Codex Node runtime was used for Vite build because `node.exe` from PATH returned `Access denied`.
 
 ## Open Items
+
+- No new known follow-up from allowing desktop filter dropdowns to overflow the filters card.
+
+- After deploy, retest on a real iPhone Safari device that lower mobile filter fields auto-scroll upward and their dropdowns open downward without being clipped.
 
 - No new known follow-up from the combobox active-option fix.
 

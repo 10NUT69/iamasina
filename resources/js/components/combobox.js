@@ -37,6 +37,7 @@ class HybridCombobox {
         this.activeIndex = -1;
         this.suppressHiddenSync = false;
         this.dropdownPositionFrame = null;
+        this.dropdownResyncTimers = [];
         this.autofillGuardTimer = null;
 
         if (!this.root || !this.hidden || !this.input || !this.listbox) {
@@ -500,7 +501,8 @@ class HybridCombobox {
         this.filter(this.searchable ? this.input.value : '');
         this.root.classList.add('is-open');
         this.input.setAttribute('aria-expanded', 'true');
-        this.syncListingFilterDropdownPosition();
+        this.syncListingFilterDropdownPosition({ scrollIntoView: true });
+        this.scheduleListingFilterDropdownResync();
     }
 
     close() {
@@ -571,18 +573,90 @@ class HybridCombobox {
         return this.root.classList.contains('listing-filter') && !!this.root.closest('#filters-panel');
     }
 
+    isMobileListingFilterCombobox() {
+        return this.isListingFilterCombobox()
+            && window.matchMedia?.('(max-width: 1023px)').matches;
+    }
+
+    clearListingFilterDropdownResyncTimers() {
+        this.dropdownResyncTimers.forEach((timer) => window.clearTimeout(timer));
+        this.dropdownResyncTimers = [];
+    }
+
+    scheduleListingFilterDropdownResync() {
+        if (!this.isMobileListingFilterCombobox()) {
+            return;
+        }
+
+        this.clearListingFilterDropdownResyncTimers();
+
+        [120, 360, 700].forEach((delay) => {
+            const timer = window.setTimeout(() => {
+                if (this.root.classList.contains('is-open')) {
+                    this.syncListingFilterDropdownPosition({ scrollIntoView: true });
+                }
+            }, delay);
+
+            this.dropdownResyncTimers.push(timer);
+        });
+    }
+
+    scrollListingFilterIntoDropdownView() {
+        if (!this.isMobileListingFilterCombobox()) {
+            return;
+        }
+
+        const sheet = this.root.closest('.filters-panel-sheet');
+
+        if (!sheet) {
+            return;
+        }
+
+        const viewport = window.visualViewport;
+        const viewportTop = viewport ? viewport.offsetTop : 0;
+        const viewportBottom = viewport
+            ? viewport.offsetTop + viewport.height
+            : window.innerHeight || document.documentElement.clientHeight || sheet.getBoundingClientRect().bottom;
+        const sheetRect = sheet.getBoundingClientRect();
+        const visibleTop = Math.max(sheetRect.top, viewportTop);
+        const visibleBottom = Math.min(sheetRect.bottom, viewportBottom);
+        const visibleHeight = Math.max(0, visibleBottom - visibleTop);
+        const header = sheet.querySelector('.sticky');
+        const headerRect = header?.getBoundingClientRect();
+        const headerBottom = headerRect
+            ? Math.min(Math.max(headerRect.bottom, visibleTop), visibleBottom)
+            : visibleTop;
+        const desiredTop = Math.min(headerBottom + 12, visibleTop + Math.max(12, visibleHeight * 0.28));
+        const rootRect = this.root.getBoundingClientRect();
+        const availableBelow = visibleBottom - rootRect.bottom - 8;
+        const desiredDropdownSpace = Math.min(280, Math.max(180, visibleHeight * 0.45));
+
+        if (availableBelow >= desiredDropdownSpace && rootRect.top >= desiredTop) {
+            return;
+        }
+
+        const delta = rootRect.top - desiredTop;
+
+        if (delta <= 1) {
+            return;
+        }
+
+        sheet.scrollTop += delta;
+    }
+
     clearListingFilterDropdownPosition() {
         if (this.dropdownPositionFrame) {
             window.cancelAnimationFrame(this.dropdownPositionFrame);
             this.dropdownPositionFrame = null;
         }
 
-        this.root.classList.remove('opens-up', 'opens-down');
+        this.clearListingFilterDropdownResyncTimers();
+        this.root.classList.remove('opens-down');
         this.root.style.removeProperty('--ia-combobox-listbox-max-height');
         this.root.style.removeProperty('--ia-filter-open-listbox-space');
     }
 
-    syncListingFilterDropdownPosition() {
+    syncListingFilterDropdownPosition({ scrollIntoView = false } = {}) {
         if (!this.isListingFilterCombobox()) {
             return;
         }
@@ -609,6 +683,10 @@ class HybridCombobox {
                 return;
             }
 
+            if (scrollIntoView) {
+                this.scrollListingFilterIntoDropdownView();
+            }
+
             const gap = 8;
             const rootRect = this.root.getBoundingClientRect();
             const viewport = window.visualViewport;
@@ -616,20 +694,18 @@ class HybridCombobox {
             const viewportBottom = viewport
                 ? viewport.offsetTop + viewport.height
                 : window.innerHeight || document.documentElement.clientHeight || rootRect.bottom;
-            const panel = this.root.closest('.filters-panel-sheet') || this.root.closest('#filters-panel');
+            const panel = this.isMobileListingFilterCombobox()
+                ? this.root.closest('.filters-panel-sheet') || this.root.closest('#filters-panel')
+                : null;
             const panelRect = panel?.getBoundingClientRect();
             const boundsTop = Math.max(viewportTop, panelRect ? panelRect.top : viewportTop);
             const boundsBottom = Math.min(viewportBottom, panelRect ? panelRect.bottom : viewportBottom);
             const availableBelow = Math.max(0, boundsBottom - rootRect.bottom - gap);
-            const availableAbove = Math.max(0, rootRect.top - boundsTop - gap);
-            const opensUp = availableAbove > availableBelow && availableBelow < 180;
-            const availableSpace = opensUp ? availableAbove : availableBelow;
             const boundsHeight = Math.max(0, boundsBottom - boundsTop);
             const preferredMax = Math.min(320, Math.max(160, Math.floor(boundsHeight * 0.72)));
-            const maxHeight = Math.max(96, Math.floor(Math.min(preferredMax, availableSpace || preferredMax)));
+            const maxHeight = Math.floor(Math.min(preferredMax, Math.max(56, availableBelow)));
 
-            this.root.classList.toggle('opens-up', opensUp);
-            this.root.classList.toggle('opens-down', !opensUp);
+            this.root.classList.add('opens-down');
             this.root.style.setProperty('--ia-combobox-listbox-max-height', `${maxHeight}px`);
             this.root.style.removeProperty('--ia-filter-open-listbox-space');
         });

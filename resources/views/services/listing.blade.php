@@ -419,7 +419,7 @@
             @endphp
 
             <div id="listing-actions-bar" class="sticky z-40 -mx-4 mb-4 bg-[#f6f7fb]/95 px-4 py-2.5 shadow-sm ring-1 ring-gray-200/80 backdrop-blur dark:bg-[#121212]/95 dark:ring-gray-800 sm:-mx-6 sm:px-6 lg:static lg:top-auto lg:z-auto lg:mx-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:ring-0 lg:backdrop-blur-0">
-                <div class="listing-actions-row grid grid-cols-[0.58fr_0.68fr_0.9fr_1.28fr] items-stretch gap-2 lg:flex lg:items-center lg:justify-between lg:gap-3">
+                <div class="listing-actions-row grid grid-cols-[0.58fr_0.68fr_0.74fr_1.5fr] items-stretch gap-2 lg:flex lg:items-center lg:justify-between lg:gap-3">
                     <button type="button" id="scroll-to-listing-top"
                         class="{{ $listingActionButtonPassiveClass }} lg:hidden">
                         <span class="shrink-0 text-base leading-none">↑</span>
@@ -439,8 +439,11 @@
                         <span class="listing-action-label">Filtre</span>
                     </button>
                     <button type="button" id="save-search-btn"
-                        class="{{ $listingActionButtonClass }} lg:w-auto lg:px-3 lg:text-sm">
-                        <span class="listing-action-label">Salvează</span>
+                        class="{{ $listingActionButtonClass }} listing-action-button--save-search lg:w-auto lg:px-3 lg:text-sm">
+                        <span class="listing-action-label">
+                            <span>Salvează</span>
+                            <span>căutarea</span>
+                        </span>
                     </button>
 
                     <div class="listing-sort-compact min-w-0 lg:ml-auto lg:flex lg:w-auto lg:items-center lg:gap-2">
@@ -1897,7 +1900,7 @@
 
         .listing-actions-row {
             display: grid;
-            grid-template-columns: minmax(0, 0.58fr) minmax(0, 0.68fr) minmax(0, 0.9fr) minmax(0, 1.28fr);
+            grid-template-columns: minmax(0, 0.58fr) minmax(0, 0.68fr) minmax(0, 0.74fr) minmax(0, 1.5fr);
             align-items: stretch;
             gap: 0.5rem;
         }
@@ -1913,6 +1916,18 @@
     .listing-action-label {
         min-width: 0;
         text-align: center;
+    }
+
+    .listing-action-button--save-search {
+        padding-right: 0.4rem;
+        padding-left: 0.4rem;
+    }
+
+    .listing-action-button--save-search .listing-action-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        line-height: 1.05;
     }
 
     #listing-actions-bar .truncate,
