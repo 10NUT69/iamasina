@@ -36,7 +36,7 @@ class HybridCombobox {
         this.filteredOptions = [...this.options];
         this.activeIndex = -1;
         this.suppressHiddenSync = false;
-        this.dropdownSpaceFrame = null;
+        this.dropdownPositionFrame = null;
         this.autofillGuardTimer = null;
 
         if (!this.root || !this.hidden || !this.input || !this.listbox) {
@@ -378,7 +378,7 @@ class HybridCombobox {
             this.filteredOptions = matches;
         }
 
-        this.activeIndex = this.filteredOptions.length ? 0 : -1;
+        this.activeIndex = -1;
         this.renderOptions();
     }
 
@@ -406,6 +406,7 @@ class HybridCombobox {
 
     renderOptions() {
         this.listbox.innerHTML = '';
+        this.input.removeAttribute('aria-activedescendant');
 
         if (!this.filteredOptions.length) {
             const empty = document.createElement('div');
@@ -414,8 +415,7 @@ class HybridCombobox {
             empty.textContent = 'Nicio optiune gasita';
 
             this.listbox.appendChild(empty);
-            this.input.removeAttribute('aria-activedescendant');
-            this.syncListingFilterDropdownSpace();
+            this.syncListingFilterDropdownPosition();
 
             return;
         }
@@ -476,7 +476,7 @@ class HybridCombobox {
             this.listbox.appendChild(groupEl);
         });
 
-        this.syncListingFilterDropdownSpace();
+        this.syncListingFilterDropdownPosition();
     }
 
     updateSelectedStates() {
@@ -500,14 +500,14 @@ class HybridCombobox {
         this.filter(this.searchable ? this.input.value : '');
         this.root.classList.add('is-open');
         this.input.setAttribute('aria-expanded', 'true');
-        this.syncListingFilterDropdownSpace();
+        this.syncListingFilterDropdownPosition();
     }
 
     close() {
         this.root.classList.remove('is-open');
         this.input.setAttribute('aria-expanded', 'false');
         this.input.removeAttribute('aria-activedescendant');
-        this.clearListingFilterDropdownSpace();
+        this.clearListingFilterDropdownPosition();
     }
 
     finishInteraction() {
@@ -571,48 +571,67 @@ class HybridCombobox {
         return this.root.classList.contains('listing-filter') && !!this.root.closest('#filters-panel');
     }
 
-    clearListingFilterDropdownSpace() {
-        if (this.dropdownSpaceFrame) {
-            window.cancelAnimationFrame(this.dropdownSpaceFrame);
-            this.dropdownSpaceFrame = null;
+    clearListingFilterDropdownPosition() {
+        if (this.dropdownPositionFrame) {
+            window.cancelAnimationFrame(this.dropdownPositionFrame);
+            this.dropdownPositionFrame = null;
         }
 
+        this.root.classList.remove('opens-up', 'opens-down');
+        this.root.style.removeProperty('--ia-combobox-listbox-max-height');
         this.root.style.removeProperty('--ia-filter-open-listbox-space');
     }
 
-    syncListingFilterDropdownSpace() {
+    syncListingFilterDropdownPosition() {
         if (!this.isListingFilterCombobox()) {
             return;
         }
 
         if (!this.root.classList.contains('is-open')) {
-            this.clearListingFilterDropdownSpace();
+            this.clearListingFilterDropdownPosition();
             return;
         }
 
-        if (this.dropdownSpaceFrame) {
-            window.cancelAnimationFrame(this.dropdownSpaceFrame);
+        if (this.dropdownPositionFrame) {
+            window.cancelAnimationFrame(this.dropdownPositionFrame);
         }
 
-        this.dropdownSpaceFrame = window.requestAnimationFrame(() => {
-            this.dropdownSpaceFrame = null;
+        this.dropdownPositionFrame = window.requestAnimationFrame(() => {
+            this.dropdownPositionFrame = null;
 
             if (!this.root.classList.contains('is-open')) {
-                this.clearListingFilterDropdownSpace();
+                this.clearListingFilterDropdownPosition();
                 return;
             }
 
             if (window.getComputedStyle(this.listbox).position !== 'absolute') {
-                this.clearListingFilterDropdownSpace();
+                this.clearListingFilterDropdownPosition();
                 return;
             }
 
-            const listboxHeight = Math.ceil(this.listbox.getBoundingClientRect().height);
+            const gap = 8;
+            const rootRect = this.root.getBoundingClientRect();
+            const viewport = window.visualViewport;
+            const viewportTop = viewport ? viewport.offsetTop : 0;
+            const viewportBottom = viewport
+                ? viewport.offsetTop + viewport.height
+                : window.innerHeight || document.documentElement.clientHeight || rootRect.bottom;
+            const panel = this.root.closest('.filters-panel-sheet') || this.root.closest('#filters-panel');
+            const panelRect = panel?.getBoundingClientRect();
+            const boundsTop = Math.max(viewportTop, panelRect ? panelRect.top : viewportTop);
+            const boundsBottom = Math.min(viewportBottom, panelRect ? panelRect.bottom : viewportBottom);
+            const availableBelow = Math.max(0, boundsBottom - rootRect.bottom - gap);
+            const availableAbove = Math.max(0, rootRect.top - boundsTop - gap);
+            const opensUp = availableAbove > availableBelow && availableBelow < 180;
+            const availableSpace = opensUp ? availableAbove : availableBelow;
+            const boundsHeight = Math.max(0, boundsBottom - boundsTop);
+            const preferredMax = Math.min(320, Math.max(160, Math.floor(boundsHeight * 0.72)));
+            const maxHeight = Math.max(96, Math.floor(Math.min(preferredMax, availableSpace || preferredMax)));
 
-            this.root.style.setProperty(
-                '--ia-filter-open-listbox-space',
-                listboxHeight > 0 ? `${listboxHeight + 12}px` : '0px'
-            );
+            this.root.classList.toggle('opens-up', opensUp);
+            this.root.classList.toggle('opens-down', !opensUp);
+            this.root.style.setProperty('--ia-combobox-listbox-max-height', `${maxHeight}px`);
+            this.root.style.removeProperty('--ia-filter-open-listbox-space');
         });
     }
 }
@@ -691,6 +710,12 @@ function initNativeFieldFinishing(scope = document) {
     });
 }
 
+function syncOpenComboboxDropdownPositions() {
+    document.querySelectorAll('[data-combobox].is-open').forEach((root) => {
+        instances.get(root)?.syncListingFilterDropdownPosition();
+    });
+}
+
 document.addEventListener('click', (event) => {
     if (event.target.closest('[data-combobox]')) return;
 
@@ -706,6 +731,11 @@ document.addEventListener('keydown', (event) => {
         instances.get(root)?.finishInteraction();
     });
 });
+
+document.addEventListener('scroll', syncOpenComboboxDropdownPositions, { capture: true, passive: true });
+window.addEventListener('resize', syncOpenComboboxDropdownPositions, { passive: true });
+window.visualViewport?.addEventListener('resize', syncOpenComboboxDropdownPositions, { passive: true });
+window.visualViewport?.addEventListener('scroll', syncOpenComboboxDropdownPositions, { passive: true });
 
 document.addEventListener('DOMContentLoaded', () => {
     initComboboxes();

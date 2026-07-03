@@ -18,6 +18,16 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Latest Changes
 
+- 2026-07-03: Updated the shared combobox behavior so opening a dropdown no longer visually highlights the first option automatically. `activeIndex` now starts unset after filtering/opening, `aria-activedescendant` is cleared until keyboard navigation actually selects an active option, and real selected values still use the existing `is-selected` state.
+
+- 2026-07-03: Changed listing filter combobox dropdowns to open as overlays instead of lengthening the filters form. Removed the listing-filter dropdown space reservation and mobile `position: static` dropdown behavior, added smart up/down positioning with a calculated max-height for filter dropdowns inside `#filters-panel`, and kept recalculation active on sheet/window/visual viewport scroll/resize so lower mobile fields can open upward.
+
+- 2026-07-03: Removed the desktop listing header count text (`<count> anunturi disponibile`) from `resources/views/services/listing.blade.php`, leaving the page title/description and lower pagination summary untouched.
+
+- 2026-07-03: Refined the public listing sort combobox so `Recomandata` is selected by default when no `sort` query is present, the sort value remains non-clearable, and the listing-specific sort input uses the normal arrow cursor instead of the text I-beam cursor on desktop.
+
+- 2026-07-03: Updated the public listing sort control in `resources/views/services/listing.blade.php` so changing `Sortare` applies the selected order immediately on desktop and mobile through the existing AJAX listing refresh, without waiting for the `Afiseaza rezultatele` filter submit button.
+
 - 2026-06-26: Updated the public dealer portfolio SEO/share metadata in `resources/views/services/dealer-portfolio.blade.php`. The dealer page now builds dynamic title/meta title as `<Nume dealer> - anunțuri auto din <Oraș>, <Județ>` when location data exists, and dynamic meta description with the active listing count, dealer name, city/county location, and the requested iaAuto.ro callout. Social share image now uses the first dealer profile/gallery image when present, then falls back to the first visible dealer listing image, then the existing site default. The existing dealer page route/controller behavior was left unchanged.
 
 - 2026-06-26: Updated the public dealer portfolio location display to follow the same source of truth used by listings: `localities.name` and `counties.name` from `locality_id` / `county_id` are preferred over legacy `users.city` / `users.county` strings. This fixes uppercase/non-diacritic dealer locations such as `PITESTI, ARGES` rendering on the portfolio page, metadata, breadcrumb, address, map query, and map label; fallback to legacy fields remains for incomplete dealer profiles.
@@ -91,6 +101,31 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - 2026-06-05: Changed the deleted listing disabled contact button label from `Contact dezactivat` to `Anunt indisponibil` on desktop and mobile show views.
 
 ## Verification
+
+- Ran `npm run build`; Vite production build completed after the combobox active-option fix.
+- Ran `git diff --check`; passed after the combobox active-option fix.
+- Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after the combobox active-option fix.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the combobox active-option fix.
+- Verified locally with Playwright using system Chrome at `http://iamasina.test/anunturi-auto-de-vanzare`: opening the brand combobox on desktop produced `activeCount = 0`, `selectedCount = 0`, and no `aria-activedescendant`; pressing `ArrowDown` then produced `activeCount = 1` and `aria-activedescendant = brand_search-option-0`; opening the brand combobox in the mobile filters panel also produced `activeCount = 0`.
+
+- Ran `npm run build`; Vite production build completed after the overlay dropdown JS/CSS change.
+- Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after the overlay dropdown change.
+- Ran `git diff --check`; passed after the overlay dropdown change.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the overlay dropdown change.
+- Verified locally with Playwright using system Chrome at `http://iamasina.test/anunturi-auto-de-vanzare`: desktop brand dropdown stayed `position: absolute`, opened down, and `#search-form` height stayed 590px before/after opening; mobile brand dropdown at 390x844 stayed absolute, opened down, and form height stayed 542px; mobile county dropdown at 390x844 opened upward with form height still 542px; mobile county dropdown at 390x430 opened upward within the sheet with max-height about 232px and form height still 542px.
+
+- Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after removing the desktop listing header count.
+- Ran `git diff --check`; passed after removing the desktop listing header count.
+- Ran `rg -n "anunțuri disponibile|anunturi disponibile|disponibile" resources/views/services/listing.blade.php`; no matches remain for the removed desktop count text.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after removing the desktop listing header count.
+
+- Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after setting the default sort label and sort cursor styling.
+- Ran `git diff --check`; passed after setting the default sort label and sort cursor styling.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after setting the default sort label and sort cursor styling.
+
+- Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after the sort auto-apply change.
+- Ran `git diff --check`; passed after the sort auto-apply change.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the sort auto-apply change.
 
 - Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the dealer portfolio SEO/share metadata update.
 - Ran `git diff --check`; passed after the dealer portfolio SEO/share metadata update.
@@ -356,6 +391,16 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Environment Assumptions
 
+- Combobox active-option refinement is client-side JS only and uses the existing `is-active` keyboard navigation and `is-selected` selected-value states. No routes, controllers, database changes, environment keys, or secrets were added.
+
+- Listing filter dropdown overlay behavior depends only on the existing shared combobox JS/CSS and the existing mobile filters sheet. Browser verification used local Laragon host `http://iamasina.test`; no routes, controllers, database changes, environment keys, or secrets were added.
+
+- Removing the desktop listing header count is a Blade-only presentation change. No routes, controllers, database changes, environment keys, or secrets were added.
+
+- Listing sort default/cursor refinement is Blade/CSS-only and depends on the existing `newest` sort value already handled by the controller. No routes, controllers, database changes, environment keys, or secrets were added.
+
+- Listing sort auto-apply uses the existing client-side `applyListingFilters()` / AJAX listing refresh path and existing `sort` query parameter. No routes, controllers, database changes, environment keys, or secrets were added.
+
 - Dealer portfolio SEO/share metadata uses only existing dealer account fields (`company_name`, `name`, `city`, `county`, `dealer_gallery`) and the active listing collection/count already passed to the view; no new environment keys, secrets, routes, migrations, or tables were added.
 - Dealer portfolio location display now depends on the existing `users.locality_id` / `users.county_id` values matching records in `localities` / `counties`; when those IDs are absent, the page still falls back to the legacy dealer `city` / `county` strings. No data migration or environment key was added.
 
@@ -402,6 +447,16 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - The bundled Codex Node runtime was used for Vite build because `node.exe` from PATH returned `Access denied`.
 
 ## Open Items
+
+- No new known follow-up from the combobox active-option fix.
+
+- No new known follow-up from the listing filter dropdown overlay change; a real-device mobile pass remains useful after deploy, especially for iOS Safari keyboard/viewport behavior on lower filter fields.
+
+- No new known follow-up from removing the desktop listing header count.
+
+- No new known follow-up from the listing sort default/cursor refinement beyond the existing quick browser pass on the listing page after deploy.
+
+- No new known follow-up from the listing sort auto-apply change; a quick browser pass on the live listing page remains useful after deploy.
 
 - After deployment with `GOOGLE_ANALYTICS_ID` configured, verify in GA4 DebugView/Realtime that `listing_published` appears once after a successful public listing submission and only after accepting Analytics cookies.
 

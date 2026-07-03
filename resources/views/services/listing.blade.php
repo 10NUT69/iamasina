@@ -165,9 +165,6 @@
                 <p class="mt-1 text-sm leading-snug text-gray-600 dark:text-gray-300">
                     Autoturisme de vânzare - Găsește mașina potrivită pentru tine
                 </p>
-                <p class="mt-2 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                    {{ number_format($totalCount, 0, ',', '.') }} anunțuri disponibile
-                </p>
             </div>
 
             <div id="filters-overlay" class="fixed inset-0 bg-black/40 z-[1000] hidden lg:hidden"></div>
@@ -459,9 +456,9 @@
                                 ['value' => 'km_asc', 'label' => 'Km crescător'],
                                 ['value' => 'power_asc', 'label' => 'Putere crescător'],
                             ]"
-                            :selected="request()->has('sort') ? request('sort') : null"
+                            :selected="request('sort') ?: 'newest'"
                             :searchable="false"
-                            class="listing-filter w-full lg:w-56"
+                            class="listing-filter listing-sort-combobox w-full lg:w-56"
                         />
                     </div>
                 </div>
@@ -1707,11 +1704,7 @@
 
         if (domElements.sort) {
             domElements.sort.addEventListener('change', () => {
-                if (isMobileView()) {
-                    applyListingFilters();
-                    return;
-                }
-                window.checkResetVisibility();
+                applyListingFilters();
             });
         }
 
@@ -1865,6 +1858,23 @@
             background: #2a1013;
             color: #fecaca;
         }
+    }
+
+    .listing-sort-combobox .ia-combobox__control,
+    .listing-sort-combobox .ia-combobox__input {
+        cursor: default;
+    }
+
+    .listing-sort-combobox .ia-combobox__input {
+        caret-color: transparent;
+    }
+
+    .listing-sort-combobox .ia-combobox__clear {
+        display: none !important;
+    }
+
+    .listing-sort-combobox.ia-combobox.has-value .ia-combobox__input {
+        padding-right: 2.75rem !important;
     }
 
     @media (max-width: 1023px) {
