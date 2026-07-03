@@ -18,6 +18,18 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Latest Changes
 
+- 2026-07-03: Added dealer logo support for car-park accounts. A new nullable `users.dealer_logo` column stores one logo path, `ProfileController` now exposes authenticated upload/delete endpoints for dealer logos with image validation and server-side/client-side optimization, and `User::dealer_logo_url` provides a reusable display URL. The account profile tab now shows the dealer logo in the profile sidebar/header plus a logo upload form above the dealer gallery, with immediate preview/delete behavior in both places. Dealer logos now display on the public dealer portfolio identity block and in the dealer card on listing detail pages, using centered cover-crop fill inside the logo square/card and falling back to the existing initial block when no logo is uploaded. Switching a saved dealer account to individual now requires explicit confirmation, then clears dealer data, removes the public dealer page URL, and deletes both the logo file and dealer gallery image files.
+
+- 2026-07-03: Updated the account profile dealer media uploads so a user who selects `Parc auto` and fills dealer details can upload the dealer logo/gallery without first pressing the bottom save button. The logo and gallery upload actions now auto-save the dealer profile through the existing AJAX profile update when the saved account is still `individual`, skip password changes during that implicit save, and show dealer-field validation messages in the media upload area if required data is missing.
+
+- 2026-07-03: Added dealer tier support on `users.dealer_tier` with allowed application values `standard`, `founding`, and `premium`. The new migration adds the column with default `standard` and backfills existing users to `standard`; the `User` model exposes tier constants/labels and normalizes invalid/missing values to `standard` on save. Admin users can now set dealer tiers inline from the users table using only the tier dropdown, or through bulk actions for selected dealer accounts. Public dealer portfolio pages show a discrete badge only for special tiers (`Fondator` / `Premium`); `standard` stays visually neutral.
+
+- 2026-07-03: Made the admin users table sortable by `Utilizator`, `Tip dealer`, and `Inregistrat`, using the same query-string sort pattern already used by the `Anunturi` column. The first click on `Utilizator` sorts A-Z; `Tip dealer` starts with the highest/special tier first; `Inregistrat` starts with the newest users first. Dealer-tier sorting keeps dealer accounts grouped ahead of non-dealer accounts, orders `standard` / `founding` / `premium` according to the active direction, and uses user name as a stable tie-breaker.
+
+- 2026-07-03: Refined the dealer seller card on listing detail pages so dealer info is split into clear rows: dealer name, an optional gold `Membru fondator` banner only for `founding` dealers, then `Înregistrat în <luna>, <an>`. Dealers without the founding tier show only the name and registration rows. The dealer logo/avatar in this card is now a fixed 72px square so it visually matches the two- or three-row text block.
+
+- 2026-07-03: Investigated service listing image jobs after a local worker/queue mismatch. The listing publish flow in `ServiceController` was not changed: listings still save first with `images = []`, uploaded files are stored temporarily, and `ProcessServiceImages` fills `services.images` asynchronously. Locally, `SERVICE_IMAGES_QUEUE` was unset while a manually started worker listened only to `services`, so local `ProcessServiceImages` jobs landed on `default` and were not consumed until they were moved to `services`. Live was later checked and is different: the iaAuto Supervisor worker runs `queue:work --sleep=1 --tries=3` with no `--queue`, so it consumes the configured default queue (`default`); do not force service image jobs to `services` on live unless the iaAuto worker is also changed to listen to that queue.
+
 - 2026-07-03: Improved mobile listing filter dropdown positioning for the lower `Localitate` combobox. Mobile filter sheets now get temporary bottom scroll space only while a listing-filter dropdown is open, allowing the last field to scroll high enough for its downward dropdown without the dropdown pushing form fields. Async option updates now re-sync open dropdown positioning after options are populated. Also set the mobile saved-search button label back to bold while using the same gray tone as the `Sortare` combobox label.
 
 - 2026-07-03: Tightened the mobile listing sort combobox so `Recomandata` has enough room to render fully in the sticky action bar. The sort input now uses smaller mobile-only right padding, a slightly smaller font on very narrow screens, and a raised chevron kept at its original visual size.
@@ -111,6 +123,45 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - 2026-06-05: Changed the deleted listing disabled contact button label from `Contact dezactivat` to `Anunt indisponibil` on desktop and mobile show views.
 
 ## Verification
+
+- Ran `php -l app/Http/Controllers/ProfileController.php`, `php -l app/Models/User.php`, `php -l routes/web.php`, and `php -l database/migrations/2026_07_03_120000_add_dealer_logo_to_users_table.php`; no syntax errors after adding dealer logo support.
+- Ran `php -l resources/views/account/index.blade.php`; no syntax errors after also showing the dealer logo in the profile sidebar/header.
+- Ran `php -l resources/views/account/index.blade.php`, `php -l resources/views/services/dealer-portfolio.blade.php`, and `php -l resources/views/services/show.blade.php`; no syntax errors after changing dealer logo images from contained/padded display to centered cover-fill display.
+- Ran `git diff --check`; passed after the dealer logo changes.
+- Ran `php artisan migrate`; `2026_07_03_120000_add_dealer_logo_to_users_table` completed locally.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the dealer logo UI/rendering updates.
+- Ran `php -l resources/views/account/index.blade.php`; no syntax errors after adding the pre-upload dealer profile auto-save flow.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the pre-upload dealer profile auto-save flow.
+- Ran `git diff --check`; passed after the pre-upload dealer profile auto-save flow.
+- Ran `php -l` on `app/Models/User.php`, `app/Http/Controllers/Admin/AdminUserController.php`, `app/Http/Controllers/Auth/RegisteredUserController.php`, `app/Http/Controllers/ServiceController.php`, `routes/web.php`, `resources/views/admin/users/index.blade.php`, `resources/views/services/dealer-portfolio.blade.php`, `resources/views/services/show.blade.php`, and `database/migrations/2026_07_03_130000_add_dealer_tier_to_users_table.php`; no syntax errors after adding dealer tiers.
+- Ran `php artisan migrate`; `2026_07_03_130000_add_dealer_tier_to_users_table` completed locally and all 69 local users reported `dealer_tier = standard`.
+- Ran a rollback-wrapped `User::create()` tinker check for a dealer account; the new user received `dealer_tier = standard` before rollback.
+- Ran `php artisan route:list --name=admin.users.dealer-tier`; confirmed `PATCH panou-secret/users/{user}/dealer-tier` points to `AdminUserController@updateDealerTier`.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the dealer tier admin/public UI updates.
+- Ran `php -l resources/views/admin/users/index.blade.php`; no syntax errors after removing the duplicated dealer-tier badge above the admin dropdown.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after leaving only the admin dealer-tier dropdown.
+- Ran `php -l app/Http/Controllers/Admin/AdminUserController.php` and `php -l resources/views/admin/users/index.blade.php`; no syntax errors after adding admin user/dealer-tier sorting.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled after the admin sorting update.
+- Rendered the admin users page through `AdminUserController@index()` with `sort=dealer_tier&direction=desc` and `sort=user&direction=asc`; both rendered successfully.
+- Ran `php -l app/Http/Controllers/Admin/AdminUserController.php` and `php -l resources/views/admin/users/index.blade.php`; no syntax errors after adding admin registration-date sorting.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled after adding the `Inregistrat` sortable column.
+- Rendered the admin users page through `AdminUserController@index()` with `sort=registered&direction=desc` and `sort=registered&direction=asc`; both rendered successfully.
+- Ran `git diff --check`; passed after the dealer tier changes.
+- Ran `php -l resources/views/services/show.blade.php`; no syntax errors after changing the listing detail dealer seller card to name / optional founding banner / registration rows.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the listing detail seller-card founding banner and 72px avatar update.
+- Confirmed local `ProcessServiceImages` jobs were on `default` with `attempts = 0` while the manually started local worker listened only to `services`; moving those local jobs to `services` allowed the running local services worker to consume them. `jobs` and `failed_jobs` were empty afterward.
+- Confirmed service `132` received three processed WebP images in `services.images` and matching files under `storage/app/public/services` after the worker processed the moved jobs.
+- Ran `php -l config/queue.php` and `php artisan config:clear`; queue config is valid and local config cache was cleared after the queue investigation.
+- Ran `php artisan route:list --name=profile.dealerLogo`; confirmed the `POST profile/dealer-logo` and `DELETE profile/dealer-logo` routes point to `ProfileController@uploadDealerLogo` and `ProfileController@deleteDealerLogo`.
+- Verified local image support reports `Intervention\Image\ImageManager`, GD, and WebP available.
+- Simulated a controller-level dealer logo upload/delete for the first local dealer account without an existing logo: upload returned 200, stored a `dealers/15/*-logo-*.webp` file, the file existed after upload, delete returned 200, `dealer_logo` returned to null, and the file was removed. Repeated after adding the realpath delete guard with the same result.
+- Simulated a controller-level dealer-to-individual downgrade using a temporary dealer user with one logo file and one gallery file: without `dealer_downgrade_confirmed`, the response was 422 and both files/data remained; with confirmation, the response was 200, `user_type` became `individual`, dealer fields/gallery/logo were cleared, and both media files were deleted.
+- Ran a pre-live audit of the dealer logo/tier changes: reviewed changed files/routes, confirmed the listing publication flow and `ProcessServiceImages` job dispatch were not modified, and confirmed `config/queue.php` only changed explanatory comments.
+- Ran `php artisan route:list --name=profile.dealerLogo` and `php artisan route:list --name=admin.users.dealer-tier`; confirmed the two profile logo routes and the admin dealer tier route are registered.
+- Ran `php artisan view:cache`, `php artisan route:cache`, and `php artisan config:cache`, then cleared each cache; all cache builds completed successfully.
+- Ran `php artisan migrate:status` for `2026_07_03_120000_add_dealer_logo_to_users_table` and `2026_07_03_130000_add_dealer_tier_to_users_table`; both are applied locally.
+- Ran `php artisan test`; unit tests passed, but feature tests could not run in the local PHP environment because `pdo_sqlite` is missing (`could not find driver`). Ran `php artisan test --testsuite=Unit`; 4 tests / 12 assertions passed.
+- Ran rollback-wrapped controller-level PHP bootstrap checks: dealer logo upload returned 200, saved a WebP path, and created the file; dealer downgrade without confirmation returned 422 and preserved data/files, then confirmed downgrade returned 200, cleared dealer fields/logo/gallery/tier, and removed media files; admin dealer tier update changed a temp dealer from `standard` to `premium`.
 
 - Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after the mobile `Localitate` dropdown scroll-space update and saved-search font adjustment.
 - Ran `npm run build`; Vite production build completed after the mobile `Localitate` dropdown scroll-space update and saved-search font adjustment.
@@ -430,6 +481,10 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Environment Assumptions
 
+- Dealer logo uploads use the existing public dealer media path pattern under `public/storage/dealers/{user_id}` and the same public URL base as dealer gallery images. Production must run the new migration before dealer logo uploads are available. The account media upload auto-save is client-side JS only and uses the existing `/profile/ajax-update` route before `/profile/dealer-logo` or `/profile/dealer-gallery` when the saved `user_type` is still `individual`; this implicit save intentionally does not submit the password field. No new `.env` keys or secrets were added.
+- Dealer tiers use the new `users.dealer_tier` column and application-validated values `standard`, `founding`, and `premium`; production must run `2026_07_03_130000_add_dealer_tier_to_users_table` before assigning tiers from admin. Newly saved users normalize to `standard` when missing/invalid, and switching a dealer account back to individual resets the tier to `standard`. No new `.env` keys or secrets were added.
+- Service listing image processing leaves `SERVICE_IMAGES_QUEUE` env-controlled. If the env key is unset, `ProcessServiceImages` uses the connection default queue. On live as checked on 2026-07-03, `queue.service_images_queue = null`, `queue.connections.database.queue = default`, and the iaAuto Supervisor worker runs `queue:work --sleep=1 --tries=3`, so image jobs should stay on `default`. If an environment uses a worker with `--queue=services`, set `SERVICE_IMAGES_QUEUE=services` for that environment and clear/rebuild config cache before restarting the worker.
+
 - Desktop filter dropdown overflow is CSS/JS-only and uses existing combobox/listing filter markup. No routes, controllers, database changes, environment keys, or secrets were added.
 
 - Mobile filter dropdown auto-scroll is client-side JS/CSS only and depends on the existing fixed mobile filters panel plus `.filters-panel-sheet` scroll container. Browser verification used local Laragon host `http://iamasina.test`; no routes, controllers, database changes, environment keys, or secrets were added.
@@ -490,6 +545,9 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - The bundled Codex Node runtime was used for Vite build because `node.exe` from PATH returned `Access denied`.
 
 ## Open Items
+
+- After deploy, perform a logged-in browser pass on `/contul-meu?tab=profil`: from an individual account select `Parc auto`, fill required dealer details, upload a logo/gallery image before pressing the bottom save button, and confirm the upload first saves the dealer profile. Also test an existing dealer account: upload a logo, confirm the account preview updates, confirm the public dealer page and a dealer listing detail page show the logo, then delete it and confirm the fallback initial returns.
+- After deploy, assign `Fondator` or `Premium` to one test dealer from `panou-secret/users`, confirm the admin selector persists, confirm the public dealer portfolio and a listing detail dealer card show the special badge, then reset the test account to `Standard` if needed.
 
 - No new known follow-up from allowing desktop filter dropdowns to overflow the filters card.
 

@@ -2,13 +2,33 @@
 
 @section('content')
 @php
-    $adsSortActive = request('sort') === 'ads';
-    $adsSortDirection = request('direction') === 'asc' ? 'asc' : 'desc';
-    $nextAdsSortDirection = $adsSortActive && $adsSortDirection === 'desc' ? 'asc' : 'desc';
-    $adsSortUrl = route('admin.users.index', array_merge(
-        request()->except(['page', 'sort', 'direction']),
-        ['sort' => 'ads', 'direction' => $nextAdsSortDirection]
-    ));
+    $activeSort = request('sort');
+    $sortDirection = request('direction') === 'asc' ? 'asc' : 'desc';
+    $defaultSortDirections = [
+        'ads' => 'desc',
+        'dealer_tier' => 'desc',
+        'registered' => 'desc',
+        'user' => 'asc',
+    ];
+    $sortUrl = function (string $sort) use ($activeSort, $sortDirection, $defaultSortDirections) {
+        $defaultDirection = $defaultSortDirections[$sort] ?? 'desc';
+        $nextDirection = $activeSort === $sort
+            ? ($sortDirection === 'desc' ? 'asc' : 'desc')
+            : $defaultDirection;
+
+        return route('admin.users.index', array_merge(
+            request()->except(['page', 'sort', 'direction']),
+            ['sort' => $sort, 'direction' => $nextDirection]
+        ));
+    };
+    $sortIconClass = function (string $sort) use ($activeSort, $sortDirection) {
+        if ($activeSort !== $sort) {
+            return 'fa-sort text-slate-300';
+        }
+
+        return $sortDirection === 'desc' ? 'fa-sort-amount-down' : 'fa-sort-amount-up';
+    };
+    $dealerTierLabels = \App\Models\User::DEALER_TIER_LABELS;
 @endphp
 
 <div class="max-w-[1536px] mx-auto py-8 px-4 sm:px-6 lg:px-8 bg-[#F8FAFC] min-h-screen font-sans text-slate-600">
@@ -76,6 +96,11 @@
                             <option value="">Acțiuni...</option>
                             <option value="activate" class="text-green-600 font-bold">Deblochează</option>
                             <option value="deactivate" class="text-orange-600 font-bold">Blochează</option>
+                            <optgroup label="Tip dealer">
+                                <option value="dealer_tier_standard">Seteaza Standard</option>
+                                <option value="dealer_tier_founding">Seteaza Fondator</option>
+                                <option value="dealer_tier_premium">Seteaza Premium</option>
+                            </optgroup>
                             <option value="delete" class="text-red-600 font-black">Șterge</option>
                         </select>
                     </div>
@@ -116,20 +141,32 @@
                             <th class="p-4 w-10 text-center">
                                 <input type="checkbox" id="selectAll" class="rounded border-slate-300 text-blue-600 cursor-pointer w-4 h-4">
                             </th>
-                            <th class="p-4">Utilizator</th>
+                            <th class="p-4">
+                                <a href="{{ $sortUrl('user') }}" class="inline-flex items-center gap-1 hover:text-blue-600">
+                                    <span>Utilizator</span>
+                                    <i class="fas {{ $sortIconClass('user') }} text-[11px]"></i>
+                                </a>
+                            </th>
                             <th class="p-4">Rol</th>
+                            <th class="p-4">
+                                <a href="{{ $sortUrl('dealer_tier') }}" class="inline-flex items-center gap-1 hover:text-blue-600">
+                                    <span>Tip dealer</span>
+                                    <i class="fas {{ $sortIconClass('dealer_tier') }} text-[11px]"></i>
+                                </a>
+                            </th>
                             <th class="p-4 text-center">
-                                <a href="{{ $adsSortUrl }}" class="inline-flex items-center justify-center gap-1 hover:text-blue-600">
+                                <a href="{{ $sortUrl('ads') }}" class="inline-flex items-center justify-center gap-1 hover:text-blue-600">
                                     <span>Anunțuri</span>
-                                    @if($adsSortActive)
-                                        <i class="fas {{ $adsSortDirection === 'desc' ? 'fa-sort-amount-down' : 'fa-sort-amount-up' }} text-[11px]"></i>
-                                    @else
-                                        <i class="fas fa-sort text-[11px] text-slate-300"></i>
-                                    @endif
+                                    <i class="fas {{ $sortIconClass('ads') }} text-[11px]"></i>
                                 </a>
                             </th>
                             <th class="p-4 text-center">Status</th>
-                            <th class="p-4">Înregistrat</th>
+                            <th class="p-4">
+                                <a href="{{ $sortUrl('registered') }}" class="inline-flex items-center gap-1 hover:text-blue-600">
+                                    <span>Înregistrat</span>
+                                    <i class="fas {{ $sortIconClass('registered') }} text-[11px]"></i>
+                                </a>
+                            </th>
                             <th class="p-4 text-right">Acțiuni</th>
                         </tr>
                     </thead>
@@ -165,6 +202,26 @@
                                         <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
                                             User
                                         </span>
+                                    @endif
+                                </td>
+
+                                <td class="p-4">
+                                    @if($user->user_type === 'dealer')
+                                        @php
+                                            $dealerTier = in_array($user->dealer_tier, array_keys($dealerTierLabels), true)
+                                                ? $user->dealer_tier
+                                                : \App\Models\User::DEALER_TIER_STANDARD;
+                                        @endphp
+                                        <div class="min-w-[150px]">
+                                            <select data-dealer-tier-select="{{ $user->id }}"
+                                                    class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                                @foreach($dealerTierLabels as $tierValue => $tierLabel)
+                                                    <option value="{{ $tierValue }}" @selected($dealerTier === $tierValue)>{{ $tierLabel }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    @else
+                                        <span class="text-xs font-medium text-slate-300">-</span>
                                     @endif
                                 </td>
 
@@ -227,7 +284,7 @@
 
                             @if($user->all_services_count > 0)
                                 <tr id="userServicesRow-{{ $user->id }}" class="hidden bg-slate-50/80">
-                                    <td colspan="7" class="p-0">
+                                    <td colspan="8" class="p-0">
                                         <div class="px-4 sm:px-6 py-4 border-t border-slate-100">
                                             <div class="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                                                 <h3 class="text-sm font-bold text-slate-700">Anunțurile utilizatorului {{ $user->name }}</h3>
@@ -309,7 +366,7 @@
                             @endif
                         @empty
                             <tr>
-                                <td colspan="7" class="p-12 text-center text-slate-400">Nu există utilizatori.</td>
+                                <td colspan="8" class="p-12 text-center text-slate-400">Nu există utilizatori.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -327,6 +384,7 @@
 
 <form id="toggleForm" action="" method="POST" style="display: none;"> @csrf </form>
 <form id="deleteForm" action="" method="POST" style="display: none;"> @csrf @method('DELETE') </form>
+<form id="dealerTierForm" action="" method="POST" style="display: none;"> @csrf @method('PATCH') <input type="hidden" name="dealer_tier" id="dealerTierInput"> </form>
 <form id="serviceToggleForm" action="" method="POST" style="display: none;"> @csrf </form>
 <form id="serviceSoftDeleteForm" action="" method="POST" style="display: none;"> @csrf @method('DELETE') </form>
 <form id="serviceForceDeleteForm" action="" method="POST" style="display: none;"> @csrf @method('DELETE') <input type="hidden" name="force" value="1"> </form>
@@ -351,8 +409,23 @@
 
     const toggleUrlTemplate = '{{ route("admin.users.toggle", ":id") }}';
     const deleteUrlTemplate = '{{ route("admin.users.destroy", ":id") }}';
+    const dealerTierUrlTemplate = '{{ route("admin.users.dealer-tier", ":id") }}';
     const serviceToggleUrlTemplate = '{{ route("admin.services.toggle", ":id") }}';
     const serviceDeleteUrlTemplate = '{{ route("admin.services.destroy", ":id") }}';
+
+    document.querySelectorAll('[data-dealer-tier-select]').forEach(select => {
+        select.addEventListener('change', function() {
+            const userId = this.getAttribute('data-dealer-tier-select');
+            const form = document.getElementById('dealerTierForm');
+            const input = document.getElementById('dealerTierInput');
+
+            if (!userId || !form || !input) return;
+
+            input.value = this.value;
+            form.action = dealerTierUrlTemplate.replace(':id', userId);
+            form.submit();
+        });
+    });
 
     function toggleUser(id) {
         const form = document.getElementById('toggleForm');

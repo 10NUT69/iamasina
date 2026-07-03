@@ -19,6 +19,11 @@
         ->count();
     $accountUser = auth()->user();
     $accountDealerUrl = $accountUser->user_type === 'dealer' ? $accountUser->dealer_public_url : null;
+    $accountDealerLogoUrl = $accountUser->dealer_logo_url ?? null;
+    $accountDealerInitial = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($accountUser->company_name ?: $accountUser->name ?: 'P', 0, 1));
+    $accountProfileInitial = $accountUser->user_type === 'dealer'
+        ? $accountDealerInitial
+        : \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($accountUser->name ?: 'U', 0, 1));
 @endphp
 
 <div id="accountFloatingMsg" class="fixed left-1/2 top-24 z-[90] hidden w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 rounded-2xl px-4 py-3 text-sm font-bold shadow-2xl ring-1 backdrop-blur transition-all sm:px-5"></div>
@@ -642,8 +647,14 @@
            <div class="w-full md:w-1/4 bg-gray-50 dark:bg-[#181818] p-6 border-b md:border-b-0 md:border-r border-gray-200 dark:border-[#333333] flex flex-col items-center text-center justify-center">
 
                 <div class="relative">
-                    <div class="w-20 h-20 rounded-full bg-gradient-to-br from-[#C81424] to-[#5f0f14] text-white flex items-center justify-center text-2xl font-bold shadow-lg mb-3 select-none">
-                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                    <div id="profileLogoAvatar"
+                        data-initial="{{ $accountProfileInitial }}"
+                         class="{{ $accountDealerLogoUrl ? 'rounded-2xl border border-gray-200 bg-white text-[#C81424] dark:border-[#333333] dark:bg-[#252525]' : 'rounded-full bg-gradient-to-br from-[#C81424] to-[#5f0f14] text-white' }} mb-3 flex h-20 w-20 items-center justify-center overflow-hidden text-2xl font-bold shadow-lg select-none">
+                        @if($accountDealerLogoUrl)
+                            <img src="{{ $accountDealerLogoUrl }}" alt="Logo {{ auth()->user()->company_name ?: 'parc auto' }}" class="h-full w-full object-cover object-center">
+                        @else
+                            <span>{{ $accountProfileInitial }}</span>
+                        @endif
                     </div>
                     <div class="absolute bottom-3 right-0 w-4 h-4 bg-green-500 border-2 border-white dark:border-[#181818] rounded-full"></div>
                 </div>
@@ -829,6 +840,43 @@
                     <span id="dealerDescriptionCounter" class="text-xs font-bold text-gray-500 dark:text-gray-400"></span>
                 </div>
             </div>
+        </div>
+
+        <div class="mt-5 rounded-2xl border border-gray-200 bg-white p-4 dark:border-[#333333] dark:bg-[#1E1E1E]">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div class="flex min-w-0 items-center gap-4">
+                    <div id="dealerLogoPreview"
+                         data-initial="{{ $accountDealerInitial }}"
+                         class="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 text-2xl font-black text-[#C81424] dark:border-[#333333] dark:bg-[#252525]">
+                        @if($accountDealerLogoUrl)
+                            <img src="{{ $accountDealerLogoUrl }}" alt="Logo {{ auth()->user()->company_name ?: 'parc auto' }}" class="h-full w-full object-cover object-center">
+                        @else
+                            <span>{{ $accountDealerInitial }}</span>
+                        @endif
+                    </div>
+                    <div class="min-w-0">
+                        <h4 class="text-sm font-bold text-gray-900 dark:text-white">Logo parc auto</h4>
+                        <p class="mt-1 text-xs leading-5 text-gray-500 dark:text-gray-400">Logo-ul apare in cont si in cardul dealerului de pe pagina anuntului. Recomandat: imagine patrata, PNG/WebP, max 5MB.</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-2 sm:min-w-[260px]">
+                    <input id="dealerLogoInput" type="file" accept="image/jpeg,image/png,image/webp"
+                        class="block w-full text-xs text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#C81424] file:px-3 file:py-2 file:text-xs file:font-bold file:text-white hover:file:bg-[#94111B] dark:text-gray-300">
+                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        <button type="button" onclick="uploadDealerLogo()"
+                            class="inline-flex h-10 items-center justify-center rounded-lg bg-gray-900 px-4 text-xs font-bold uppercase text-white transition hover:bg-black dark:bg-white dark:text-gray-900">
+                            Incarca logo
+                        </button>
+                        <button id="dealerLogoDeleteButton" type="button" onclick="deleteDealerLogo()"
+                            class="{{ $accountDealerLogoUrl ? '' : 'hidden' }} inline-flex h-10 items-center justify-center rounded-lg border border-red-200 bg-red-50 px-4 text-xs font-bold uppercase text-red-700 transition hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-200">
+                            Sterge logo
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dealerLogoMsg" class="mt-3 hidden rounded-lg px-3 py-2 text-sm font-semibold"></div>
         </div>
 
         <div class="mt-5 rounded-2xl border border-gray-200 bg-white p-4 dark:border-[#333333] dark:bg-[#1E1E1E]">
@@ -1130,6 +1178,16 @@ function setDealerGalleryMessage(message, success = true) {
     msg.textContent = message;
 }
 
+function setDealerLogoMessage(message, success = true) {
+    const msg = document.getElementById("dealerLogoMsg");
+    showAccountFloatingMessage(message, success);
+    if (!msg) return;
+
+    msg.classList.remove("hidden", "bg-green-100", "text-green-700", "bg-red-100", "text-red-700");
+    msg.classList.add(success ? "bg-green-100" : "bg-red-100", success ? "text-green-700" : "text-red-700");
+    msg.textContent = message;
+}
+
 function updateDealerDescriptionCounter() {
     const textarea = document.getElementById("editDealerDescription");
     const counter = document.getElementById("dealerDescriptionCounter");
@@ -1190,6 +1248,49 @@ function renderDealerGallery(gallery = []) {
         wrapper.appendChild(button);
         preview.appendChild(wrapper);
     });
+}
+
+function renderDealerLogo(logo = null) {
+    const preview = document.getElementById("dealerLogoPreview");
+    const profileAvatar = document.getElementById("profileLogoAvatar");
+    const deleteButton = document.getElementById("dealerLogoDeleteButton");
+    if (!preview && !profileAvatar) return;
+
+    const initial = preview?.dataset.initial || profileAvatar?.dataset.initial || "P";
+
+    const renderTarget = (target) => {
+        if (!target) return;
+        target.innerHTML = "";
+
+        if (logo && logo.url) {
+            const image = document.createElement("img");
+            image.src = logo.url;
+            image.alt = "Logo parc auto";
+            image.className = "h-full w-full object-cover object-center";
+            target.appendChild(image);
+            return;
+        }
+
+        const fallback = document.createElement("span");
+        fallback.textContent = initial;
+        target.appendChild(fallback);
+    };
+
+    renderTarget(preview);
+    renderTarget(profileAvatar);
+
+    if (profileAvatar) {
+        const hasLogo = Boolean(logo && logo.url);
+        const logoClasses = ["rounded-2xl", "border", "border-gray-200", "bg-white", "text-[#C81424]", "dark:border-[#333333]", "dark:bg-[#252525]"];
+        const fallbackClasses = ["rounded-full", "bg-gradient-to-br", "from-[#C81424]", "to-[#5f0f14]", "text-white"];
+
+        profileAvatar.classList.remove(...(hasLogo ? fallbackClasses : logoClasses));
+        profileAvatar.classList.add(...(hasLogo ? logoClasses : fallbackClasses));
+    }
+
+    if (deleteButton) {
+        deleteButton.classList.toggle("hidden", !(logo && logo.url));
+    }
 }
 
 function slugifyDealerGalleryName(value) {
@@ -1266,10 +1367,120 @@ async function compressDealerGalleryFile(file, index) {
     }
 }
 
+async function compressDealerLogoFile(file) {
+    if (!file.type?.startsWith("image/")) {
+        return file;
+    }
+
+    try {
+        const image = await loadDealerGalleryImage(file);
+        const maxSide = 800;
+        const ratio = Math.min(1, maxSide / Math.max(image.naturalWidth || image.width, image.naturalHeight || image.height));
+        const width = Math.max(1, Math.round((image.naturalWidth || image.width) * ratio));
+        const height = Math.max(1, Math.round((image.naturalHeight || image.height) * ratio));
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+
+        canvas.width = width;
+        canvas.height = height;
+        context.drawImage(image, 0, 0, width, height);
+
+        let blob = await canvasToDealerGalleryBlob(canvas, "image/webp", 0.9);
+        let extension = "webp";
+
+        if (!blob) {
+            blob = await canvasToDealerGalleryBlob(canvas, "image/png", 0.9);
+            extension = "png";
+        }
+
+        if (!blob) {
+            return file;
+        }
+
+        const companyName = document.getElementById("editCompanyName")?.value || @json(auth()->user()->company_name ?: auth()->user()->name);
+        const filename = `${slugifyDealerGalleryName(companyName)}-logo.${extension}`;
+
+        return new File([blob], filename, {
+            type: blob.type || (extension === "webp" ? "image/webp" : "image/png"),
+            lastModified: Date.now()
+        });
+    } catch (error) {
+        return file;
+    }
+}
+
+async function uploadDealerLogo() {
+    const input = document.getElementById("dealerLogoInput");
+    if (!input || !input.files.length) {
+        setDealerLogoMessage("Alege o imagine pentru logo.", false);
+        return;
+    }
+
+    if (!(await ensureDealerProfileReadyForUpload(setDealerLogoMessage))) {
+        return;
+    }
+
+    setDealerLogoMessage("Optimizam logo-ul inainte de incarcare...");
+
+    const formData = new FormData();
+    const optimizedFile = await compressDealerLogoFile(input.files[0]);
+    formData.append("dealer_logo", optimizedFile);
+
+    fetch("{{ route('profile.dealerLogo.upload') }}", {
+        method: "POST",
+        headers: {
+            "X-CSRF-TOKEN": "{{ csrf_token() }}",
+            "Accept": "application/json"
+        },
+        body: formData
+    })
+    .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok || !data.success) {
+            setDealerLogoMessage(data.message || "Nu am putut incarca logo-ul.", false);
+            return;
+        }
+
+        input.value = "";
+        renderDealerLogo(data.logo || null);
+        setDealerLogoMessage("Logo-ul parcului auto a fost actualizat.");
+    })
+    .catch(() => setDealerLogoMessage("Eroare de conexiune la incarcarea logo-ului.", false));
+}
+
+function deleteDealerLogo() {
+    if (!confirm("Sigur stergi logo-ul parcului auto?")) return;
+
+    fetch("{{ route('profile.dealerLogo.delete') }}", {
+        method: "DELETE",
+        headers: {
+            "X-CSRF-TOKEN": "{{ csrf_token() }}",
+            "Accept": "application/json"
+        }
+    })
+    .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok || !data.success) {
+            setDealerLogoMessage(data.message || "Nu am putut sterge logo-ul.", false);
+            return;
+        }
+
+        renderDealerLogo(null);
+        setDealerLogoMessage("Logo-ul a fost sters.");
+    })
+    .catch(() => setDealerLogoMessage("Eroare de conexiune la stergerea logo-ului.", false));
+}
+
 async function uploadDealerGallery() {
     const input = document.getElementById("dealerGalleryInput");
     if (!input || !input.files.length) {
         setDealerGalleryMessage("Alege cel puțin o imagine.", false);
+        return;
+    }
+
+    if (!(await ensureDealerProfileReadyForUpload(setDealerGalleryMessage))) {
         return;
     }
 
@@ -1329,18 +1540,23 @@ function deleteDealerGalleryImage(index) {
     .catch(() => setDealerGalleryMessage("Eroare de conexiune la ștergerea imaginii.", false));
 }
 
-function updateProfile() {
-    let name     = document.getElementById("editName")?.value || "";
-    let email    = document.getElementById("editEmail")?.value || "";
-    let password = document.getElementById("editPassword")?.value || "";
+let currentAccountUserType = @json(auth()->user()->user_type ?? 'individual');
+let dealerDowngradeConfirmed = false;
+const dealerDowngradeWarning = "Atentie: trecerea de la Parc auto la Persoana fizica va sterge toate datele parcului auto, descrierea, logo-ul, imaginile din galerie si pagina publica a parcului. Anunturile raman in cont, dar vor fi afisate ca anunturi de persoana fizica. Continui?";
 
+function confirmDealerDowngrade() {
+    return window.confirm(dealerDowngradeWarning);
+}
+
+function buildProfilePayload({ includePassword = true } = {}) {
     const userType = document.getElementById("editUserType")?.value || "individual";
 
     const payload = {
-        name,
-        email,
-        password,
+        name: document.getElementById("editName")?.value || "",
+        email: document.getElementById("editEmail")?.value || "",
+        password: includePassword ? (document.getElementById("editPassword")?.value || "") : "",
         user_type: userType,
+        dealer_downgrade_confirmed: dealerDowngradeConfirmed,
 
         company_name: document.getElementById("editCompanyName")?.value || null,
         cui:          document.getElementById("editCui")?.value || null,
@@ -1366,16 +1582,85 @@ function updateProfile() {
         payload.dealer_description = null;
     }
 
-    fetch("{{ route('profile.ajaxUpdate') }}", {
-        method: "POST",
-        headers: {
-            "X-CSRF-TOKEN": "{{ csrf_token() }}",
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(async res => {
+    return payload;
+}
+
+function profileValidationMessage(data = {}) {
+    const errors = data.errors || {};
+
+    if (errors.email) {
+        return "Emailul este utilizat de altcineva.";
+    }
+
+    if (errors.name) {
+        return "Numele este utilizat de altcineva.";
+    }
+
+    if (errors.user_type) {
+        return "Tip cont invalid.";
+    }
+
+    if (errors.company_name) {
+        return "Completeaza numele parcului auto.";
+    }
+
+    if (errors.cui) {
+        return "Completeaza CUI-ul parcului auto.";
+    }
+
+    if (errors.phone) {
+        return "Completeaza telefonul parcului auto.";
+    }
+
+    if (errors.county) {
+        return "Completeaza judetul parcului auto.";
+    }
+
+    if (errors.city) {
+        return "Completeaza orasul parcului auto.";
+    }
+
+    if (errors.address) {
+        return "Completeaza adresa parcului auto.";
+    }
+
+    if (errors.dealer_description) {
+        return "Descrierea parcului auto poate avea maximum 3000 de caractere.";
+    }
+
+    if (errors.password) {
+        return "Parola trebuie sa aiba cel putin 6 caractere.";
+    }
+
+    return data.message || "Date invalide.";
+}
+
+async function submitProfileUpdate({ silent = false, includePassword = true } = {}) {
+    const payload = buildProfilePayload({ includePassword });
+    const userType = payload.user_type;
+
+    if (currentAccountUserType === "dealer" && userType === "individual" && !dealerDowngradeConfirmed) {
+        if (!confirmDealerDowngrade()) {
+            const message = "Actualizarea a fost anulata.";
+            if (!silent) setProfileSavedMessage(message, false);
+            return { success: false, message };
+        }
+
+        dealerDowngradeConfirmed = true;
+        payload.dealer_downgrade_confirmed = true;
+    }
+
+    try {
+        const res = await fetch("{{ route('profile.ajaxUpdate') }}", {
+            method: "POST",
+            headers: {
+                "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+
         let data;
         try {
             data = await res.json();
@@ -1383,34 +1668,74 @@ function updateProfile() {
             throw new Error("Eroare server.");
         }
 
-        if (data.errors) {
-            let message = "Date invalide.";
-            if (data.errors.email) {
-                message = "Emailul este utilizat de altcineva.";
-            } else if (data.errors.name) {
-                message = "Numele este utilizat de altcineva.";
-            } else if (data.errors.user_type) {
-                message = "Tip cont invalid.";
-            } else if (data.errors.company_name) {
-                message = "Completează numele parcului auto.";
-            } else if (data.errors.phone) {
-                message = "Completează telefonul parcului auto.";
-            } else if (data.errors.dealer_description) {
-                message = "Descrierea parcului auto poate avea maximum 3000 de caractere.";
+        if (data.requires_dealer_downgrade_confirmation) {
+            if (confirmDealerDowngrade()) {
+                dealerDowngradeConfirmed = true;
+                return submitProfileUpdate({ silent, includePassword });
             }
 
-            setProfileSavedMessage(message, false);
-            return;
+            const message = "Actualizarea a fost anulata.";
+            if (!silent) setProfileSavedMessage(message, false);
+            return { success: false, message };
         }
 
-        if (data.success) {
-            setProfileSavedMessage("Modificările au fost salvate cu succes!");
+        if (!res.ok || data.errors || !data.success) {
+            const message = profileValidationMessage(data);
+            if (!silent) setProfileSavedMessage(message, false);
+            return { success: false, message };
+        }
 
+        if (!silent) {
+            setProfileSavedMessage("Modificările au fost salvate cu succes!");
+        }
+
+        currentAccountUserType = userType;
+        dealerDowngradeConfirmed = false;
+
+        if (includePassword) {
             const passEl = document.getElementById("editPassword");
             if (passEl) passEl.value = "";
         }
-    })
-    .catch(() => setProfileSavedMessage("Eroare de conexiune. Încearcă din nou.", false));
+
+        return { success: true, message: data.message || "Profil actualizat cu succes!" };
+    } catch (error) {
+        const message = "Eroare de conexiune. Incearca din nou.";
+        if (!silent) setProfileSavedMessage(message, false);
+        return { success: false, message };
+    }
+}
+
+async function ensureDealerProfileReadyForUpload(setMessage) {
+    const notify = typeof setMessage === "function" ? setMessage : setProfileSavedMessage;
+    const selectedUserType = document.getElementById("editUserType")?.value || "individual";
+
+    if (selectedUserType !== "dealer") {
+        notify("Selecteaza tipul de cont Parc auto inainte de upload.", false);
+        return false;
+    }
+
+    if (currentAccountUserType === "dealer") {
+        return true;
+    }
+
+    notify("Salvam datele parcului auto inainte de upload...");
+
+    const result = await submitProfileUpdate({
+        silent: true,
+        includePassword: false
+    });
+
+    if (!result.success) {
+        notify(result.message || "Completeaza datele obligatorii ale parcului auto inainte de upload.", false);
+        return false;
+    }
+
+    notify("Datele parcului auto au fost salvate. Continuam incarcarea...");
+    return true;
+}
+
+function updateProfile() {
+    return submitProfileUpdate();
 }
 
 // Live Check + Dealer toggle
@@ -1426,7 +1751,28 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (userTypeSel && dealerBox) {
-        userTypeSel.addEventListener("change", refreshDealerBox);
+        let previousUserType = userTypeSel.value || currentAccountUserType;
+
+        userTypeSel.addEventListener("change", function () {
+            const nextUserType = userTypeSel.value || "individual";
+
+            if (currentAccountUserType === "dealer" && previousUserType === "dealer" && nextUserType === "individual" && !dealerDowngradeConfirmed) {
+                if (!confirmDealerDowngrade()) {
+                    userTypeSel.value = "dealer";
+                    refreshDealerBox();
+                    return;
+                }
+
+                dealerDowngradeConfirmed = true;
+            }
+
+            if (nextUserType === "dealer") {
+                dealerDowngradeConfirmed = false;
+            }
+
+            previousUserType = userTypeSel.value || nextUserType;
+            refreshDealerBox();
+        });
         refreshDealerBox(); // init
     }
 

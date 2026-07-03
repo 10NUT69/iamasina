@@ -32,6 +32,18 @@
     $dealerSeoDescription .= '. Mașini disponibile, prețuri, fotografii și contact pe iaAuto.ro.';
 
     $galleryUrls = $dealer->dealer_gallery_urls;
+    $dealerLogoUrl = $dealer->dealer_logo_url ?? null;
+    $dealerLogoInitial = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($dealerDisplayName, 0, 1));
+    $dealerTier = in_array($dealer->dealer_tier, \App\Models\User::DEALER_TIERS, true)
+        ? $dealer->dealer_tier
+        : \App\Models\User::DEALER_TIER_STANDARD;
+    $dealerHasSpecialTier = in_array($dealerTier, [\App\Models\User::DEALER_TIER_FOUNDING, \App\Models\User::DEALER_TIER_PREMIUM], true);
+    $dealerTierLabel = \App\Models\User::dealerTierLabel($dealerTier);
+    $dealerTierBadgeClass = match ($dealerTier) {
+        \App\Models\User::DEALER_TIER_PREMIUM => 'border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-500/30 dark:bg-purple-500/10 dark:text-purple-200',
+        \App\Models\User::DEALER_TIER_FOUNDING => 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200',
+        default => 'border-gray-200 bg-gray-50 text-gray-600 dark:border-[#333333] dark:bg-[#252525] dark:text-gray-300',
+    };
     $firstDealerGalleryUrl = count($galleryUrls) ? $galleryUrls[0] : null;
     $firstDealerService = isset($services) && method_exists($services, 'first') ? $services->first() : null;
     $dealerSeoImage = $firstDealerGalleryUrl ?: ($firstDealerService?->main_image_url ?: asset('images/social-share.webp'));
@@ -116,13 +128,30 @@
     <section class="grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(440px,0.8fr)_minmax(0,1.2fr)]">
         <div class="min-w-0 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-[#303033] dark:bg-[#18181B] sm:p-5 lg:p-5">
             <div class="flex h-full min-w-0 flex-col">
-                <h1 class="break-words text-3xl font-black tracking-tight text-gray-950 dark:text-white sm:text-4xl xl:text-4xl">
-                    {{ $dealerDisplayName }}
-                </h1>
+                <div class="flex min-w-0 items-center gap-4">
+                    <div class="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 text-2xl font-black text-[#C81424] dark:border-[#333333] dark:bg-[#252525]">
+                        @if($dealerLogoUrl)
+                            <img src="{{ $dealerLogoUrl }}" alt="Logo {{ $dealerDisplayName }}" class="h-full w-full object-cover object-center">
+                        @else
+                            {{ $dealerLogoInitial }}
+                        @endif
+                    </div>
+                    <div class="min-w-0">
+                        <h1 class="break-words text-3xl font-black tracking-tight text-gray-950 dark:text-white sm:text-4xl xl:text-4xl">
+                            {{ $dealerDisplayName }}
+                        </h1>
 
-                <p class="mt-1.5 text-sm font-semibold text-gray-600 dark:text-gray-300 sm:text-base">
-                    {{ $dealerSubtitle }}
-                </p>
+                        <p class="mt-1.5 text-sm font-semibold text-gray-600 dark:text-gray-300 sm:text-base">
+                            {{ $dealerSubtitle }}
+                        </p>
+
+                        @if($dealerHasSpecialTier)
+                            <span class="mt-2 inline-flex w-fit items-center rounded-lg border px-2.5 py-1 text-xs font-black uppercase tracking-wide {{ $dealerTierBadgeClass }}">
+                                {{ $dealerTierLabel }}
+                            </span>
+                        @endif
+                    </div>
+                </div>
 
                 <div class="mt-3">
                     <span class="inline-flex items-center rounded-lg bg-green-100 px-3.5 py-1.5 text-sm font-black text-green-800 dark:bg-green-500/15 dark:text-green-300">

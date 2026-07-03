@@ -21,8 +21,8 @@ return [
     |--------------------------------------------------------------------------
     |
     | Leave this empty to use the default queue configured for the connection.
-    | Set SERVICE_IMAGES_QUEUE=services only on environments where the worker
-    | explicitly listens to that queue.
+    | Set SERVICE_IMAGES_QUEUE only on environments where the worker explicitly
+    | listens to a different queue for service image jobs.
     |
     */
 

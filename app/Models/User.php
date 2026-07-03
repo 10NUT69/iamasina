@@ -12,6 +12,22 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    public const DEALER_TIER_STANDARD = 'standard';
+    public const DEALER_TIER_FOUNDING = 'founding';
+    public const DEALER_TIER_PREMIUM = 'premium';
+
+    public const DEALER_TIERS = [
+        self::DEALER_TIER_STANDARD,
+        self::DEALER_TIER_FOUNDING,
+        self::DEALER_TIER_PREMIUM,
+    ];
+
+    public const DEALER_TIER_LABELS = [
+        self::DEALER_TIER_STANDARD => 'Standard',
+        self::DEALER_TIER_FOUNDING => 'Fondator',
+        self::DEALER_TIER_PREMIUM => 'Premium',
+    ];
+
     /**
      * The attributes that are mass assignable.
      */
@@ -26,12 +42,14 @@ class User extends Authenticatable
 
     // tip cont
     'user_type',
+    'dealer_tier',
 
     // date firmă (dealer)
     'company_name',
     'dealer_slug',
     'dealer_description',
     'dealer_gallery',
+    'dealer_logo',
     'cui',
     'phone',
     'phone_2',
@@ -69,6 +87,10 @@ class User extends Authenticatable
     protected static function booted(): void
     {
         static::saving(function (User $user) {
+            if (static::hasDealerTierColumn() && ! in_array($user->dealer_tier, self::DEALER_TIERS, true)) {
+                $user->dealer_tier = self::DEALER_TIER_STANDARD;
+            }
+
             if (! static::hasDealerSlugColumn()) {
                 unset($user->attributes['dealer_slug']);
                 return;
@@ -163,6 +185,22 @@ class User extends Authenticatable
         return static::makeDealerSlugBase($this->company_name);
     }
 
+    public static function dealerTierLabel(?string $tier): string
+    {
+        return self::DEALER_TIER_LABELS[$tier] ?? self::DEALER_TIER_LABELS[self::DEALER_TIER_STANDARD];
+    }
+
+    public function getDealerTierLabelAttribute(): string
+    {
+        return self::dealerTierLabel($this->dealer_tier);
+    }
+
+    public function getHasSpecialDealerTierAttribute(): bool
+    {
+        return $this->user_type === 'dealer'
+            && in_array($this->dealer_tier, [self::DEALER_TIER_FOUNDING, self::DEALER_TIER_PREMIUM], true);
+    }
+
     public function getDealerPublicUrlAttribute(): ?string
     {
         if ($this->user_type !== 'dealer' || empty($this->company_name)) {
@@ -183,6 +221,19 @@ class User extends Authenticatable
             ->map(fn ($path) => asset('storage/' . ltrim($path, '/')))
             ->values()
             ->all();
+    }
+
+    public function getDealerLogoUrlAttribute(): ?string
+    {
+        if ($this->user_type !== 'dealer' || empty($this->dealer_logo)) {
+            return null;
+        }
+
+        if (Str::startsWith($this->dealer_logo, ['http://', 'https://'])) {
+            return $this->dealer_logo;
+        }
+
+        return asset('storage/' . ltrim($this->dealer_logo, '/'));
     }
 
     public function getIsActiveAttribute($value): bool
@@ -223,5 +274,12 @@ class User extends Authenticatable
         static $hasColumn = null;
 
         return $hasColumn ??= Schema::hasColumn((new static())->getTable(), 'dealer_slug');
+    }
+
+    private static function hasDealerTierColumn(): bool
+    {
+        static $hasColumn = null;
+
+        return $hasColumn ??= Schema::hasColumn((new static())->getTable(), 'dealer_tier');
     }
 }

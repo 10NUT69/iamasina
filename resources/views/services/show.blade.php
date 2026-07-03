@@ -11,6 +11,15 @@
     $isDealer   = $sellerUser && ($sellerUser->user_type === 'dealer');
     $isOwnListing = auth()->check() && $sellerUser && auth()->id() === $sellerUser->id;
     $canMessageSeller = !$isDeleted && $sellerUser && auth()->check() && !$isOwnListing;
+    $sellerDealerLogoUrl = $isDealer ? ($sellerUser->dealer_logo_url ?? null) : null;
+    $sellerDealerInitial = Str::upper(Str::substr($sellerUser->company_name ?? $sellerUser->name ?? 'D', 0, 1));
+    $sellerDealerTier = $isDealer && in_array($sellerUser->dealer_tier, \App\Models\User::DEALER_TIERS, true)
+        ? $sellerUser->dealer_tier
+        : \App\Models\User::DEALER_TIER_STANDARD;
+    $sellerDealerIsFounding = $isDealer && $sellerDealerTier === \App\Models\User::DEALER_TIER_FOUNDING;
+    $sellerRegisteredLabel = $sellerUser?->created_at
+        ? 'Înregistrat în ' . Str::lower($sellerUser->created_at->locale('ro')->translatedFormat('F, Y'))
+        : null;
 
     // --- PHONE LOGIC ---
     $phoneSource = $isDealer ? ($sellerUser->phone ?? '') : ($service->phone ?? '');
@@ -736,14 +745,29 @@
                             </div>
 
                             <div class="flex items-center gap-4 mb-5">
-                                <div class="w-14 h-14 shrink-0 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-xl font-black text-[#E03E2D] dark:border-[#333] dark:bg-[#252525]">
-                                    {{ strtoupper(substr(($sellerUser->company_name ?? 'D'), 0, 1)) }}
+                                <div class="flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 text-2xl font-black text-[#E03E2D] dark:border-[#333] dark:bg-[#252525]">
+                                    @if($sellerDealerLogoUrl)
+                                        <img src="{{ $sellerDealerLogoUrl }}" alt="Logo {{ $sellerUser->company_name ?? 'parc auto' }}" class="h-full w-full object-cover object-center">
+                                    @else
+                                        {{ $sellerDealerInitial }}
+                                    @endif
                                 </div>
-                                <div class="overflow-hidden">
+                                <div class="min-w-0">
                                     <h4 class="font-bold text-lg text-gray-900 dark:text-white leading-tight truncate">
                                         {{ $sellerUser->company_name ?? 'Parc Auto' }}
                                     </h4>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">Dealer Auto • Înregistrat {{ optional($sellerUser->created_at)->format('Y') }}</p>
+                                    @if($sellerDealerIsFounding)
+                                        <div class="mt-1.5">
+                                            <span class="inline-flex w-fit items-center rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-amber-700 shadow-sm dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
+                                                Membru fondator
+                                            </span>
+                                        </div>
+                                    @endif
+                                    @if($sellerRegisteredLabel)
+                                        <p class="{{ $sellerDealerIsFounding ? 'mt-1.5' : 'mt-0.5' }} truncate text-xs text-gray-500 dark:text-gray-400">
+                                            {{ $sellerRegisteredLabel }}
+                                        </p>
+                                    @endif
                                 </div>
                             </div>
 

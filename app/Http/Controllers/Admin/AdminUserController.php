@@ -9,13 +9,16 @@ use App\Support\ServiceImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 
 class AdminUserController extends Controller
 {
     public function index(Request $request)
     {
         $search = trim((string) $request->input('search', ''));
-        $sort = $request->input('sort');
+        $sort = in_array($request->input('sort'), ['ads', 'user', 'dealer_tier', 'registered'], true)
+            ? $request->input('sort')
+            : null;
         $direction = $request->input('direction') === 'asc' ? 'asc' : 'desc';
 
         $query = User::with([
@@ -40,11 +43,43 @@ class AdminUserController extends Controller
                 });
             });
 
-        if ($sort === 'ads') {
-            $query->orderBy('all_services_count', $direction)
-                ->orderBy('created_at', 'desc');
-        } else {
-            $query->orderBy('created_at', 'desc');
+        switch ($sort) {
+            case 'ads':
+                $query->orderBy('all_services_count', $direction)
+                    ->orderBy('created_at', 'desc');
+                break;
+
+            case 'user':
+                $query->orderBy('name', $direction)
+                    ->orderBy('email', $direction)
+                    ->orderBy('created_at', 'desc');
+                break;
+
+            case 'dealer_tier':
+                if (Schema::hasColumn('users', 'dealer_tier')) {
+                    $query->orderByRaw("CASE WHEN user_type = 'dealer' THEN 0 ELSE 1 END ASC")
+                        ->orderByRaw("
+                            CASE dealer_tier
+                                WHEN 'standard' THEN 1
+                                WHEN 'founding' THEN 2
+                                WHEN 'premium' THEN 3
+                                ELSE 0
+                            END {$direction}
+                        ")
+                        ->orderBy('name', 'asc');
+                } else {
+                    $query->orderBy('name', $direction)
+                        ->orderBy('created_at', 'desc');
+                }
+                break;
+
+            case 'registered':
+                $query->orderBy('created_at', $direction)
+                    ->orderBy('id', $direction);
+                break;
+
+            default:
+                $query->orderBy('created_at', 'desc');
         }
 
         $users = $query->paginate(20)->withQueryString();
@@ -102,6 +137,16 @@ class AdminUserController extends Controller
                     $user->delete();
                     $count++;
                     break;
+
+                case 'dealer_tier_standard':
+                case 'dealer_tier_founding':
+                case 'dealer_tier_premium':
+                    if (Schema::hasColumn('users', 'dealer_tier') && $user->user_type === 'dealer') {
+                        $user->dealer_tier = str_replace('dealer_tier_', '', $action);
+                        $user->save();
+                        $count++;
+                    }
+                    break;
             }
         }
 
@@ -109,7 +154,27 @@ class AdminUserController extends Controller
             return back()->with('error', 'Nu poți efectua acțiuni asupra propriului cont.');
         }
 
-        return back()->with('success', "Actiunea '{$action}' a fost aplicata pe {$count} utilizatori.");
+        return back()->with('success', "Actiunea '{$this->bulkActionLabel($action)}' a fost aplicata pe {$count} utilizatori.");
+    }
+
+    public function updateDealerTier(Request $request, User $user)
+    {
+        if (! Schema::hasColumn('users', 'dealer_tier')) {
+            return back()->with('error', 'Coloana dealer_tier lipseste din tabelul users. Ruleaza migrarile.');
+        }
+
+        if ($user->user_type !== 'dealer') {
+            return back()->with('error', 'Tipul de dealer poate fi setat doar pentru conturile Parc auto.');
+        }
+
+        $validated = $request->validate([
+            'dealer_tier' => ['required', Rule::in(User::DEALER_TIERS)],
+        ]);
+
+        $user->dealer_tier = $validated['dealer_tier'];
+        $user->save();
+
+        return back()->with('success', 'Tipul dealerului a fost actualizat.');
     }
 
     public function toggle($id)
@@ -159,6 +224,19 @@ class AdminUserController extends Controller
     private function deleteServiceImages(Service $service): void
     {
         ServiceImageStorage::deleteServiceImages($service->images);
+    }
+
+    private function bulkActionLabel(?string $action): string
+    {
+        return match ($action) {
+            'activate' => 'Deblocheaza',
+            'deactivate' => 'Blocheaza',
+            'delete' => 'Sterge',
+            'dealer_tier_standard' => 'Seteaza dealer Standard',
+            'dealer_tier_founding' => 'Seteaza dealer Fondator',
+            'dealer_tier_premium' => 'Seteaza dealer Premium',
+            default => (string) $action,
+        };
     }
 
     private function exportEmails(string $type)

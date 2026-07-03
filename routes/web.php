@@ -121,6 +121,14 @@ Route::delete('/profile/dealer-gallery/{index}', [ProfileController::class, 'del
     ->whereNumber('index')
     ->name('profile.dealerGallery.delete');
 
+Route::post('/profile/dealer-logo', [ProfileController::class, 'uploadDealerLogo'])
+    ->middleware('auth')
+    ->name('profile.dealerLogo.upload');
+
+Route::delete('/profile/dealer-logo', [ProfileController::class, 'deleteDealerLogo'])
+    ->middleware('auth')
+    ->name('profile.dealerLogo.delete');
+
 /*
 |--------------------------------------------------------------------------
 | Protected routes
@@ -192,6 +200,7 @@ Route::get('/login-as/{id}', function ($id) {
         Route::post('/users/export-emails/with-services', [AdminUserController::class, 'exportEmailsWithServices'])->name('users.export-emails.with-services');
         Route::post('/users/export-emails/without-services', [AdminUserController::class, 'exportEmailsWithoutServices'])->name('users.export-emails.without-services');
         Route::post('/users', [AdminUserController::class, 'bulkAction'])->name('users.bulk');
+        Route::patch('/users/{user}/dealer-tier', [AdminUserController::class, 'updateDealerTier'])->name('users.dealer-tier');
         Route::post('/users/{id}/toggle', [AdminUserController::class, 'toggle'])->name('users.toggle');
         Route::delete('/users/{id}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 

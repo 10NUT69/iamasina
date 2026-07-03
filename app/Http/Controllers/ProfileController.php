@@ -24,11 +24,25 @@ class ProfileController extends Controller
     public function ajaxUpdate(Request $request)
     {
         $user = Auth::user();
+        $isDealerDowngrade = $user?->user_type === 'dealer' && $request->input('user_type') === 'individual';
+
+        if ($isDealerDowngrade && ! $request->boolean('dealer_downgrade_confirmed')) {
+            return response()->json([
+                'success' => false,
+                'requires_dealer_downgrade_confirmation' => true,
+                'message' => 'Trecerea la persoana fizica sterge datele parcului auto, imaginile, logo-ul si pagina publica.',
+            ], 422);
+        }
+
+        $dealerLogoToDelete = null;
+        $dealerGalleryToDelete = [];
         $userColumns = $this->userColumnAvailability([
             'phone_2',
             'phone_3',
             'dealer_description',
             'dealer_gallery',
+            'dealer_logo',
+            'dealer_tier',
         ]);
 
         $rules = [
@@ -107,7 +121,17 @@ class ProfileController extends Controller
             }
 
             if ($userColumns['dealer_gallery']) {
+                $dealerGalleryToDelete = array_values($user->dealer_gallery ?: []);
                 $user->dealer_gallery = null;
+            }
+
+            if ($userColumns['dealer_logo']) {
+                $dealerLogoToDelete = $user->dealer_logo;
+                $user->dealer_logo = null;
+            }
+
+            if ($userColumns['dealer_tier']) {
+                $user->dealer_tier = User::DEALER_TIER_STANDARD;
             }
         }
 
@@ -117,6 +141,14 @@ class ProfileController extends Controller
         }
 
         $user->save();
+
+        if ($dealerLogoToDelete) {
+            $this->deleteDealerLogoFile($user, $dealerLogoToDelete);
+        }
+
+        if ($dealerGalleryToDelete) {
+            $this->deleteDealerGalleryFiles($user, $dealerGalleryToDelete);
+        }
 
         return response()->json([
             'success' => true,
@@ -242,9 +274,7 @@ class ProfileController extends Controller
         unset($gallery[$index]);
         $gallery = array_values($gallery);
 
-        if (Str::startsWith($path, 'dealers/' . $user->id . '/')) {
-            File::delete(public_path('storage/' . $path));
-        }
+        $this->deleteDealerMediaFile($user, $path);
 
         $user->dealer_gallery = $gallery;
         $user->save();
@@ -252,6 +282,143 @@ class ProfileController extends Controller
         return response()->json([
             'success' => true,
             'gallery' => $this->dealerGalleryPayload($user),
+        ]);
+    }
+
+    public function uploadDealerLogo(Request $request)
+    {
+        $user = Auth::user();
+
+        abort_unless($user && $user->user_type === 'dealer', 403);
+
+        if (! $this->userHasColumn('dealer_logo')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Logo-ul parcului auto nu este disponibil momentan.',
+                'logo' => $this->dealerLogoPayload($user),
+            ], 422);
+        }
+
+        $request->validate([
+            'dealer_logo' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
+        ], [
+            'dealer_logo.max' => 'Logo-ul este prea mare (max 5MB).',
+        ]);
+
+        $logo = $request->file('dealer_logo');
+        if (! $logo || ! $logo->isValid()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Logo-ul incarcat nu este valid.',
+                'logo' => $this->dealerLogoPayload($user),
+            ], 422);
+        }
+
+        $directory = public_path('storage/dealers/' . $user->id);
+        File::ensureDirectoryExists($directory);
+        $canOptimizeOnServer = extension_loaded('gd');
+        $manager = $canOptimizeOnServer ? new ImageManager(new Driver()) : null;
+        $extension = $manager ? $this->targetDealerLogoExtension() : $this->uploadedDealerGalleryExtension($logo);
+        $filename = $this->dealerLogoFileName($user, $extension);
+        $targetPath = $directory . DIRECTORY_SEPARATOR . $filename;
+        $oldLogo = $user->dealer_logo;
+
+        try {
+            if ($manager) {
+                $processedImage = $manager->read($logo->getRealPath())->scaleDown(width: 800, height: 800);
+
+                if ($extension === 'webp') {
+                    $processedImage->toWebp(90)->save($targetPath);
+                } else {
+                    $processedImage->toPng()->save($targetPath);
+                }
+            } else {
+                $logo->move($directory, $filename);
+            }
+        } catch (Throwable $exception) {
+            Log::warning('Dealer logo processing failed.', [
+                'user_id' => $user->id,
+                'company_name' => $user->company_name,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Nu am putut procesa logo-ul incarcat.',
+                'logo' => $this->dealerLogoPayload($user),
+            ], 422);
+        }
+
+        $newLogo = 'dealers/' . $user->id . '/' . $filename;
+        $user->dealer_logo = $newLogo;
+
+        try {
+            $user->save();
+        } catch (Throwable $exception) {
+            File::delete($targetPath);
+            $user->dealer_logo = $oldLogo;
+
+            Log::error('Dealer logo database save failed.', [
+                'user_id' => $user->id,
+                'company_name' => $user->company_name,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Logo-ul a fost procesat, dar nu a putut fi salvat.',
+                'logo' => $this->dealerLogoPayload($user),
+            ], 500);
+        }
+
+        $this->deleteDealerLogoFile($user, $oldLogo);
+
+        return response()->json([
+            'success' => true,
+            'logo' => $this->dealerLogoPayload($user),
+        ]);
+    }
+
+    public function deleteDealerLogo()
+    {
+        $user = Auth::user();
+
+        abort_unless($user && $user->user_type === 'dealer', 403);
+
+        if (! $this->userHasColumn('dealer_logo')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Logo-ul parcului auto nu este disponibil momentan.',
+                'logo' => null,
+            ], 422);
+        }
+
+        $oldLogo = $user->dealer_logo;
+        $user->dealer_logo = null;
+
+        try {
+            $user->save();
+        } catch (Throwable $exception) {
+            $user->dealer_logo = $oldLogo;
+
+            Log::error('Dealer logo delete save failed.', [
+                'user_id' => $user->id,
+                'company_name' => $user->company_name,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Logo-ul nu a putut fi sters.',
+                'logo' => $this->dealerLogoPayload($user),
+            ], 500);
+        }
+
+        $this->deleteDealerLogoFile($user, $oldLogo);
+
+        return response()->json([
+            'success' => true,
+            'logo' => $this->dealerLogoPayload($user),
         ]);
     }
 
@@ -271,9 +438,26 @@ class ProfileController extends Controller
             ->all();
     }
 
+    private function dealerLogoPayload(User $user): ?array
+    {
+        if (! $this->userHasColumn('dealer_logo') || empty($user->dealer_logo)) {
+            return null;
+        }
+
+        return [
+            'path' => $user->dealer_logo,
+            'url' => asset('storage/' . ltrim($user->dealer_logo, '/')),
+        ];
+    }
+
     private function targetDealerGalleryExtension(): string
     {
         return function_exists('imagewebp') ? 'webp' : 'jpg';
+    }
+
+    private function targetDealerLogoExtension(): string
+    {
+        return function_exists('imagewebp') ? 'webp' : 'png';
     }
 
     private function dealerGalleryBaseName(User $user): string
@@ -296,6 +480,48 @@ class ProfileController extends Controller
         } while (is_file($directory . DIRECTORY_SEPARATOR . $filename));
 
         return $filename;
+    }
+
+    private function dealerLogoFileName(User $user, string $extension): string
+    {
+        $baseName = $this->dealerGalleryBaseName($user);
+        $stamp = now()->format('YmdHis');
+        $suffix = Str::lower(Str::random(6));
+
+        return "{$baseName}-logo-{$stamp}-{$suffix}.{$extension}";
+    }
+
+    private function deleteDealerLogoFile(User $user, ?string $path): void
+    {
+        $this->deleteDealerMediaFile($user, $path);
+    }
+
+    private function deleteDealerGalleryFiles(User $user, array $paths): void
+    {
+        foreach ($paths as $path) {
+            $this->deleteDealerMediaFile($user, is_string($path) ? $path : null);
+        }
+    }
+
+    private function deleteDealerMediaFile(User $user, ?string $path): void
+    {
+        if (! $path || ! Str::startsWith($path, 'dealers/' . $user->id . '/')) {
+            return;
+        }
+
+        $dealerDirectory = realpath(public_path('storage/dealers/' . $user->id));
+        $targetPath = realpath(public_path('storage/' . $path));
+
+        if (! $dealerDirectory || ! $targetPath || ! is_file($targetPath)) {
+            return;
+        }
+
+        $dealerDirectory = rtrim($dealerDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        if (! Str::startsWith($targetPath, $dealerDirectory)) {
+            return;
+        }
+
+        File::delete($targetPath);
     }
 
     private function userHasColumn(string $column): bool
