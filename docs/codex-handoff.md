@@ -18,6 +18,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Latest Changes
 
+- 2026-07-03: Tightened the mobile listing sort combobox so `Recomandata` has enough room to render fully in the sticky action bar. The sort input now uses smaller mobile-only right padding, a slightly smaller font on very narrow screens, and a raised chevron kept at its original visual size.
+
 - 2026-07-03: Adjusted the mobile listing sticky action bar so the saved-search button label wraps as `Salvează` / `căutarea`, the saved-search column is narrower, and the sort column is wider. The change is scoped to the listing action bar markup/CSS in `resources/views/services/listing.blade.php`.
 
 - 2026-07-03: Allowed desktop listing filter combobox dropdowns to overflow past the filters card/form instead of being constrained by the card. Desktop filter panel/sheet overflow is now explicitly visible, while dropdown height is bounded by the viewport rather than the filters card.
@@ -107,6 +109,11 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - 2026-06-05: Changed the deleted listing disabled contact button label from `Contact dezactivat` to `Anunt indisponibil` on desktop and mobile show views.
 
 ## Verification
+
+- Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after tightening the mobile listing sort combobox.
+- Ran `npm run build`; Vite production build completed after tightening the mobile listing sort combobox.
+- Ran `git diff --check`; passed after tightening the mobile listing sort combobox.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after tightening the mobile listing sort combobox.
 
 - Ran `php -l resources/views/services/listing.blade.php`; no syntax errors after resizing the mobile listing sticky action bar.
 - Ran `npm run build`; Vite production build completed after resizing the mobile listing sticky action bar.

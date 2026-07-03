@@ -1930,6 +1930,30 @@
         line-height: 1.05;
     }
 
+    .listing-sort-combobox .ia-combobox__control {
+        height: 42px;
+        border-radius: 8px;
+    }
+
+    .listing-sort-combobox .ia-combobox__floating {
+        top: 0.35rem;
+        left: 0.55rem;
+        font-size: 0.54rem;
+    }
+
+    .listing-sort-combobox .ia-combobox__input,
+    .listing-sort-combobox.ia-combobox.has-value .ia-combobox__input {
+        padding: 0.72rem 1.3rem 0 0.55rem !important;
+        font-size: 0.76rem;
+        line-height: 1.05;
+    }
+
+    .listing-sort-combobox .ia-combobox__toggle {
+        top: 0.55rem;
+        right: 0;
+        transform: none;
+    }
+
     #listing-actions-bar .truncate,
     #listing-actions-bar .custom-select-label {
         overflow: visible;
@@ -2004,6 +2028,16 @@
             padding-left: 0.35rem;
             padding-right: 0.3rem;
             font-size: 0.7rem;
+        }
+
+        .listing-sort-combobox .ia-combobox__input,
+        .listing-sort-combobox.ia-combobox.has-value .ia-combobox__input {
+            padding-right: 1.15rem !important;
+            font-size: 0.72rem;
+        }
+
+        .listing-sort-combobox .ia-combobox__toggle {
+            right: -0.05rem;
         }
     }
 
