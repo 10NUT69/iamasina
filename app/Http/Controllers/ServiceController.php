@@ -10,6 +10,7 @@ use App\Models\Locality;
 use App\Models\User;
 use App\Notifications\ServicePublishedConfirmation;
 use App\Support\ServiceImageStorage;
+use App\Support\ServiceShowHeading;
 
 // 🔹 MODELE AUTO
 use App\Models\CarBrand;
@@ -575,7 +576,11 @@ public function indexAutoPath(
             $service->increment('views');
         }
 
-        return view('services.show', compact('service'));
+        $showHeading = ServiceShowHeading::desktop($service);
+        $mobileShowHeading = ServiceShowHeading::mobileTitle($service);
+        $mobileSpecsLine = ServiceShowHeading::mobileSpecs($service);
+
+        return view('services.show', compact('service', 'showHeading', 'mobileShowHeading', 'mobileSpecsLine'));
     }
 
     // ==========================================

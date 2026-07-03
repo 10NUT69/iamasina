@@ -18,6 +18,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Latest Changes
 
+- 2026-07-03: Added and refined the dynamic show-page H1 for public car listings. The H1 is generated outside Blade by `App\Support\ServiceShowHeading` from already-loaded listing data and now has responsive variants: desktop renders the full compact phrase on commas (`Marcă Model Caroserie din An, 1.197 cmc, benzină, 105 CP, manuală, Euro 5, 168.000 km, Localitate`), while mobile renders a short title (`Marcă Model Caroserie An`) plus a separate horizontally scrollable specs line (`1,2 benzină · 105 CP · Manuală · Euro 5 · 168.000 km · Localitate`) with the location/county at the end. Missing fragments are skipped without leaving label text behind, identical locality/county names are not repeated, and the user-entered listing title keeps the same visual size while changing from `h1` to `h2`.
+
 - 2026-07-03: Added dealer logo support for car-park accounts. A new nullable `users.dealer_logo` column stores one logo path, `ProfileController` now exposes authenticated upload/delete endpoints for dealer logos with image validation and server-side/client-side optimization, and `User::dealer_logo_url` provides a reusable display URL. The account profile tab now shows the dealer logo in the profile sidebar/header plus a logo upload form above the dealer gallery, with immediate preview/delete behavior in both places. Dealer logos now display on the public dealer portfolio identity block and in the dealer card on listing detail pages, using centered cover-crop fill inside the logo square/card and falling back to the existing initial block when no logo is uploaded. Switching a saved dealer account to individual now requires explicit confirmation, then clears dealer data, removes the public dealer page URL, and deletes both the logo file and dealer gallery image files.
 
 - 2026-07-03: Updated the account profile dealer media uploads so a user who selects `Parc auto` and fills dealer details can upload the dealer logo/gallery without first pressing the bottom save button. The logo and gallery upload actions now auto-save the dealer profile through the existing AJAX profile update when the saved account is still `individual`, skip password changes during that implicit save, and show dealer-field validation messages in the media upload area if required data is missing.
@@ -123,6 +125,14 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - 2026-06-05: Changed the deleted listing disabled contact button label from `Contact dezactivat` to `Anunt indisponibil` on desktop and mobile show views.
 
 ## Verification
+
+- Ran `php -l app/Support/ServiceShowHeading.php`, `php -l app/Http/Controllers/ServiceController.php`, `php -l resources/views/services/show.blade.php`, and `php -l tests/Unit/ServiceShowHeadingTest.php`; no syntax errors after refining the dynamic show-page H1 helper and responsive markup.
+- Ran `php artisan test --filter=ServiceShowHeadingTest`; 3 tests / 8 assertions passed for desktop/mobile heading variants, missing-fragment omission, and different/duplicate locality-county handling.
+- Ran `php artisan test --testsuite=Unit`; 7 tests / 20 assertions passed after the responsive show-page heading update.
+- Ran `php artisan view:cache` and `php artisan view:clear`; Blade templates compiled and cache was cleared after the responsive show-page heading update.
+- Ran `git diff --check`; passed after the responsive show-page heading update.
+- Ran a local PHP bootstrap check for service ID 66; `ServiceShowHeading::desktop()` produced `Nissan Qashqai SUV din 2020, 1.338 cmc, benzina, 159 CP, manuala, Euro 6, 192.000 km, Râmnicu Vâlcea, Vâlcea`, `mobileTitle()` produced `Nissan Qashqai SUV 2020`, and `mobileSpecs()` produced `1,3 benzina · 159 CP · Manuala · Euro 6 · 192.000 km · Râmnicu Vâlcea, Vâlcea`.
+- Verified the public show page for service ID 66 in the in-app browser at `http://127.0.0.1:8010/...`; at 390px wide, mobile renders the short H1 as a single line and the specs line as horizontal scroll with location at the end (`scrollWidth` 481px / `clientWidth` 343px). At 1280px wide, desktop renders the full comma-separated H1, hides the mobile specs line, and keeps the user listing title as an H2.
 
 - Ran `php -l app/Http/Controllers/ProfileController.php`, `php -l app/Models/User.php`, `php -l routes/web.php`, and `php -l database/migrations/2026_07_03_120000_add_dealer_logo_to_users_table.php`; no syntax errors after adding dealer logo support.
 - Ran `php -l resources/views/account/index.blade.php`; no syntax errors after also showing the dealer logo in the profile sidebar/header.
@@ -481,6 +491,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 ## Environment Assumptions
 
+- The show-page dynamic H1 is PHP/Blade-only and depends on the same relations already eager-loaded in `ServiceController::showCar()` (`brandRel`, `modelRel`, `caroserie`, `combustibil`, `cutieViteze`, `normaPoluare`, `locality`, `county`, plus legacy fallback attributes). No database schema changes, routes, environment keys, or secrets were added. Existing lookup labels are used as stored/displayed; if a lookup row lacks diacritics, the H1 reflects that stored value.
+
 - Dealer logo uploads use the existing public dealer media path pattern under `public/storage/dealers/{user_id}` and the same public URL base as dealer gallery images. Production must run the new migration before dealer logo uploads are available. The account media upload auto-save is client-side JS only and uses the existing `/profile/ajax-update` route before `/profile/dealer-logo` or `/profile/dealer-gallery` when the saved `user_type` is still `individual`; this implicit save intentionally does not submit the password field. No new `.env` keys or secrets were added.
 - Dealer tiers use the new `users.dealer_tier` column and application-validated values `standard`, `founding`, and `premium`; production must run `2026_07_03_130000_add_dealer_tier_to_users_table` before assigning tiers from admin. Newly saved users normalize to `standard` when missing/invalid, and switching a dealer account back to individual resets the tier to `standard`. No new `.env` keys or secrets were added.
 - Service listing image processing leaves `SERVICE_IMAGES_QUEUE` env-controlled. If the env key is unset, `ProcessServiceImages` uses the connection default queue. On live as checked on 2026-07-03, `queue.service_images_queue = null`, `queue.connections.database.queue = default`, and the iaAuto Supervisor worker runs `queue:work --sleep=1 --tries=3`, so image jobs should stay on `default`. If an environment uses a worker with `--queue=services`, set `SERVICE_IMAGES_QUEUE=services` for that environment and clear/rebuild config cache before restarting the worker.
@@ -545,6 +557,8 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 - The bundled Codex Node runtime was used for Vite build because `node.exe` from PATH returned `Access denied`.
 
 ## Open Items
+
+- No new known follow-up from the show-page dynamic H1 change beyond a quick visual pass on a real listing after deploy to confirm the long heading wraps comfortably on mobile.
 
 - After deploy, perform a logged-in browser pass on `/contul-meu?tab=profil`: from an individual account select `Parc auto`, fill required dealer details, upload a logo/gallery image before pressing the bottom save button, and confirm the upload first saves the dealer profile. Also test an existing dealer account: upload a logo, confirm the account preview updates, confirm the public dealer page and a dealer listing detail page show the logo, then delete it and confirm the fallback initial returns.
 - After deploy, assign `Fondator` or `Premium` to one test dealer from `panou-secret/users`, confirm the admin selector persists, confirm the public dealer portfolio and a listing detail dealer card show the special badge, then reset the test account to `Standard` if needed.

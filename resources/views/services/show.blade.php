@@ -415,6 +415,21 @@
             <svg class="h-4 w-4 text-[#E03E2D]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
             Înapoi
         </button>
+
+        <div class="max-w-5xl">
+            <h1 class="text-lg font-bold leading-tight text-slate-700 dark:text-slate-200 md:text-xl">
+                <span class="md:hidden">{{ $mobileShowHeading }}</span>
+                <span class="hidden md:inline">{{ $showHeading }}</span>
+            </h1>
+
+            @if($mobileSpecsLine)
+                <div class="mt-1 overflow-x-auto whitespace-nowrap no-scrollbar md:hidden">
+                    <p class="inline-block text-sm font-medium text-gray-500 dark:text-gray-400">
+                        {{ $mobileSpecsLine }}
+                    </p>
+                </div>
+            @endif
+        </div>
     </div>
 
     <div class="w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -504,7 +519,7 @@
 
             {{-- Titlu principal & pret mobil --}}
             <div class="space-y-2 mt-4">
-                <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white leading-tight">{{ $service->title }}</h1>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white leading-tight">{{ $service->title }}</h2>
                 <div class="md:hidden space-y-1.5 text-sm text-gray-500 dark:text-gray-400">
                     @if($showLocationLabel)
                         <div class="flex items-center gap-2">
