@@ -298,6 +298,7 @@
         <script>
             (function () {
                 const storageKey = 'iaauto_cookie_consent';
+                const analyticsId = @json(config('services.google.analytics_id'));
                 let sent = false;
                 let canceled = false;
                 let analyticsConsentActive = hasStoredAnalyticsConsent();
@@ -315,10 +316,14 @@
 
                 function removeListeners() {
                     window.removeEventListener('iaauto:cookie-consent-applied', handleCookieConsentApplied);
+                    window.removeEventListener('iaauto:analytics-ready', handleAnalyticsReady);
+                    window.removeEventListener('pagehide', cancelPendingEvent);
                 }
 
                 function canSendGa4Event() {
-                    return Boolean(analyticsConsentActive || hasStoredAnalyticsConsent())
+                    return Boolean(analyticsId)
+                        && Boolean(analyticsConsentActive || hasStoredAnalyticsConsent())
+                        && Boolean(window.iaAutoAnalytics?.isReady?.())
                         && typeof window.gtag === 'function';
                 }
 
@@ -327,9 +332,25 @@
                         return;
                     }
 
-                    window.gtag('event', 'listing_published');
+                    window.gtag('event', 'listing_published', {
+                        send_to: analyticsId,
+                    });
                     sent = true;
                     removeListeners();
+                }
+
+                function handleAnalyticsReady(event) {
+                    if (sent || canceled) {
+                        return;
+                    }
+
+                    const detail = event.detail || {};
+
+                    if (detail.analyticsId && detail.analyticsId !== analyticsId) {
+                        return;
+                    }
+
+                    sendListingPublishedEvent();
                 }
 
                 function handleCookieConsentApplied(event) {
@@ -360,6 +381,7 @@
                 }
 
                 window.addEventListener('iaauto:cookie-consent-applied', handleCookieConsentApplied);
+                window.addEventListener('iaauto:analytics-ready', handleAnalyticsReady);
                 window.addEventListener('pagehide', cancelPendingEvent, { once: true });
 
                 if (document.readyState === 'loading') {

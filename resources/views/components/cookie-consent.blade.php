@@ -85,6 +85,7 @@
             const analyticsId = @json(config('services.google.analytics_id'));
             const metaPixelId = @json(config('services.facebook.pixel_id'));
             let analyticsLoaded = false;
+            let analyticsReady = false;
             let metaPixelLoading = false;
             let metaPixelLoaded = false;
             let metaPixelInitialized = false;
@@ -130,6 +131,14 @@
                 }
             }
 
+            function dispatchAnalyticsReady() {
+                window.dispatchEvent(new CustomEvent('iaauto:analytics-ready', {
+                    detail: {
+                        analyticsId: analyticsId,
+                    },
+                }));
+            }
+
             window.loadAnalyticsScripts = function () {
                 if (analyticsLoaded || !analyticsId) {
                     return;
@@ -147,8 +156,15 @@
                 script.onload = function () {
                     window.gtag('js', new Date());
                     window.gtag('config', analyticsId);
+                    analyticsReady = true;
+                    dispatchAnalyticsReady();
                 };
                 document.head.appendChild(script);
+            };
+
+            window.iaAutoAnalytics = window.iaAutoAnalytics || {};
+            window.iaAutoAnalytics.isReady = function () {
+                return Boolean(analyticsReady && analyticsId && typeof window.gtag === 'function');
             };
 
             function hasMarketingConsent() {
