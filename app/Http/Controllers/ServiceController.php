@@ -43,6 +43,7 @@ class ServiceController extends Controller
     private const MAX_SERVICE_IMAGE_KB = 15360;
     private const SERVICE_TITLE_MAX_LENGTH = 90;
     private const SERVICE_DESCRIPTION_MAX_LENGTH = 10000;
+    private const RELATED_SERVICES_LIMIT = 12;
 
     // ==========================================
     // 1. INDEX (NESCHIMBAT)
@@ -222,6 +223,8 @@ class ServiceController extends Controller
             $query->orderBy('created_at', 'desc');
     }
 
+    $this->withFavoriteStateForCurrentUser($query);
+
     $services = $query
         ->offset($offset)
         ->limit($limit)
@@ -397,6 +400,8 @@ public function showDealerPortfolio(Request $request, string $countySlug, string
     }
 
     $totalCount = $servicesQuery->count();
+
+    $this->withFavoriteStateForCurrentUser($servicesQuery);
 
     $services = $servicesQuery
         ->orderBy('created_at', 'desc')
@@ -578,8 +583,178 @@ public function indexAutoPath(
 
         $showHeading = ServiceShowHeading::make($service);
         $mobileSpecsLine = ServiceShowHeading::mobileSpecs($service);
+        [$relatedServices, $relatedServicesTitle] = $this->similarServicesForShow($service);
 
-        return view('services.show', compact('service', 'showHeading', 'mobileSpecsLine'));
+        return view('services.show', compact('service', 'showHeading', 'mobileSpecsLine', 'relatedServices', 'relatedServicesTitle'));
+    }
+
+    private function similarServicesForShow(Service $service, int $limit = self::RELATED_SERVICES_LIMIT): array
+    {
+        $brandName = $this->serviceDisplayBrand($service);
+
+        if (!$brandName) {
+            return [collect(), null];
+        }
+
+        $modelName = $this->serviceDisplayModel($service);
+        $title = 'Alte ' . trim($brandName . ($modelName ? ' ' . $modelName : ''));
+        $limit = max(1, min($limit, self::RELATED_SERVICES_LIMIT));
+        $query = $this->similarServicesBaseQuery($service, $brandName, $modelName);
+
+        if ($service->county_id) {
+            $query->orderByRaw('CASE WHEN `county_id` = ? THEN 0 ELSE 1 END', [$service->county_id]);
+        }
+
+        $relatedServices = $query
+            ->latest('created_at')
+            ->limit($limit)
+            ->get();
+
+        return [$relatedServices, $relatedServices->isNotEmpty() ? $title : null];
+    }
+
+    private function similarServicesBaseQuery(Service $service, string $brandName, ?string $modelName)
+    {
+        $query = Service::query()
+            ->select($this->similarServiceCardColumns())
+            ->with($this->similarServiceCardRelations())
+            ->where('status', 'active')
+            ->whereNotNull('images')
+            ->whereRaw('JSON_LENGTH(`images`) > 0')
+            ->whereKeyNot($service->getKey());
+
+        $this->withFavoriteStateForCurrentUser($query);
+
+        if ($service->brand_id) {
+            $query->where('brand_id', $service->brand_id);
+        } else {
+            $query->where(function ($brandQuery) use ($brandName) {
+                if ($this->servicesTableHasColumn('brand')) {
+                    $brandQuery
+                        ->where('brand', $brandName)
+                        ->orWhereHas('brandRel', fn ($relationQuery) => $relationQuery->where('name', $brandName));
+
+                    return;
+                }
+
+                $brandQuery->whereHas('brandRel', fn ($relationQuery) => $relationQuery->where('name', $brandName));
+            });
+        }
+
+        if ($service->model_id) {
+            $query->where('model_id', $service->model_id);
+        } elseif ($modelName) {
+            $query->where(function ($modelQuery) use ($modelName) {
+                if ($this->servicesTableHasColumn('model')) {
+                    $modelQuery
+                        ->where('model', $modelName)
+                        ->orWhereHas('modelRel', fn ($relationQuery) => $relationQuery->where('name', $modelName));
+
+                    return;
+                }
+
+                $modelQuery->whereHas('modelRel', fn ($relationQuery) => $relationQuery->where('name', $modelName));
+            });
+        }
+
+        return $query;
+    }
+
+    private function similarServiceCardColumns(): array
+    {
+        return [
+            'id',
+            'title',
+            'slug',
+            'brand_id',
+            'model_id',
+            'county_id',
+            'locality_id',
+            'city',
+            'combustibil_id',
+            'cutie_viteze_id',
+            'images',
+            'price_value',
+            'price_type',
+            'currency',
+            'an_fabricatie',
+            'km',
+            'putere',
+            'capacitate_cilindrica',
+            'published_at',
+            'created_at',
+        ];
+    }
+
+    private function withFavoriteStateForCurrentUser($query)
+    {
+        if (! Auth::check()) {
+            return $query;
+        }
+
+        return $query->withExists([
+            'favorites as is_favorited_by_current_user' => fn ($favoriteQuery) => $favoriteQuery
+                ->where('user_id', Auth::id()),
+        ]);
+    }
+
+    private function servicesTableHasColumn(string $column): bool
+    {
+        static $columns = null;
+
+        if ($columns === null) {
+            $columns = Schema::getColumnListing('services');
+        }
+
+        return in_array($column, $columns, true);
+    }
+
+    private function similarServiceCardRelations(): array
+    {
+        return [
+            'county:id,name,slug',
+            'locality:id,county_id,name,slug',
+            'combustibil:id,nume',
+            'cutieViteze:id,nume',
+            'brandRel:id,name,slug',
+            'modelRel:id,car_brand_id,name,slug',
+        ];
+    }
+
+    private function serviceDisplayBrand(Service $service): ?string
+    {
+        $generation = $service->relationLoaded('generation') ? $service->getRelation('generation') : null;
+        $generationModel = $generation?->relationLoaded('model') ? $generation->getRelation('model') : null;
+        $generationBrand = $generationModel?->relationLoaded('brand') ? $generationModel->getRelation('brand') : null;
+
+        return $this->cleanServiceLabel(
+            optional($service->brandRel)->name
+                ?: optional($generationBrand)->name
+                ?: $service->brand
+        );
+    }
+
+    private function serviceDisplayModel(Service $service): ?string
+    {
+        $generation = $service->relationLoaded('generation') ? $service->getRelation('generation') : null;
+        $generationModel = $generation?->relationLoaded('model') ? $generation->getRelation('model') : null;
+
+        return $this->cleanServiceLabel(
+            optional($service->modelRel)->name
+                ?: optional($generationModel)->name
+                ?: $service->model
+        );
+    }
+
+    private function cleanServiceLabel(mixed $value): ?string
+    {
+        if (!is_scalar($value)) {
+            return null;
+        }
+
+        $label = trim(preg_replace('/\s+/', ' ', (string) $value) ?: '');
+
+        return $label === '' ? null : $label;
     }
 
     // ==========================================
@@ -654,7 +829,7 @@ public function indexAutoPath(
         // ✅ dacă vrei parc/proprietar la creare anunț (guest)
         // dacă NU trimiți user_type din form, rămâne individual
         'user_type'    => 'nullable|in:individual,dealer',
-        'company_name' => 'nullable|string|max:255|required_if:user_type,dealer',
+        'company_name' => ['nullable', 'string', 'max:255', 'required_if:user_type,dealer', Rule::unique('users', 'company_name')],
         'cui'          => 'nullable|string|max:32',
         'dealer_phone' => 'nullable|string|max:32|required_if:user_type,dealer',
         'dealer_county'=> 'nullable|string|max:255',

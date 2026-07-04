@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
@@ -29,7 +30,7 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
 
             // pentru parc auto
-            'company_name' => ['nullable', 'string', 'max:255', 'required_if:user_type,dealer'],
+            'company_name' => ['nullable', 'string', 'max:255', 'required_if:user_type,dealer', Rule::unique('users', 'company_name')],
             'cui' => ['nullable', 'string', 'max:32'],
             'phone' => ['nullable', 'string', 'max:32', 'required_if:user_type,dealer'],
             'county' => ['nullable', 'string', 'max:255'],

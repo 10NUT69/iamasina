@@ -499,6 +499,103 @@
         align-items: stretch;
     }
 
+    .related-listings-track {
+        display: flex;
+        gap: 0.875rem;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        scroll-behavior: smooth;
+        scroll-padding-inline: 0;
+        scroll-snap-type: x mandatory;
+        padding: 0.25rem 0 1rem;
+    }
+
+    .related-listings-track > [data-service-card] {
+        flex: 0 0 100%;
+        min-width: 0;
+        scroll-snap-align: start;
+    }
+
+    .related-carousel-arrow {
+        display: none;
+    }
+
+    .related-carousel-arrow.is-visible {
+        display: inline-flex;
+    }
+
+    .related-listings-section .spec-pill {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 0.35rem;
+        min-width: 0;
+        padding: 0.125rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        line-height: 1.2;
+        text-align: center;
+        color: #2d3138;
+    }
+
+    .related-listings-section .spec-pill svg {
+        width: 1.4rem;
+        height: 1.4rem;
+        flex-shrink: 0;
+        color: #16181d;
+        stroke-width: 1.9;
+    }
+
+    .related-listings-section .spec-pill span {
+        min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .dark .related-listings-section .spec-pill {
+        color: #e5e7eb;
+    }
+
+    .dark .related-listings-section .spec-pill svg {
+        color: #f9fafb;
+    }
+
+    @media (min-width: 640px) {
+        .related-listings-track {
+            gap: 1rem;
+        }
+
+        .related-listings-section .spec-pill {
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .related-listings-section .spec-pill svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+    }
+
+    @media (min-width: 768px) {
+        .related-listings-track > [data-service-card] {
+            flex-basis: calc((100% - 1rem) / 2);
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .related-listings-track {
+            gap: 1.5rem;
+        }
+
+        .related-listings-track > [data-service-card] {
+            flex-basis: calc((100% - 4.5rem) / 4);
+        }
+
+    }
+
     @media (max-width: 429px) {
         .important-details-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -672,7 +769,7 @@
 
             {{-- Titlu principal & pret mobil --}}
             <div class="space-y-2 mt-4">
-                <h2 class="text-2xl md:text-3xl font-extrabold text-[#E03E2D] md:text-gray-900 md:dark:text-white leading-tight">{{ $service->title }}</h2>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white leading-tight">{{ $service->title }}</h2>
                 <div class="md:hidden space-y-1.5 text-sm text-gray-500 dark:text-gray-400">
                     @if($showLocationLabel)
                         <div class="flex items-center gap-2">
@@ -895,8 +992,8 @@
                     </div>
 
                     <div class="flex items-baseline gap-2 mb-2">
-                        <span class="text-4xl font-extrabold text-gray-900 dark:text-white">{{ $formattedPrice }}</span>
-                        <span class="text-xl font-bold text-gray-500 dark:text-gray-400">{{ $currency }}</span>
+                        <span class="text-4xl font-extrabold text-[#E03E2D] dark:text-red-300">{{ $formattedPrice }}</span>
+                        <span class="text-xl font-bold text-[#E03E2D] dark:text-red-300">{{ $currency }}</span>
                     </div>
                     @if($priceTypeBadge)
                         <span class="inline-block px-2 py-1 text-xs font-bold rounded uppercase {{ $priceTypeBadgeClass }}">{{ $priceTypeBadge }}</span>
@@ -1059,6 +1156,39 @@
             </div>
         </div>
     </div>
+
+    @if(($relatedServices ?? collect())->isNotEmpty() && $relatedServicesTitle)
+        <section class="related-listings-section mt-10 md:mt-12" aria-labelledby="related-listings-title">
+            <div class="mb-4 flex items-center justify-between gap-3">
+                <div class="flex min-w-0 items-center gap-3">
+                    <span class="h-8 w-1.5 rounded-full bg-[#E03E2D]"></span>
+                    <h2 id="related-listings-title" class="min-w-0 truncate text-xl font-extrabold text-gray-900 dark:text-white md:text-2xl">
+                        {{ $relatedServicesTitle }}
+                    </h2>
+                </div>
+            </div>
+
+            <div class="relative" data-related-carousel>
+                <div class="related-listings-track no-scrollbar" data-related-track>
+                    @include('services.partials.service_cards_home', ['services' => $relatedServices])
+                </div>
+
+                <button type="button"
+                        class="related-carousel-arrow absolute -left-3 top-1/2 z-10 h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-900 shadow-lg shadow-gray-900/10 transition hover:border-[#E03E2D]/30 hover:text-[#E03E2D] active:scale-95 dark:border-[#333] dark:bg-[#1E1E1E] dark:text-white"
+                        data-related-prev
+                        aria-label="Anunțurile anterioare">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 19l-7-7 7-7" /></svg>
+                </button>
+
+                <button type="button"
+                        class="related-carousel-arrow absolute -right-3 top-1/2 z-10 h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-900 shadow-lg shadow-gray-900/10 transition hover:border-[#E03E2D]/30 hover:text-[#E03E2D] active:scale-95 dark:border-[#333] dark:bg-[#1E1E1E] dark:text-white"
+                        data-related-next
+                        aria-label="Următoarele anunțuri">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7" /></svg>
+                </button>
+            </div>
+        </section>
+    @endif
 </div>
 
 {{-- MOBILE BOTTOM BAR --}}
@@ -1302,6 +1432,43 @@
 
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && !lightbox.classList.contains('hidden')) closeGallery();
+        });
+
+        document.querySelectorAll('[data-related-carousel]').forEach((carousel) => {
+            const track = carousel.querySelector('[data-related-track]');
+            const previousButton = carousel.querySelector('[data-related-prev]');
+            const nextButton = carousel.querySelector('[data-related-next]');
+
+            if (!track || !previousButton || !nextButton) {
+                return;
+            }
+
+            const setArrowVisibility = (button, isVisible) => {
+                button.classList.toggle('is-visible', isVisible);
+                button.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+                button.tabIndex = isVisible ? 0 : -1;
+            };
+
+            const updateRelatedArrows = () => {
+                const maxScrollLeft = track.scrollWidth - track.clientWidth;
+                const canScroll = maxScrollLeft > 4;
+                const currentScroll = track.scrollLeft;
+
+                setArrowVisibility(previousButton, canScroll && currentScroll > 4);
+                setArrowVisibility(nextButton, canScroll && currentScroll < maxScrollLeft - 4);
+            };
+
+            const scrollRelated = (direction) => {
+                const distance = Math.max(track.clientWidth * 0.9, 280);
+                track.scrollBy({ left: direction * distance, behavior: 'smooth' });
+            };
+
+            previousButton.addEventListener('click', () => scrollRelated(-1));
+            nextButton.addEventListener('click', () => scrollRelated(1));
+            track.addEventListener('scroll', updateRelatedArrows, { passive: true });
+            window.addEventListener('resize', updateRelatedArrows);
+
+            requestAnimationFrame(updateRelatedArrows);
         });
 
         // 3. Phone Reveal Logic

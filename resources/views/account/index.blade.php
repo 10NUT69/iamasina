@@ -697,11 +697,6 @@
                                            focus:ring-2 focus:ring-[#C81424]/20 focus:border-[#C81424] outline-none transition shadow-sm">
                             </div>
 
-                            {{-- FEEDBACK VALIDARE --}}
-                            <div class="mt-2 min-h-[20px] space-y-2">
-                                <div id="nameCheckMsg" class="text-sm font-medium"></div>
-                                <div id="nameSuggestions" class="text-sm"></div>
-                            </div>
                         </div>
 
                         <div>
@@ -1593,7 +1588,7 @@ function profileValidationMessage(data = {}) {
     }
 
     if (errors.name) {
-        return "Numele este utilizat de altcineva.";
+        return "Completeaza numele tau.";
     }
 
     if (errors.user_type) {
@@ -1601,6 +1596,11 @@ function profileValidationMessage(data = {}) {
     }
 
     if (errors.company_name) {
+        const companyNameMessage = String(errors.company_name[0] || "").toLowerCase();
+        if (companyNameMessage.includes("taken") || companyNameMessage.includes("folosit") || companyNameMessage.includes("utilizat")) {
+            return "Numele parcului este deja folosit.";
+        }
+
         return "Completeaza numele parcului auto.";
     }
 
@@ -1787,7 +1787,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const msgEl = document.getElementById("nameCheckMsg");
     const sugEl = document.getElementById("nameSuggestions");
 
-    if (!nameInput) return;
+    if (nameInput && msgEl && sugEl) {
 
     let timer = null;
 
@@ -1844,6 +1844,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         }, 300);
     });
+    }
 
     // ===== ADAUGAT: Live check pentru Nume Parc Auto (company_name) =====
     // (rulează doar dacă există inputul + e selectat dealer)

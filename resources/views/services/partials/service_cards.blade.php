@@ -1,6 +1,11 @@
 @forelse($services as $service)
     @php
-        $isFav = auth()->check() && $service->isFavoritedBy(auth()->user());
+        $hasPreloadedFavoriteState = array_key_exists('is_favorited_by_current_user', $service->getAttributes());
+        $isFav = auth()->check() && (
+            $hasPreloadedFavoriteState
+                ? (bool) $service->getAttribute('is_favorited_by_current_user')
+                : $service->isFavoritedBy(auth()->user())
+        );
         $brandName = optional($service->brandRel)->name
             ?: ($service->brand ?? null);
         $modelName = optional($service->modelRel)->name

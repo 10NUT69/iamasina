@@ -3,7 +3,12 @@
         $cardIndex = $loop->index;
 
         // 1. Logica Favorite
-        $isFav = auth()->check() && $service->isFavoritedBy(auth()->user());
+        $hasPreloadedFavoriteState = array_key_exists('is_favorited_by_current_user', $service->getAttributes());
+        $isFav = auth()->check() && (
+            $hasPreloadedFavoriteState
+                ? (bool) $service->getAttribute('is_favorited_by_current_user')
+                : $service->isFavoritedBy(auth()->user())
+        );
 
         // 2. Logica Locație
         $loc = $service->locality->name ?? '';

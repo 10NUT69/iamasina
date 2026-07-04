@@ -46,7 +46,7 @@ class ProfileController extends Controller
         ]);
 
         $rules = [
-            'name'      => 'required|string|max:100|unique:users,name,' . $user->id,
+            'name'      => 'required|string|max:100',
             'email'     => 'required|email|max:120|unique:users,email,' . $user->id,
             'password'  => 'nullable|min:6',
             'user_type' => 'required|in:individual,dealer',
@@ -553,22 +553,9 @@ class ProfileController extends Controller
             'name' => 'required|string|max:100'
         ]);
 
-        $name = trim($request->name);
-
-        $exists = User::where('name', $name)
-            ->where('id', '!=', Auth::id())
-            ->exists();
-
-        if (!$exists) {
-            return response()->json([
-                'available'   => true,
-                'suggestions' => []
-            ]);
-        }
-
         return response()->json([
-            'available'   => false,
-            'suggestions' => $this->generateSuggestions($name)
+            'available'   => true,
+            'suggestions' => []
         ]);
     }
 
@@ -652,20 +639,9 @@ class ProfileController extends Controller
             'name' => 'required|string|max:100'
         ]);
 
-        $name = trim($request->name);
-
-        $exists = User::where('name', $name)->exists();
-
-        if (!$exists) {
-            return response()->json([
-                'available'   => true,
-                'suggestions' => []
-            ]);
-        }
-
         return response()->json([
-            'available'   => false,
-            'suggestions' => $this->generateSuggestions($name)
+            'available'   => true,
+            'suggestions' => []
         ]);
     }
 

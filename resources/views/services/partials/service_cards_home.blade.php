@@ -1,6 +1,14 @@
 @forelse($services as $service)
     @php
-        $isFav = auth()->check() && $service->isFavoritedBy(auth()->user());
+        $serviceCardVariant = $serviceCardVariant ?? 'compact';
+        $isIndexCard = $serviceCardVariant === 'index';
+        $cardTrackAttribute = $serviceCardTrackItem ?? ! $isIndexCard;
+        $hasPreloadedFavoriteState = array_key_exists('is_favorited_by_current_user', $service->getAttributes());
+        $isFav = auth()->check() && (
+            $hasPreloadedFavoriteState
+                ? (bool) $service->getAttribute('is_favorited_by_current_user')
+                : $service->isFavoritedBy(auth()->user())
+        );
         $loc = $service->locality->name ?? '';
         $jud = $service->county->name ?? '';
         $locationLabel = $loc ? "$loc, $jud" : $jud;
@@ -15,19 +23,48 @@
         $fuelLabel = $service->combustibil->nume ?? '-';
         $gearboxLabel = $service->cutieViteze->nume ?? '-';
         $dateLabel = $service->listing_date_label;
+        $priceAmountClass = $isIndexCard
+            ? 'text-xl font-black text-white drop-shadow-lg tracking-tight sm:text-xl'
+            : 'text-base sm:text-xl font-black text-white drop-shadow-lg tracking-tight';
+        $priceCurrencyClass = $isIndexCard
+            ? 'text-sm font-bold sm:text-sm'
+            : 'text-[10px] sm:text-sm font-bold';
+        $priceBadgeTextClass = $isIndexCard
+            ? 'text-[10px] uppercase font-bold px-2 py-0.5 rounded shadow-sm mt-1 sm:text-[9px] sm:px-1.5'
+            : 'text-[9px] uppercase font-bold px-1.5 py-0.5 rounded shadow-sm mt-1';
+        $emptyPriceClass = $isIndexCard
+            ? 'text-xl font-bold text-white drop-shadow-md sm:text-lg'
+            : 'text-base sm:text-lg font-bold text-white drop-shadow-md';
+        $favoriteButtonClass = $isIndexCard
+            ? 'absolute top-2 right-2 sm:top-3 sm:right-3 p-2.5 sm:p-2 rounded-full bg-black/20 hover:bg-white backdrop-blur-md transition-all duration-300 group/heart shadow-lg'
+            : 'absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 rounded-full bg-black/20 hover:bg-white backdrop-blur-md transition-all duration-300 group/heart shadow-lg';
+        $favoriteIconSizeClass = $isIndexCard
+            ? 'w-6 h-6 sm:w-5 sm:h-5'
+            : 'w-4 h-4 sm:w-5 sm:h-5';
+        $titleClass = $isIndexCard
+            ? 'text-lg font-bold text-gray-900 dark:text-white leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-[#C81424] transition-colors'
+            : 'text-sm sm:text-lg font-bold text-gray-900 dark:text-white leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-[#C81424] transition-colors';
+        $powerLineClass = $isIndexCard
+            ? 'text-sm font-semibold text-gray-500 dark:text-gray-400 mt-1 truncate uppercase tracking-wide sm:text-xs'
+            : 'text-xs font-semibold text-gray-500 dark:text-gray-400 mt-1 truncate uppercase tracking-wide';
+        $footerClass = $isIndexCard
+            ? 'mt-auto pt-4 border-t border-gray-100 dark:border-[#333] flex items-start justify-between gap-3 text-sm text-gray-500 dark:text-gray-400 sm:text-xs'
+            : 'mt-auto pt-4 border-t border-gray-100 dark:border-[#333] flex items-start justify-between gap-3 text-xs text-gray-500 dark:text-gray-400';
+        $engineSeparatorHtml = $isIndexCard ? ' &bull; ' : ' - ';
+        $engineUnitHtml = $isIndexCard ? ' cm&sup3;' : ' cmc';
     @endphp
 
-    <article data-service-card class="group relative bg-white dark:bg-[#1E1E1E] border border-gray-100 dark:border-[#333] rounded-2xl overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
+    <article @if($cardTrackAttribute) data-service-card @endif class="group relative bg-white dark:bg-[#1E1E1E] border border-gray-100 dark:border-[#333] rounded-2xl overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
         <a href="{{ $service->public_url }}" class="block relative w-full aspect-[4/3] overflow-hidden bg-gray-200 dark:bg-[#121212]">
             <img src="{{ $img }}" alt="{{ $imageAlt }}" class="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-700 ease-in-out" loading="lazy">
             <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-80"></div>
 
             <div class="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 flex flex-col items-start z-10">
                 @if($price)
-                    <span class="text-base sm:text-xl font-black text-white drop-shadow-lg tracking-tight">{{ $price }} <span class="text-[10px] sm:text-sm font-bold">{{ $service->currency }}</span></span>
-                    <span class="text-[9px] uppercase font-bold {{ $priceBadgeClass }} px-1.5 py-0.5 rounded shadow-sm mt-1">{{ $priceBadge }}</span>
+                    <span class="{{ $priceAmountClass }}">{{ $price }} <span class="{{ $priceCurrencyClass }}">{{ $service->currency }}</span></span>
+                    <span class="{{ $priceBadgeTextClass }} {{ $priceBadgeClass }}">{{ $priceBadge }}</span>
                 @else
-                    <span class="text-base sm:text-lg font-bold text-white drop-shadow-md">La cerere</span>
+                    <span class="{{ $emptyPriceClass }}">La cerere</span>
                 @endif
             </div>
 
@@ -38,8 +75,8 @@
                     data-favorite-active-class="text-[#C81424] fill-[#C81424]"
                    aria-label="{{ $isFav ? 'Scoate de la favorite' : 'Adaugă la favorite' }}: {{ $listingTitle }}"
                     aria-pressed="{{ $isFav ? 'true' : 'false' }}"
-                    class="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 rounded-full bg-black/20 hover:bg-white backdrop-blur-md transition-all duration-300 group/heart shadow-lg">
-                <svg class="w-4 h-4 sm:w-5 sm:h-5 transition-colors {{ $isFav ? 'text-[#C81424] fill-[#C81424]' : 'text-white fill-none group-hover/heart:text-[#C81424]' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    class="{{ $favoriteButtonClass }}">
+                <svg class="{{ $favoriteIconSizeClass }} transition-colors {{ $isFav ? 'text-[#C81424] fill-[#C81424]' : 'text-white fill-none group-hover/heart:text-[#C81424]' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733C11.285 4.876 9.623 3.75 7.688 3.75 5.099 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                 </svg>
             </button>
@@ -47,8 +84,8 @@
 
         <div class="p-3 sm:p-5 flex-1 flex flex-col">
             <a href="{{ $service->public_url }}" class="block mb-4">
-                <h3 class="text-sm sm:text-lg font-bold text-gray-900 dark:text-white leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-[#C81424] transition-colors">{{ $listingTitle }}</h3>
-                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mt-1 truncate uppercase tracking-wide">{{ $service->putere ?? '-' }} CP - {{ $service->capacitate_cilindrica ? number_format($service->capacitate_cilindrica, 0, '', '.') : '-' }} cmc</p>
+                <h3 class="{{ $titleClass }}">{{ $listingTitle }}</h3>
+                <p class="{{ $powerLineClass }}">{{ $service->putere ?? '-' }} CP{!! $engineSeparatorHtml !!}{{ $service->capacitate_cilindrica ? number_format($service->capacitate_cilindrica, 0, '', '.') : '-' }}{!! $engineUnitHtml !!}</p>
             </a>
 
             <div class="grid grid-cols-4 gap-x-1 sm:gap-x-2 mb-4">
@@ -70,7 +107,7 @@
                 </div>
             </div>
 
-            <div class="mt-auto pt-4 border-t border-gray-100 dark:border-[#333] flex items-start justify-between gap-3 text-xs text-gray-500 dark:text-gray-400">
+            <div class="{{ $footerClass }}">
                 <div class="flex min-w-0 flex-1 flex-col gap-1.5">
                     <div class="flex min-w-0 items-start">
                         <svg class="w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0 text-[#C81424]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>

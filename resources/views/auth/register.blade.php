@@ -143,10 +143,6 @@
                             placeholder="Ex: Ion Popescu" value="{{ old('name') }}">
                     </div>
 
-                    <div class="mt-2 min-h-[20px] text-xs font-medium">
-                        <div id="regNameMsg"></div>
-                        <div id="regNameSuggestions" class="mt-1 flex flex-wrap gap-2"></div>
-                    </div>
                     <x-input-error :messages="$errors->get('name')" class="mt-1 text-xs text-red-500" />
                 </div>
 
@@ -251,6 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sugName = document.getElementById('regNameSuggestions');
     let timerName = null;
 
+    if (nameInput && msgName && sugName) {
     nameInput.addEventListener('input', function () {
         let name = this.value.trim();
         clearTimeout(timerName);
@@ -287,6 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }, 300);
     });
+    }
 
     // 2. LIVE CHECK EMAIL
     const emailInput = document.getElementById('regEmail');
