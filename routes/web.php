@@ -24,6 +24,11 @@ use App\Http\Controllers\Admin\AdminAutoCatalogController;
 */
 
 Route::get('/', [ServiceController::class, 'index'])->name('services.index');
+Route::get('/parcuri-auto', [ServiceController::class, 'dealers'])->name('dealers.index');
+Route::get(
+    '/parcuri-auto/{countySlug}/{citySlug}/{dealerSlug}',
+    [ServiceController::class, 'showDealerPortfolio']
+)->name('dealers.show');
 
 Route::get('/autoturisme/{path?}', fn () => abort(404))->where('path', '.*');
 Route::get('/anunturi-auto/{path?}', fn () => abort(404))->where('path', '.*');
@@ -38,7 +43,7 @@ Route::get('/anunturi-auto-de-vanzare/{id}/edit', [ServiceController::class, 'ed
 Route::get(
     '/anunturi-auto-de-vanzare/parc-auto/{countySlug}/{citySlug}/{dealerSlug}',
     [ServiceController::class, 'showDealerPortfolio']
-)->name('dealers.show');
+)->name('dealers.show.legacy');
 
 // Detail URL: /anunturi-auto-de-vanzare/{marca}/{model}/{judet}/{oras}/{titlu}-{id}
 Route::get(

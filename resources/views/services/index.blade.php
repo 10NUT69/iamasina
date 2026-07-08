@@ -295,6 +295,52 @@
         </div>
     @endif
 
+    @if(($featuredDealers ?? collect())->isNotEmpty())
+        <section class="pb-12" aria-labelledby="featured-dealers-title">
+            <div class="mb-4 flex items-center justify-between gap-3">
+                <div class="flex min-w-0 items-center gap-3">
+                    <div class="h-8 w-1.5 shrink-0 rounded-full bg-[#C81424] shadow-sm"></div>
+                    <h2 id="featured-dealers-title" class="truncate text-xl font-black text-gray-900 dark:text-white sm:text-2xl">
+                        Dealeri auto
+                    </h2>
+                </div>
+            </div>
+
+            <div class="relative" data-dealer-carousel>
+                <div class="dealer-carousel-track no-scrollbar" data-dealer-track>
+                    @foreach($featuredDealers as $dealer)
+                        <div data-dealer-card>
+                            @include('services.partials.dealer_card', ['dealer' => $dealer])
+                        </div>
+                    @endforeach
+                </div>
+
+                <button type="button"
+                        class="dealer-carousel-arrow absolute -left-3 top-1/2 z-10 h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-900 shadow-lg shadow-gray-900/10 transition hover:border-[#C81424]/30 hover:text-[#C81424] active:scale-95 dark:border-[#333] dark:bg-[#1E1E1E] dark:text-white"
+                        data-dealer-prev
+                        aria-label="Dealerii anteriori">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 19l-7-7 7-7" /></svg>
+                </button>
+
+                <button type="button"
+                        class="dealer-carousel-arrow absolute -right-3 top-1/2 z-10 h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-900 shadow-lg shadow-gray-900/10 transition hover:border-[#C81424]/30 hover:text-[#C81424] active:scale-95 dark:border-[#333] dark:bg-[#1E1E1E] dark:text-white"
+                        data-dealer-next
+                        aria-label="Următorii dealeri">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7" /></svg>
+                </button>
+            </div>
+
+            <div class="mt-5 flex justify-center">
+                <a href="{{ route('dealers.index') }}"
+                   class="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-lg border border-[#C81424] bg-white px-6 py-3 text-sm font-black text-[#C81424] shadow-sm transition hover:bg-[#C81424] hover:text-white active:scale-[0.98] dark:bg-transparent dark:hover:bg-[#C81424] sm:w-auto sm:max-w-none"
+                   aria-label="Vezi toți dealerii auto">
+                    Vezi toți dealerii auto
+                    <span aria-hidden="true">&rarr;</span>
+                </a>
+            </div>
+        </section>
+    @endif
+
     <section class="pb-12">
         <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-[#333] dark:bg-[#1E1E1E] sm:p-8 lg:p-10">
             <p class="mb-4 text-xs font-black uppercase tracking-wide text-[#C81424]">
@@ -891,9 +937,49 @@
         return `${baseUrl}${path}${queryString ? `?${queryString}` : ''}`;
     }
 
+    function setupDealerCarousel() {
+        document.querySelectorAll('[data-dealer-carousel]').forEach((carousel) => {
+            const track = carousel.querySelector('[data-dealer-track]');
+            const previousButton = carousel.querySelector('[data-dealer-prev]');
+            const nextButton = carousel.querySelector('[data-dealer-next]');
+
+            if (!track || !previousButton || !nextButton) {
+                return;
+            }
+
+            const setArrowVisibility = (button, isVisible) => {
+                button.classList.toggle('is-visible', isVisible);
+                button.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+                button.tabIndex = isVisible ? 0 : -1;
+            };
+
+            const updateDealerArrows = () => {
+                const maxScrollLeft = track.scrollWidth - track.clientWidth;
+                const canScroll = maxScrollLeft > 4;
+                const currentScroll = track.scrollLeft;
+
+                setArrowVisibility(previousButton, canScroll && currentScroll > 4);
+                setArrowVisibility(nextButton, canScroll && currentScroll < maxScrollLeft - 4);
+            };
+
+            const scrollDealers = (direction) => {
+                const distance = Math.max(track.clientWidth * 0.92, 260);
+                track.scrollBy({ left: direction * distance, behavior: 'smooth' });
+            };
+
+            previousButton.addEventListener('click', () => scrollDealers(-1));
+            nextButton.addEventListener('click', () => scrollDealers(1));
+            track.addEventListener('scroll', updateDealerArrows, { passive: true });
+            window.addEventListener('resize', updateDealerArrows);
+
+            requestAnimationFrame(updateDealerArrows);
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         window.iaCombobox?.init(document);
         document.querySelectorAll('select.autovit-select').forEach(enhanceSelect);
+        setupDealerCarousel();
 
         window.checkResetVisibility();
 
@@ -1427,6 +1513,33 @@
         white-space: nowrap;
     }
 
+    .dealer-carousel-track {
+        display: grid;
+        gap: 0.875rem;
+        grid-auto-columns: calc((100% - 0.875rem) / 2);
+        grid-auto-flow: column;
+        grid-template-rows: repeat(2, minmax(0, 1fr));
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        scroll-behavior: smooth;
+        scroll-padding-inline: 0;
+        scroll-snap-type: x mandatory;
+        padding: 0.25rem 0 1rem;
+    }
+
+    .dealer-carousel-track > [data-dealer-card] {
+        min-width: 0;
+        scroll-snap-align: start;
+    }
+
+    .dealer-carousel-arrow {
+        display: none;
+    }
+
+    .dealer-carousel-arrow.is-visible {
+        display: inline-flex;
+    }
+
     @media (min-width: 640px) {
         .spec-pill {
             font-size: 0.75rem;
@@ -1436,6 +1549,30 @@
         .spec-pill svg {
             width: 1.25rem;
             height: 1.25rem;
+        }
+
+        .dealer-carousel-track {
+            gap: 1rem;
+            grid-auto-columns: calc((100% - 1rem) / 2);
+        }
+    }
+
+    @media (min-width: 768px) {
+        .dealer-carousel-track {
+            display: flex;
+            grid-auto-columns: auto;
+            grid-auto-flow: initial;
+            grid-template-rows: none;
+        }
+
+        .dealer-carousel-track > [data-dealer-card] {
+            flex: 0 0 calc((100% - 3rem) / 4);
+        }
+    }
+
+    @media (min-width: 1280px) {
+        .dealer-carousel-track > [data-dealer-card] {
+            flex-basis: calc((100% - 4rem) / 5);
         }
     }
     optgroup { font-weight: 700; color: #C81424; background-color: #f9fafb; }

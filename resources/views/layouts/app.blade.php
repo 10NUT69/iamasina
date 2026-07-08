@@ -202,6 +202,7 @@
             'brand.model.county.index',
             'brand.model.city.index',
             'service.show.car',
+            'dealers.index',
             'dealers.show'
         );
     @endphp

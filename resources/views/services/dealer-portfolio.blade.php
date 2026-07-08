@@ -47,12 +47,16 @@
     $firstDealerGalleryUrl = count($galleryUrls) ? $galleryUrls[0] : null;
     $firstDealerService = isset($services) && method_exists($services, 'first') ? $services->first() : null;
     $dealerSeoImage = $firstDealerGalleryUrl ?: ($firstDealerService?->main_image_url ?: asset('images/social-share.webp'));
+    $dealerCanonicalUrl = $dealer->dealer_canonical_url ?: ($dealer->dealer_public_url ?: url()->current());
 @endphp
 
 @section('title', $dealerSeoTitle)
 @section('meta_title', e($dealerSeoTitle))
 @section('meta_description', e($dealerSeoDescription))
 @section('meta_image', $dealerSeoImage)
+@section('canonical')
+    <link rel="canonical" href="{{ $dealerCanonicalUrl }}">
+@endsection
 
 @section('content')
 @php
@@ -79,7 +83,7 @@
         'label' => $formatPhoneDisplay($phone),
     ])->values();
     $primaryPhoneHref = $phoneItems->first()['href'] ?? null;
-    $dealerUrl = $dealer->dealer_public_url ?: url()->current();
+    $dealerUrl = $dealerCanonicalUrl;
     $dealerSubtitle = 'Parc auto';
 
     if ($dealerLocationCounty && $dealerLocationCity) {
@@ -104,10 +108,11 @@
     $dealerDescriptionDisplay = \Illuminate\Support\Str::limit($dealerDescriptionRaw, $dealerDescriptionLimit, '');
     $hasDealerDescription = $dealerDescriptionDisplay !== '';
     $dealerCountySlug = ($dealerCounty ?? null)?->slug ?: ($dealerLocationCounty ? \Illuminate\Support\Str::slug($dealerLocationCounty) : null);
+    $dealerLocalitySlug = ($dealerLocality ?? null)?->slug ?: ($dealerLocationCity ? \Illuminate\Support\Str::slug($dealerLocationCity) : null);
     $dealerCountyId = ($dealerCounty ?? null)?->id ?: $dealer->county_id;
     $dealerBreadcrumbItems = [
         ['name' => 'Acasă', 'item' => route('services.index')],
-        ['name' => 'Dealeri auto', 'item' => route('cars.index', ['seller_type' => 'dealer'])],
+        ['name' => 'Parcuri auto', 'item' => route('dealers.index')],
     ];
 
     if ($dealerLocationCounty) {
@@ -116,6 +121,15 @@
             'item' => $dealerCountySlug
                 ? route('brand.index', ['segment1' => $dealerCountySlug, 'seller_type' => 'dealer'])
                 : ($dealerCountyId ? route('cars.index', ['seller_type' => 'dealer', 'county_id' => $dealerCountyId]) : null),
+        ];
+    }
+
+    if ($dealerLocationCity) {
+        $dealerBreadcrumbItems[] = [
+            'name' => $dealerLocationCity,
+            'item' => ($dealerCountySlug && $dealerLocalitySlug)
+                ? route('brand.model.index', ['segment1' => $dealerCountySlug, 'segment2' => $dealerLocalitySlug, 'seller_type' => 'dealer'])
+                : null,
         ];
     }
 
@@ -146,9 +160,15 @@
                         </p>
 
                         @if($dealerHasSpecialTier)
-                            <span class="mt-2 inline-flex w-fit items-center rounded-lg border px-2.5 py-1 text-xs font-black uppercase tracking-wide {{ $dealerTierBadgeClass }}">
-                                {{ $dealerTierLabel }}
-                            </span>
+                            @if($dealerTier === \App\Models\User::DEALER_TIER_FOUNDING)
+                                <span class="mt-2 inline-flex w-fit items-center rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-amber-700 shadow-sm dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
+                                    Membru fondator
+                                </span>
+                            @else
+                                <span class="mt-2 inline-flex w-fit items-center rounded-lg border px-2.5 py-1 text-xs font-black uppercase tracking-wide {{ $dealerTierBadgeClass }}">
+                                    {{ $dealerTierLabel }}
+                                </span>
+                            @endif
                         @endif
                     </div>
                 </div>

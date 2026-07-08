@@ -68,6 +68,8 @@
                       placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#C81424] focus:border-transparent
                       bg-gray-50 dark:bg-[#2C2C2C] text-gray-900 dark:text-white sm:text-sm transition shadow-sm"
                value="{{ old('company_name') }}" placeholder="Ex: AutoBest SRL">
+        <div id="regCompanyMsg" class="mt-1 min-h-[20px] text-xs font-medium"></div>
+        <div id="regCompanySuggestions" class="mt-2 flex flex-wrap gap-2"></div>
         <x-input-error :messages="$errors->get('company_name')" class="mt-1 text-xs text-red-500" />
     </div>
 
@@ -240,6 +242,58 @@ document.addEventListener('DOMContentLoaded', () => {
     userTypeRadios.forEach(r => r.addEventListener('change', refreshDealerFields));
     refreshDealerFields();
 
+    const companyInput = document.getElementById('company_name');
+    const msgCompany = document.getElementById('regCompanyMsg');
+    const sugCompany = document.getElementById('regCompanySuggestions');
+    let timerCompany = null;
+
+    if (companyInput && msgCompany && sugCompany) {
+        companyInput.addEventListener('input', function () {
+            const selected = document.querySelector('input[name="user_type"]:checked')?.value || 'individual';
+            const company_name = this.value.trim();
+
+            clearTimeout(timerCompany);
+
+            if (selected !== 'dealer' || company_name.length < 3) {
+                msgCompany.innerHTML = '';
+                sugCompany.innerHTML = '';
+                return;
+            }
+
+            timerCompany = setTimeout(() => {
+                fetch("{{ route('register.checkCompanyName') }}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({ company_name })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.available) {
+                        msgCompany.innerHTML = `<span class='text-green-600 dark:text-green-400 flex items-center gap-1'><svg class='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7'/></svg> Numele parcului este disponibil</span>`;
+                        sugCompany.innerHTML = '';
+                    } else {
+                        msgCompany.innerHTML = `<span class='text-red-600 dark:text-red-400 flex items-center gap-1'><svg class='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'/></svg> Numele parcului este deja folosit</span>`;
+
+                        let html = '';
+                        (data.suggestions || []).forEach(s => {
+                            const escaped = String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                            html += `<button type="button" class="px-2 py-1 text-xs bg-gray-100 dark:bg-[#2C2C2C] border border-gray-200 dark:border-[#404040] rounded hover:bg-gray-200 dark:hover:bg-[#333333] transition text-gray-600 dark:text-gray-300" onclick="useCompanySuggestionRegister('${escaped}')">${escapeRegisterHtml(s)}</button>`;
+                        });
+                        sugCompany.innerHTML = html;
+                    }
+                })
+                .catch(() => {
+                    msgCompany.innerHTML = '';
+                    sugCompany.innerHTML = '';
+                });
+            }, 300);
+        });
+    }
+
 
     // 1. LIVE CHECK USERNAME
     const nameInput = document.getElementById('regName');
@@ -321,10 +375,31 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+function escapeRegisterHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 function useSuggestionRegister(name) {
     document.getElementById('regName').value = name;
     document.getElementById('regNameMsg').innerHTML = `<span class='text-green-600 dark:text-green-400 flex items-center gap-1'><svg class='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7'/></svg> Disponibil</span>`;
     document.getElementById('regNameSuggestions').innerHTML = "";
+}
+
+function useCompanySuggestionRegister(name) {
+    const input = document.getElementById('company_name');
+    const msg = document.getElementById('regCompanyMsg');
+    const suggestions = document.getElementById('regCompanySuggestions');
+
+    if (input) input.value = name;
+    if (msg) {
+        msg.innerHTML = `<span class='text-green-600 dark:text-green-400 flex items-center gap-1'><svg class='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7'/></svg> Numele parcului este disponibil</span>`;
+    }
+    if (suggestions) suggestions.innerHTML = "";
 }
 </script>
 

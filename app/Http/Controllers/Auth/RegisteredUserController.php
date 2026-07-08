@@ -20,6 +20,26 @@ class RegisteredUserController extends Controller
         return view('auth.register');
     }
 
+    public function checkCompanyName(Request $request)
+    {
+        $request->validate([
+            'company_name' => ['required', 'string', 'max:255'],
+        ], [
+            'company_name.required' => 'Completează numele parcului auto.',
+            'company_name.max' => 'Numele parcului auto poate avea maximum 255 de caractere.',
+        ]);
+
+        $companyName = trim((string) $request->input('company_name'));
+        $exists = User::query()
+            ->where('company_name', $companyName)
+            ->exists();
+
+        return response()->json([
+            'available' => ! $exists,
+            'suggestions' => $exists ? $this->companyNameSuggestions($companyName) : [],
+        ]);
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
@@ -36,6 +56,11 @@ class RegisteredUserController extends Controller
             'county' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string', 'max:255'],
+        ], [
+            'company_name.required_if' => 'Completează numele parcului auto.',
+            'company_name.unique' => 'Numele parcului auto este deja folosit.',
+            'company_name.max' => 'Numele parcului auto poate avea maximum 255 de caractere.',
+            'phone.required_if' => 'Completează numărul de telefon al parcului auto.',
         ]);
 
         $user = User::create([
@@ -58,5 +83,18 @@ class RegisteredUserController extends Controller
         Auth::login($user);
 
         return redirect()->route('services.index');
+    }
+
+    private function companyNameSuggestions(string $companyName): array
+    {
+        $base = preg_replace('/\s+/', ' ', trim($companyName));
+
+        return [
+            $base . ' Auto',
+            $base . ' Group',
+            $base . ' SRL',
+            $base . ' Premium',
+            $base . ' ' . rand(1, 99),
+        ];
     }
 }

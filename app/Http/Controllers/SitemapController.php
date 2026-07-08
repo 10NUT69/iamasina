@@ -19,8 +19,8 @@ class SitemapController extends Controller
     {
         $latestUpdate = $this->latestRelevantUpdate();
 
-        $todayKey = 'sitemap.xml:v2:' . now()->toDateString();
-        $yesterdayKey = 'sitemap.xml:v2:' . now()->subDay()->toDateString();
+        $todayKey = 'sitemap.xml:v6:' . now()->toDateString();
+        $yesterdayKey = 'sitemap.xml:v6:' . now()->subDay()->toDateString();
 
         if (Cache::has($todayKey)) {
             return response(Cache::get($todayKey), 200)->header('Content-Type', 'text/xml');
@@ -80,7 +80,9 @@ class SitemapController extends Controller
                 'county:id,slug',
                 'locality:id,county_id,slug',
                 'locality.county:id,slug',
-                'user:id,user_type,company_name,county,city,updated_at,created_at',
+                'user:id,user_type,company_name,dealer_slug,county,county_id,city,locality_id,updated_at,created_at',
+                'user.dealerCounty:id,slug',
+                'user.dealerLocality:id,county_id,slug',
                 'generation:id,car_model_id',
                 'generation.model:id,car_brand_id,name,slug',
                 'generation.model.brand:id,name,slug',
@@ -162,8 +164,8 @@ class SitemapController extends Controller
             );
         }
 
-        if ($service->user?->dealer_public_url) {
-            $this->upsertUrl($urls, $service->user->dealer_public_url, $lastmod, 'daily', '0.65');
+        if ($service->user?->dealer_canonical_url) {
+            $this->upsertUrl($urls, $service->user->dealer_canonical_url, $lastmod, 'daily', '0.65');
         }
     }
 
@@ -173,6 +175,7 @@ class SitemapController extends Controller
             'page.about' => ['changefreq' => 'monthly', 'priority' => '0.5'],
             'page.contact' => ['changefreq' => 'monthly', 'priority' => '0.5'],
             'page.blog' => ['changefreq' => 'weekly', 'priority' => '0.6'],
+            'dealers.index' => ['changefreq' => 'daily', 'priority' => '0.7'],
             'page.terms' => ['changefreq' => 'yearly', 'priority' => '0.3'],
             'page.privacy' => ['changefreq' => 'yearly', 'priority' => '0.3'],
         ];

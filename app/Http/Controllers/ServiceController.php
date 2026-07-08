@@ -44,6 +44,8 @@ class ServiceController extends Controller
     private const SERVICE_TITLE_MAX_LENGTH = 90;
     private const SERVICE_DESCRIPTION_MAX_LENGTH = 10000;
     private const RELATED_SERVICES_LIMIT = 12;
+    private const HOMEPAGE_DEALERS_LIMIT = 12;
+    private const DEALERS_PER_PAGE = 24;
 
     // ==========================================
     // 1. INDEX (NESCHIMBAT)
@@ -274,6 +276,9 @@ class ServiceController extends Controller
     });
 
     $view = $request->routeIs('services.index') ? 'services.index' : 'services.listing';
+    $featuredDealers = $isHomepage
+        ? $this->dealerCardsQuery()->limit(self::HOMEPAGE_DEALERS_LIMIT)->get()
+        : collect();
 
     return view($view, [
         'services'        => $services,
@@ -293,6 +298,27 @@ class ServiceController extends Controller
         'currentBrand'    => $currentBrand,
         'currentModel'    => $currentModel,
         'listingPagination' => $paginationMeta,
+        'featuredDealers' => $featuredDealers,
+    ]);
+}
+
+public function dealers(Request $request)
+{
+    $dealers = $this->dealerCardsQuery()
+        ->paginate(self::DEALERS_PER_PAGE)
+        ->withQueryString();
+
+    $dealerActiveServicesTotal = Service::query()
+        ->where('status', 'active')
+        ->whereHas('user', fn ($userQuery) => $userQuery
+            ->where('user_type', 'dealer')
+            ->whereNotNull('company_name')
+            ->where('company_name', '!=', ''))
+        ->count();
+
+    return view('services.dealers', [
+        'dealers' => $dealers,
+        'dealerActiveServicesTotal' => $dealerActiveServicesTotal,
     ]);
 }
 
@@ -302,8 +328,11 @@ public function showDealerPortfolio(Request $request, string $countySlug, string
 
     abort_unless($dealer, 404);
 
-    $canonicalUrl = $dealer->dealer_public_url;
-    if ($canonicalUrl && $request->url() !== $canonicalUrl) {
+    $canonicalPath = $dealer->dealer_public_path;
+    $canonicalUrl = $dealer->dealer_canonical_url ?: $dealer->dealer_public_url;
+    $requestPath = '/' . ltrim($request->path(), '/');
+
+    if ($canonicalPath && $canonicalUrl && ($request->routeIs('dealers.show.legacy') || $requestPath !== $canonicalPath)) {
         return redirect()->to($canonicalUrl, 301);
     }
 
@@ -721,6 +750,66 @@ public function indexAutoPath(
         ];
     }
 
+    private function dealerCardsQuery()
+    {
+        $query = User::query()
+            ->select($this->dealerCardColumns())
+            ->with([
+                'dealerCounty:id,slug',
+                'dealerLocality:id,county_id,slug',
+            ])
+            ->where('user_type', 'dealer')
+            ->whereNotNull('company_name')
+            ->where('company_name', '!=', '')
+            ->whereHas('services', fn ($servicesQuery) => $servicesQuery->where('status', 'active'))
+            ->withCount([
+                'services as active_services_count' => fn ($servicesQuery) => $servicesQuery->where('status', 'active'),
+            ]);
+
+        if ($this->usersTableHasColumn('dealer_tier')) {
+            $query->orderByRaw('CASE WHEN dealer_tier = ? THEN 0 ELSE 1 END', [User::DEALER_TIER_FOUNDING]);
+        }
+
+        return $query
+            ->orderByDesc('active_services_count')
+            ->orderBy('company_name')
+            ->orderBy('id');
+    }
+
+    private function dealerCardColumns(): array
+    {
+        $columns = [
+            'id',
+            'name',
+            'user_type',
+            'company_name',
+            'county',
+            'county_id',
+            'city',
+            'locality_id',
+            'created_at',
+        ];
+
+        foreach (['dealer_slug', 'dealer_logo', 'dealer_tier'] as $column) {
+            if ($this->usersTableHasColumn($column)) {
+                $columns[] = $column;
+            }
+        }
+
+        return $columns;
+    }
+
+    private function usersTableHasColumn(string $column): bool
+    {
+        static $columns = null;
+
+        if ($columns === null) {
+            $columns = Schema::getColumnListing('users');
+        }
+
+        return in_array($column, $columns, true);
+    }
+
     private function serviceDisplayBrand(Service $service): ?string
     {
         $generation = $service->relationLoaded('generation') ? $service->getRelation('generation') : null;
@@ -875,6 +964,11 @@ public function indexAutoPath(
         'images.*.max'      => 'Una dintre imagini este prea mare (max 15MB).',
         'images.*.uploaded' => 'Eroare la încărcare server.',
     ];
+
+    $messages['company_name.required_if'] = 'Completează numele parcului auto.';
+    $messages['company_name.unique'] = 'Numele parcului auto este deja folosit.';
+    $messages['company_name.max'] = 'Numele parcului auto poate avea maximum 255 de caractere.';
+    $messages['dealer_phone.required_if'] = 'Completează numărul de telefon al parcului auto.';
 
     $validated = $request->validate($rules, $messages);
     $this->validateImageUploadLimits($request);

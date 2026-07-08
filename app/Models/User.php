@@ -120,6 +120,16 @@ class User extends Authenticatable
         return $this->hasMany(SavedSearch::class);
     }
 
+    public function dealerCounty()
+    {
+        return $this->belongsTo(County::class, 'county_id');
+    }
+
+    public function dealerLocality()
+    {
+        return $this->belongsTo(Locality::class, 'locality_id');
+    }
+
     /* ========================================
      *        RELAȚIE ANUNȚURI
      * ======================================== */
@@ -203,15 +213,61 @@ class User extends Authenticatable
 
     public function getDealerPublicUrlAttribute(): ?string
     {
+        $path = $this->dealer_public_path;
+
+        return $path ? url($path) : null;
+    }
+
+    public function getDealerCanonicalUrlAttribute(): ?string
+    {
+        $path = $this->dealer_public_path;
+
+        if (!$path) {
+            return null;
+        }
+
+        return rtrim((string) config('app.url'), '/') . $path;
+    }
+
+    public function getDealerPublicPathAttribute(): ?string
+    {
         if ($this->user_type !== 'dealer' || empty($this->company_name)) {
             return null;
         }
 
+        $dealerLocality = $this->relationLoaded('dealerLocality')
+            ? $this->getRelation('dealerLocality')
+            : null;
+        $dealerCounty = $this->relationLoaded('dealerCounty')
+            ? $this->getRelation('dealerCounty')
+            : null;
+
+        if (!$dealerLocality && ! empty($this->locality_id)) {
+            $dealerLocality = Locality::query()
+                ->select('id', 'county_id', 'slug')
+                ->find($this->locality_id);
+        }
+
+        if (!$dealerCounty && ! empty($this->county_id)) {
+            $dealerCounty = County::query()
+                ->select('id', 'slug')
+                ->find($this->county_id);
+        }
+
+        if (!$dealerCounty && $dealerLocality?->county_id) {
+            $dealerCounty = County::query()
+                ->select('id', 'slug')
+                ->find($dealerLocality->county_id);
+        }
+
+        $countySlug = $dealerCounty?->slug ?: Str::slug($this->county ?: 'romania');
+        $citySlug = $dealerLocality?->slug ?: $this->dealerCityFallbackSlug($countySlug);
+
         return route('dealers.show', [
-            'countySlug' => Str::slug($this->county ?: 'romania'),
-            'citySlug' => Str::slug($this->city ?: 'romania'),
+            'countySlug' => $countySlug,
+            'citySlug' => $citySlug,
             'dealerSlug' => $this->dealer_route_slug,
-        ]);
+        ], false);
     }
 
     public function getDealerGalleryUrlsAttribute(): array
@@ -267,6 +323,37 @@ class User extends Authenticatable
     private static function makeDealerSlugBase(string $companyName): string
     {
         return Str::slug($companyName) ?: 'parc-auto';
+    }
+
+    private function dealerCityFallbackSlug(string $countySlug): string
+    {
+        $city = trim((string) $this->city);
+
+        if ($city === '') {
+            return 'romania';
+        }
+
+        $county = trim((string) $this->county);
+        $cityParts = array_values(array_filter(array_map('trim', explode(',', $city))));
+
+        if ($county !== '' && count($cityParts) > 1) {
+            $lastCityPart = end($cityParts);
+
+            if ($lastCityPart && Str::slug($lastCityPart) === $countySlug) {
+                array_pop($cityParts);
+                $city = implode(', ', $cityParts) ?: $city;
+            }
+        }
+
+        $citySlug = Str::slug($city);
+        $countySuffix = '-' . $countySlug;
+
+        if ($countySlug !== '' && Str::endsWith($citySlug, $countySuffix)) {
+            $withoutCounty = Str::beforeLast($citySlug, $countySuffix);
+            $citySlug = $withoutCounty !== '' ? $withoutCounty : $citySlug;
+        }
+
+        return $citySlug ?: 'romania';
     }
 
     private static function hasDealerSlugColumn(): bool
