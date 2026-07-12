@@ -689,9 +689,14 @@
     }
 
     function setupLookupCatalog(el, url, labelKey = 'nume') {
+        let loaded = false;
+
         loadOnFirstComboboxOpen(el, async () => {
+            if (loaded) return;
+
             const items = await fetchCatalog(url);
             setComboboxOptions(el, items.map((item) => catalogOption(item, labelKey)), el?.value || '');
+            loaded = true;
         });
     }
 

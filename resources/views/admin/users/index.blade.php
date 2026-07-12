@@ -389,7 +389,6 @@
 <form id="serviceSoftDeleteForm" action="" method="POST" style="display: none;"> @csrf @method('DELETE') </form>
 <form id="serviceForceDeleteForm" action="" method="POST" style="display: none;"> @csrf @method('DELETE') <input type="hidden" name="force" value="1"> </form>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
 <script>
     document.getElementById('selectAll').addEventListener('change', function() {
         document.querySelectorAll('.rowCheck').forEach(cb => cb.checked = this.checked);

@@ -598,7 +598,7 @@ class HybridCombobox {
         [120, 360, 700].forEach((delay) => {
             const timer = window.setTimeout(() => {
                 if (this.root.classList.contains('is-open')) {
-                    this.syncListingFilterDropdownPosition({ scrollIntoView: true });
+                    this.syncListingFilterDropdownPosition();
                 }
             }, delay);
 
@@ -634,19 +634,30 @@ class HybridCombobox {
         const desiredTop = Math.min(headerBottom + 12, visibleTop + Math.max(12, visibleHeight * 0.28));
         const rootRect = this.root.getBoundingClientRect();
         const availableBelow = visibleBottom - rootRect.bottom - 8;
-        const desiredDropdownSpace = Math.min(280, Math.max(180, visibleHeight * 0.45));
-        const scrollSpace = Math.ceil(desiredDropdownSpace + 24);
+        const desiredDropdownSpace = Math.min(280, Math.max(56, Math.ceil(this.listbox.scrollHeight)));
+        const missingSpace = Math.max(0, desiredDropdownSpace - availableBelow);
 
-        sheet.style.setProperty('--ia-filter-open-listbox-space', `${scrollSpace}px`);
-
-        if (availableBelow >= desiredDropdownSpace && rootRect.top >= desiredTop) {
+        if (missingSpace <= 1) {
             return;
         }
 
-        const delta = rootRect.top - desiredTop;
+        const availableScrollBeforeHeader = Math.max(0, rootRect.top - desiredTop);
+        const delta = Math.min(missingSpace, availableScrollBeforeHeader);
 
         if (delta <= 1) {
             return;
+        }
+
+        const availableScrollSpace = Math.max(0, sheet.scrollHeight - sheet.clientHeight - sheet.scrollTop);
+        const extraScrollSpace = Math.max(0, delta - availableScrollSpace);
+
+        if (extraScrollSpace > 1) {
+            const currentReservedSpace = Number.parseFloat(
+                sheet.style.getPropertyValue('--ia-filter-open-listbox-space')
+            ) || 0;
+            const reservedSpace = currentReservedSpace + Math.ceil(extraScrollSpace + 4);
+
+            sheet.style.setProperty('--ia-filter-open-listbox-space', `${reservedSpace}px`);
         }
 
         sheet.scrollTop += delta;
@@ -662,12 +673,6 @@ class HybridCombobox {
         this.root.classList.remove('opens-down');
         this.root.style.removeProperty('--ia-combobox-listbox-max-height');
         this.root.style.removeProperty('--ia-filter-open-listbox-space');
-
-        const sheet = this.root.closest('.filters-panel-sheet');
-
-        if (sheet) {
-            sheet.style.removeProperty('--ia-filter-open-listbox-space');
-        }
     }
 
     syncListingFilterDropdownPosition({ scrollIntoView = false } = {}) {

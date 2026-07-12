@@ -922,9 +922,14 @@
     }
 
     function setupLookupCatalog(el, url, labelKey = 'nume') {
+        let loaded = false;
+
         loadOnFirstComboboxOpen(el, async () => {
+            if (loaded) return;
+
             const items = await fetchCatalog(url);
             setComboboxOptions(el, items.map((item) => catalogOption(item, labelKey)), el?.value || '');
+            loaded = true;
         });
     }
 
@@ -1674,6 +1679,7 @@
         closeMobileFilters = () => {
             filterOverlay?.classList.add('hidden');
             filterPanel?.classList.add('hidden');
+            filterPanel?.querySelector('.filters-panel-sheet')?.style.removeProperty('--ia-filter-open-listbox-space');
             document.body.style.overflow = '';
             closeCustomSelects();
             restoreMobileFilters();
@@ -1684,7 +1690,10 @@
             portalMobileFilters();
             filterOverlay?.classList.remove('hidden');
             filterPanel?.classList.remove('hidden');
-            filterPanel?.querySelector('.filters-panel-sheet')?.scrollTo({ top: 0 });
+            const filterSheet = filterPanel?.querySelector('.filters-panel-sheet');
+
+            filterSheet?.style.removeProperty('--ia-filter-open-listbox-space');
+            filterSheet?.scrollTo({ top: 0 });
             document.body.style.overflow = 'hidden';
         };
 

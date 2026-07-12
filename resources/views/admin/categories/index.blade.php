@@ -156,6 +156,4 @@
     </div>
 </div>
 
-{{-- SCRIPTURI --}}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
 @endsection

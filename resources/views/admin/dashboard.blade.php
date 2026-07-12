@@ -493,19 +493,29 @@
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+@vite('resources/js/admin-dashboard.js')
 
 <script>
-    Chart.defaults.font.family = "'Inter', sans-serif";
-    Chart.defaults.color = '#94a3b8';
+    function initializeAdminChart() {
+        if (!window.Chart || window.iaAutoAdminChartInitialized) {
+            return;
+        }
 
-    const ctx = document.getElementById('mainChart').getContext('2d');
-    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(59, 130, 246, 0.2)');
-    gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+        const canvas = document.getElementById('mainChart');
+        if (!canvas) {
+            return;
+        }
 
-    new Chart(ctx, {
+        window.iaAutoAdminChartInitialized = true;
+        window.Chart.defaults.font.family = "'Inter', sans-serif";
+        window.Chart.defaults.color = '#94a3b8';
+
+        const ctx = canvas.getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(59, 130, 246, 0.2)');
+        gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+
+        new window.Chart(ctx, {
         type: 'line',
         data: {
             labels: @json($chartLabels),
@@ -552,7 +562,11 @@
                 y: { border: { display: false }, grid: { borderDash: [4, 4] }, beginAtZero: true }
             }
         }
-    });
+        });
+    }
+
+    window.addEventListener('iaauto:admin-chart-ready', initializeAdminChart, { once: true });
+    initializeAdminChart();
 </script>
 
 <style>

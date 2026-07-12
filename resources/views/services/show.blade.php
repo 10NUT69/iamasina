@@ -467,7 +467,7 @@
 @endsection
 
 @section('content')
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+@vite('resources/js/service-show.js')
 
 <style>
     /* Swiper Zoom Container Styling */
@@ -483,7 +483,11 @@
         backdrop-filter: blur(4px);
         z-index: 20;
     }
-    .swiper-button-next:after, .swiper-button-prev:after { font-size: 20px !important; font-weight: bold; }
+    .swiper-button-next .swiper-navigation-icon,
+    .swiper-button-prev .swiper-navigation-icon {
+        width: 11px;
+        height: 20px;
+    }
 
     /* Glass Effect */
     .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
@@ -715,8 +719,8 @@
                         </div>
 
                         {{-- Săgeți Mobile (Adăugate aici, stilizate mai mici cu Tailwind) --}}
-                        <div class="swiper-button-next mobile-arrow-next !w-10 !h-10 !after:text-lg"></div>
-                        <div class="swiper-button-prev mobile-arrow-prev !w-10 !h-10 !after:text-lg"></div>
+                        <div class="swiper-button-next mobile-arrow-next !w-10 !h-10"></div>
+                        <div class="swiper-button-prev mobile-arrow-prev !w-10 !h-10"></div>
                     </div>
                 </div>
 
@@ -1260,7 +1264,6 @@
 @endif
 
 {{-- SCRIPTS --}}
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script>
     const serviceShareUrl = @json($currentUrl);
     const serviceShareTitle = @json($service->title);
