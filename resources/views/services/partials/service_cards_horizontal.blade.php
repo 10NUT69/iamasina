@@ -43,9 +43,8 @@
         if (is_string($imagesList)) $imagesList = json_decode($imagesList, true) ?: [];
         if (is_object($imagesList) && method_exists($imagesList, 'all')) $imagesList = $imagesList->all();
         $imagesList = is_array($imagesList) ? $imagesList : [];
-        $imgCount = count($imagesList);
         $sliderImages = $imagesList;
-        if ($imgCount === 0 && $service->main_image_url) {
+        if (empty($sliderImages) && $service->main_image_url) {
             $sliderImages = [$service->main_image_url];
         }
         $sliderImageUrls = collect($sliderImages)
@@ -68,90 +67,7 @@
         
         {{-- A. ZONA FOTO (Slider + Badges) --}}
         <div class="relative w-full md:w-[320px] lg:w-[340px] shrink-0 aspect-[4/3] md:aspect-auto md:min-h-[240px] overflow-hidden bg-gray-100 dark:bg-[#09090b]"
-             x-data="{ 
-                activeSlide: 0, 
-                slides: {{ $slideCount > 0 ? $slideCount : 1 }},
-                imageUrls: @js($sliderImageUrls),
-                loadedSlides: {{ $slideCount > 0 ? '[0]' : '[]' }},
-                loadingSlides: [],
-                pendingSlide: null,
-                touchStartX: null,
-                init() { this.observeForPreload() },
-                isLoaded(index) { return this.loadedSlides.includes(index) },
-                nextIndex(index = this.activeSlide) { return this.slides < 2 ? 0 : (index === this.slides - 1 ? 0 : index + 1) },
-                prevIndex(index = this.activeSlide) { return this.slides < 2 ? 0 : (index === 0 ? this.slides - 1 : index - 1) },
-                next() { this.goTo(this.nextIndex()) },
-                prev() { this.goTo(this.prevIndex()) },
-                goTo(index) {
-                    if (this.slides < 2 || index === this.activeSlide) return;
-                    if (this.isLoaded(index)) {
-                        this.setActive(index);
-                        return;
-                    }
-                    this.preload(index, true);
-                },
-                setActive(index) {
-                    this.activeSlide = index;
-                    this.preload(this.nextIndex(index));
-                },
-                preloadAdjacent() {
-                    if (this.slides > 1) this.preload(this.nextIndex());
-                },
-                preload(index, activate = false) {
-                    if (this.slides < 1 || !this.imageUrls[index]) return;
-                    if (this.isLoaded(index)) {
-                        if (activate) this.setActive(index);
-                        return;
-                    }
-                    if (activate) this.pendingSlide = index;
-                    if (this.loadingSlides.includes(index)) return;
-                    this.loadingSlides.push(index);
-                    const image = new Image();
-                    image.decoding = 'async';
-                    image.onload = () => {
-                        if (!this.loadedSlides.includes(index)) this.loadedSlides.push(index);
-                        this.loadingSlides = this.loadingSlides.filter((slide) => slide !== index);
-                        if (this.pendingSlide === index) {
-                            this.pendingSlide = null;
-                            this.setActive(index);
-                        }
-                    };
-                    image.onerror = () => {
-                        this.loadingSlides = this.loadingSlides.filter((slide) => slide !== index);
-                        if (this.pendingSlide === index) this.pendingSlide = null;
-                    };
-                    image.src = this.imageUrls[index];
-                },
-                observeForPreload() {
-                    if (this.slides < 2) return;
-                    if (!('IntersectionObserver' in window)) {
-                        this.preloadAdjacent();
-                        return;
-                    }
-                    const observer = new IntersectionObserver((entries) => {
-                        if (entries.some((entry) => entry.isIntersecting)) {
-                            this.preloadAdjacent();
-                            observer.disconnect();
-                        }
-                    }, { rootMargin: '450px 0px' });
-                    observer.observe(this.$el);
-                },
-                onTouchStart(event) {
-                    this.preloadAdjacent();
-                    this.touchStartX = event.changedTouches[0].clientX;
-                },
-                onTouchEnd(event) {
-                    if (this.touchStartX === null || this.slides < 2) return;
-
-                    const diff = this.touchStartX - event.changedTouches[0].clientX;
-
-                    if (Math.abs(diff) > 40) {
-                        diff > 0 ? this.next() : this.prev();
-                    }
-
-                    this.touchStartX = null;
-                }
-             }"
+             x-data="listingGallery(@js($sliderImageUrls), @js($imageAlt))"
              @mouseenter="preloadAdjacent()"
              @touchstart.passive="onTouchStart($event)"
              @touchend.passive="onTouchEnd($event)">
@@ -159,37 +75,17 @@
             {{-- Link principal pe imagine --}}
             <a href="{{ $service->public_url }}" class="block w-full h-full relative group/img">
                 @if($slideCount > 0)
-                    @foreach($sliderImageUrls as $index => $imageUrl)
-                        @php
-                            $isPriorityImage = $index === 0 && $cardIndex < 4;
-                        @endphp
-                        @if($imageUrl)
-                            @if($index === 0)
-                                <img src="{{ $imageUrl }}"
-                                     x-show="activeSlide === {{ $index }}"
-                                     x-transition:enter="transition transform duration-500 ease-out"
-                                     x-transition:enter-start="opacity-0 scale-105"
-                                     x-transition:enter-end="opacity-100 scale-100"
-                                     class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover/img:scale-105"
-                                     alt="{{ $imageAlt }} - poza {{ $index + 1 }}"
-                                     loading="{{ $isPriorityImage ? 'eager' : 'lazy' }}"
-                                     decoding="async"
-                                     @if($isPriorityImage) fetchpriority="high" @endif>
-                            @else
-                                <template x-if="isLoaded({{ $index }})">
-                                    <img src="{{ $imageUrl }}"
-                                         x-show="activeSlide === {{ $index }}"
-                                         x-transition:enter="transition transform duration-500 ease-out"
-                                         x-transition:enter-start="opacity-0 scale-105"
-                                         x-transition:enter-end="opacity-100 scale-100"
-                                         class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover/img:scale-105"
-                                         alt="{{ $imageAlt }} - poza {{ $index + 1 }}"
-                                         loading="lazy"
-                                         decoding="async">
-                                </template>
-                            @endif
-                        @endif
-                    @endforeach
+                    @php
+                        $isPriorityImage = $cardIndex === 0;
+                    @endphp
+                    <img src="{{ $sliderImageUrls[0] }}"
+                         x-bind:src="currentImage"
+                         x-bind:alt="currentAlt"
+                         class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover/img:scale-105"
+                         alt="{{ $imageAlt }} - poza 1"
+                         loading="{{ $isPriorityImage ? 'eager' : 'lazy' }}"
+                         decoding="async"
+                         @if($isPriorityImage) fetchpriority="high" @endif>
                 @else
                     {{-- Placeholder --}}
                     <div class="absolute inset-0 flex items-center justify-center text-gray-400 bg-gray-100 dark:bg-[#121212]">
@@ -202,14 +98,14 @@
             </a>
 
             {{-- Navigare Slider (Doar la Hover) --}}
-            @if($imgCount > 1)
+            @if($slideCount > 1)
                 <div class="absolute inset-y-0 left-0 flex items-center pl-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
-                    <button @click.prevent="prev()" class="pointer-events-auto p-1.5 rounded-full bg-white/90 text-black hover:bg-white shadow-lg transition-transform hover:scale-110 dark:bg-black/60 dark:text-white dark:hover:bg-black/80">
+                    <button type="button" aria-label="Imaginea anterioara" @click.prevent="prev()" class="pointer-events-auto p-1.5 rounded-full bg-white/90 text-black hover:bg-white shadow-lg transition-transform hover:scale-110 dark:bg-black/60 dark:text-white dark:hover:bg-black/80">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
                     </button>
                 </div>
                 <div class="absolute inset-y-0 right-0 flex items-center pr-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
-                    <button @click.prevent="next()" class="pointer-events-auto p-1.5 rounded-full bg-white/90 text-black hover:bg-white shadow-lg transition-transform hover:scale-110 dark:bg-black/60 dark:text-white dark:hover:bg-black/80">
+                    <button type="button" aria-label="Imaginea urmatoare" @click.prevent="next()" class="pointer-events-auto p-1.5 rounded-full bg-white/90 text-black hover:bg-white shadow-lg transition-transform hover:scale-110 dark:bg-black/60 dark:text-white dark:hover:bg-black/80">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                     </button>
                 </div>
@@ -218,7 +114,7 @@
                 <div class="absolute bottom-3 left-3 z-10">
                     <div class="flex items-center gap-1.5 px-2 py-1 rounded-md bg-black/60 backdrop-blur-md text-white text-[10px] font-bold tracking-wide">
                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        <span x-text="activeSlide + 1"></span>/{{ $imgCount }}
+                        <span x-text="activeSlide + 1"></span>/{{ $slideCount }}
                     </div>
                 </div>
             @endif

@@ -72,17 +72,10 @@ class ServiceController extends Controller
         $offset = ($page - 1) * $perPageListing;
     }
 
-    $query = Service::with([
-        'county',
-        'locality',
-        'category',
-        'user',
-        'combustibil',
-        'cutieViteze',
-        'brandRel',
-        'modelRel',
-        'normaPoluare',
-    ])->where('status', 'active');
+    $query = Service::query()
+        ->select($this->listingServiceCardColumns())
+        ->with($this->listingServiceCardRelations())
+        ->where('status', 'active');
 
     // Search
     if ($request->filled('search')) {
@@ -210,19 +203,19 @@ class ServiceController extends Controller
 
     switch ($sort) {
         case 'price_asc':
-            $query->orderBy('price_value', 'asc')->orderBy('created_at', 'desc');
+            $query->orderBy('price_value', 'asc')->orderBy('created_at', 'desc')->orderBy('id', 'desc');
             break;
         case 'price_desc':
-            $query->orderBy('price_value', 'desc')->orderBy('created_at', 'desc');
+            $query->orderBy('price_value', 'desc')->orderBy('created_at', 'desc')->orderBy('id', 'desc');
             break;
         case 'km_asc':
-            $query->orderBy('km', 'asc')->orderBy('created_at', 'desc');
+            $query->orderBy('km', 'asc')->orderBy('created_at', 'desc')->orderBy('id', 'desc');
             break;
         case 'power_asc':
-            $query->orderBy('putere', 'asc')->orderBy('created_at', 'desc');
+            $query->orderBy('putere', 'asc')->orderBy('created_at', 'desc')->orderBy('id', 'desc');
             break;
         default:
-            $query->orderBy('created_at', 'desc');
+            $query->orderBy('created_at', 'desc')->orderBy('id', 'desc');
     }
 
     $this->withFavoriteStateForCurrentUser($query);
@@ -712,6 +705,49 @@ public function indexAutoPath(
             'capacitate_cilindrica',
             'published_at',
             'created_at',
+        ];
+    }
+
+    private function listingServiceCardColumns(): array
+    {
+        return [
+            'id',
+            'title',
+            'slug',
+            'category_id',
+            'brand_id',
+            'model_id',
+            'car_generation_id',
+            'county_id',
+            'locality_id',
+            'city',
+            'combustibil_id',
+            'cutie_viteze_id',
+            'norma_poluare_id',
+            'images',
+            'price_value',
+            'price_type',
+            'currency',
+            'an_fabricatie',
+            'km',
+            'putere',
+            'capacitate_cilindrica',
+            'published_at',
+            'created_at',
+        ];
+    }
+
+    private function listingServiceCardRelations(): array
+    {
+        return [
+            'county:id,name,slug',
+            'locality:id,county_id,name,slug',
+            'category:id,slug',
+            'combustibil:id,nume',
+            'cutieViteze:id,nume',
+            'brandRel:id,name,slug',
+            'modelRel:id,car_brand_id,name,slug',
+            'normaPoluare:id,nume',
         ];
     }
 
