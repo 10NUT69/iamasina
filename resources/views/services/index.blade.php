@@ -1098,6 +1098,10 @@
         window.iaAutoFavorites?.toggle(btn, serviceId);
     }
 </script>
+
+@endsection
+
+@section('page_styles')
 <style>
     .homepage-hero-visual {
         background: transparent;
