@@ -1101,7 +1101,7 @@
 
 @endsection
 
-@section('page_styles')
+@push('page_styles')
 <style>
     .homepage-hero-visual {
         background: transparent;
@@ -1668,4 +1668,4 @@
         }
     }
 </style>
-@endsection
+@endpush

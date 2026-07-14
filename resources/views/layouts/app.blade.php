@@ -63,7 +63,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @yield('page_styles')
+    @stack('page_styles')
 </head>
 
 <body class="bg-[#f6f7fb] dark:bg-[#121212] text-gray-900 dark:text-[#E5E5E5] font-inter antialiased min-h-screen flex flex-col">
@@ -236,12 +236,12 @@
                              alt="iaAuto.ro"
                              width="240"
                              height="64"
-                             class="h-8 w-auto object-contain dark:hidden">
+                             class="h-8 w-[120px] object-contain dark:hidden">
                         <img src="{{ asset('images/iaauto-logo-nav.svg') }}?v=modern-20260511c"
                              alt="iaAuto.ro"
                              width="240"
                              height="64"
-                             class="hidden h-8 w-auto object-contain dark:block">
+                             class="hidden h-8 w-[120px] object-contain dark:block">
                     </a>
                     <p class="text-[11px] text-gray-500 dark:text-gray-500 leading-tight">
                         Anunțuri auto curate, ușor de filtrat, de la proprietari și parcuri auto din toată țara.

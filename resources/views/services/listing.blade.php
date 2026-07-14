@@ -1906,6 +1906,9 @@
     }
 </script>
 
+@endsection
+
+@push('page_styles')
 <style>
     :root {
         --mobile-filters-top: 56px;
@@ -2406,4 +2409,4 @@
     }
 
 </style>
-@endsection
+@endpush

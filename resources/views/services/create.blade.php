@@ -527,7 +527,9 @@
     </div>
 </div>
 
+@push('page_styles')
 <style>
+    html { scrollbar-gutter: stable; }
     .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     #wizardForm select {
@@ -1160,6 +1162,7 @@
         }
     }
 </style>
+@endpush
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
