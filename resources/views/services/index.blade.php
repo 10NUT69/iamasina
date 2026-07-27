@@ -353,10 +353,10 @@
 
             <div class="mt-5 max-w-none space-y-4 text-justify text-sm leading-6 text-gray-700 dark:text-gray-300 sm:text-base sm:leading-7">
                 <p>
-                    Ai intrat pe iaAuto.ro, locul unde căutarea unei mașini devine simplă și rapidă. Indiferent dacă ești în căutarea unei mașini second hand accesibile sau vrei să achiziționezi un autoturism nou, platforma noastră aduce împreună cumpărători, proprietari particulari și parcuri auto din întreaga Românie.
+                    Ai intrat pe iaAuto, locul unde căutarea unei mașini devine simplă și rapidă. Indiferent dacă ești în căutarea unei mașini second hand accesibile sau vrei să achiziționezi un autoturism nou, platforma noastră aduce împreună cumpărători, proprietari particulari și parcuri auto din întreaga Românie.
                 </p>
                 <p>
-                    Pentru cei care doresc să își vândă autoturismul, procesul este simplu. Poți să adaugi un anunț gratuit în doar câteva minute, oferind mai multă vizibilitate mașinii tale în fața potențialilor cumpărători. De la mașini de oraș economice și SUV-uri spațioase, până la utilitare sau mașini premium, iaAuto.ro este destinația potrivită pentru anunțuri auto din mai multe categorii.
+                    Pentru cei care doresc să își vândă autoturismul, procesul este simplu. Poți să adaugi un anunț gratuit în doar câteva minute, oferind mai multă vizibilitate mașinii tale în fața potențialilor cumpărători. De la mașini de oraș economice și SUV-uri spațioase, până la utilitare sau mașini premium, iaAuto este destinația potrivită pentru anunțuri auto din mai multe categorii.
                 </p>
             </div>
 
@@ -402,7 +402,7 @@
             </div>
 
             <p class="mt-7 max-w-none text-justify text-sm leading-6 text-gray-700 dark:text-gray-300 sm:text-base sm:leading-7">
-                Navighează printre ofertele disponibile, compară prețurile și găsește mașina ideală pentru nevoile și bugetul tău. Pe iaAuto.ro, piața auto din România este mai accesibilă ca niciodată.
+                Navighează printre ofertele disponibile, compară prețurile și găsește mașina ideală pentru nevoile și bugetul tău. Pe iaAuto, piața auto din România este mai accesibilă ca niciodată.
             </p>
         </div>
     </section>
