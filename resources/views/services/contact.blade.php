@@ -8,7 +8,7 @@
     <div class="max-w-[1536px] mx-auto">
         <header class="mb-6 md:mb-8">
             <h1 class="text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-900 dark:text-gray-100 mb-2">
-                Contact iaAuto.ro
+                Contact iaAuto
             </h1>
             <p class="text-sm md:text-base text-gray-600 dark:text-gray-300 max-w-3xl">
                 Dacă ai o întrebare, o problemă tehnică sau o sugestie pentru platformă, ne poți scrie folosind
@@ -41,7 +41,7 @@
                     Sugestii pentru platformă
                 </h2>
                 <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-3">
-                    iaAuto.ro este în dezvoltare, iar feedbackul concret ne ajută să prioritizăm ce contează:
+                    iaAuto este în dezvoltare, iar feedbackul concret ne ajută să prioritizăm ce contează:
                     filtre, pagini de anunț, listare, cont de utilizator sau optimizare pentru mobil.
                 </p>
                 <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
@@ -56,7 +56,7 @@
                 Important de știut
             </h2>
             <p class="text-xs md:text-sm text-[#7f1d1d] dark:text-red-100/90 leading-relaxed">
-                iaAuto.ro nu intermediază plăți și nu garantează starea tehnică a mașinilor. Înainte de cumpărare,
+                iaAuto nu intermediază plăți și nu garantează starea tehnică a mașinilor. Înainte de cumpărare,
                 verifică actele, istoricul, vânzătorul și mașina prin metode independente.
             </p>
         </section>

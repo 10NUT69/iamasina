@@ -348,7 +348,7 @@
             </p>
 
             <h2 class="max-w-none text-2xl font-black leading-tight text-gray-900 dark:text-white sm:text-3xl">
-                iaAuto.ro - Platforma ta de anunțuri auto și mașini de vânzare
+                iaAuto - Platforma ta de anunțuri auto și mașini de vânzare
             </h2>
 
             <div class="mt-5 max-w-none space-y-4 text-justify text-sm leading-6 text-gray-700 dark:text-gray-300 sm:text-base sm:leading-7">

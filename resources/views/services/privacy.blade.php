@@ -42,7 +42,7 @@
                     3. Stocare și securitate
                 </h2>
                 <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                    Datele sunt stocate pe serverele folosite pentru găzduirea iaAuto.ro și pe serviciile necesare
+                    Datele sunt stocate pe serverele folosite pentru găzduirea iaAuto și pe serviciile necesare
                     funcționării platformei, precum e-mailul tranzacțional sau procesarea imaginilor.
                 </p>
             </article>
@@ -73,7 +73,7 @@
                 Confidențialitatea ta contează
             </h2>
             <p class="text-xs md:text-sm text-[#7f1d1d] dark:text-red-100/90 leading-relaxed">
-                iaAuto.ro nu își propune să colecteze mai multe date decât are nevoie pentru a funcționa normal.
+                iaAuto nu își propune să colecteze mai multe date decât are nevoie pentru a funcționa normal.
                 Dacă ai o nelămurire, trimite-ne un mesaj și verificăm împreună.
             </p>
         </section>
