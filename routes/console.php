@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\FetchBnrExchangeRate;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -17,3 +18,8 @@ Schedule::command('backups:cleanup-media-exports')
     ->hourly()
     ->timezone(config('app.timezone', 'Europe/Bucharest'))
     ->withoutOverlapping(60);
+
+Schedule::job(new FetchBnrExchangeRate())
+    ->dailyAt('14:00')
+    ->timezone(config('app.timezone', 'Europe/Bucharest'))
+    ->withoutOverlapping(120);

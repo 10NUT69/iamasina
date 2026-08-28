@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Service;
 use App\Models\User;
+use App\Services\ServicePriceNormalizer;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -18,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->scoped(ServicePriceNormalizer::class);
     }
 
     /**

@@ -4,6 +4,7 @@ namespace App\Models;
 use App\Models\CarBrand;
 use App\Models\CarModel;
 use App\Support\ServiceImageStorage;
+use App\Services\ServicePriceNormalizer;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,6 +18,7 @@ class Service extends Model
 
     private const DEFAULT_AUTO_IMAGE = 'images/defaults/auto-de-vanzare-iaauto-default.webp';
     private const AUTO_DEFAULT_CATEGORY_SLUGS = ['autoturisme', 'servicii-auto'];
+    private const INITIAL_DATE_DRIFT_MINUTES = 10;
 
     public const FEATURE_OPTIONS = [
         'filtru_particule' => 'Filtru particule',
@@ -109,6 +111,7 @@ class Service extends Model
         'published_at' => 'datetime',
         'expires_at' => 'datetime',
         'price_value' => 'float',
+        'price_eur' => 'decimal:4',
         'latitude' => 'float',
         'longitude' => 'float',
 
@@ -132,6 +135,18 @@ class Service extends Model
 'numar_usi'        => 'integer',
 'numar_locuri'     => 'integer',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Service $service): void {
+            $priceChanged = $service->isDirty(['price_value', 'currency']);
+            $becameActive = $service->isDirty('status') && $service->status === 'active';
+
+            if ($priceChanged || $becameActive) {
+                app(ServicePriceNormalizer::class)->apply($service);
+            }
+        });
+    }
 
     public function category() { return $this->belongsTo(Category::class); }
     public function county() { return $this->belongsTo(County::class); }
@@ -269,13 +284,28 @@ class Service extends Model
 
     public function getListingDateAttribute()
     {
-        if ($this->published_at && $this->created_at) {
-            return $this->created_at->greaterThan($this->published_at)
-                ? $this->created_at
-                : $this->published_at;
+        return $this->renewed_at ?: $this->published_at ?: $this->created_at;
+    }
+
+    public function getRenewedAtAttribute()
+    {
+        if (!$this->published_at || !$this->created_at || !$this->created_at->greaterThan($this->published_at)) {
+            return null;
         }
 
-        return $this->published_at ?: $this->created_at;
+        // În înregistrările vechi, published_at a rămas în UTC, iar created_at apare în fusul aplicației.
+        $initialDateCandidates = [
+            $this->published_at,
+            $this->published_at->copy()->addMinutes($this->published_at->utcOffset()),
+        ];
+
+        foreach ($initialDateCandidates as $initialDate) {
+            if (abs($this->created_at->diffInMinutes($initialDate)) <= self::INITIAL_DATE_DRIFT_MINUTES) {
+                return null;
+            }
+        }
+
+        return $this->created_at;
     }
 
     public function getListingDateLabelAttribute(): string

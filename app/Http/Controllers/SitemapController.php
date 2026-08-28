@@ -92,7 +92,7 @@ class SitemapController extends Controller
             ->orderBy('id')
             ->chunkById(1000, function ($services) use (&$urls) {
                 foreach ($services as $service) {
-                    $lastmod = $service->updated_at ?? $service->created_at;
+                    $lastmod = $this->mostRecentTimestamp($service->updated_at, $service->created_at);
                     $this->addListingUrlsForService($urls, $service, $lastmod);
 
                     $publicUrl = $service->public_url;
@@ -219,12 +219,22 @@ class SitemapController extends Controller
             : $modelClass::query();
 
         $record = $query
-            ->select(['updated_at', 'created_at'])
-            ->orderByDesc('updated_at')
-            ->orderByDesc('created_at')
+            ->selectRaw('MAX(updated_at) as latest_updated_at, MAX(created_at) as latest_created_at')
             ->first();
 
-        return $record?->updated_at ?? $record?->created_at;
+        return $this->mostRecentTimestamp(
+            $record?->latest_updated_at,
+            $record?->latest_created_at
+        );
+    }
+
+    private function mostRecentTimestamp(mixed ...$timestamps): ?Carbon
+    {
+        return collect($timestamps)
+            ->filter()
+            ->map(fn ($timestamp) => Carbon::parse($timestamp))
+            ->sortByDesc(fn (Carbon $timestamp) => $timestamp->getTimestamp())
+            ->first();
     }
 
     private function latestDealerTimestamp(): mixed

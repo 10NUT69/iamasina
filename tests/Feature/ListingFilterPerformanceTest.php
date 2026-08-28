@@ -51,6 +51,98 @@ class ListingFilterPerformanceTest extends TestCase
         $this->assertStringNotContainsString('<template x-if="isLoaded(', $html);
     }
 
+    public function test_count_only_response_returns_filtered_total_without_card_html(): void
+    {
+        $response = $this
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/anunturi-auto-de-vanzare?seller_type=dealer&cutie_viteze_id=1&count_only=1');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('total', 2)
+            ->assertJsonPath('facets.brands.1', 2)
+            ->assertJsonPath('facets.models', [])
+            ->assertJsonMissingPath('html');
+    }
+
+    public function test_filter_facets_follow_the_existing_context_and_exclude_only_their_own_dimension(): void
+    {
+        $dealerResponse = $this
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/anunturi-auto-de-vanzare?seller_type=dealer&count_only=1');
+
+        $dealerResponse
+            ->assertOk()
+            ->assertJsonPath('total', 4)
+            ->assertJsonPath('facets.brands.1', 3)
+            ->assertJsonPath('facets.brands.3', 1)
+            ->assertJsonPath('facets.models', []);
+
+        $brandResponse = $this
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/anunturi-auto-de-vanzare?seller_type=dealer&brand_id=1&count_only=1');
+
+        $brandResponse
+            ->assertOk()
+            ->assertJsonPath('total', 3)
+            ->assertJsonPath('facets.brands.1', 3)
+            ->assertJsonPath('facets.brands.3', 1)
+            ->assertJsonPath('facets.models.1', 3);
+
+        $narrowedResponse = $this
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/anunturi-auto-de-vanzare?seller_type=dealer&brand_id=1&cutie_viteze_id=1&count_only=1');
+
+        $narrowedResponse
+            ->assertOk()
+            ->assertJsonPath('total', 2)
+            ->assertJsonPath('facets.brands.1', 2)
+            ->assertJsonPath('facets.models.1', 2);
+
+        $this->assertNull($narrowedResponse->json('facets.brands.2'));
+        $this->assertNull($narrowedResponse->json('facets.brands.3'));
+    }
+
+    public function test_brand_and_model_catalogs_include_active_listing_counts(): void
+    {
+        $brands = collect($this->getJson('/ajax/brands')->assertOk()->json())->keyBy('id');
+        $models = collect($this->getJson('/ajax/models-by-brand?brand_id=1')->assertOk()->json())->keyBy('id');
+
+        $this->assertSame(4, $brands->get(1)['active_services_count']);
+        $this->assertSame(0, $brands->get(2)['active_services_count']);
+        $this->assertSame(2, $brands->get(3)['active_services_count']);
+        $this->assertSame(4, $models->get(1)['active_services_count']);
+        $this->assertSame(0, $models->get(2)['active_services_count']);
+    }
+
+    public function test_price_filtering_and_sorting_use_the_normalized_eur_price(): void
+    {
+        DB::table('services')->where('id', 1)->update([
+            'price_value' => 52584,
+            'currency' => 'RON',
+            'price_eur' => 10000,
+        ]);
+
+        $countResponse = $this
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/anunturi-auto-de-vanzare?seller_type=dealer&cutie_viteze_id=1&price_max=12000&count_only=1');
+
+        $countResponse
+            ->assertOk()
+            ->assertJsonPath('total', 1)
+            ->assertJsonPath('facets.brands.1', 1);
+
+        $sortResponse = $this
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/anunturi-auto-de-vanzare?seller_type=dealer&cutie_viteze_id=1&sort=price_asc&ajax=1');
+
+        $sortResponse->assertOk()->assertJsonPath('total', 2);
+
+        $html = (string) $sortResponse->json('html');
+
+        $this->assertLessThan(strpos($html, 'Dealer older'), strpos($html, 'Dealer newest'));
+    }
+
     private function createListingSchema(): void
     {
         Schema::create('users', function (Blueprint $table) {
@@ -95,6 +187,8 @@ class ListingFilterPerformanceTest extends TestCase
             $table->id();
             $table->string('name');
             $table->string('slug');
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->boolean('is_popular')->default(false);
         });
 
         Schema::create('car_models', function (Blueprint $table) {
@@ -102,6 +196,7 @@ class ListingFilterPerformanceTest extends TestCase
             $table->unsignedBigInteger('car_brand_id');
             $table->string('name');
             $table->string('slug');
+            $table->unsignedInteger('sort_order')->default(0);
         });
 
         Schema::create('services', function (Blueprint $table) {
@@ -125,6 +220,7 @@ class ListingFilterPerformanceTest extends TestCase
             $table->unsignedInteger('putere')->nullable();
             $table->decimal('price_value', 10, 2)->nullable();
             $table->string('currency', 3)->default('EUR');
+            $table->decimal('price_eur', 14, 4)->nullable();
             $table->string('price_type')->default('fixed');
             $table->json('images')->nullable();
             $table->string('status')->default('active');
@@ -150,8 +246,16 @@ class ListingFilterPerformanceTest extends TestCase
             ['id' => 2, 'nume' => 'Automata'],
         ]);
         DB::table('norme_poluare')->insert(['id' => 1, 'nume' => 'Euro 6']);
-        DB::table('car_brands')->insert(['id' => 1, 'name' => 'Marca', 'slug' => 'marca']);
-        DB::table('car_models')->insert(['id' => 1, 'car_brand_id' => 1, 'name' => 'Model', 'slug' => 'model']);
+        DB::table('car_brands')->insert([
+            ['id' => 1, 'name' => 'Marca', 'slug' => 'marca'],
+            ['id' => 2, 'name' => 'Fără anunțuri', 'slug' => 'fara-anunturi'],
+            ['id' => 3, 'name' => 'Altă marcă', 'slug' => 'alta-marca'],
+        ]);
+        DB::table('car_models')->insert([
+            ['id' => 1, 'car_brand_id' => 1, 'name' => 'Model', 'slug' => 'model'],
+            ['id' => 2, 'car_brand_id' => 1, 'name' => 'Model fără anunțuri', 'slug' => 'model-fara-anunturi'],
+            ['id' => 3, 'car_brand_id' => 3, 'name' => 'Alt model', 'slug' => 'alt-model'],
+        ]);
 
         DB::table('services')->insert([
             $this->serviceRow(1, 2, 1, 'Dealer newest', '2026-07-12 12:00:00'),
@@ -159,6 +263,8 @@ class ListingFilterPerformanceTest extends TestCase
             $this->serviceRow(3, 1, 1, 'Individual listing', '2026-07-13 12:00:00'),
             $this->serviceRow(4, 2, 1, 'Deleted dealer listing', '2026-07-14 12:00:00', '2026-07-14 13:00:00'),
             $this->serviceRow(5, 2, 2, 'Automatic dealer listing', '2026-07-15 12:00:00'),
+            $this->serviceRow(6, 2, 2, 'Other dealer listing', '2026-07-16 12:00:00', null, 3, 3),
+            $this->serviceRow(7, 1, 2, 'Other individual listing', '2026-07-17 12:00:00', null, 3, 3),
         ]);
     }
 
@@ -168,14 +274,16 @@ class ListingFilterPerformanceTest extends TestCase
         int $transmissionId,
         string $title,
         string $createdAt,
-        ?string $deletedAt = null
+        ?string $deletedAt = null,
+        int $brandId = 1,
+        int $modelId = 1
     ): array {
         return [
             'id' => $id,
             'user_id' => $userId,
             'category_id' => 1,
-            'brand_id' => 1,
-            'model_id' => 1,
+            'brand_id' => $brandId,
+            'model_id' => $modelId,
             'car_generation_id' => null,
             'county_id' => 1,
             'locality_id' => 1,
@@ -191,6 +299,7 @@ class ListingFilterPerformanceTest extends TestCase
             'putere' => 150,
             'price_value' => 15000,
             'currency' => 'EUR',
+            'price_eur' => 15000,
             'price_type' => 'fixed',
             'images' => json_encode(["service-{$id}-1.webp", "service-{$id}-2.webp"]),
             'status' => 'active',

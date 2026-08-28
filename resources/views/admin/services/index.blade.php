@@ -123,6 +123,7 @@
                                 <td class="p-4 text-xs text-slate-500 whitespace-nowrap">
                                     <div><span class="font-bold text-slate-600">Publicat:</span> {{ $service->published_at ? $service->published_at->format('d.m.Y H:i') : '-' }}</div>
                                     <div class="mt-1"><span class="font-bold text-slate-600">Actualizat:</span> {{ $service->updated_at ? $service->updated_at->format('d.m.Y H:i') : '-' }}</div>
+                                    <div class="mt-1"><span class="font-bold text-slate-600">Reactualizat:</span> {{ $service->renewed_at ? $service->renewed_at->format('d.m.Y H:i') : '-' }}</div>
                                 </td>
 
                                 <td class="p-4">

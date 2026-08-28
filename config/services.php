@@ -54,6 +54,13 @@ return [
     'geoip' => [
         'external_lookup_enabled' => env('GEOIP_EXTERNAL_LOOKUP_ENABLED', false),
     ],
+
+    'bnr' => [
+        'endpoint' => env('BNR_EXCHANGE_RATE_ENDPOINT', 'https://curs.bnr.ro/nbrfxrates.xml'),
+        'connect_timeout' => env('BNR_EXCHANGE_RATE_CONNECT_TIMEOUT', 5),
+        'timeout' => env('BNR_EXCHANGE_RATE_TIMEOUT', 15),
+    ],
+
 	'facebook' => [
         'app_id' => env('FACEBOOK_APP_ID'),
         'pixel_id' => env('META_PIXEL_ID'),

@@ -28,6 +28,7 @@ use App\Models\NormaPoluare;
 use App\Models\Tractiune;
 
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -72,147 +73,44 @@ class ServiceController extends Controller
         $offset = ($page - 1) * $perPageListing;
     }
 
+    $selectedLocality = $this->listingSelectedLocality($request);
+
     $query = Service::query()
         ->select($this->listingServiceCardColumns())
         ->with($this->listingServiceCardRelations())
         ->where('status', 'active');
 
-    // Search
-    if ($request->filled('search')) {
-        $search = $request->search;
-        $query->where(function ($q) use ($search) {
-            $q->where('title', 'like', "%{$search}%")
-              ->orWhere('description', 'like', "%{$search}%");
-        });
-    }
-
-    $countyFilter = null;
-    if ($request->filled('county_id')) {
-        $countyFilter = $request->county_id;
-    } elseif ($request->filled('county')) {
-        $countyFilter = $request->county;
-    }
-
-    $selectedLocality = null;
-    if ($request->filled('locality_id')) {
-        $selectedLocality = Locality::query()
-            ->cities()
-            ->select('id', 'county_id', 'name', 'slug')
-            ->find($request->locality_id);
-
-        if ($selectedLocality) {
-            $query->where('locality_id', $selectedLocality->id);
-        }
-    }
-
-    if ($countyFilter) {
-        $query->where('county_id', $countyFilter);
-    }
-
-    // Category: nou = category_id, vechi = category
-    if ($request->filled('category_id')) {
-        $query->where('category_id', $request->category_id);
-    } elseif ($request->filled('category')) {
-        $query->where('category_id', $request->category);
-    }
-
-    // ================= FILTRE AUTO (pe ID-uri) =================
-
-    // Brand: nou = brand_id (coloana din services)
-    if ($request->filled('brand_id')) {
-        $query->where('brand_id', $request->brand_id);
-    } elseif ($request->filled('brand')) {
-        // fallback vechi (brand name) - doar ca să nu rupi link-uri vechi
-        $brandName = $request->brand;
-        $query->whereHas('generation.model.brand', function ($q) use ($brandName) {
-            $q->where('name', $brandName);
-        });
-    }
-
-    // Model: nou = model_id (coloana din services)
-    if ($request->filled('model_id')) {
-        $query->where('model_id', $request->model_id);
-    } elseif ($request->filled('model')) {
-        // fallback vechi (model name)
-        $modelName = $request->model;
-        $query->whereHas('generation.model', function ($q) use ($modelName) {
-            $q->where('name', $modelName);
-        });
-    }
-
-    // Caroserie
-    if ($request->filled('caroserie_id')) {
-        $query->where('caroserie_id', $request->caroserie_id);
-    }
-
-    // Combustibil
-    if ($request->filled('combustibil_id')) {
-        $query->where('combustibil_id', $request->combustibil_id);
-    }
-
-    // Cutie viteze
-    if ($request->filled('cutie_viteze_id')) {
-        $query->where('cutie_viteze_id', $request->cutie_viteze_id);
-    }
-
-    $yearMin = $request->input('year_min', $request->input('an_min'));
-    $yearMax = $request->input('year_max', $request->input('an_max'));
-    $priceMin = $request->input('price_min', $request->input('pret_min'));
-    $priceMax = $request->input('price_max', $request->input('pret_max'));
-    $kmMin = $request->input('km_min');
-    $kmMax = $request->input('km_max');
-
-    if ($yearMin !== null && $yearMin !== '') {
-        $query->where('an_fabricatie', '>=', (int) $yearMin);
-    }
-
-    if ($yearMax !== null && $yearMax !== '') {
-        $query->where('an_fabricatie', '<=', (int) $yearMax);
-    }
-
-    if ($kmMin !== null && $kmMin !== '') {
-        $query->where('km', '>=', (int) $kmMin);
-    }
-
-    if ($kmMax !== null && $kmMax !== '') {
-        $query->where('km', '<=', (int) $kmMax);
-    }
-
-    if (($priceMin !== null && $priceMin !== '') || ($priceMax !== null && $priceMax !== '')) {
-        $query->where('currency', 'EUR');
-    }
-
-    if ($priceMin !== null && $priceMin !== '') {
-        $query->where('price_value', '>=', (float) $priceMin);
-    }
-
-    if ($priceMax !== null && $priceMax !== '') {
-        $query->where('price_value', '<=', (float) $priceMax);
-    }
-
-    // ================= FILTRU "DE UNDE CUMPERI" (TABURI) =================
-    if ($request->filled('seller_type') && in_array($request->seller_type, ['individual', 'dealer'], true)) {
-        $sellerType = $request->seller_type;
-        $query->whereHas('user', function ($q) use ($sellerType) {
-            $q->where('user_type', $sellerType);
-        });
-    }
+    $this->applyListingFilters($query, $request, $selectedLocality);
 
     $sort = $request->get('sort', 'newest');
     $totalCount = $query->count();
 
+    $isListingDataRequest = $request->ajax() || (string) $request->input('ajax') === '1';
+    $shouldLoadFilterFacets = $request->boolean('count_only')
+        || ($isListingDataRequest ? $page === 1 : $this->hasListingFilterContext($request));
+    $filterFacets = $shouldLoadFilterFacets
+        ? $this->listingFilterFacets($request, $selectedLocality)
+        : null;
+
+    if ($request->boolean('count_only')) {
+        return response()->json([
+            'total' => $totalCount,
+            'facets' => $filterFacets,
+        ]);
+    }
+
     switch ($sort) {
         case 'price_asc':
-            $query->orderBy('price_value', 'asc')->orderBy('created_at', 'desc')->orderBy('id', 'desc');
+            $query->orderBy('price_eur', 'asc')->orderBy('id', 'asc');
             break;
         case 'price_desc':
-            $query->orderBy('price_value', 'desc')->orderBy('created_at', 'desc')->orderBy('id', 'desc');
+            $query->orderBy('price_eur', 'desc')->orderBy('id', 'desc');
             break;
         case 'km_asc':
-            $query->orderBy('km', 'asc')->orderBy('created_at', 'desc')->orderBy('id', 'desc');
+            $query->orderBy('km', 'asc')->orderBy('id', 'asc');
             break;
         case 'power_asc':
-            $query->orderBy('putere', 'asc')->orderBy('created_at', 'desc')->orderBy('id', 'desc');
+            $query->orderBy('putere', 'asc')->orderBy('id', 'asc');
             break;
         default:
             $query->orderBy('created_at', 'desc')->orderBy('id', 'desc');
@@ -231,7 +129,7 @@ class ServiceController extends Controller
         ? []
         : $this->listingPaginationMeta($request, $page, $totalCount, $perPageListing);
 
-    if ($request->ajax() || (string) $request->input('ajax') === '1') {
+    if ($isListingDataRequest) {
         $cardsView = $request->routeIs('services.index')
             ? 'services.partials.service_cards_home'
             : 'services.partials.service_cards_horizontal';
@@ -243,6 +141,7 @@ class ServiceController extends Controller
             'total'       => $totalCount,
             'loadedCount' => $services->count(),
             'pagination'  => $paginationMeta,
+            'facets'      => $filterFacets,
         ]);
     }
 
@@ -292,6 +191,7 @@ class ServiceController extends Controller
         'currentModel'    => $currentModel,
         'listingPagination' => $paginationMeta,
         'featuredDealers' => $featuredDealers,
+        'filterFacets'    => $filterFacets,
     ]);
 }
 
@@ -749,6 +649,209 @@ public function indexAutoPath(
             'modelRel:id,car_brand_id,name,slug',
             'normaPoluare:id,nume',
         ];
+    }
+
+    private function listingSelectedLocality(Request $request): ?Locality
+    {
+        if (!$request->filled('locality_id')) {
+            return null;
+        }
+
+        return Locality::query()
+            ->cities()
+            ->select('id', 'county_id', 'name', 'slug')
+            ->find($request->input('locality_id'));
+    }
+
+    private function applyListingFilters(
+        Builder $query,
+        Request $request,
+        ?Locality $selectedLocality = null,
+        array $except = []
+    ): Builder {
+        if (!in_array('search', $except, true) && $request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($searchQuery) use ($search) {
+                $searchQuery
+                    ->where('title', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        if (!in_array('locality', $except, true) && $selectedLocality) {
+            $query->where('locality_id', $selectedLocality->id);
+        }
+
+        if (!in_array('county', $except, true)) {
+            $countyFilter = $request->input('county_id', $request->input('county'));
+            if ($countyFilter) {
+                $query->where('county_id', $countyFilter);
+            }
+        }
+
+        if (!in_array('category', $except, true)) {
+            if ($request->filled('category_id')) {
+                $query->where('category_id', $request->input('category_id'));
+            } elseif ($request->filled('category')) {
+                $query->where('category_id', $request->input('category'));
+            }
+        }
+
+        if (!in_array('brand', $except, true)) {
+            if ($request->filled('brand_id')) {
+                $query->where('brand_id', $request->input('brand_id'));
+            } elseif ($request->filled('brand')) {
+                $brandName = $request->input('brand');
+                $query->whereHas('generation.model.brand', function ($brandQuery) use ($brandName) {
+                    $brandQuery->where('name', $brandName);
+                });
+            }
+        }
+
+        if (!in_array('model', $except, true)) {
+            if ($request->filled('model_id')) {
+                $query->where('model_id', $request->input('model_id'));
+            } elseif ($request->filled('model')) {
+                $modelName = $request->input('model');
+                $query->whereHas('generation.model', function ($modelQuery) use ($modelName) {
+                    $modelQuery->where('name', $modelName);
+                });
+            }
+        }
+
+        $simpleFilters = [
+            'caroserie_id',
+            'combustibil_id',
+            'cutie_viteze_id',
+        ];
+
+        foreach ($simpleFilters as $filter) {
+            if (!in_array($filter, $except, true) && $request->filled($filter)) {
+                $query->where($filter, $request->input($filter));
+            }
+        }
+
+        $ranges = [
+            ['year_min', 'an_min', 'an_fabricatie', '>=', 'int'],
+            ['year_max', 'an_max', 'an_fabricatie', '<=', 'int'],
+            ['km_min', null, 'km', '>=', 'int'],
+            ['km_max', null, 'km', '<=', 'int'],
+        ];
+
+        foreach ($ranges as [$key, $fallbackKey, $column, $operator, $type]) {
+            if (in_array($key, $except, true)) {
+                continue;
+            }
+
+            $value = $fallbackKey
+                ? $request->input($key, $request->input($fallbackKey))
+                : $request->input($key);
+
+            if ($value !== null && $value !== '') {
+                $query->where($column, $operator, $type === 'int' ? (int) $value : $value);
+            }
+        }
+
+        $priceMin = $request->input('price_min', $request->input('pret_min'));
+        $priceMax = $request->input('price_max', $request->input('pret_max'));
+
+        if (!in_array('price', $except, true)) {
+            if ($priceMin !== null && $priceMin !== '') {
+                $query->where('price_eur', '>=', (float) $priceMin);
+            }
+
+            if ($priceMax !== null && $priceMax !== '') {
+                $query->where('price_eur', '<=', (float) $priceMax);
+            }
+        }
+
+        if (
+            !in_array('seller_type', $except, true)
+            && $request->filled('seller_type')
+            && in_array($request->input('seller_type'), ['individual', 'dealer'], true)
+        ) {
+            $sellerType = $request->input('seller_type');
+            $query->whereHas('user', function ($userQuery) use ($sellerType) {
+                $userQuery->where('user_type', $sellerType);
+            });
+        }
+
+        return $query;
+    }
+
+    private function listingFilterFacets(Request $request, ?Locality $selectedLocality = null): array
+    {
+        $brandQuery = Service::query()->where('status', 'active');
+        $this->applyListingFilters($brandQuery, $request, $selectedLocality, ['brand', 'model']);
+
+        $brandCounts = $brandQuery
+            ->whereNotNull('brand_id')
+            ->selectRaw('brand_id, COUNT(*) as aggregate')
+            ->groupBy('brand_id')
+            ->pluck('aggregate', 'brand_id')
+            ->map(fn ($count) => (int) $count)
+            ->all();
+
+        $modelCounts = [];
+        if ($request->filled('brand_id')) {
+            $modelQuery = Service::query()->where('status', 'active');
+            $this->applyListingFilters($modelQuery, $request, $selectedLocality, ['model']);
+
+            $modelCounts = $modelQuery
+                ->whereNotNull('model_id')
+                ->selectRaw('model_id, COUNT(*) as aggregate')
+                ->groupBy('model_id')
+                ->pluck('aggregate', 'model_id')
+                ->map(fn ($count) => (int) $count)
+                ->all();
+        }
+
+        return [
+            'brands' => $brandCounts,
+            'models' => $modelCounts,
+        ];
+    }
+
+    private function hasListingFilterContext(Request $request): bool
+    {
+        if (
+            $request->filled('seller_type')
+            && in_array($request->input('seller_type'), ['individual', 'dealer'], true)
+        ) {
+            return true;
+        }
+
+        foreach ([
+            'search',
+            'county_id',
+            'county',
+            'locality_id',
+            'category_id',
+            'category',
+            'brand_id',
+            'brand',
+            'model_id',
+            'model',
+            'caroserie_id',
+            'combustibil_id',
+            'cutie_viteze_id',
+            'year_min',
+            'year_max',
+            'an_min',
+            'an_max',
+            'km_min',
+            'km_max',
+            'price_min',
+            'price_max',
+            'pret_min',
+            'pret_max',
+        ] as $filter) {
+            if ($request->filled($filter)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function withFavoriteStateForCurrentUser($query)
@@ -1477,7 +1580,7 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
         $service             = Service::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
         $service->status     = 'active';
         $service->created_at = now();
-        $service->save();
+        Service::withoutTimestamps(fn () => $service->save());
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -1493,10 +1596,13 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
     // ==========================================
     public function getBrands()
     {
-        $brands = Cache::remember('iaauto:ajax:brands:v1', now()->addDays(7), function () {
+        $brands = Cache::remember('iaauto:ajax:brands:v2', now()->addMinutes(5), function () {
             return CarBrand::query()
+                ->withCount([
+                    'services as active_services_count' => fn ($query) => $query->where('status', 'active'),
+                ])
                 ->ordered()
-                ->get(['id', 'name', 'slug', 'is_popular']);
+                ->get(['id', 'name', 'slug', 'is_popular', 'sort_order']);
         });
 
         return response()->json($brands);
@@ -1554,11 +1660,14 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
             return response()->json([]);
         }
 
-        $models = Cache::remember("iaauto:ajax:models:brand:{$brandId}:v1", now()->addDays(7), function () use ($brandId) {
+        $models = Cache::remember("iaauto:ajax:models:brand:{$brandId}:v2", now()->addMinutes(5), function () use ($brandId) {
             return CarModel::query()
                 ->where('car_brand_id', $brandId)
+                ->withCount([
+                    'services as active_services_count' => fn ($query) => $query->where('status', 'active'),
+                ])
                 ->ordered()
-                ->get(['id', 'car_brand_id', 'name', 'slug']);
+                ->get(['id', 'car_brand_id', 'name', 'slug', 'sort_order']);
         });
 
         return response()->json($models);

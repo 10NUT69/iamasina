@@ -132,7 +132,8 @@
         $showLocationLabel = $localityName;
     }
 
-    $showPublishedLabel = $service->listing_date_label;
+    $showDatePrefix = $service->renewed_at ? 'Reactualizat' : 'Publicat';
+    $showDateLabel = $service->listing_date_label;
 
     $cleanTitleString = preg_replace('/[^\p{L}\p{N}\s]/u', ' ', (string) $service->title);
     $cleanTitleString = trim(preg_replace('/\s+/', ' ', $cleanTitleString));
@@ -783,7 +784,7 @@
                     @endif
                     <div class="flex items-center gap-2">
                         <svg class="w-4 h-4 shrink-0 text-[#E03E2D]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        <span>Publicat: {{ $showPublishedLabel }}</span>
+                        <span>{{ $showDatePrefix }}: {{ $showDateLabel }}</span>
                     </div>
                 </div>
                 <div class="md:hidden flex flex-wrap items-center gap-2 pt-2">
@@ -991,7 +992,7 @@
                         @endif
                         <div class="flex items-center gap-2">
                             <svg class="w-4 h-4 shrink-0 text-[#E03E2D]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            <span>Publicat: {{ $showPublishedLabel }}</span>
+                            <span>{{ $showDatePrefix }}: {{ $showDateLabel }}</span>
                         </div>
                     </div>
 

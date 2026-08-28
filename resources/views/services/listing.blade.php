@@ -57,6 +57,9 @@
         : (isset($services) && method_exists($services, 'total')
             ? (int) $services->total()
             : (isset($services) && method_exists($services, 'count') ? (int) $services->count() : 0));
+    $listingFilterSubmitLabel = $listingTotalCount === 0
+        ? 'Niciun anunț găsit'
+        : 'Caută ' . number_format($listingTotalCount, 0, ',', '.') . ' ' . ($listingTotalCount === 1 ? 'anunț' : 'anunțuri');
     $listingPagination = $listingPagination ?? [];
     $listingCurrentPage = (int) ($listingPagination['currentPage'] ?? max(1, (int) request('page', 1)));
     $listingTotalPages = (int) ($listingPagination['totalPages'] ?? 1);
@@ -281,6 +284,25 @@
                             $selectedModelId = request('model_id', $currentModelId);
                             $selectedCountyId = request('county_id', optional($currentCounty)->id);
                             $selectedLocalityId = request('locality_id', optional($currentLocality)->id);
+
+                            $listingYearOptions = collect(range((int) now()->year, 1990))
+                                ->map(fn ($year) => ['value' => $year, 'label' => (string) $year])
+                                ->all();
+                            $listingKmOptions = collect([
+                                5000, 10000, 20000, 35000, 50000, 75000, 100000, 125000,
+                                150000, 170000, 175000, 180000, 200000, 250000,
+                            ])->map(fn ($km) => [
+                                'value' => $km,
+                                'label' => number_format($km, 0, ',', '.') . ' km',
+                            ])->all();
+                            $listingPriceOptions = collect([
+                                1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500,
+                                5000, 6000, 7000, 8000, 9000, 10000, 12000, 15000,
+                                20000, 25000, 30000, 35000, 40000, 45000, 50000, 100000,
+                            ])->map(fn ($price) => [
+                                'value' => $price,
+                                'label' => number_format($price, 0, ',', '.') . ' €',
+                            ])->all();
                             $numericFilterGroups = [
                                 [
                                     [
@@ -288,12 +310,14 @@
                                         'name' => 'year_min',
                                         'placeholder' => 'Anul de la',
                                         'value' => request('year_min', request('an_min')),
+                                        'options' => $listingYearOptions,
                                     ],
                                     [
                                         'id' => 'year-max',
                                         'name' => 'year_max',
                                         'placeholder' => 'Anul până la',
                                         'value' => request('year_max', request('an_max')),
+                                        'options' => $listingYearOptions,
                                     ],
                                 ],
                                 [
@@ -302,12 +326,14 @@
                                         'name' => 'km_min',
                                         'placeholder' => 'Km de la',
                                         'value' => request('km_min'),
+                                        'options' => $listingKmOptions,
                                     ],
                                     [
                                         'id' => 'km-max',
                                         'name' => 'km_max',
                                         'placeholder' => 'Km până la',
                                         'value' => request('km_max'),
+                                        'options' => $listingKmOptions,
                                     ],
                                 ],
                                 [
@@ -316,17 +342,17 @@
                                         'name' => 'price_min',
                                         'placeholder' => 'Preț de la',
                                         'value' => request('price_min', request('pret_min')),
+                                        'options' => $listingPriceOptions,
                                     ],
                                     [
                                         'id' => 'price-max',
                                         'name' => 'price_max',
                                         'placeholder' => 'Preț până la',
                                         'value' => request('price_max', request('pret_max')),
+                                        'options' => $listingPriceOptions,
                                     ],
                                 ],
                             ];
-                            $numericFilterInputClass = 'listing-filter w-full h-[46px] px-3 pr-9 rounded-lg border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/10 outline-none dark:bg-[#20242b] dark:border-[#3a414b] dark:text-white dark:placeholder-white';
-                            $numericFilterClearClass = 'ia-combobox__clear !right-1.5';
                         @endphp
 
                         <div class="grid grid-cols-2 gap-2">
@@ -354,30 +380,19 @@
                         </div>
 
                         @foreach($numericFilterGroups as $numericFilterGroup)
-                            <div>
-                                <div class="grid grid-cols-2 gap-2">
-                                    @foreach($numericFilterGroup as $numericFilter)
-                                        <div class="relative" data-clearable-filter>
-                                            <input
-                                                type="number"
-                                                inputmode="numeric"
-                                                id="{{ $numericFilter['id'] }}"
-                                                name="{{ $numericFilter['name'] }}"
-                                                placeholder="{{ $numericFilter['placeholder'] }}"
-                                                aria-label="{{ $numericFilter['placeholder'] }}"
-                                                value="{{ $numericFilter['value'] }}"
-                                                class="{{ $numericFilterInputClass }}"
-                                            >
-                                            <button
-                                                type="button"
-                                                class="{{ $numericFilterClearClass }}"
-                                                aria-label="Șterge {{ $numericFilter['placeholder'] }}"
-                                                data-clear-filter-input
-                                                @if($numericFilter['value'] === null || $numericFilter['value'] === '') hidden @endif
-                                            >&times;</button>
-                                        </div>
-                                    @endforeach
-                                </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                @foreach($numericFilterGroup as $numericFilter)
+                                    <x-combobox
+                                        :id="$numericFilter['id']"
+                                        :name="$numericFilter['name']"
+                                        :label="$numericFilter['placeholder']"
+                                        :placeholder="$numericFilter['placeholder']"
+                                        :options="$numericFilter['options']"
+                                        :selected="$numericFilter['value']"
+                                        :searchable="false"
+                                        class="listing-filter"
+                                    />
+                                @endforeach
                             </div>
                         @endforeach
 
@@ -450,11 +465,11 @@
                                 </svg>
                             </button>
 
-                            <button type="submit" class="h-[46px] flex-1 bg-[#C81424] hover:bg-[#94111B] text-white font-bold text-sm rounded-lg shadow-md transition-all flex items-center justify-center gap-2 uppercase tracking-wide">
+                            <button type="submit" class="h-[46px] flex-1 bg-[#C81424] hover:bg-[#94111B] text-white font-bold text-sm rounded-lg shadow-md transition-all flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
-                                Afișează rezultatele
+                                <span data-filter-submit-count>{{ $listingFilterSubmitLabel }}</span>
                             </button>
                         </div>
                     </form>
@@ -596,6 +611,7 @@
     const listUrl = "{{ url()->current() }}";
     const baseUrl = "{{ url('/') }}";
     const initialModelId = @json(optional($currentModel)->id);
+    let activeFilterFacets = @json($filterFacets ?? null);
     const autoCatalogUrls = {
         brands: "{{ route('ajax.brands') }}",
         modelsByBrand: "{{ route('ajax.models.by.brand') }}",
@@ -680,38 +696,6 @@
         el.classList.remove('bg-gray-50', 'text-gray-400', 'cursor-not-allowed');
     }
 
-    function clearButtonForFilterInput(input) {
-        return input?.closest('[data-clearable-filter]')?.querySelector('[data-clear-filter-input]') || null;
-    }
-
-    function syncClearableFilterInput(input) {
-        const button = clearButtonForFilterInput(input);
-
-        if (button) {
-            button.hidden = !input?.value;
-        }
-    }
-
-    function initClearableFilterInputs(inputs) {
-        inputs.filter(Boolean).forEach((input) => {
-            const button = clearButtonForFilterInput(input);
-
-            syncClearableFilterInput(input);
-
-            input.addEventListener('input', () => syncClearableFilterInput(input));
-            input.addEventListener('change', () => syncClearableFilterInput(input));
-
-            button?.addEventListener('click', () => {
-                if (!input.value) return;
-
-                input.value = '';
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-                input.dispatchEvent(new Event('change', { bubbles: true }));
-                input.focus();
-            });
-        });
-    }
-
     const catalogCache = new Map();
     let brandsLoaded = false;
     let countiesLoaded = false;
@@ -721,13 +705,19 @@
         return String(item?.[labelKey] ?? item?.name ?? item?.nume ?? item?.label ?? '').trim();
     }
 
-    function catalogOption(item, labelKey = 'name', group = '') {
-        const label = catalogLabel(item, labelKey);
+    function catalogOption(item, labelKey = 'name', group = '', facetCounts = null) {
+        const name = catalogLabel(item, labelKey);
+        const activeServicesCount = facetCounts === null
+            ? Number(item?.active_services_count || 0)
+            : Number(facetCounts?.[String(item?.id)] || 0);
+        const label = activeServicesCount > 0
+            ? `${name} (${activeServicesCount.toLocaleString('ro-RO')})`
+            : name;
 
         return {
             value: item?.id,
             label,
-            name: item?.name ?? label,
+            name: item?.name ?? name,
             slug: item?.slug ?? '',
             group,
         };
@@ -756,11 +746,12 @@
     }
 
     function brandOptions(brands) {
+        const facetCounts = activeFilterFacets?.brands ?? null;
         const popular = brands
             .filter((brand) => !!brand?.is_popular)
-            .map((brand) => catalogOption(brand, 'name', 'Populare'));
+            .map((brand) => catalogOption(brand, 'name', 'Populare', facetCounts));
         const alphabetical = sortBrandsAlphabetically(brands)
-            .map((brand) => catalogOption(brand, 'name', 'A-Z'));
+            .map((brand) => catalogOption(brand, 'name', 'A-Z', facetCounts));
 
         return [...popular, ...alphabetical];
     }
@@ -895,7 +886,7 @@
         }
 
         const models = await fetchCatalog(modelsUrl(brandId));
-        const options = models.map((model) => catalogOption(model, 'name'));
+        const options = models.map((model) => catalogOption(model, 'name', '', activeFilterFacets?.models ?? null));
 
         if (!options.length) {
             resetSelect(domElements.model, 'Model');
@@ -920,6 +911,25 @@
 
         await renderModelsForBrand(brandId, domElements.model?.value || initialModelId || '', { resetFirst: false });
     }
+
+    async function refreshFilterFacetOptions() {
+        if (brandsLoaded) {
+            const brands = await fetchCatalog(autoCatalogUrls.brands);
+            setComboboxOptions(domElements.brand, brandOptions(brands), domElements.brand?.value || '');
+        }
+
+        const brandId = domElements.brand?.value || '';
+        if (brandId && modelsLoadedForBrand === String(brandId)) {
+            const models = await fetchCatalog(modelsUrl(brandId));
+            const options = models.map((model) => catalogOption(model, 'name', '', activeFilterFacets?.models ?? null));
+            setComboboxOptions(domElements.model, options, domElements.model?.value || '');
+        }
+    }
+
+    window.updateFilterFacets = function(facets) {
+        activeFilterFacets = facets || null;
+        refreshFilterFacetOptions().catch((error) => console.error(error));
+    };
 
     function setupLookupCatalog(el, url, labelKey = 'nume') {
         let loaded = false;
@@ -1198,14 +1208,14 @@
 
         if (brandSlug) {
             items.push({
-                label: brandOption.label || brandOption.name,
+                label: brandOption.name || brandOption.label,
                 url: autoListingPath(brandSlug),
             });
         }
 
         if (brandSlug && modelSlug) {
             items.push({
-                label: modelOption.label || modelOption.name,
+                label: modelOption.name || modelOption.label,
                 url: autoListingPath(brandSlug, modelSlug),
             });
         }
@@ -1322,6 +1332,25 @@
         return url.toString();
     }
 
+    @include('services.partials.filter_count_script')
+
+    let liveFilterTimer = null;
+
+    function scheduleListingFilterUpdate() {
+        window.clearTimeout(liveFilterTimer);
+
+        if (isMobileView()) {
+            requestFilterCount();
+            return;
+        }
+
+        window.clearTimeout(filterCountTimer);
+        filterCountController?.abort();
+        liveFilterTimer = window.setTimeout(() => {
+            applyListingFilters({ replace: true, scroll: false });
+        }, 450);
+    }
+
     function updateBrowserListingUrl(url, replace = false) {
         activeListUrl = url;
 
@@ -1330,7 +1359,11 @@
         }
     }
 
-    function applyListingFilters({ replace = false } = {}) {
+    function applyListingFilters({ replace = false, scroll = true } = {}) {
+        window.clearTimeout(liveFilterTimer);
+        window.clearTimeout(filterCountTimer);
+        filterCountController?.abort();
+
         const targetUrl = buildSearchUrl();
 
         if (isMobileView()) {
@@ -1350,7 +1383,9 @@
             updateBrowserListingUrl(targetUrl, replace);
             renderListingBreadcrumbs(targetUrl);
             window.checkResetVisibility();
-            window.scrollTo({ top: 0, behavior: 'auto' });
+            if (scroll) {
+                window.scrollTo({ top: 0, behavior: 'auto' });
+            }
 
             return true;
         });
@@ -1362,7 +1397,7 @@
         const option = selectedOptionMeta(el);
         if (!option || option.value === '') return '';
 
-        return String(option.label || option.dataset?.label || option.textContent || '').trim();
+        return String(option.name || option.label || option.dataset?.label || option.textContent || '').trim();
     }
 
     function collectSavedSearchFilters() {
@@ -1557,6 +1592,12 @@
             if (domElements.trigger) domElements.trigger.dataset.nextPage = String(currentPage);
             if (domElements.totalSummary && typeof data.total !== 'undefined') {
                 domElements.totalSummary.textContent = `${Number(data.total).toLocaleString('ro-RO')} anunțuri găsite`;
+            }
+            if (typeof data.total !== 'undefined') {
+                updateFilterSubmitCount(data.total);
+            }
+            if (data.facets) {
+                window.updateFilterFacets?.(data.facets);
             }
             updateListingPagination(data.pagination);
 
@@ -1765,12 +1806,14 @@
                     renderLocalitiesForCounty(countyId);
                 }
                 window.checkResetVisibility();
+                scheduleListingFilterUpdate();
             });
         }
 
         if (domElements.locality) {
             domElements.locality.addEventListener('change', () => {
                 window.checkResetVisibility();
+                scheduleListingFilterUpdate();
             });
         }
 
@@ -1807,6 +1850,7 @@
 
                     updateSellerButtons(sellerType);
                     window.checkResetVisibility();
+                    scheduleListingFilterUpdate();
                 });
             });
 
@@ -1828,10 +1872,12 @@
             domElements.brand.addEventListener('change', function () {
                 const brandId = this.value;
                 modelsLoadedForBrand = null;
+                if (activeFilterFacets) activeFilterFacets.models = {};
 
                 if (!brandId) {
                     resetSelect(domElements.model, 'Model');
                     window.checkResetVisibility();
+                    scheduleListingFilterUpdate();
                     return;
                 }
 
@@ -1839,12 +1885,14 @@
                 setComboboxEnabled(domElements.model, true);
                 prefetchModelsForBrand(brandId);
                 window.checkResetVisibility();
+                scheduleListingFilterUpdate();
             });
         }
 
         if (domElements.model) {
             domElements.model.addEventListener('change', function () {
                 window.checkResetVisibility();
+                scheduleListingFilterUpdate();
             });
         }
 
@@ -1859,11 +1907,12 @@
             if (el) {
                 el.addEventListener('change', () => {
                     window.checkResetVisibility();
+                    scheduleListingFilterUpdate();
                 });
             }
         });
 
-        const numericFilterInputs = [
+        const numericFilterComboboxes = [
             domElements.priceMin,
             domElements.priceMax,
             domElements.kmMin,
@@ -1872,12 +1921,11 @@
             domElements.yearMax,
         ];
 
-        initClearableFilterInputs(numericFilterInputs);
-
-        numericFilterInputs.forEach(el => {
+        numericFilterComboboxes.forEach(el => {
             if (el) {
                 el.addEventListener('input', () => {
                     window.checkResetVisibility();
+                    scheduleListingFilterUpdate();
                 });
             }
         });
@@ -1912,6 +1960,19 @@
 <style>
     :root {
         --mobile-filters-top: 56px;
+    }
+
+    [data-filter-submit-count] {
+        font-size: 15px;
+        line-height: 1.25rem;
+        text-transform: none;
+    }
+
+    @media (min-width: 640px) {
+        [data-filter-submit-count] {
+            font-size: 16px;
+            line-height: 1.5rem;
+        }
     }
 
     .listing-action-button--active {
@@ -2174,17 +2235,6 @@
 
     .autovit-select.listing-filter {
         width: 100%;
-    }
-
-    #filters-panel input.listing-filter[type="number"] {
-        -moz-appearance: textfield;
-        appearance: textfield;
-    }
-
-    #filters-panel input.listing-filter[type="number"]::-webkit-inner-spin-button,
-    #filters-panel input.listing-filter[type="number"]::-webkit-outer-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
     }
 
     .native-select-hidden {

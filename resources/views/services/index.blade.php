@@ -48,6 +48,10 @@
                 $currentModelId = isset($currentModel) ? $currentModel->id : null;
                 $selectedBrandId = request('brand_id', $currentBrandId);
                 $selectedModelId = request('model_id', $currentModelId);
+                $homepageFilterCount = (int) ($totalCount ?? 0);
+                $homepageFilterSubmitLabel = $homepageFilterCount === 0
+                    ? 'Niciun anunț găsit'
+                    : 'Caută ' . number_format($homepageFilterCount, 0, ',', '.') . ' ' . ($homepageFilterCount === 1 ? 'anunț' : 'anunțuri');
             @endphp
 
             <div class="homepage-quick-filters lg:hidden p-3">
@@ -79,7 +83,7 @@
                     </div>
                 </div>
 
-                <div class="mt-3 grid grid-cols-[0.9fr_1.1fr] gap-2">
+                <div class="homepage-quick-actions mt-3 grid grid-cols-[0.9fr_1.1fr] gap-2">
                     <button type="button" id="homepage-more-filters-toggle"
                         class="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-2 text-sm font-bold text-gray-800 shadow-sm transition hover:border-[#C81424] hover:bg-[#fff4f5] hover:text-[#C81424] dark:border-white/10 dark:bg-[#201d1e] dark:text-gray-100">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
@@ -94,12 +98,12 @@
                     </button>
 
                     <button type="button" id="homepage-quick-submit"
-                        class="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-lg bg-[#C81424] px-2 text-sm font-extrabold uppercase tracking-wide text-white shadow-md shadow-red-700/20 transition hover:bg-[#94111B] active:scale-[0.98]">
+                        class="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-lg bg-[#C81424] px-2 text-sm font-extrabold text-white shadow-md shadow-red-700/20 transition hover:bg-[#94111B] active:scale-[0.98]">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="11" cy="11" r="7" />
                             <path d="m20 20-3.5-3.5" />
                         </svg>
-                        <span class="truncate">Afișează<span class="homepage-quick-submit-extra"> rezultatele</span></span>
+                        <span class="truncate" data-filter-submit-count>{{ $homepageFilterSubmitLabel }}</span>
                     </button>
                 </div>
             </div>
@@ -216,11 +220,11 @@
                                 <span class="hidden md:inline">Reset filtre</span>
                             </button>
 
-                            <button type="submit" class="h-[42px] px-8 bg-[#C81424] hover:bg-[#94111B] text-white font-bold text-sm rounded-lg shadow-md shadow-red-700/20 transition-all flex items-center gap-2 uppercase tracking-wide transform active:scale-[0.98]">
+                            <button type="submit" class="h-[42px] px-8 bg-[#C81424] hover:bg-[#94111B] text-white font-bold text-sm rounded-lg shadow-md shadow-red-700/20 transition-all flex items-center gap-2 transform active:scale-[0.98]">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
-                                Afișează rezultatele
+                                <span data-filter-submit-count>{{ $homepageFilterSubmitLabel }}</span>
                             </button>
                         </div>
 
@@ -239,11 +243,11 @@
 
                         {{-- Buton Submit --}}
                         <div class="hidden lg:block lg:col-span-2 lg:self-end">
-                            <button type="submit" class="h-[42px] w-full px-8 bg-[#C81424] hover:bg-[#94111B] text-white font-bold text-sm rounded-lg shadow-md shadow-red-700/20 transition-all flex items-center justify-center gap-2 uppercase tracking-wide transform active:scale-[0.98]">
+                            <button type="submit" class="h-[42px] w-full px-8 bg-[#C81424] hover:bg-[#94111B] text-white font-bold text-sm rounded-lg shadow-md shadow-red-700/20 transition-all flex items-center justify-center gap-2 transform active:scale-[0.98]">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
-                                Caută
+                                <span data-filter-submit-count>{{ $homepageFilterSubmitLabel }}</span>
                             </button>
                         </div>
 
@@ -418,6 +422,7 @@
         transmissions: "{{ route('ajax.transmissions') }}",
     };
     const initialModelId = @json(optional($currentModel)->id);
+    let activeFilterFacets = @json($filterFacets ?? null);
 
     const domElements = {
         brand: document.getElementById('brand-filter'),
@@ -481,13 +486,19 @@
         return String(item?.[labelKey] ?? item?.name ?? item?.nume ?? item?.label ?? '').trim();
     }
 
-    function catalogOption(item, labelKey = 'name', group = '') {
-        const label = catalogLabel(item, labelKey);
+    function catalogOption(item, labelKey = 'name', group = '', facetCounts = null) {
+        const name = catalogLabel(item, labelKey);
+        const activeServicesCount = facetCounts === null
+            ? Number(item?.active_services_count || 0)
+            : Number(facetCounts?.[String(item?.id)] || 0);
+        const label = activeServicesCount > 0
+            ? `${name} (${activeServicesCount.toLocaleString('ro-RO')})`
+            : name;
 
         return {
             value: item?.id,
             label,
-            name: item?.name ?? label,
+            name: item?.name ?? name,
             slug: item?.slug ?? '',
             group,
         };
@@ -516,11 +527,12 @@
     }
 
     function brandOptions(brands) {
+        const facetCounts = activeFilterFacets?.brands ?? null;
         const popular = brands
             .filter((brand) => !!brand?.is_popular)
-            .map((brand) => catalogOption(brand, 'name', 'Populare'));
+            .map((brand) => catalogOption(brand, 'name', 'Populare', facetCounts));
         const alphabetical = sortBrandsAlphabetically(brands)
-            .map((brand) => catalogOption(brand, 'name', 'A-Z'));
+            .map((brand) => catalogOption(brand, 'name', 'A-Z', facetCounts));
 
         return [...popular, ...alphabetical];
     }
@@ -663,7 +675,7 @@
         }
 
         const models = await fetchCatalog(modelsUrl(brandId));
-        const options = models.map((model) => catalogOption(model, 'name'));
+        const options = models.map((model) => catalogOption(model, 'name', '', activeFilterFacets?.models ?? null));
 
         if (!options.length) {
             resetModelFields();
@@ -687,6 +699,26 @@
 
         await renderModelsForBrand(brandId, domElements.model?.value || domElements.quickModel?.value || initialModelId || '', { resetFirst: false });
     }
+
+    async function refreshFilterFacetOptions() {
+        if (brandsLoaded) {
+            const brands = await fetchCatalog(autoCatalogUrls.brands);
+            const options = brandOptions(brands);
+            brandFields().forEach((el) => setComboboxOptions(el, options, el.value || ''));
+        }
+
+        const brandId = domElements.brand?.value || domElements.quickBrand?.value || '';
+        if (brandId && modelsLoadedForBrand === String(brandId)) {
+            const models = await fetchCatalog(modelsUrl(brandId));
+            const options = models.map((model) => catalogOption(model, 'name', '', activeFilterFacets?.models ?? null));
+            modelFields().forEach((el) => setComboboxOptions(el, options, el.value || ''));
+        }
+    }
+
+    window.updateFilterFacets = function(facets) {
+        activeFilterFacets = facets || null;
+        refreshFilterFacetOptions().catch((error) => console.error(error));
+    };
 
     function setupLookupCatalog(el, url, labelKey = 'nume') {
         let loaded = false;
@@ -903,6 +935,7 @@
         });
         syncAllCustomSelects();
         window.checkResetVisibility();
+        requestFilterCount();
     };
 
     function selectedOptionMeta(el) {
@@ -941,6 +974,8 @@
         const queryString = params.toString();
         return `${baseUrl}${path}${queryString ? `?${queryString}` : ''}`;
     }
+
+    @include('services.partials.filter_count_script')
 
     function setupDealerCarousel() {
         document.querySelectorAll('[data-dealer-carousel]').forEach((carousel) => {
@@ -1011,6 +1046,7 @@
                 const val = tab.dataset.seller;
                 sellerInput.value = val;
                 setActiveSellerTab(val);
+                requestFilterCount();
             }));
         }
 
@@ -1042,16 +1078,19 @@
             domElements.quickBrand.addEventListener('change', () => {
                 applyHomepageQuickFiltersToMain();
                 modelsLoadedForBrand = null;
+                if (activeFilterFacets) activeFilterFacets.models = {};
                 resetModelFields(!!domElements.quickBrand.value);
                 prefetchModelsForBrand(domElements.quickBrand.value || '');
                 syncHomepageQuickFiltersFromMain();
                 window.checkResetVisibility();
+                requestFilterCount();
             });
         }
 
         if (domElements.quickModel) {
             domElements.quickModel.addEventListener('change', () => {
                 applyHomepageQuickFiltersToMain();
+                requestFilterCount();
             });
         }
 
@@ -1066,10 +1105,12 @@
             const brandId = domElements.brand.value;
             setComboboxValue(domElements.quickBrand, brandId, { dispatch: false });
             modelsLoadedForBrand = null;
+            if (activeFilterFacets) activeFilterFacets.models = {};
             resetModelFields(!!brandId);
             prefetchModelsForBrand(brandId);
             syncHomepageQuickFiltersFromMain();
             window.checkResetVisibility();
+            requestFilterCount();
         };
 
         if (domElements.brand) {
@@ -1080,10 +1121,14 @@
             domElements.model.addEventListener('change', function() {
                 syncHomepageQuickFiltersFromMain();
                 window.checkResetVisibility();
+                requestFilterCount();
             });
         }
 
-        [domElements.body, domElements.fuel, domElements.gear].forEach(el => el && el.addEventListener('change', window.checkResetVisibility));
+        [domElements.body, domElements.fuel, domElements.gear].forEach(el => el && el.addEventListener('change', () => {
+            window.checkResetVisibility();
+            requestFilterCount();
+        }));
 
         syncHomepageQuickFiltersFromMain();
     });
@@ -1103,6 +1148,19 @@
 
 @push('page_styles')
 <style>
+    [data-filter-submit-count] {
+        font-size: 15px;
+        line-height: 1.25rem;
+        text-transform: none;
+    }
+
+    @media (min-width: 640px) {
+        [data-filter-submit-count] {
+            font-size: 16px;
+            line-height: 1.5rem;
+        }
+    }
+
     .homepage-hero-visual {
         background: transparent;
     }
@@ -1198,6 +1256,12 @@
         }
     }
 
+    @media (max-width: 420px) {
+        .homepage-quick-actions {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+
     @media (max-width: 390px) {
         .homepage-hero-image {
             object-position: 16% center;
@@ -1221,6 +1285,7 @@
         .homepage-quick-filters button {
             font-size: 0.82rem;
         }
+
     }
 
     @media (min-width: 1024px) {
