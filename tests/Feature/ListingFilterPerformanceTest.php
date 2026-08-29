@@ -69,6 +69,57 @@ class ListingFilterPerformanceTest extends TestCase
             ->assertJsonMissingPath('html');
     }
 
+    public function test_home_hides_generic_image_cards_without_changing_listing_or_counts(): void
+    {
+        DB::table('services')->where('id', 7)->update([
+            'images' => json_encode([]),
+        ]);
+
+        $homeResponse = $this
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/?ajax=1');
+
+        $homeResponse
+            ->assertOk()
+            ->assertJsonPath('total', 6)
+            ->assertJsonPath('loadedCount', 5);
+
+        $this->assertStringNotContainsString('Other individual listing', (string) $homeResponse->json('html'));
+
+        $this
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/?count_only=1')
+            ->assertOk()
+            ->assertJsonPath('total', 6)
+            ->assertJsonMissingPath('html');
+
+        $listingResponse = $this
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/anunturi-auto-de-vanzare?ajax=1');
+
+        $listingResponse
+            ->assertOk()
+            ->assertJsonPath('total', 6)
+            ->assertJsonPath('loadedCount', 6);
+
+        $this->assertStringContainsString('Other individual listing', (string) $listingResponse->json('html'));
+
+        DB::table('services')->where('id', 7)->update([
+            'images' => json_encode(['service-7-processed.webp']),
+        ]);
+
+        $processedHomeResponse = $this
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->getJson('/?ajax=1');
+
+        $processedHomeResponse
+            ->assertOk()
+            ->assertJsonPath('total', 6)
+            ->assertJsonPath('loadedCount', 6);
+
+        $this->assertStringContainsString('Other individual listing', (string) $processedHomeResponse->json('html'));
+    }
+
     public function test_published_today_scope_matches_the_global_admin_definition(): void
     {
         Carbon::setTestNow(Carbon::create(2026, 7, 16, 18, 0, 0, 'Europe/Bucharest'));

@@ -103,6 +103,10 @@ class ServiceController extends Controller
         ]);
     }
 
+    if ($isHomepage) {
+        $query->whereJsonLength('images', '>', 0);
+    }
+
     switch ($sort) {
         case 'price_asc':
             $query->orderBy('price_eur', 'asc')->orderBy('id', 'asc');
