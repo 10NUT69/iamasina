@@ -85,6 +85,10 @@ class ServiceController extends Controller
     $sort = $request->get('sort', 'newest');
     $totalCount = $query->count();
 
+    $publishedTodayCount = ($isHomepage && ! $request->ajax())
+        ? Service::publishedToday()->count()
+        : 0;
+
     $isListingDataRequest = $request->ajax() || (string) $request->input('ajax') === '1';
     $shouldLoadFilterFacets = $request->boolean('count_only')
         || ($isListingDataRequest ? $page === 1 : $this->hasListingFilterContext($request));
@@ -176,6 +180,7 @@ class ServiceController extends Controller
         'services'        => $services,
         'hasMore'         => $hasMore,
         'totalCount'      => $totalCount,
+        'publishedTodayCount' => $publishedTodayCount,
         'counties'        => $counties,
         'categories'      => $categories,
         'currentCategory' => $request->attributes->get('currentCategory'),

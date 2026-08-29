@@ -40,7 +40,7 @@ class AppServiceProvider extends ServiceProvider
                     'pending_services' => Service::whereNull('deleted_at')->where('status', 'pending')->count(),
                     'active_services' => Service::whereNull('deleted_at')->where('status', 'active')->count(),
                     'total_services' => Service::whereNull('deleted_at')->count(),
-                    'new_services_today' => Service::whereNull('deleted_at')->whereBetween('published_at', [$todayStart, $todayEnd])->count(),
+                    'new_services_today' => Service::publishedToday()->count(),
                     'total_users' => User::count(),
                     'new_users_today' => User::whereBetween('created_at', [$todayStart, $todayEnd])->count(),
                 ];

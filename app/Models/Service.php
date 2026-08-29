@@ -6,6 +6,7 @@ use App\Models\CarModel;
 use App\Support\ServiceImageStorage;
 use App\Services\ServicePriceNormalizer;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -146,6 +147,16 @@ class Service extends Model
                 app(ServicePriceNormalizer::class)->apply($service);
             }
         });
+    }
+
+    public function scopePublishedToday(Builder $query): Builder
+    {
+        $today = now();
+
+        return $query->whereBetween('published_at', [
+            $today->copy()->startOfDay(),
+            $today->copy()->endOfDay(),
+        ]);
     }
 
     public function category() { return $this->belongsTo(Category::class); }

@@ -52,6 +52,8 @@
                 $homepageFilterSubmitLabel = $homepageFilterCount === 0
                     ? 'Niciun anunț găsit'
                     : 'Caută ' . number_format($homepageFilterCount, 0, ',', '.') . ' ' . ($homepageFilterCount === 1 ? 'anunț' : 'anunțuri');
+                $homepagePublishedTodayCount = max(0, (int) ($publishedTodayCount ?? 0));
+                $homepagePublishedTodayLabel = '+ ' . number_format($homepagePublishedTodayCount, 0, ',', '.') . ' azi';
             @endphp
 
             <div class="homepage-quick-filters lg:hidden p-3">
@@ -83,7 +85,7 @@
                     </div>
                 </div>
 
-                <div class="homepage-quick-actions mt-3 grid grid-cols-[0.9fr_1.1fr] gap-2">
+                <div class="homepage-quick-actions {{ $homepagePublishedTodayCount > 0 ? 'has-published-today' : '' }} mt-3 grid grid-cols-[0.72fr_1.28fr] gap-2">
                     <button type="button" id="homepage-more-filters-toggle"
                         class="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-2 text-sm font-bold text-gray-800 shadow-sm transition hover:border-[#C81424] hover:bg-[#fff4f5] hover:text-[#C81424] dark:border-white/10 dark:bg-[#201d1e] dark:text-gray-100">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
@@ -94,16 +96,17 @@
                             <path d="M10 17h10" />
                             <path d="M8 15v4" />
                         </svg>
-                        <span class="homepage-more-filters-label truncate">Mai multe filtre</span>
+                        <span class="homepage-more-filters-label">Mai multe filtre</span>
                     </button>
 
                     <button type="button" id="homepage-quick-submit"
-                        class="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-lg bg-[#C81424] px-2 text-sm font-extrabold text-white shadow-md shadow-red-700/20 transition hover:bg-[#94111B] active:scale-[0.98]">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="11" cy="11" r="7" />
-                            <path d="m20 20-3.5-3.5" />
-                        </svg>
-                        <span class="truncate" data-filter-submit-count>{{ $homepageFilterSubmitLabel }}</span>
+                        class="filter-submit-button {{ $homepagePublishedTodayCount > 0 ? 'has-published-today' : '' }} inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-lg bg-[#C81424] px-2 text-sm font-extrabold text-white shadow-md shadow-red-700/20 transition hover:bg-[#94111B] active:scale-[0.98]">
+                        <span class="filter-submit-main" data-filter-submit-count>{{ $homepageFilterSubmitLabel }}</span>
+                        <span
+                            data-filter-submit-today
+                            aria-hidden="{{ $homepagePublishedTodayCount > 0 ? 'false' : 'true' }}"
+                            @class(['filter-submit-today', 'hidden' => $homepagePublishedTodayCount === 0])
+                        >{{ $homepagePublishedTodayLabel }}</span>
                     </button>
                 </div>
             </div>
@@ -207,7 +210,7 @@
                         </div>
 
 {{-- BUTOANE ACȚIUNE --}}
-                        <div class="col-span-2 lg:hidden mt-1 flex items-center justify-between pt-4 border-t border-gray-100 dark:border-[#333]">
+                        <div class="homepage-expanded-actions {{ $homepagePublishedTodayCount > 0 ? 'has-published-today' : '' }} col-span-2 lg:hidden mt-1 flex items-center justify-between pt-4 border-t border-gray-100 dark:border-[#333]">
 
                             {{-- Buton Reset (Stânga) --}}
                             <button type="button" id="reset-btn" onclick="resetFilters()" disabled
@@ -220,12 +223,16 @@
                                 <span class="hidden md:inline">Reset filtre</span>
                             </button>
 
-                            <button type="submit" class="h-[42px] px-8 bg-[#C81424] hover:bg-[#94111B] text-white font-bold text-sm rounded-lg shadow-md shadow-red-700/20 transition-all flex items-center gap-2 transform active:scale-[0.98]">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
-                                <span data-filter-submit-count>{{ $homepageFilterSubmitLabel }}</span>
+                            <button type="submit"
+                                class="filter-submit-button {{ $homepagePublishedTodayCount > 0 ? 'has-published-today' : '' }} h-[42px] min-w-0 px-4 sm:px-8 bg-[#C81424] hover:bg-[#94111B] text-white font-bold text-sm rounded-lg shadow-md shadow-red-700/20 transition-all flex items-center justify-center gap-2 transform active:scale-[0.98]">
+                                <span class="filter-submit-main" data-filter-submit-count>{{ $homepageFilterSubmitLabel }}</span>
+                                <span
+                                    data-filter-submit-today
+                                    aria-hidden="{{ $homepagePublishedTodayCount > 0 ? 'false' : 'true' }}"
+                                    @class(['filter-submit-today', 'hidden' => $homepagePublishedTodayCount === 0])
+                                >{{ $homepagePublishedTodayLabel }}</span>
                             </button>
+
                         </div>
 
                         <a href="{{ route('cars.index') }}"
@@ -238,16 +245,19 @@
                                 <path d="M10 17h10" />
                                 <path d="M8 15v4" />
                             </svg>
-                            <span>Căutare detaliată</span>
+                            <span>Mai multe filtre</span>
                         </a>
 
                         {{-- Buton Submit --}}
                         <div class="hidden lg:block lg:col-span-2 lg:self-end">
-                            <button type="submit" class="h-[42px] w-full px-8 bg-[#C81424] hover:bg-[#94111B] text-white font-bold text-sm rounded-lg shadow-md shadow-red-700/20 transition-all flex items-center justify-center gap-2 transform active:scale-[0.98]">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
-                                <span data-filter-submit-count>{{ $homepageFilterSubmitLabel }}</span>
+                            <button type="submit"
+                                class="filter-submit-button {{ $homepagePublishedTodayCount > 0 ? 'has-published-today' : '' }} h-[42px] w-full min-w-0 px-8 bg-[#C81424] hover:bg-[#94111B] text-white font-bold text-sm rounded-lg shadow-md shadow-red-700/20 transition-all flex items-center justify-center gap-2 transform active:scale-[0.98]">
+                                <span class="filter-submit-main" data-filter-submit-count>{{ $homepageFilterSubmitLabel }}</span>
+                                <span
+                                    data-filter-submit-today
+                                    aria-hidden="{{ $homepagePublishedTodayCount > 0 ? 'false' : 'true' }}"
+                                    @class(['filter-submit-today', 'hidden' => $homepagePublishedTodayCount === 0])
+                                >{{ $homepagePublishedTodayLabel }}</span>
                             </button>
                         </div>
 
@@ -914,7 +924,7 @@
 
         btn.disabled = !hasAnyFilter;
         if(hasAnyFilter) {
-             btn.classList.remove('opacity-0', 'invisible', 'translate-x-0', 'pointer-events-none');
+             btn.classList.remove('opacity-0', 'invisible', '-translate-x-2', 'pointer-events-none');
              btn.classList.add('opacity-100', 'visible', 'translate-x-0');
         } else {
              btn.classList.add('opacity-0', 'invisible', '-translate-x-2', 'pointer-events-none');
@@ -1154,10 +1164,48 @@
         text-transform: none;
     }
 
+    .filter-submit-button {
+        overflow: hidden;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    .filter-submit-main {
+        min-width: 0;
+        overflow: visible;
+        text-overflow: clip;
+        white-space: nowrap;
+    }
+
+    .homepage-expanded-actions {
+        gap: 0.5rem;
+    }
+
+    .homepage-expanded-actions .filter-submit-button {
+        flex: 1 1 auto;
+    }
+
+    .filter-submit-today {
+        flex: 0 0 auto;
+        border-radius: 9999px;
+        background: #ffffff;
+        color: #a6111e;
+        padding: 0.3rem 0.55rem;
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1;
+        white-space: nowrap;
+    }
+
     @media (min-width: 640px) {
         [data-filter-submit-count] {
             font-size: 16px;
             line-height: 1.5rem;
+        }
+
+        .filter-submit-today {
+            padding: 0.35rem 0.65rem;
+            font-size: 12px;
         }
     }
 
@@ -1254,11 +1302,42 @@
         .homepage-quick-submit-extra {
             display: none;
         }
-    }
 
-    @media (max-width: 420px) {
         .homepage-quick-actions {
-            grid-template-columns: minmax(0, 1fr);
+            grid-template-columns: minmax(0, 0.64fr) minmax(0, 1.36fr);
+        }
+
+        #homepage-more-filters-toggle {
+            gap: 0.375rem;
+            padding-left: 0.25rem;
+            padding-right: 0.25rem;
+        }
+
+        #homepage-more-filters-toggle svg {
+            display: none;
+        }
+
+        .homepage-more-filters-label {
+            font-size: 12px;
+        }
+
+        .homepage-quick-actions .filter-submit-button {
+            padding-left: 0.25rem;
+            padding-right: 0.25rem;
+        }
+
+        .homepage-quick-actions.has-published-today .filter-submit-button {
+            gap: 0.25rem;
+        }
+
+        .homepage-quick-actions.has-published-today [data-filter-submit-count] {
+            font-size: 13px;
+            line-height: 1rem;
+        }
+
+        .homepage-quick-actions.has-published-today .filter-submit-today {
+            padding: 0.2rem 0.3rem;
+            font-size: 10px;
         }
     }
 
@@ -1286,6 +1365,58 @@
             font-size: 0.82rem;
         }
 
+        .homepage-expanded-actions.has-published-today #reset-btn {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+
+        .homepage-expanded-actions.has-published-today .filter-submit-button {
+            gap: 0.375rem;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+
+        .homepage-expanded-actions.has-published-today [data-filter-submit-count] {
+            font-size: 13px;
+        }
+
+        .homepage-expanded-actions.has-published-today .filter-submit-today {
+            padding: 0.25rem 0.4rem;
+            font-size: 10px;
+        }
+
+    }
+
+    @media (max-width: 340px) {
+        .homepage-quick-actions {
+            grid-template-columns: minmax(0, 0.6fr) minmax(0, 1.4fr);
+        }
+
+        .homepage-more-filters-label {
+            font-size: 10px;
+        }
+
+        .homepage-quick-actions .filter-submit-button {
+            padding-left: 0.125rem;
+            padding-right: 0.125rem;
+        }
+
+        .homepage-quick-actions [data-filter-submit-count] {
+            font-size: 12px;
+        }
+
+        .homepage-quick-actions.has-published-today .filter-submit-button {
+            gap: 0.125rem;
+        }
+
+        .homepage-quick-actions.has-published-today [data-filter-submit-count] {
+            font-size: 11px;
+        }
+
+        .homepage-quick-actions.has-published-today .filter-submit-today {
+            padding: 0.2rem 0.3rem;
+            font-size: 9px;
+        }
     }
 
     @media (min-width: 1024px) {

@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Service;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -19,6 +21,7 @@ class ListingFilterPerformanceTest extends TestCase
 
     protected function tearDown(): void
     {
+        Carbon::setTestNow();
         Schema::dropAllTables();
 
         parent::tearDown();
@@ -62,7 +65,19 @@ class ListingFilterPerformanceTest extends TestCase
             ->assertJsonPath('total', 2)
             ->assertJsonPath('facets.brands.1', 2)
             ->assertJsonPath('facets.models', [])
+            ->assertJsonMissingPath('published_today')
             ->assertJsonMissingPath('html');
+    }
+
+    public function test_published_today_scope_matches_the_global_admin_definition(): void
+    {
+        Carbon::setTestNow(Carbon::create(2026, 7, 16, 18, 0, 0, 'Europe/Bucharest'));
+
+        DB::table('services')->where('id', 4)->update([
+            'published_at' => '2026-07-16 09:00:00',
+        ]);
+
+        $this->assertSame(1, Service::publishedToday()->count());
     }
 
     public function test_filter_facets_follow_the_existing_context_and_exclude_only_their_own_dimension(): void
