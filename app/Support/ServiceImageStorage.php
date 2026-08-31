@@ -10,6 +10,31 @@ class ServiceImageStorage
     public const SERVICE_DIR = 'services';
     public const CARD_THUMBNAIL_DIR = 'services/thumbnails/card';
 
+    public static function processedImageFilename(
+        string $baseName,
+        int $serviceId,
+        string $pendingPath,
+        string $extension
+    ): string {
+        $normalizedPendingPath = str_replace('\\', '/', $pendingPath);
+        $pendingFilename = pathinfo(basename($normalizedPendingPath), PATHINFO_FILENAME);
+        $uploadToken = strtolower(str_replace('-', '', $pendingFilename));
+
+        if (!preg_match('/\A[a-f0-9]{32}\z/', $uploadToken)) {
+            $uploadToken = substr(hash('sha256', $normalizedPendingPath), 0, 32);
+        }
+
+        $safeExtension = strtolower((string) preg_replace('/[^a-z0-9]/', '', $extension));
+
+        return sprintf(
+            '%s-%d-%s.%s',
+            $baseName,
+            $serviceId,
+            $uploadToken,
+            $safeExtension ?: 'jpg'
+        );
+    }
+
     public static function cardImageUrl(mixed $image): ?string
     {
         $filename = self::localServiceFilename($image);

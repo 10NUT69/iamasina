@@ -69,7 +69,6 @@ class ProcessServiceImages implements ShouldQueue
         $manager = new ImageManager(new Driver());
         $extension = $this->targetExtension();
         $baseName = $this->baseImageName($service);
-        $nextNumber = count($existingImages) + 1;
 
         $pendingImages = array_values($this->pendingImages);
         $availableSlots = max(0, 10 - count($existingImages));
@@ -87,7 +86,12 @@ class ProcessServiceImages implements ShouldQueue
                 continue;
             }
 
-            $targetName = $this->availableImageName($baseName, $service->id, $nextNumber, $extension);
+            $targetName = ServiceImageStorage::processedImageFilename(
+                $baseName,
+                $service->id,
+                $pendingPath,
+                $extension
+            );
             $targetPath = storage_path('app/public/services/' . $targetName);
             $thumbnailPath = storage_path('app/public/' . ServiceImageStorage::CARD_THUMBNAIL_DIR . '/' . $targetName);
 
@@ -107,19 +111,20 @@ class ProcessServiceImages implements ShouldQueue
                 $this->createCardThumbnail($manager, $sourcePath, $thumbnailPath, $extension, $service->id, $pendingPath);
 
                 $processedImages[] = $targetName;
-                $nextNumber++;
             } catch (Throwable $exception) {
                 Log::warning('Service image processing failed.', [
                     'service_id' => $service->id,
                     'source' => $pendingPath,
                     'message' => $exception->getMessage(),
                 ]);
-            } finally {
-                Storage::delete($pendingPath);
             }
         }
 
-        $images = array_values(array_slice(array_merge($existingImages, $processedImages), 0, 10));
+        $images = array_values(array_slice(
+            array_unique(array_merge($existingImages, $processedImages), SORT_REGULAR),
+            0,
+            10
+        ));
 
         $primaryPendingIndex = $this->primaryPendingIndex();
 
@@ -133,6 +138,8 @@ class ProcessServiceImages implements ShouldQueue
             $service->published_at = $service->published_at ?: now();
         }
         $service->save();
+
+        Storage::delete($processableImages);
     }
 
     private function normalizeImages(mixed $images): array
@@ -240,18 +247,6 @@ class ProcessServiceImages implements ShouldQueue
     private function primaryPendingIndex(): ?int
     {
         return isset($this->primaryPendingIndex) ? $this->primaryPendingIndex : null;
-    }
-
-    private function availableImageName(string $baseName, int $serviceId, int &$number, string $extension): string
-    {
-        do {
-            $name = "{$baseName}-{$serviceId}-{$number}.{$extension}";
-            $number++;
-        } while (is_file(storage_path('app/public/services/' . $name)));
-
-        $number--;
-
-        return $name;
     }
 
     private function baseImageName(Service $service): string
