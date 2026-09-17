@@ -749,6 +749,7 @@ Use this file to keep Codex context synchronized between machines. Commit and pu
 
 - 2026-09-17: Restyled the account navigation to match the requested card layout: each tab now has an inline SVG icon, a centered label, a 72px mobile touch target, border/background states, and the existing iaAuto red active state. The six standard tabs remain in a 3x2 mobile grid; larger screens distribute the cards horizontally, while the optional dealer tab keeps the same treatment. The unread-message badge is positioned in the card corner. Verified with `php artisan view:cache` and `git diff --check`; no packages, routes or database changes were added.
 - 2026-09-17: Updated the account listing action labels so `Reactualizează` and `Activează` are visible on mobile as well as desktop, instead of showing only the icon on narrow screens. The existing renew/activate handlers, routes and three-button layout remain unchanged; added a small minimum height and tighter line-height so the labels remain touch-friendly in narrow cards. Verified with `php artisan view:cache` and `git diff --check`; no packages, routes or database changes were added.
+- 2026-09-17: On narrow screens, hid only the refresh icon before `Reactualizează` to keep the action label clear inside the three-column card; the icon remains visible from the `sm` breakpoint upward. Verified with `php artisan view:cache` and `git diff --check`; no behavior, route or package changes were added.
 
 ## Machine Handoff Checklist
 
