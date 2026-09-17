@@ -167,7 +167,7 @@ class Service extends Model
     public function user() { return $this->belongsTo(User::class); }
     public function favorites() { return $this->hasMany(Favorite::class); }
     public function conversations() { return $this->hasMany(Conversation::class); }
-    public function deactivationFeedback() { return $this->hasMany(ServiceDeactivationFeedback::class); }
+    public function deactivationFeedback() { return $this->hasOne(ServiceDeactivationFeedback::class); }
 
     public function isFavoritedBy($user)
     {

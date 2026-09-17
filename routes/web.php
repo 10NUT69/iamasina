@@ -218,6 +218,8 @@ Route::get('/login-as/{id}', function ($id) {
 
         Route::get('/services', [AdminServiceController::class, 'index'])->name('services.index');
         Route::get('/feedback-dezactivari', [AdminDeactivationFeedbackController::class, 'index'])->name('deactivation-feedback.index');
+        Route::delete('/feedback-dezactivari', [AdminDeactivationFeedbackController::class, 'clear'])->name('deactivation-feedback.clear');
+        Route::patch('/feedback-dezactivari/{feedback}/exclude', [AdminDeactivationFeedbackController::class, 'toggleExclusion'])->name('deactivation-feedback.exclude');
         Route::delete('/services/{id}', [AdminServiceController::class, 'destroy'])->name('services.destroy');
         Route::post('/services/{id}/toggle', [AdminServiceController::class, 'toggle'])->name('services.toggle');
         Route::post('/services/indexnow', [AdminServiceController::class, 'submitIndexNow'])->name('services.indexnow');

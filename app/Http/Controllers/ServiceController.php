@@ -1540,14 +1540,27 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
 
             $service->loadMissing(['user', 'brandRel', 'modelRel', 'category', 'county', 'locality']);
 
-            $feedback = ServiceDeactivationFeedback::create([
+            $deactivatedAt = now();
+            $servicePublishedAt = $service->published_at ?: $service->created_at;
+            $daysToDeactivate = $servicePublishedAt
+                ? $servicePublishedAt->diffInDays($deactivatedAt)
+                : null;
+
+            // Un anunț are o singură înregistrare de vânzare. Dacă este
+            // reactivat și dezactivat din nou, păstrăm doar ultima modificare.
+            $feedback = ServiceDeactivationFeedback::query()
+                ->where('service_id', $service->id)
+                ->lockForUpdate()
+                ->first() ?? new ServiceDeactivationFeedback();
+
+            $feedback->fill([
                 'service_id' => $service->id,
                 'user_id' => $service->user_id,
                 'answer' => $answer,
                 'sold_on' => $soldOn,
                 'completion_status' => $completionStatus,
                 'survey_version' => 'v1',
-                'deactivated_at' => now(),
+                'deactivated_at' => $deactivatedAt,
                 'title' => $service->title,
                 'brand_id' => $service->brand_id,
                 'model_id' => $service->model_id,
@@ -1565,8 +1578,11 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
                 'locality_name' => $service->locality?->name,
                 'seller_type' => $service->user?->user_type,
                 'service_created_at' => $service->created_at,
-                'service_published_at' => $service->published_at,
+                'service_published_at' => $servicePublishedAt,
+                'days_to_deactivate' => $daysToDeactivate,
+                'is_current' => true,
             ]);
+            $feedback->save();
 
             $service->status = Service::STATUS_DEACTIVATED;
             if ($service->images === null) {
@@ -1600,6 +1616,12 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
                 ->where('status', Service::STATUS_DEACTIVATED)
                 ->lockForUpdate()
                 ->firstOrFail();
+
+            // Păstrăm singurul rând al anunțului și excluderea manuală,
+            // dar răspunsul nu mai intră în statistici cât timp este activ.
+            ServiceDeactivationFeedback::query()
+                ->where('service_id', $service->id)
+                ->update(['is_current' => false]);
 
             $service->status = 'active';
             $service->restore();

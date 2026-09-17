@@ -34,12 +34,18 @@ class ServiceDeactivationFeedback extends Model
         'seller_type',
         'service_created_at',
         'service_published_at',
+        'days_to_deactivate',
+        'excluded_at',
+        'is_current',
     ];
 
     protected $casts = [
         'deactivated_at' => 'datetime',
         'service_created_at' => 'datetime',
         'service_published_at' => 'datetime',
+        'days_to_deactivate' => 'integer',
+        'excluded_at' => 'datetime',
+        'is_current' => 'boolean',
         'price_value' => 'decimal:4',
         'price_eur' => 'decimal:4',
     ];
