@@ -29,7 +29,7 @@
 <div id="accountFloatingMsg" class="fixed left-1/2 top-24 z-[90] hidden w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 rounded-2xl px-4 py-3 text-sm font-bold shadow-2xl ring-1 backdrop-blur transition-all sm:px-5"></div>
 
 <div id="deactivateModal"
-     class="fixed inset-0 z-[100] hidden items-end justify-center bg-slate-950/50 p-3 backdrop-blur-sm sm:items-center sm:p-6"
+     class="fixed inset-0 z-[100] hidden items-center justify-center overflow-y-auto bg-slate-950/50 p-3 backdrop-blur-sm sm:p-6"
      role="dialog"
      aria-modal="true"
      aria-labelledby="deactivateModalTitle">
@@ -87,7 +87,7 @@
 </div>
 
 <div id="deleteServiceModal"
-     class="fixed inset-0 z-[100] hidden items-end justify-center bg-slate-950/50 p-3 backdrop-blur-sm sm:items-center sm:p-6"
+     class="fixed inset-0 z-[100] hidden items-center justify-center overflow-y-auto bg-slate-950/50 p-3 backdrop-blur-sm sm:p-6"
      role="dialog"
      aria-modal="true"
      aria-labelledby="deleteServiceModalTitle">
@@ -155,73 +155,85 @@
         </a>
     </div>
 
-    <div class="border-b border-gray-200 dark:border-[#333333] mb-8">
+    <div class="mb-8 border-b border-gray-200 pb-3 dark:border-[#333333] sm:pb-4">
+        @php
+            $accountNavItemClasses = 'group relative flex min-h-[72px] w-full flex-col items-center justify-center gap-1.5 rounded-xl border px-1.5 py-2 text-center text-[11px] font-semibold leading-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C81424] focus-visible:ring-offset-2 sm:min-h-[78px] sm:px-2 sm:py-3 sm:text-xs lg:text-sm';
+            $accountNavActiveClasses = 'border-[#C81424] bg-[#fff3f4] text-[#C81424] shadow-sm ring-1 ring-[#C81424]/10 dark:bg-[#32171a] dark:text-[#ff8b94]';
+            $accountNavInactiveClasses = 'border-slate-200 bg-white/75 text-slate-600 shadow-sm hover:-translate-y-0.5 hover:border-[#C81424]/40 hover:bg-[#fff8f8] hover:text-[#C81424] active:scale-[0.98] dark:border-[#383838] dark:bg-[#1e1e1e] dark:text-gray-300 dark:hover:border-[#C81424]/60 dark:hover:bg-[#2a1618] dark:hover:text-white';
+        @endphp
         <ul @class([
-            'grid items-end gap-0 text-[11px] font-semibold min-[380px]:text-xs sm:flex sm:gap-8 sm:text-lg sm:font-medium',
-            'grid-cols-7' => $accountDealerUrl,
-            'grid-cols-6' => ! $accountDealerUrl,
+            'grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:items-stretch sm:gap-3 lg:gap-4',
         ])>
-            <li>
+            <li class="sm:flex-1">
                 <a href="?tab=anunturi"
-                   class="flex h-full items-end justify-center px-0.5 pb-3 text-center leading-tight transition-colors sm:inline-block sm:px-0 sm:text-left sm:leading-normal
-                   {{ $accountTab === 'anunturi'
-                       ? 'text-[#C81424] border-b-2 border-[#C81424]'
-                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200' }}">
-                   Anunțurile mele
+                   class="{{ $accountNavItemClasses }} {{ $accountTab === 'anunturi' ? $accountNavActiveClasses : $accountNavInactiveClasses }}">
+                    <svg aria-hidden="true" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M7 3.75h7l3 3v13.5H7a2 2 0 0 1-2-2v-12.5a2 2 0 0 1 2-2Z" />
+                        <path d="M14 3.75v3h3M8.5 11h7M8.5 14.5h7M8.5 18h4" />
+                    </svg>
+                    <span>Anunțuri Active</span>
                 </a>
             </li>
-            <li>
+            <li class="sm:flex-1">
                 <a href="?tab=dezactivate"
-                   class="flex h-full items-end justify-center px-0.5 pb-3 text-center leading-tight transition-colors sm:inline-block sm:px-0 sm:text-left sm:leading-normal
-                   {{ $accountTab === 'dezactivate'
-                       ? 'text-[#C81424] border-b-2 border-[#C81424]'
-                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200' }}">
-                    Dezactivate
+                   class="{{ $accountNavItemClasses }} {{ $accountTab === 'dezactivate' ? $accountNavActiveClasses : $accountNavInactiveClasses }}">
+                    <svg aria-hidden="true" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="8.5" />
+                        <path d="M10 9v6M14 9v6" />
+                    </svg>
+                    <span>Anunțuri Inactive</span>
                 </a>
             </li>
-            <li>
+            <li class="sm:flex-1">
                 <a href="?tab=mesaje"
-                   class="flex h-full items-end justify-center gap-1 px-0.5 pb-3 text-center leading-tight transition-colors sm:inline-flex sm:items-center sm:gap-2 sm:px-0 sm:text-left sm:leading-normal
-                   {{ $accountTab === 'mesaje'
-                       ? 'text-[#C81424] border-b-2 border-[#C81424]'
-                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200' }}">
-                   <span>Mesaje</span>
-                   <span data-unread-badge class="{{ $accountUnreadMessagesCount > 0 ? 'inline-flex' : 'hidden' }} min-w-4 items-center justify-center rounded-full bg-[#C81424] px-1 text-[10px] font-black leading-4 text-white sm:min-w-5 sm:px-1.5 sm:text-[11px] sm:leading-5">
+                   class="{{ $accountNavItemClasses }} {{ $accountTab === 'mesaje' ? $accountNavActiveClasses : $accountNavInactiveClasses }}">
+                    <svg aria-hidden="true" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3.5" y="5.5" width="17" height="13" rx="2" />
+                        <path d="m4.5 7 7.5 6 7.5-6" />
+                    </svg>
+                    <span>Mesaje</span>
+                   <span data-unread-badge class="{{ $accountUnreadMessagesCount > 0 ? 'inline-flex' : 'hidden' }} absolute right-2 top-2 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-black leading-4 text-white sm:min-w-5 sm:text-[11px] {{ $accountTab === 'mesaje' ? 'bg-[#C81424]/90' : 'bg-[#C81424]' }}">
                        {{ $accountUnreadMessagesCount > 99 ? '99+' : ($accountUnreadMessagesCount ?: '') }}
                    </span>
                 </a>
             </li>
-            <li>
+            <li class="sm:flex-1">
                 <a href="?tab=favorite"
-                   class="flex h-full items-end justify-center px-0.5 pb-3 text-center leading-tight transition-colors sm:inline-block sm:px-0 sm:text-left sm:leading-normal
-                   {{ $accountTab === 'favorite'
-                       ? 'text-[#C81424] border-b-2 border-[#C81424]'
-                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200' }}">
-                    Favorite
+                   class="{{ $accountNavItemClasses }} {{ $accountTab === 'favorite' ? $accountNavActiveClasses : $accountNavInactiveClasses }}">
+                    <svg aria-hidden="true" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.5 8.8c0 5.2-8.5 10-8.5 10s-8.5-4.8-8.5-10a4.6 4.6 0 0 1 8.5-2.4 4.6 4.6 0 0 1 8.5 2.4Z" />
+                    </svg>
+                    <span>Anunțuri Favorite</span>
                 </a>
             </li>
-            <li>
+            <li class="sm:flex-1">
                 <a href="?tab=cautari"
-                   class="flex h-full items-end justify-center px-0.5 pb-3 text-center leading-tight transition-colors sm:inline-block sm:px-0 sm:text-left sm:leading-normal
-                   {{ $accountTab === 'cautari'
-                       ? 'text-[#C81424] border-b-2 border-[#C81424]'
-                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200' }}">
-                    Cautari
+                   class="{{ $accountNavItemClasses }} {{ $accountTab === 'cautari' ? $accountNavActiveClasses : $accountNavInactiveClasses }}">
+                    <svg aria-hidden="true" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="10.8" cy="10.8" r="6.8" />
+                        <path d="m16 16 4.5 4.5" />
+                    </svg>
+                    <span>Căutări favorite</span>
                 </a>
             </li>
-            <li>
+            <li class="sm:flex-1">
                 <a href="?tab=profil"
-                   class="flex h-full items-end justify-center px-0.5 pb-3 text-center leading-tight transition-colors sm:inline-block sm:px-0 sm:text-left sm:leading-normal
-                   {{ $accountTab === 'profil'
-                       ? 'text-[#C81424] border-b-2 border-[#C81424]'
-                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200' }}">
-                   Setări
+                   class="{{ $accountNavItemClasses }} {{ $accountTab === 'profil' ? $accountNavActiveClasses : $accountNavInactiveClasses }}">
+                    <svg aria-hidden="true" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m12 3 1.2 1.9 2.2.5.5 2.2 1.9 1.2-1.9 1.2-.5 2.2-2.2.5L12 15l-1.2-1.9-2.2-.5-.5-2.2-1.9-1.2 1.9-1.2.5-2.2 2.2-.5L12 3Z" />
+                        <circle cx="12" cy="9.5" r="2.2" />
+                        <path d="M7.5 20.5a4.5 4.5 0 0 1 9 0" />
+                    </svg>
+                    <span>Setări</span>
                 </a>
             </li>
             @if($accountDealerUrl)
-                <li>
+                <li class="sm:flex-1">
                     <a href="{{ $accountDealerUrl }}" target="_blank" rel="noopener"
-                       class="flex h-full items-end justify-center px-0.5 pb-3 text-center leading-tight text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 sm:inline-block sm:px-0 sm:text-left sm:leading-normal">
+                       class="{{ $accountNavItemClasses }} {{ $accountNavInactiveClasses }}">
+                        <svg aria-hidden="true" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 20h16M6.5 20V8.5L12 5l5.5 3.5V20M9 20v-5h6v5M9 10h.01M12 10h.01M15 10h.01" />
+                        </svg>
                         <span class="sm:hidden">Parc</span>
                         <span class="hidden sm:inline">Pagina parcului</span>
                     </a>
@@ -256,7 +268,7 @@
         @if($myServices->isEmpty())
             <div class="text-center py-16 bg-gray-50 dark:bg-[#1E1E1E] rounded-2xl border border-dashed border-gray-300 dark:border-[#333333]">
                 <p class="text-gray-600 dark:text-gray-400 text-lg">
-                    {{ $isDeactivatedTab ? 'Nu ai anunțuri dezactivate.' : 'Nu ai publicat niciun anunț încă.' }}
+                    {{ $isDeactivatedTab ? 'Nu ai anunțuri inactive.' : 'Nu ai publicat niciun anunț încă.' }}
                 </p>
             </div>
         @else
