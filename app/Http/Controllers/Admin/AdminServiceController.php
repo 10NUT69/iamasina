@@ -46,6 +46,10 @@ class AdminServiceController extends Controller
                 $query->onlyTrashed();
             } elseif ($request->status === 'active') {
                 $query->where('status', 'active')->whereNull('deleted_at');
+            } elseif ($request->status === 'deactivated') {
+                $query->onlyTrashed()
+                    ->where('status', Service::STATUS_DEACTIVATED)
+                    ->whereNotNull('images');
             } elseif ($request->status === 'inactive') {
                 $query->where('status', '!=', 'active')->whereNull('deleted_at');
             }
@@ -156,7 +160,7 @@ class AdminServiceController extends Controller
             'currency'    => ['required', 'in:RON,EUR'],
             'phone'       => ['nullable', 'string', 'max:30'],
             'email'       => ['nullable', 'email', 'max:120'],
-            'status'      => ['required', 'in:active,pending,expired,rejected'],
+            'status'      => ['required', 'in:active,pending,expired,rejected,deactivated'],
         ]);
 
         $service->title       = $data['title'];

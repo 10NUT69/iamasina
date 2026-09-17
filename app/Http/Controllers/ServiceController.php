@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\ProcessServiceImages;
 use App\Models\Service;
+use App\Models\ServiceDeactivationFeedback;
 use App\Models\Category;
 use App\Models\County;
 use App\Models\Locality;
@@ -32,6 +33,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -1276,10 +1278,8 @@ public function indexAutoPath(
 // ==========================================
 public function edit($id)
 {
-    $service = Service::where('id', $id)
-        ->where('user_id', auth()->id())
-        ->with(['generation.model.brand', 'modelRel'])
-        ->firstOrFail();
+    $service = $this->findOwnedServiceForManagement($id);
+    $service->load(['generation.model.brand', 'modelRel']);
 
     // EXACT ca la create()
     $brands = CarBrand::ordered()->get();
@@ -1362,9 +1362,7 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
     // ==========================================
    public function update(Request $request, $id)
 {
-    $service = Service::where('id', $id)
-        ->where('user_id', auth()->id())
-        ->firstOrFail();
+    $service = $this->findOwnedServiceForManagement($id);
 
     // forțăm categoria Autoturisme (exact ca în create)
     $autoCategoryId = Category::where('slug', 'autoturisme')->value('id')
@@ -1491,9 +1489,133 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
         $this->dispatchServiceImageProcessing($service->id, $pendingImages, false, $primaryPendingIndex);
     }
 
-    return redirect('/contul-meu?tab=anunturi')
-        ->with('success', 'Anunțul a fost trimis către aprobare. Îl procesăm și îl publicăm automat în scurt timp.');
+    $accountTab = $service->trashed() ? 'dezactivate' : 'anunturi';
+
+    return redirect('/contul-meu?tab=' . $accountTab)
+        ->with('success', $service->trashed()
+            ? 'Anunțul dezactivat a fost actualizat.'
+            : 'Anunțul a fost trimis către aprobare. Îl procesăm și îl publicăm automat în scurt timp.');
 }
+
+    public function deactivate(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'answer' => ['nullable', 'in:sold,not_sold'],
+            'sold_on' => ['nullable', 'in:iaauto,other_site'],
+            'completion_status' => ['required', 'in:completed,skipped'],
+        ]);
+
+        $completionStatus = $validated['completion_status'];
+        $answer = $validated['answer'] ?? null;
+        $soldOn = $validated['sold_on'] ?? null;
+
+        if ($completionStatus === 'completed' && $answer === null) {
+            throw ValidationException::withMessages([
+                'answer' => 'Alege un răspuns înainte de dezactivare.',
+            ]);
+        }
+
+        if ($answer === 'sold' && $soldOn === null) {
+            throw ValidationException::withMessages([
+                'sold_on' => 'Alege unde a fost vândută mașina.',
+            ]);
+        }
+
+        if ($answer !== 'sold') {
+            $soldOn = null;
+        }
+
+        $feedback = DB::transaction(function () use ($id, $completionStatus, $answer, $soldOn) {
+            $service = Service::withTrashed()
+                ->where('id', $id)
+                ->where('user_id', auth()->id())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($service->trashed() || $service->status !== 'active') {
+                throw ValidationException::withMessages([
+                    'service' => 'Acest anunț nu mai poate fi dezactivat.',
+                ]);
+            }
+
+            $service->loadMissing(['user', 'brandRel', 'modelRel', 'category', 'county', 'locality']);
+
+            $feedback = ServiceDeactivationFeedback::create([
+                'service_id' => $service->id,
+                'user_id' => $service->user_id,
+                'answer' => $answer,
+                'sold_on' => $soldOn,
+                'completion_status' => $completionStatus,
+                'survey_version' => 'v1',
+                'deactivated_at' => now(),
+                'title' => $service->title,
+                'brand_id' => $service->brand_id,
+                'model_id' => $service->model_id,
+                'brand_name' => $service->brandRel?->name ?: $service->brand,
+                'model_name' => $service->modelRel?->name ?: $service->model,
+                'an_fabricatie' => $service->an_fabricatie,
+                'km' => $service->km,
+                'price_value' => $service->price_value,
+                'currency' => $service->currency,
+                'price_eur' => $service->price_eur,
+                'category_id' => $service->category_id,
+                'county_id' => $service->county_id,
+                'locality_id' => $service->locality_id,
+                'county_name' => $service->county?->name,
+                'locality_name' => $service->locality?->name,
+                'seller_type' => $service->user?->user_type,
+                'service_created_at' => $service->created_at,
+                'service_published_at' => $service->published_at,
+            ]);
+
+            $service->status = Service::STATUS_DEACTIVATED;
+            if ($service->images === null) {
+                // Păstrăm anunțul în tabul Dezactivate chiar și când nu avea fotografii.
+                $service->images = [];
+            }
+            $service->save();
+            $service->delete();
+
+            return $feedback;
+        });
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'deactivated',
+                'feedback_id' => $feedback->id,
+                'message' => 'Anunțul a fost dezactivat.',
+            ]);
+        }
+
+        return redirect('/contul-meu?tab=dezactivate')
+            ->with('success', 'Anunțul a fost dezactivat.');
+    }
+
+    public function activate(Request $request, $id)
+    {
+        DB::transaction(function () use ($id) {
+            $service = Service::withTrashed()
+                ->where('id', $id)
+                ->where('user_id', auth()->id())
+                ->where('status', Service::STATUS_DEACTIVATED)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $service->status = 'active';
+            $service->restore();
+            $service->save();
+        });
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'activated',
+                'message' => 'Anunțul a fost activat.',
+            ]);
+        }
+
+        return redirect('/contul-meu?tab=anunturi')
+            ->with('success', 'Anunțul a fost activat.');
+    }
 
     // ==========================================
     // 9. DESTROY
@@ -1501,7 +1623,7 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
     public function destroy(Request $request, $id)
     {
         try {
-            $service = Service::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+            $service = $this->findOwnedServiceForManagement($id);
 
             $images = $service->images;
             if (is_null($images)) {
@@ -1513,6 +1635,10 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
             ServiceImageStorage::deleteServiceImages($images);
 
             $service->images = null;
+            if ($service->status === Service::STATUS_DEACTIVATED) {
+                // Păstrăm rândul soft-deleted și URL-ul public, dar îl scoatem din tabul Dezactivate.
+                $service->status = 'expired';
+            }
             $service->save();
             $service->delete();
 
@@ -1535,9 +1661,7 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
 
     public function deleteImage(Request $request, $id)
     {
-        $service = Service::where('id', $id)
-            ->where('user_id', auth()->id())
-            ->firstOrFail();
+        $service = $this->findOwnedServiceForManagement($id);
 
         $imageName = $request->input('image');
 
@@ -1586,6 +1710,7 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
     // ==========================================
     public function renew(Request $request, $id)
     {
+        // Soft-deleted/deactivated listings are intentionally excluded here.
         $service             = Service::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
         $service->status     = 'active';
         $service->created_at = now();
@@ -1598,6 +1723,18 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
             ]);
         }
         return back()->with('success', 'Reînnoit!');
+    }
+
+    private function findOwnedServiceForManagement($id): Service
+    {
+        return Service::withTrashed()
+            ->where('id', $id)
+            ->where('user_id', auth()->id())
+            ->where(function (Builder $query) {
+                $query->whereNull('deleted_at')
+                    ->orWhere('status', Service::STATUS_DEACTIVATED);
+            })
+            ->firstOrFail();
     }
 
     // ==========================================

@@ -104,6 +104,11 @@
                 </span>
             </a>
 
+            <a href="{{ route('admin.deactivation-feedback.index') }}"
+               class="block p-2 rounded hover:bg-gray-200 {{ request()->routeIs('admin.deactivation-feedback.*') ? 'bg-gray-200 font-bold' : '' }}">
+                Feedback dezactivări
+            </a>
+
             <a href="{{ route('admin.users.index') }}"
                class="flex items-center justify-between p-2 rounded hover:bg-gray-200 {{ request()->routeIs('admin.users.*') ? 'bg-gray-200 font-bold' : '' }}">
                 <span>Utilizatori</span>

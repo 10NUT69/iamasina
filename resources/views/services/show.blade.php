@@ -5,6 +5,7 @@
 
     $siteBrand = 'iaAuto.ro';
     $isDeleted = $service->trashed();
+    $isDeactivated = $isDeleted && $service->status === \App\Models\Service::STATUS_DEACTIVATED;
 
     // --- DEALER DETECT ---
     $sellerUser = $service->user;
@@ -77,10 +78,13 @@
 
     // --- IMAGINI ---
     $images = [];
-    if (!$isDeleted) {
+    if (!$isDeleted || $isDeactivated) {
         $images = is_string($service->images) ? json_decode($service->images, true) : ($service->images ?? []);
     }
     $images = is_array($images) ? array_values(array_filter($images)) : [];
+    if ($isDeactivated) {
+        $images = array_slice($images, 0, 1);
+    }
 
     // URL-uri complete
     $fullImageUrls = array_map(function($img) {
@@ -207,11 +211,14 @@
         ? (json_decode($service->images, true) ?: [])
         : ($service->images ?? []);
     $rawShareImages = array_values(array_filter((array) $rawShareImages));
+    if ($isDeactivated) {
+        $rawShareImages = array_slice($rawShareImages, 0, 1);
+    }
 
-    $seoImage = (!$isDeleted && $service->main_image_url)
+    $seoImage = ((!$isDeleted || $isDeactivated) && $service->main_image_url)
         ? $service->main_image_url
         : asset('images/social-share.webp');
-    if (!$isDeleted && !empty($rawShareImages)) {
+    if ((!$isDeleted || $isDeactivated) && !empty($rawShareImages)) {
         $firstShareImage = $rawShareImages[0];
         if (Str::startsWith($firstShareImage, ['http://', 'https://'])) {
             $seoImage = $firstShareImage;

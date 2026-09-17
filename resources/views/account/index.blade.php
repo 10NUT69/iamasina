@@ -28,6 +28,111 @@
 
 <div id="accountFloatingMsg" class="fixed left-1/2 top-24 z-[90] hidden w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 rounded-2xl px-4 py-3 text-sm font-bold shadow-2xl ring-1 backdrop-blur transition-all sm:px-5"></div>
 
+<div id="deactivateModal"
+     class="fixed inset-0 z-[100] hidden items-end justify-center bg-slate-950/50 p-3 backdrop-blur-sm sm:items-center sm:p-6"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="deactivateModalTitle">
+    <div class="w-full max-w-md rounded-3xl bg-white p-5 shadow-2xl dark:bg-[#1E1E1E] sm:p-7">
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <p class="text-xs font-black uppercase tracking-[0.18em] text-[#C81424]">Un ultim pas</p>
+                <h2 id="deactivateModalTitle" class="mt-1 text-xl font-black text-gray-900 dark:text-white">Ai vândut mașina?</h2>
+            </div>
+            <button type="button"
+                    id="deactivateModalClose"
+                    class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-2xl leading-none text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-[#2C2C2C] dark:hover:text-white"
+                    aria-label="Dezactivează anunțul fără răspuns"
+                    title="Dezactivează fără să răspunzi">
+                &times;
+            </button>
+        </div>
+
+        <p id="deactivateModalDescription" class="mt-3 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+            Răspunsul ne ajută să îmbunătățim iaAuto. Poți închide această fereastră și anunțul va fi dezactivat fără să completezi chestionarul.
+        </p>
+
+        <div id="deactivateStepAnswer" class="mt-6 grid grid-cols-2 gap-3">
+            <button type="button" data-deactivate-answer="not_sold" class="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4 text-sm font-black text-gray-800 transition hover:border-gray-300 hover:bg-gray-100 dark:border-[#404040] dark:bg-[#252525] dark:text-gray-100 dark:hover:bg-[#2C2C2C]">
+                Nu
+            </button>
+            <button type="button" data-deactivate-answer="sold" class="rounded-2xl bg-[#C81424] px-4 py-4 text-sm font-black text-white shadow-lg shadow-red-700/20 transition hover:bg-[#94111B]">
+                Da
+            </button>
+        </div>
+
+        <div id="deactivateStepChannel" class="mt-6 hidden">
+            <p class="text-sm font-bold text-gray-700 dark:text-gray-200">Unde ai vândut-o?</p>
+            <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <button type="button" data-deactivate-channel="iaauto" class="rounded-2xl bg-[#C81424] px-4 py-4 text-sm font-black text-white shadow-lg shadow-red-700/20 transition hover:bg-[#94111B]">
+                    Pe iaAuto
+                </button>
+                <button type="button" data-deactivate-channel="other_site" class="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4 text-sm font-black text-gray-800 transition hover:border-gray-300 hover:bg-gray-100 dark:border-[#404040] dark:bg-[#252525] dark:text-gray-100 dark:hover:bg-[#2C2C2C]">
+                    Pe alt site
+                </button>
+            </div>
+            <button type="button" id="deactivateBackButton" class="mt-4 text-sm font-bold text-gray-500 underline-offset-4 hover:text-gray-800 hover:underline dark:text-gray-400 dark:hover:text-white">
+                Înapoi
+            </button>
+        </div>
+
+        <div id="deactivateModalLoading" class="mt-6 hidden items-center justify-center gap-2 text-sm font-bold text-gray-500 dark:text-gray-400">
+            <svg class="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            Se dezactivează anunțul…
+        </div>
+    </div>
+</div>
+
+<div id="deleteServiceModal"
+     class="fixed inset-0 z-[100] hidden items-end justify-center bg-slate-950/50 p-3 backdrop-blur-sm sm:items-center sm:p-6"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="deleteServiceModalTitle">
+    <div class="w-full max-w-md rounded-3xl bg-white p-5 shadow-2xl dark:bg-[#1E1E1E] sm:p-7">
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <p class="text-xs font-black uppercase tracking-[0.18em] text-red-600 dark:text-red-300">Atenție</p>
+                <h2 id="deleteServiceModalTitle" class="mt-1 text-xl font-black text-gray-900 dark:text-white">Ștergi definitiv anunțul?</h2>
+            </div>
+            <button type="button"
+                    id="deleteServiceModalClose"
+                    class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-2xl leading-none text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-[#2C2C2C] dark:hover:text-white"
+                    aria-label="Închide fereastra de ștergere">
+                &times;
+            </button>
+        </div>
+
+        <p class="mt-3 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+            Anunțul și imaginile lui vor fi șterse definitiv din cont. Linkul public va rămâne fără fotografiile încărcate. Această acțiune nu poate fi anulată.
+        </p>
+
+        <div id="deleteServiceModalActions" class="mt-6 grid grid-cols-2 gap-3">
+            <button type="button"
+                    id="deleteServiceCancel"
+                    class="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-sm font-black text-gray-800 transition hover:border-gray-300 hover:bg-gray-100 dark:border-[#404040] dark:bg-[#252525] dark:text-gray-100 dark:hover:bg-[#2C2C2C]">
+                Anulează
+            </button>
+            <button type="button"
+                    id="deleteServiceConfirm"
+                    onclick="submitDeleteService()"
+                    class="rounded-2xl bg-[#C81424] px-4 py-3.5 text-sm font-black text-white shadow-lg shadow-red-700/20 transition hover:bg-[#94111B]">
+                Șterge definitiv
+            </button>
+        </div>
+
+        <div id="deleteServiceModalLoading" class="mt-6 hidden items-center justify-center gap-2 text-sm font-bold text-gray-500 dark:text-gray-400">
+            <svg class="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            Se șterge anunțul…
+        </div>
+    </div>
+</div>
+
 <div class="max-w-[1536px] mx-auto mt-10 mb-20 px-4 sm:px-6 lg:px-8">
 
     <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-10 gap-4">
@@ -53,8 +158,8 @@
     <div class="border-b border-gray-200 dark:border-[#333333] mb-8">
         <ul @class([
             'grid items-end gap-0 text-[11px] font-semibold min-[380px]:text-xs sm:flex sm:gap-8 sm:text-lg sm:font-medium',
-            'grid-cols-6' => $accountDealerUrl,
-            'grid-cols-5' => ! $accountDealerUrl,
+            'grid-cols-7' => $accountDealerUrl,
+            'grid-cols-6' => ! $accountDealerUrl,
         ])>
             <li>
                 <a href="?tab=anunturi"
@@ -63,6 +168,15 @@
                        ? 'text-[#C81424] border-b-2 border-[#C81424]'
                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200' }}">
                    Anunțurile mele
+                </a>
+            </li>
+            <li>
+                <a href="?tab=dezactivate"
+                   class="flex h-full items-end justify-center px-0.5 pb-3 text-center leading-tight transition-colors sm:inline-block sm:px-0 sm:text-left sm:leading-normal
+                   {{ $accountTab === 'dezactivate'
+                       ? 'text-[#C81424] border-b-2 border-[#C81424]'
+                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200' }}">
+                    Dezactivate
                 </a>
             </li>
             <li>
@@ -117,17 +231,33 @@
     </div>
 
     {{-- TAB 1: ANUNȚURILE MELE --}}
-    @if($accountTab === 'anunturi')
+    @if(in_array($accountTab, ['anunturi', 'dezactivate'], true))
 
         @php
-            $myServices = \App\Models\Service::where('user_id', auth()->id())
-                            ->orderBy('created_at', 'desc')
-                            ->get();
+            $isDeactivatedTab = $accountTab === 'dezactivate';
+            $myServicesQuery = \App\Models\Service::withTrashed()
+                ->where('user_id', auth()->id());
+
+            if ($isDeactivatedTab) {
+                $myServicesQuery
+                    ->onlyTrashed()
+                    ->where('status', \App\Models\Service::STATUS_DEACTIVATED)
+                    ->whereNotNull('images')
+                    ->orderBy('deleted_at', 'desc');
+            } else {
+                $myServicesQuery
+                    ->whereNull('deleted_at')
+                    ->orderBy('created_at', 'desc');
+            }
+
+            $myServices = $myServicesQuery->get();
         @endphp
 
         @if($myServices->isEmpty())
             <div class="text-center py-16 bg-gray-50 dark:bg-[#1E1E1E] rounded-2xl border border-dashed border-gray-300 dark:border-[#333333]">
-                <p class="text-gray-600 dark:text-gray-400 text-lg">Nu ai publicat niciun anunț încă.</p>
+                <p class="text-gray-600 dark:text-gray-400 text-lg">
+                    {{ $isDeactivatedTab ? 'Nu ai anunțuri dezactivate.' : 'Nu ai publicat niciun anunț încă.' }}
+                </p>
             </div>
         @else
 
@@ -145,7 +275,7 @@
 
                     <span class="absolute top-2 right-2 px-2 py-1 text-xs font-bold rounded-md shadow-sm
                         {{ $service->status === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300' : 'bg-gray-100 text-gray-600 dark:bg-[#333333] dark:text-gray-300' }}">
-                        {{ ucfirst($service->status ?? 'Activ') }}
+                        {{ $isDeactivatedTab ? 'Dezactivat' : ucfirst($service->status ?? 'Activ') }}
                     </span>
                 </a>
 
@@ -174,29 +304,55 @@
                     </div>
 
                     <div class="grid grid-cols-3 gap-2">
-                        <button type="button"
-                                data-id="{{ $service->id }}"
-                                data-url="{{ route('services.renew', $service->id) }}"
-                                onclick="refreshService(this)"
-                                title="Reactualizează anunțul"
-                                class="px-2 py-2 text-xs font-semibold bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/40 transition flex items-center justify-center gap-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            <span class="hidden sm:inline">Reactualizare</span>
-                        </button>
+                        @if($isDeactivatedTab)
+                            <button type="button"
+                                    data-id="{{ $service->id }}"
+                                    data-url="{{ route('services.activate', $service->id) }}"
+                                    onclick="activateService(this)"
+                                    title="Reactivează anunțul"
+                                    class="px-2 py-2 text-xs font-semibold bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/40 transition flex items-center justify-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7 7 7-7 7" />
+                                </svg>
+                                <span class="hidden sm:inline">Reactivează</span>
+                            </button>
+                        @else
+                            <button type="button"
+                                    data-id="{{ $service->id }}"
+                                    data-url="{{ route('services.renew', $service->id) }}"
+                                    onclick="refreshService(this)"
+                                    title="Reactualizează anunțul"
+                                    class="px-2 py-2 text-xs font-semibold bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/40 transition flex items-center justify-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                <span class="hidden sm:inline">Reactualizare</span>
+                            </button>
+                        @endif
                         <a href="{{ route('services.edit', $service->id) }}"
-                           class="px-3 py-2 text-sm font-medium text-center bg-[#fff4f5] dark:bg-[#2a1013] text-[#C81424] dark:text-red-300 rounded-lg hover:bg-[#ffe7ea] dark:hover:bg-[#3a171c] transition">
+                           class="px-2 py-2 text-xs font-semibold text-center bg-[#fff4f5] dark:bg-[#2a1013] text-[#C81424] dark:text-red-300 rounded-lg hover:bg-[#ffe7ea] dark:hover:bg-[#3a171c] transition flex items-center justify-center gap-1">
                             Editare
                         </a>
 
-                        <button type="button"
-                                data-id="{{ $service->id }}"
-                                data-url="{{ route('services.destroy', $service->id) }}"
-                                onclick="deleteService(this)"
-                                class="px-3 py-2 text-sm font-medium text-center bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 transition">
-                            Șterge
-                        </button>
+                        @if(!$isDeactivatedTab && $service->status === 'active')
+                            <button type="button"
+                                    data-id="{{ $service->id }}"
+                                    data-url="{{ route('services.deactivate', $service->id) }}"
+                                    onclick="openDeactivateModal(this)"
+                                    class="px-2 py-2 text-xs font-semibold text-center bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/40 transition flex items-center justify-center gap-1">
+                                Dezactivează
+                            </button>
+                        @endif
+
+                        @if($isDeactivatedTab)
+                            <button type="button"
+                                    data-id="{{ $service->id }}"
+                                    data-url="{{ route('services.destroy', $service->id) }}"
+                                    onclick="openDeleteServiceModal(this)"
+                                    class="px-2 py-2 text-xs font-semibold text-center bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-400 transition flex items-center justify-center gap-1">
+                                Șterge
+                            </button>
+                        @endif
                     </div>
 
                     <div class="mt-2 grid grid-cols-3 gap-2">
@@ -999,6 +1155,259 @@ function showAccountFloatingMessage(message, success = true) {
     }, 3500);
 }
 
+let deactivateContext = {
+    button: null,
+    url: null,
+};
+
+let deleteServiceContext = {
+    button: null,
+    url: null,
+};
+
+function setDeactivateModalStep(step) {
+    const answerStep = document.getElementById('deactivateStepAnswer');
+    const channelStep = document.getElementById('deactivateStepChannel');
+    const description = document.getElementById('deactivateModalDescription');
+
+    answerStep?.classList.toggle('hidden', step !== 'answer');
+    channelStep?.classList.toggle('hidden', step !== 'channel');
+
+    if (description) {
+        description.textContent = step === 'channel'
+            ? 'Mulțumim! Mai spune-ne doar unde ai vândut mașina.'
+            : 'Răspunsul ne ajută să îmbunătățim iaAuto. Poți închide această fereastră și anunțul va fi dezactivat fără să completezi chestionarul.';
+    }
+}
+
+function setDeactivateModalLoading(isLoading) {
+    const modal = document.getElementById('deactivateModal');
+    const loading = document.getElementById('deactivateModalLoading');
+    const controls = modal?.querySelectorAll('button');
+
+    loading?.classList.toggle('hidden', !isLoading);
+    loading?.classList.toggle('flex', isLoading);
+    controls?.forEach((control) => { control.disabled = isLoading; });
+}
+
+function hideDeactivateModal() {
+    const modal = document.getElementById('deactivateModal');
+    if (!modal) return;
+
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    setDeactivateModalLoading(false);
+    setDeactivateModalStep('answer');
+    deactivateContext = { button: null, url: null };
+}
+
+function openDeactivateModal(btn) {
+    const modal = document.getElementById('deactivateModal');
+    if (!modal) return;
+
+    deactivateContext = {
+        button: btn,
+        url: btn.getAttribute('data-url'),
+    };
+    setDeactivateModalStep('answer');
+    setDeactivateModalLoading(false);
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.getElementById('deactivateModalClose')?.focus();
+}
+
+function setDeleteServiceModalLoading(isLoading) {
+    const modal = document.getElementById('deleteServiceModal');
+    const loading = document.getElementById('deleteServiceModalLoading');
+    const actions = document.getElementById('deleteServiceModalActions');
+    const controls = modal?.querySelectorAll('button');
+
+    loading?.classList.toggle('hidden', !isLoading);
+    loading?.classList.toggle('flex', isLoading);
+    actions?.classList.toggle('hidden', isLoading);
+    controls?.forEach((control) => { control.disabled = isLoading; });
+}
+
+function hideDeleteServiceModal() {
+    const modal = document.getElementById('deleteServiceModal');
+    if (!modal) return;
+
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    setDeleteServiceModalLoading(false);
+    deleteServiceContext = { button: null, url: null };
+}
+
+function openDeleteServiceModal(btn) {
+    const modal = document.getElementById('deleteServiceModal');
+    if (!modal) return;
+
+    deleteServiceContext = {
+        button: btn,
+        url: btn.getAttribute('data-url'),
+    };
+    setDeleteServiceModalLoading(false);
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.getElementById('deleteServiceCancel')?.focus();
+}
+
+function finishDeleteServiceCard() {
+    const id = deleteServiceContext.button?.getAttribute('data-id');
+    const card = id ? document.getElementById('service-' + id) : null;
+
+    if (card) {
+        card.style.transition = '0.3s';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.9)';
+        setTimeout(() => card.remove(), 300);
+    }
+}
+
+function submitDeleteService() {
+    if (!deleteServiceContext.url) return;
+
+    setDeleteServiceModalLoading(true);
+
+    fetch(deleteServiceContext.url, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+        },
+    })
+        .then(async (response) => {
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || data.status !== 'deleted') {
+                throw new Error(data.message || 'Anunțul nu a putut fi șters.');
+            }
+            return data;
+        })
+        .then((data) => {
+            finishDeleteServiceCard();
+            hideDeleteServiceModal();
+            showAccountFloatingMessage(data.message || 'Anunțul a fost șters definitiv.', true);
+        })
+        .catch((error) => {
+            setDeleteServiceModalLoading(false);
+            showAccountFloatingMessage(error.message || 'Anunțul nu a putut fi șters.', false);
+        });
+}
+
+function finishDeactivationCard() {
+    const id = deactivateContext.button?.getAttribute('data-id');
+    const card = id ? document.getElementById('service-' + id) : null;
+
+    if (card) {
+        card.style.transition = '0.3s';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.96)';
+        setTimeout(() => card.remove(), 300);
+    }
+}
+
+function submitDeactivationFeedback(answer = null, soldOn = null, completionStatus = 'skipped') {
+    if (!deactivateContext.url) return;
+
+    setDeactivateModalLoading(true);
+
+    fetch(deactivateContext.url, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+            answer,
+            sold_on: soldOn,
+            completion_status: completionStatus,
+        }),
+    })
+        .then(async (response) => {
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(data.message || Object.values(data.errors || {}).flat()[0] || 'Anunțul nu a putut fi dezactivat.');
+            }
+            return data;
+        })
+        .then((data) => {
+            finishDeactivationCard();
+            hideDeactivateModal();
+            showAccountFloatingMessage(data.message || 'Anunțul a fost dezactivat.', true);
+        })
+        .catch((error) => {
+            setDeactivateModalLoading(false);
+            showAccountFloatingMessage(error.message || 'Anunțul nu a putut fi dezactivat.', false);
+        });
+}
+
+function activateService(btn) {
+    const url = btn.getAttribute('data-url');
+    const id = btn.getAttribute('data-id');
+    const card = document.getElementById('service-' + id);
+    const originalContent = btn.innerHTML;
+
+    btn.disabled = true;
+    btn.innerHTML = `<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>`;
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+        },
+    })
+        .then(async (response) => {
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(data.message || 'Anunțul nu a putut fi activat.');
+            return data;
+        })
+        .then((data) => {
+            if (card) {
+                card.style.transition = '0.3s';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.96)';
+                setTimeout(() => card.remove(), 300);
+            }
+            showAccountFloatingMessage(data.message || 'Anunțul a fost activat.', true);
+        })
+        .catch((error) => {
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+            showAccountFloatingMessage(error.message || 'Anunțul nu a putut fi activat.', false);
+        });
+}
+
+document.querySelectorAll('[data-deactivate-answer]').forEach((button) => {
+    button.addEventListener('click', () => {
+        const answer = button.getAttribute('data-deactivate-answer');
+        if (answer === 'sold') {
+            setDeactivateModalStep('channel');
+            return;
+        }
+
+        submitDeactivationFeedback('not_sold', null, 'completed');
+    });
+});
+
+document.querySelectorAll('[data-deactivate-channel]').forEach((button) => {
+    button.addEventListener('click', () => {
+        submitDeactivationFeedback('sold', button.getAttribute('data-deactivate-channel'), 'completed');
+    });
+});
+
+document.getElementById('deactivateModalClose')?.addEventListener('click', () => {
+    submitDeactivationFeedback(null, null, 'skipped');
+});
+
+document.getElementById('deactivateBackButton')?.addEventListener('click', () => {
+    setDeactivateModalStep('answer');
+});
+
+document.getElementById('deleteServiceModalClose')?.addEventListener('click', hideDeleteServiceModal);
+document.getElementById('deleteServiceCancel')?.addEventListener('click', hideDeleteServiceModal);
+
 function refreshService(btn) {
     const url = btn.getAttribute('data-url');
     const originalContent = btn.innerHTML;
@@ -1125,41 +1534,6 @@ function toggleFavorite(serviceId, btn) {
                 }
             }, 450);
         }
-    });
-}
-
-function deleteService(btn) {
-    if (!confirm("Sigur vrei să ștergi acest anunț? Această acțiune este ireversibilă.")) return;
-
-    const url = btn.getAttribute('data-url');
-    const id = btn.getAttribute('data-id');
-    const card = document.getElementById("service-" + id);
-
-    if (card) card.style.opacity = "0.5";
-
-    fetch(url, {
-        method: "DELETE",
-        headers: {
-            "X-CSRF-TOKEN": "{{ csrf_token() }}",
-            "Accept": "application/json"
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === "deleted") {
-            card.style.transition = "0.3s";
-            card.style.opacity = "0";
-            card.style.transform = "scale(0.9)";
-            setTimeout(() => card.remove(), 300);
-        } else {
-            alert("Eroare la ștergere.");
-            if (card) card.style.opacity = "1";
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Eroare la ștergere.");
-        if (card) card.style.opacity = "1";
     });
 }
 

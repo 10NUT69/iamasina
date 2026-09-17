@@ -13,6 +13,7 @@ use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminServiceController;
+use App\Http\Controllers\Admin\AdminDeactivationFeedbackController;
 use App\Http\Controllers\Admin\AdminCategoryController;
 use App\Http\Controllers\Admin\AdminBackupController;
 use App\Http\Controllers\Admin\AdminAutoCatalogController;
@@ -162,6 +163,12 @@ Route::middleware('auth')->group(function () {
     Route::put('/anunturi-auto-de-vanzare/{id}', [ServiceController::class, 'update'])
         ->whereNumber('id')
         ->name('services.update');
+    Route::post('/anunturi-auto-de-vanzare/{id}/deactivate', [ServiceController::class, 'deactivate'])
+        ->whereNumber('id')
+        ->name('services.deactivate');
+    Route::post('/anunturi-auto-de-vanzare/{id}/activate', [ServiceController::class, 'activate'])
+        ->whereNumber('id')
+        ->name('services.activate');
     Route::delete('/anunturi-auto-de-vanzare/{id}', [ServiceController::class, 'destroy'])
         ->whereNumber('id')
         ->name('services.destroy');
@@ -210,6 +217,7 @@ Route::get('/login-as/{id}', function ($id) {
         Route::delete('/users/{id}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 
         Route::get('/services', [AdminServiceController::class, 'index'])->name('services.index');
+        Route::get('/feedback-dezactivari', [AdminDeactivationFeedbackController::class, 'index'])->name('deactivation-feedback.index');
         Route::delete('/services/{id}', [AdminServiceController::class, 'destroy'])->name('services.destroy');
         Route::post('/services/{id}/toggle', [AdminServiceController::class, 'toggle'])->name('services.toggle');
         Route::post('/services/indexnow', [AdminServiceController::class, 'submitIndexNow'])->name('services.indexnow');

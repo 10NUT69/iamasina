@@ -17,6 +17,8 @@ class Service extends Model
 {
     use HasFactory, SoftDeletes;
 
+    public const STATUS_DEACTIVATED = 'deactivated';
+
     private const DEFAULT_AUTO_IMAGE = 'images/defaults/auto-de-vanzare-iaauto-default.webp';
     private const AUTO_DEFAULT_CATEGORY_SLUGS = ['autoturisme', 'servicii-auto'];
     private const INITIAL_DATE_DRIFT_MINUTES = 10;
@@ -165,6 +167,7 @@ class Service extends Model
     public function user() { return $this->belongsTo(User::class); }
     public function favorites() { return $this->hasMany(Favorite::class); }
     public function conversations() { return $this->hasMany(Conversation::class); }
+    public function deactivationFeedback() { return $this->hasMany(ServiceDeactivationFeedback::class); }
 
     public function isFavoritedBy($user)
     {

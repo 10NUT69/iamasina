@@ -72,6 +72,7 @@
                         <option value="{{ route('admin.services.index') }}">Toate</option>
                         <option value="{{ route('admin.services.index', ['status' => 'active']) }}" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
                         <option value="{{ route('admin.services.index', ['status' => 'inactive']) }}" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                        <option value="{{ route('admin.services.index', ['status' => 'deactivated']) }}" {{ request('status') == 'deactivated' ? 'selected' : '' }}>Dezactivate</option>
                         <option value="{{ route('admin.services.index', ['status' => 'trashed']) }}" {{ request('status') == 'trashed' ? 'selected' : '' }}>Coș de Gunoi</option>
                     </select>
 
@@ -127,7 +128,9 @@
                                 </td>
 
                                 <td class="p-4">
-                                    @if($service->trashed())
+                                    @if($service->trashed() && $service->status === \App\Models\Service::STATUS_DEACTIVATED)
+                                        <span class="px-2 py-1 rounded text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">DEZACTIVAT</span>
+                                    @elseif($service->trashed())
                                         <span class="px-2 py-1 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">ȘTERS</span>
                                     @elseif($service->status === 'active')
                                         <span class="px-2 py-1 rounded text-[10px] font-bold bg-green-100 text-green-700 border border-green-200">ACTIV</span>
