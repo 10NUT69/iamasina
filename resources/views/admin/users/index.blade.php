@@ -257,12 +257,14 @@
                                 <td class="p-4 text-right">
     <div class="flex items-center justify-end gap-2">
         @if($user->id !== auth()->id())
-            <a href="{{ route('admin.login-as', $user->id) }}"
-               onclick="return confirm('Sigur vrei să intri în contul acestui utilizator? Vei fi delogat din contul de admin.')"
-               class="p-2 border border-blue-200 text-blue-600 rounded-lg hover:bg-blue-50 transition shadow-sm"
-               title="Intră ca utilizator">
-                <i class="fas fa-right-to-bracket"></i>
-            </a>
+            @if($user->is_active)
+                <button type="button"
+                        onclick="loginAsUser({{ $user->id }})"
+                        class="p-2 border border-blue-200 text-blue-600 rounded-lg hover:bg-blue-50 transition shadow-sm"
+                        title="Intră ca utilizator" aria-label="Intră ca utilizator">
+                    <i class="fas fa-right-to-bracket"></i>
+                </button>
+            @endif
 
             <button type="button"
                     onclick="toggleUser({{ $user->id }})"
@@ -383,6 +385,7 @@
 </div>
 
 <form id="toggleForm" action="" method="POST" style="display: none;"> @csrf </form>
+<form id="loginAsForm" action="" method="POST" style="display: none;"> @csrf </form>
 <form id="deleteForm" action="" method="POST" style="display: none;"> @csrf @method('DELETE') </form>
 <form id="dealerTierForm" action="" method="POST" style="display: none;"> @csrf @method('PATCH') <input type="hidden" name="dealer_tier" id="dealerTierInput"> </form>
 <form id="serviceToggleForm" action="" method="POST" style="display: none;"> @csrf </form>
@@ -407,6 +410,7 @@
     });
 
     const toggleUrlTemplate = '{{ route("admin.users.toggle", ":id") }}';
+    const loginAsUrlTemplate = '{{ route("admin.login-as", ":id") }}';
     const deleteUrlTemplate = '{{ route("admin.users.destroy", ":id") }}';
     const dealerTierUrlTemplate = '{{ route("admin.users.dealer-tier", ":id") }}';
     const serviceToggleUrlTemplate = '{{ route("admin.services.toggle", ":id") }}';
@@ -429,6 +433,14 @@
     function toggleUser(id) {
         const form = document.getElementById('toggleForm');
         form.action = toggleUrlTemplate.replace(':id', id);
+        form.submit();
+    }
+
+    function loginAsUser(id) {
+        if (!confirm('Sigur vrei să intri în contul acestui utilizator? Vei fi delogat din contul de admin.')) return;
+
+        const form = document.getElementById('loginAsForm');
+        form.action = loginAsUrlTemplate.replace(':id', id);
         form.submit();
     }
 

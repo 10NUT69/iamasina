@@ -12,12 +12,13 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         
-        // 1. Middleware-ul global de statistici (TrackVisit)
+        // Verificăm conturile blocate înainte de a înregistra vizitele.
         $middleware->web(append: [
+            \App\Http\Middleware\EnsureUserIsActive::class,
             \App\Http\Middleware\TrackVisit::class,
         ]);
 
-        // 2. Alias pentru Admin
+        // Alias pentru Admin
         $middleware->alias([
             'admin.access' => \App\Http\Middleware\AdminAccess::class,
         ]);

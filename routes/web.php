@@ -200,14 +200,18 @@ Route::middleware(['auth', 'admin.access'])
     ->name('admin.')
     ->group(function () {
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
-Route::get('/login-as/{id}', function ($id) {
-    $user = User::findOrFail($id);
+        Route::post('/login-as/{id}', function ($id) {
+            $user = User::findOrFail($id);
 
-    Auth::login($user);
-    request()->session()->regenerate();
+            if ($user->is_active === false) {
+                return back()->with('error', 'Nu poți intra în contul unui utilizator blocat.');
+            }
 
-    return redirect()->route('account.index');
-})->whereNumber('id')->name('login-as');
+            Auth::login($user);
+            request()->session()->regenerate();
+
+            return redirect()->route('account.index');
+        })->whereNumber('id')->name('login-as');
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::post('/users/export-emails/with-services', [AdminUserController::class, 'exportEmailsWithServices'])->name('users.export-emails.with-services');
         Route::post('/users/export-emails/without-services', [AdminUserController::class, 'exportEmailsWithoutServices'])->name('users.export-emails.without-services');

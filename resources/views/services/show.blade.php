@@ -467,7 +467,7 @@
 
 @section('schema')
 <script type="application/ld+json">
-{!! json_encode($schemaData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+@json($schemaData)
 </script>
 <script type="application/ld+json">
 @json($breadcrumbSchema)
