@@ -1,18 +1,20 @@
 {
-  "name": "ia Auto",
-  "short_name": "ia Auto",
+  "name": "iaAuto.ro",
+  "short_name": "iaAuto",
+  "id": "/",
+  "description": "Anunțuri auto de vânzare pe iaAuto.ro",
   "icons": [
-{
+    {
       "src": "/android-chrome-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/android-chrome-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ],
   "theme_color": "#CC2E2E",

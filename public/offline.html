@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ro">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#CC2E2E">
+    <title>Fără conexiune · iaAuto.ro</title>
+    <style>
+        :root { color-scheme: light dark; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        * { box-sizing: border-box; }
+        body { min-height: 100vh; min-height: 100dvh; margin: 0; display: grid; place-items: center; padding: 24px; background: #f6f7fb; color: #172033; }
+        main { width: min(100%, 440px); padding: clamp(28px, 8vw, 44px); text-align: center; border: 1px solid #e2e5eb; border-radius: 24px; background: #fff; box-shadow: 0 14px 38px rgba(23, 32, 51, .07); }
+        .brand { display: inline-grid; place-items: center; width: 68px; height: 68px; margin-bottom: 18px; border-radius: 20px; background: #cc2e2e; color: #fff; font-size: 24px; font-weight: 800; letter-spacing: -.08em; }
+        h1 { margin: 0 0 12px; font-size: clamp(25px, 5vw, 32px); line-height: 1.2; }
+        p { margin: 0 0 28px; color: #5b6575; line-height: 1.6; }
+        a { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; padding: 12px 24px; border-radius: 12px; background: #cc2e2e; color: #fff; font-weight: 700; text-decoration: none; }
+        a:focus-visible { outline: 3px solid #172033; outline-offset: 3px; }
+        @media (prefers-color-scheme: dark) {
+            body { background: #121212; color: #f4f5f7; }
+            main { background: #1e1e1e; border-color: #373737; box-shadow: none; }
+            p { color: #b9c0cb; }
+            a:focus-visible { outline-color: #fff; }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="brand" aria-hidden="true">ia</div>
+        <h1>Momentan ești offline</h1>
+        <p>Verifică conexiunea la internet și încearcă din nou. Anunțurile și informațiile contului se încarcă direct de pe iaAuto.ro când revii online.</p>
+        <a href="/">Încearcă din nou</a>
+    </main>
+</body>
+</html>

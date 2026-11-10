@@ -1,4 +1,5 @@
 import './bootstrap';
+import './components/pwa';
 import './components/combobox';
 import './components/character-counter';
 import './components/toast';
