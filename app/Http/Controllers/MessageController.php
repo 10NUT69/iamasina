@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Service;
+use App\Rules\WithoutContactDetails;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -65,16 +66,7 @@ class MessageController extends Controller
             return back()->with('error', 'Nu poți trimite mesaj către propriul anunț.');
         }
 
-        $validated = $request->validate([
-            'body' => ['required', 'string', 'max:2000'],
-        ]);
-
-        $body = trim($validated['body']);
-        if ($body === '') {
-            return back()
-                ->withErrors(['body' => 'Scrie un mesaj înainte de trimitere.'])
-                ->withInput();
-        }
+        $body = $this->validatedBody($request);
 
         $conversation = DB::transaction(function () use ($service, $seller, $user, $body) {
             $conversation = Conversation::query()->firstOrCreate(
@@ -111,16 +103,7 @@ class MessageController extends Controller
         abort_unless($conversation->isParticipant($user), 403);
         abort_if($conversation->isHiddenFor($user), 404);
 
-        $validated = $request->validate([
-            'body' => ['required', 'string', 'max:2000'],
-        ]);
-
-        $body = trim($validated['body']);
-        if ($body === '') {
-            return back()
-                ->withErrors(['body' => 'Scrie un mesaj înainte de trimitere.'])
-                ->withInput();
-        }
+        $body = $this->validatedBody($request);
 
         DB::transaction(function () use ($conversation, $user, $body) {
             $message = $conversation->messages()->create([
@@ -171,6 +154,17 @@ class MessageController extends Controller
         return redirect()
             ->route('account.index', ['tab' => 'mesaje'])
             ->with('success', 'Conversația a fost ștearsă din contul tău.');
+    }
+
+    private function validatedBody(Request $request): string
+    {
+        $validated = $request->validate([
+            'body' => ['bail', 'required', 'string', 'max:2000', new WithoutContactDetails],
+        ], [
+            'body.required' => 'Scrie un mesaj înainte de trimitere.',
+        ]);
+
+        return trim($validated['body']);
     }
 
     private function unreadMessagesCount(int $userId): int

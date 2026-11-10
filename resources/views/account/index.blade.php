@@ -682,8 +682,10 @@
                           rows="4"
                           maxlength="2000"
                           required
+                          aria-describedby="message-body-guidance"
                           class="w-full resize-none rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#C81424] focus:ring-2 focus:ring-[#C81424]/20 dark:border-[#404040] dark:bg-[#252525] dark:text-white"
                           placeholder="Scrie mesajul tău...">{{ old('body') }}</textarea>
+                <p id="message-body-guidance" class="mt-2 text-xs text-gray-500 dark:text-gray-400">Numerele de telefon și adresele de e-mail nu sunt permise în mesaje.</p>
                 @error('body')
                     <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
                 @enderror
