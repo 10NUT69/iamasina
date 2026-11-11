@@ -19,8 +19,8 @@ class SitemapController extends Controller
     {
         $latestUpdate = $this->latestRelevantUpdate();
 
-        $todayKey = 'sitemap.xml:v6:' . now()->toDateString();
-        $yesterdayKey = 'sitemap.xml:v6:' . now()->subDay()->toDateString();
+        $todayKey = 'sitemap.xml:v7:' . now()->toDateString();
+        $yesterdayKey = 'sitemap.xml:v7:' . now()->subDay()->toDateString();
 
         if (Cache::has($todayKey)) {
             return response(Cache::get($todayKey), 200)->header('Content-Type', 'text/xml');
@@ -175,6 +175,7 @@ class SitemapController extends Controller
             'page.about' => ['changefreq' => 'monthly', 'priority' => '0.5'],
             'page.contact' => ['changefreq' => 'monthly', 'priority' => '0.5'],
             'page.blog' => ['changefreq' => 'weekly', 'priority' => '0.6'],
+            'page.contract-auto' => ['changefreq' => 'monthly', 'priority' => '0.6'],
             'dealers.index' => ['changefreq' => 'daily', 'priority' => '0.7'],
             'page.terms' => ['changefreq' => 'yearly', 'priority' => '0.3'],
             'page.privacy' => ['changefreq' => 'yearly', 'priority' => '0.3'],

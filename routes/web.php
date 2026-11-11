@@ -9,6 +9,7 @@ use App\Http\Controllers\SavedSearchController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\CarController;
+use App\Http\Controllers\ContractAutoController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminUserController;
@@ -280,6 +281,10 @@ Route::view('/despre-noi', 'services.about')->name('page.about');
 Route::view('/de-ce-dealerii-auto-aleg-iaauto', 'services.dealer-landing')->name('page.dealers');
 Route::view('/contact', 'services.contact')->name('page.contact');
 Route::view('/blog', 'services.blog')->name('page.blog');
+Route::get('/contract-vanzare-cumparare-auto', [ContractAutoController::class, 'index'])->name('page.contract-auto');
+Route::get('/contract-vanzare-cumparare-auto/descarca/{format}', [ContractAutoController::class, 'download'])
+    ->whereIn('format', ['pdf', 'docx'])
+    ->name('page.contract-auto.download');
 Route::view('/termeni-si-conditii', 'services.terms')->name('page.terms');
 Route::view('/politica-confidentialitate', 'services.privacy')->name('page.privacy');
 Route::view('/politica-cookies', 'services.cookies')->name('page.cookies');

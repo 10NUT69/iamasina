@@ -271,11 +271,13 @@
                        class="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-[#18181B] text-[11px] hover:bg-[#C81424] hover:text-white transition">
                         Politica cookies
                     </a>
-                    <button type="button"
-                            onclick="window.openCookieSettings && window.openCookieSettings()"
-                            class="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-[#18181B] text-[11px] hover:bg-[#C81424] hover:text-white transition">
-                        Setari cookies
-                    </button>
+                    @unless(request()->routeIs('page.contract-auto'))
+                        <button type="button"
+                                onclick="window.openCookieSettings && window.openCookieSettings()"
+                                class="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-[#18181B] text-[11px] hover:bg-[#C81424] hover:text-white transition">
+                            Setari cookies
+                        </button>
+                    @endunless
                     <a href="{{ route('page.privacy') }}"
                        class="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-[#18181B] text-[11px] hover:bg-[#C81424] hover:text-white transition">
                         Confidențialitate
@@ -295,7 +297,9 @@
         </div>
     </footer>
 
-    <x-cookie-consent />
+    @unless(request()->routeIs('page.contract-auto'))
+        <x-cookie-consent />
+    @endunless
 
     @if(session('ga4_listing_published_event') === true)
         <script>
