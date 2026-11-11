@@ -263,6 +263,10 @@
                        class="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-[#18181B] text-[11px] hover:bg-[#C81424] hover:text-white transition">
                         Contact
                     </a>
+                    <a href="{{ route('page.contract-auto') }}"
+                       class="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-[#18181B] text-[11px] hover:bg-[#C81424] hover:text-white transition">
+                        Contract vânzare-cumpărare auto
+                    </a>
                     <a href="{{ route('page.terms') }}"
                        class="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-[#18181B] text-[11px] hover:bg-[#C81424] hover:text-white transition">
                         Termeni &amp; condiții

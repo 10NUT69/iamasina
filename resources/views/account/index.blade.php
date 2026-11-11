@@ -135,8 +135,8 @@
 
 <div class="max-w-[1536px] mx-auto mt-10 mb-20 px-4 sm:px-6 lg:px-8">
 
-    <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-10 gap-4">
-        <div>
+    <div class="mb-10 flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
+        <div class="min-w-0 break-words">
             <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
                 Salut, {{ auth()->user()->name }} 👋
             </h1>
@@ -145,14 +145,28 @@
             </p>
         </div>
 
-        <a href="{{ route('services.create') }}"
-           class="px-5 py-3 bg-[#C81424] hover:bg-[#94111B] text-white font-bold rounded-xl shadow-lg
-                  transition transform active:scale-95 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Publică Anunț Nou
-        </a>
+        <div class="flex w-full flex-col items-start gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-stretch lg:shrink-0">
+            <a href="{{ route('services.create') }}"
+               class="px-5 py-3 bg-[#C81424] hover:bg-[#94111B] text-white font-bold rounded-xl shadow-lg
+                      transition transform active:scale-95 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Publică Anunț Nou
+            </a>
+
+            <a href="{{ route('page.contract-auto') }}"
+               class="inline-flex min-h-12 w-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold leading-tight text-gray-900 shadow-sm transition hover:border-[#C81424]/40 hover:bg-[#fff8f8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C81424] focus-visible:ring-offset-2 dark:border-[#383838] dark:bg-[#1e1e1e] dark:text-gray-100 dark:hover:border-[#C81424]/60 dark:hover:bg-[#2a1618] dark:focus-visible:ring-offset-[#121212] sm:w-auto sm:px-4">
+                <svg aria-hidden="true" class="h-5 w-5 shrink-0 text-[#C81424] dark:text-[#ff8b94]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+                    <path d="M14 2v6h6M8 13h8m-8 4h8" />
+                </svg>
+                <span>Generează contract de vânzare-cumpărare</span>
+                <svg aria-hidden="true" class="ml-auto h-4 w-4 shrink-0 text-[#C81424] dark:text-[#ff8b94]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m9 18 6-6-6-6" />
+                </svg>
+            </a>
+        </div>
     </div>
 
     <div class="mb-8 border-b border-gray-200 pb-3 dark:border-[#333333] sm:pb-4">
