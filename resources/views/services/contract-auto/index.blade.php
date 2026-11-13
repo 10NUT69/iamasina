@@ -34,7 +34,7 @@
         <header>
             <h1 class="text-2xl font-extrabold tracking-tight sm:text-3xl lg:text-4xl">{{ $contractTitle }}</h1>
             <p class="mt-2 max-w-2xl text-sm leading-relaxed text-gray-600 dark:text-gray-300 sm:text-base">
-                Completează online gratuit contract de vânzare cumpărare Model 2026 ITL 054.
+                Completează online gratuit contract vânzare cumpărare Model 2026 ITL 054.
                 Descarcă Contractul auto format PDF sau Word Modelul Oficial.
             </p>
         </header>

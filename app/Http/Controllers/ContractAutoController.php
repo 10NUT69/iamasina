@@ -9,7 +9,7 @@ class ContractAutoController extends Controller
 {
     private const MODEL_YEAR = 2026;
 
-    private const META_DESCRIPTION = 'Completează online gratuit contract de vânzare cumpărare Model 2026 ITL 054. Descarcă Contractul auto format PDF sau Word Model Oficial.';
+    private const META_DESCRIPTION = 'Completează online gratuit contract vânzare cumpărare Model 2026 ITL 054. Descarcă Contractul auto format PDF sau Word Model Oficial.';
 
     private const DOWNLOAD_TYPES = [
         'pdf' => 'application/pdf',

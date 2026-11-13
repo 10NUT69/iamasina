@@ -1,15 +1,15 @@
 <article class="{{ $panel }} space-y-6 text-sm leading-relaxed text-gray-700 dark:text-gray-300 sm:text-base">
     <header class="space-y-2">
-        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Model de contract de vânzare cumpărare auto ITL 054</h2>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Model contract vânzare cumpărare auto ITL 054</h2>
         <p>
-            Contractul de vânzare cumpărare auto, denumit oficial „Contract de înstrăinare dobândire a unui mijloc de transport”,
+            Contractul vânzare cumpărare auto, denumit oficial „Contract de înstrăinare dobândire a unui mijloc de transport”,
             consemnează transferul dreptului de proprietate asupra vehiculului. Pe iaAuto.ro poți completa online modelul 2026 ITL 054
             sau poți descărca gratuit formularul necompletat în PDF, format A4 pentru tipărire ori în format Word editabil (.docx).
         </p>
     </header>
 
     <section class="space-y-2 border-t border-gray-100 pt-4 dark:border-gray-800">
-        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100">Cum completezi online contractul de vanzare – cumparare auto</h2>
+        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100">Cum completezi online contractul vânzare cumpărare auto</h2>
         <p>
             Pregătește actele de identitate ale vânzătorului și cumpărătorului, cartea de identitate a vehiculului (CIV) și talonul.
             Dacă vânzătorul sau cumpărătorul este o firmă, alege „Persoană juridică” și introdu datele societății și ale reprezentantului care semnează.
@@ -25,11 +25,20 @@
     </section>
 
     <section class="space-y-3 border-t border-gray-100 pt-4 dark:border-gray-800">
-        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100">Ce s-a schimbat în modelul contractului de vanzare – cumparare auto ITL 054 din 2026</h2>
+        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100">Ce s-a schimbat în modelul contractului vânzare cumpărare auto ITL 054 din 2026</h2>
         <p>
-            Modelul <strong>contractului de vanzare – cumparare auto ITL 054 din 2026</strong> se aplică din 17 august 2026,
-            când ordinul comun nr. 772/966/123/2026 a fost publicat în Monitorul Oficial nr. 680 și a înlocuit formularul anterior.
+            Modelul <strong>contractului vânzare cumpărare auto ITL 054 din 2026</strong> a înlocuit formularul anterior.
         </p>
+        <div class="space-y-2">
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100">Principalele noutăți ale modelului ITL 054 (din 17 august 2026)</h3>
+            <ul class="list-disc space-y-1 pl-5">
+                <li><strong>Baza legală.</strong> Ordinul comun nr. 772/966/123/2026, publicat în Monitorul Oficial nr. 680 din 17 august 2026.</li>
+                <li><strong>Termenul de transcriere.</strong> Modelul 2026 indică <strong>90 de zile</strong> de la dobândire, față de cele 30 de zile înscrise în vechiul formular. Dacă termenul legal este depășit, înmatricularea se suspendă de drept până la transcriere.</li>
+                <li><strong>Cartușul D (cumpărător).</strong> Organul fiscal local confirmă că acesta nu are debite la bugetul local. Cartușul completat ține loc de certificat fiscal separat în condițiile prevăzute de lege.</li>
+                <li><strong>Date tehnice și de identificare.</strong> Formularul are o rubrică pentru puterea în kW, utilă pentru mașinile electrice și hibride. La actul de identitate se pot trece datele cărții electronice sau ale cărții de identitate simple.</li>
+                <li><strong>Număr de exemplare.</strong> Se pregătesc un original și patru copii conforme cu originalul.</li>
+            </ul>
+        </div>
         <div>
             <h3 class="font-semibold text-gray-900 dark:text-gray-100">Termenul de 90 de zile pentru transcriere</h3>
             <p>
