@@ -9,7 +9,7 @@ class ContractAutoController extends Controller
 {
     private const MODEL_YEAR = 2026;
 
-    private const META_DESCRIPTION = 'Completează online contractul de vânzare-cumpărare auto ITL 054, gratuit și fără cont. Descarcă PDF-ul A4 sau modelul gol în PDF și Word editabil.';
+    private const META_DESCRIPTION = 'Completează online gratuit contract de vânzare cumpărare Model 2026 ITL 054. Descarcă Contractul auto format PDF sau Word Model Oficial.';
 
     private const DOWNLOAD_TYPES = [
         'pdf' => 'application/pdf',
@@ -22,7 +22,7 @@ class ContractAutoController extends Controller
 
         return view('services.contract-auto.index', [
             'contractTitle' => $this->title($years),
-            'contractMetaTitle' => "Contract vânzare-cumpărare auto {$years} gratuit | iaAuto.ro",
+            'contractMetaTitle' => "Contract vânzare cumpărare auto {$years} gratuit | iaAuto.ro",
             'contractMetaDescription' => self::META_DESCRIPTION,
         ]);
     }
@@ -49,6 +49,6 @@ class ContractAutoController extends Controller
 
     private function title(string $years): string
     {
-        return "Contract Vânzare - Cumpărare Auto {$years} – Model ITL 054";
+        return "Contract Vânzare Cumpărare Auto {$years} – Model ".self::MODEL_YEAR.' ITL 054';
     }
 }

@@ -1,10 +1,10 @@
 <article class="{{ $panel }} space-y-6 text-sm leading-relaxed text-gray-700 dark:text-gray-300 sm:text-base">
     <header class="space-y-2">
-        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Model de contract de vânzare-cumpărare auto ITL 054</h2>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Model de contract de vânzare cumpărare auto ITL 054</h2>
         <p>
-            Contractul de vânzare-cumpărare auto, denumit oficial „Contract de înstrăinare-dobândire a unui mijloc de transport”,
-            consemnează transferul dreptului de proprietate asupra vehiculului. Pe iaAuto.ro poți completa online modelul ITL 054
-            sau poți descărca gratuit formularul necompletat în PDF A4 pentru tipărire ori în Word editabil (.docx).
+            Contractul de vânzare cumpărare auto, denumit oficial „Contract de înstrăinare dobândire a unui mijloc de transport”,
+            consemnează transferul dreptului de proprietate asupra vehiculului. Pe iaAuto.ro poți completa online modelul 2026 ITL 054
+            sau poți descărca gratuit formularul necompletat în PDF, format A4 pentru tipărire ori în format Word editabil (.docx).
         </p>
     </header>
 

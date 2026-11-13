@@ -23,7 +23,7 @@
                 '@type' => 'WebApplication',
                 '@id' => $generatorId,
                 'url' => $pageUrl,
-                'name' => 'Generator de contract de vânzare-cumpărare auto',
+                'name' => 'Generator de contract de vânzare cumpărare auto',
                 'description' => 'Completează contractul auto ITL 054 și generează un PDF A4 direct în browser, gratuit și fără cont.',
                 'inLanguage' => 'ro-RO',
                 'applicationCategory' => 'UtilitiesApplication',
