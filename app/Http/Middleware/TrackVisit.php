@@ -13,8 +13,8 @@ class TrackVisit
     {
         $response = $next($request);
 
-        // 0. Nu logăm erorile de tip 500
-        if (method_exists($response, 'getStatusCode') && $response->getStatusCode() >= 500) {
+        // 0. Nu logăm răspunsurile HTTP 4xx și 5xx.
+        if (method_exists($response, 'getStatusCode') && $response->getStatusCode() >= 400) {
             return $response;
         }
 
