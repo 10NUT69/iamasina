@@ -24,32 +24,32 @@
         : ($localityName ?: $countyName);
 
     if ($hasBrandModel && $localityName && $countyName) {
-        $listingMetaTitle = 'Anunțuri auto ' . $carLabel . ' în ' . $locationLabel . ' | iaAuto';
-        $listingMetaDescription = 'Cauți ' . $carLabel . ' în ' . $locationLabel . '? Vezi anunțuri auto cu mașini ' . $carLabel . ' de vânzare, second hand sau noi, de la proprietari și parcuri auto.';
+        $listingMetaTitle = 'Anunțuri auto - ' . $carLabel . ' de vânzare în ' . $localityName . ' | iaAuto';
+        $listingMetaDescription = 'Vezi anunțuri auto cu mașini ' . $carLabel . ' de vânzare în ' . $locationLabel . '. Modele second hand și noi, de la proprietari și parcuri auto.';
     } elseif ($hasBrandModel && $countyName) {
-        $listingMetaTitle = 'Anunțuri auto ' . $carLabel . ' în ' . $countyName . ' - ' . $carLabel . ' de vânzare | iaAuto';
-        $listingMetaDescription = 'Vezi anunțuri auto ' . $carLabel . ' de vânzare în județul ' . $countyName . '. Mașini second hand și noi, de la proprietari și parcuri auto.';
+        $listingMetaTitle = 'Anunțuri auto - ' . $carLabel . ' de vânzare în ' . $countyName . ' | iaAuto';
+        $listingMetaDescription = 'Vezi anunțuri auto cu mașini ' . $carLabel . ' de vânzare în județul ' . $countyName . '. Modele second hand și noi, de la proprietari și parcuri auto.';
     } elseif ($hasBrandModel) {
-        $listingMetaTitle = 'Anunțuri auto ' . $carLabel . ' - ' . $carLabel . ' de vânzare | iaAuto';
-        $listingMetaDescription = 'Cauți ' . $carLabel . ' de vânzare? Vezi anunțuri auto cu ' . $carLabel . ' second hand și noi din România, de la proprietari și parcuri auto.';
+        $listingMetaTitle = 'Anunțuri auto - ' . $carLabel . ' de vânzare | iaAuto';
+        $listingMetaDescription = 'Vezi anunțuri auto cu mașini ' . $carLabel . ' de vânzare în România. Modele second hand și noi, de la proprietari și parcuri auto.';
     } elseif ($brandName && $localityName && $countyName) {
-        $listingMetaTitle = 'Anunțuri auto ' . $brandName . ' în ' . $locationLabel . ' | iaAuto';
-        $listingMetaDescription = 'Cauți ' . $brandName . ' în ' . $locationLabel . '? Vezi anunțuri auto cu mașini ' . $brandName . ' de vânzare, second hand sau noi, de la proprietari și parcuri auto.';
+        $listingMetaTitle = 'Anunțuri auto - ' . $brandName . ' de vânzare în ' . $localityName . ' | iaAuto';
+        $listingMetaDescription = 'Vezi anunțuri auto cu mașini ' . $brandName . ' de vânzare în ' . $locationLabel . '. Modele second hand și noi, de la proprietari și parcuri auto.';
     } elseif ($brandName && $countyName) {
-        $listingMetaTitle = 'Anunțuri auto ' . $brandName . ' în ' . $countyName . ' - Mașini ' . $brandName . ' de vânzare | iaAuto';
-        $listingMetaDescription = 'Vezi anunțuri auto ' . $brandName . ' de vânzare în județul ' . $countyName . '. Mașini second hand și noi, de la proprietari și parcuri auto.';
+        $listingMetaTitle = 'Anunțuri auto - ' . $brandName . ' de vânzare în ' . $countyName . ' | iaAuto';
+        $listingMetaDescription = 'Vezi anunțuri auto cu mașini ' . $brandName . ' de vânzare în județul ' . $countyName . '. Modele second hand și noi, de la proprietari și parcuri auto.';
     } elseif ($brandName) {
-        $listingMetaTitle = 'Anunțuri auto ' . $brandName . ' - Mașini ' . $brandName . ' de vânzare | iaAuto';
-        $listingMetaDescription = 'Vezi anunțuri auto ' . $brandName . ' de vânzare în România. Mașini second hand și noi, de la proprietari și parcuri auto. Filtrează după model, preț și an.';
+        $listingMetaTitle = 'Anunțuri auto - ' . $brandName . ' de vânzare | iaAuto';
+        $listingMetaDescription = 'Vezi anunțuri auto cu mașini ' . $brandName . ' de vânzare în România. Modele second hand și noi, de la proprietari și parcuri auto. Filtrează după model, preț și an.';
     } elseif ($localityName && $countyName) {
-        $listingMetaTitle = 'Anunțuri auto ' . $locationLabel . ' - Mașini de vânzare | iaAuto';
-        $listingMetaDescription = 'Cauți mașini de vânzare în ' . $locationLabel . '? Vezi anunțuri auto second hand și noi, de la proprietari și parcuri auto.';
+        $listingMetaTitle = 'Anunțuri auto în ' . $localityName . ' - Mașini de vânzare | iaAuto';
+        $listingMetaDescription = 'Vezi anunțuri auto cu mașini de vânzare în ' . $locationLabel . '. Modele second hand și noi, de la proprietari și parcuri auto.';
     } elseif ($countyName) {
-        $listingMetaTitle = 'Anunțuri auto ' . $countyName . ' - Mașini de vânzare în ' . $countyName . ' | iaAuto';
-        $listingMetaDescription = 'Vezi anunțuri auto din ' . $countyName . '. Mașini de vânzare second hand și noi, de la proprietari și parcuri auto. Publică gratuit pe iaAuto.';
+        $listingMetaTitle = 'Anunțuri auto în ' . $countyName . ' - Mașini de vânzare | iaAuto';
+        $listingMetaDescription = 'Vezi anunțuri auto cu mașini de vânzare în județul ' . $countyName . '. Modele second hand și noi, de la proprietari și parcuri auto.';
     } else {
-        $listingMetaTitle = 'Mașini de vânzare | Autoturisme second hand și noi | iaAuto';
-        $listingMetaDescription = 'Cauți o mașină? Vezi anunțuri auto cu mașini de vânzare second hand și noi din România.';
+        $listingMetaTitle = 'Anunțuri auto - Mașini de vânzare second hand | iaAuto';
+        $listingMetaDescription = 'Cauți o mașină? Vezi anunțuri auto cu mașini de vânzare second hand și noi din România. Filtrează după marcă, model, preț, an și kilometri.';
     }
 
     $listingTotalCount = isset($totalCount)
