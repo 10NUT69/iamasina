@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('meta_title', 'De ce dealerii auto aleg iaAuto.ro – anunțuri gratuite pentru parcuri auto')
-@section('meta_description', 'Dealer auto sau parc auto? Pe iaAuto.ro poți publica gratuit mașinile, primești pagină dedicată pentru parc și îți administrezi simplu anunțurile.')
+@section('meta_title', 'De ce dealerii auto aleg iaAuto – anunțuri gratuite pentru parcuri auto')
+@section('meta_description', 'Dealer auto sau parc auto? Pe iaAuto poți publica gratuit mașinile, primești pagină dedicată pentru parc și îți administrezi simplu anunțurile.')
 @section('meta_image', asset('images/social-share.webp'))
 
 @section('content')
@@ -24,7 +24,7 @@
             </p>
 
             <h1 class="dealer-landing-page__title break-words font-black text-gray-950 dark:text-white">
-                Ai parc auto? Publică gratuit toate mașinile pe iaAuto.ro
+                Ai parc auto? Publică gratuit toate mașinile pe iaAuto
             </h1>
 
             <p class="mt-5 max-w-xl text-base leading-8 text-gray-600 dark:text-gray-300 sm:text-lg">
@@ -240,7 +240,7 @@
     <div class="dealer-landing-cta-grid grid grid-cols-1 items-center gap-5 lg:grid-cols-2 lg:gap-6">
         <div>
             <h2 class="text-3xl font-black leading-tight text-gray-950 dark:text-white">
-                Testează iaAuto.ro cu câteva mașini din parc
+                Testează iaAuto cu câteva mașini din parc
             </h2>
 
             <p class="mt-3 max-w-2xl text-base leading-8 text-gray-700 dark:text-red-100">

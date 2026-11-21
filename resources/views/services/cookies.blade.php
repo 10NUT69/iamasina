@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('title', 'Politica de cookies')
-@section('meta_title', 'Politica de cookies - iaAuto.ro')
-@section('meta_description', 'Află ce cookie-uri folosește iaAuto.ro, de ce sunt necesare și cum poți gestiona preferințele pentru analytics și marketing.')
+@section('meta_title', 'Politica de cookies - iaAuto')
+@section('meta_description', 'Află ce cookie-uri folosește iaAuto, de ce sunt necesare și cum poți gestiona preferințele pentru analytics și marketing.')
 
 @section('content')
 <div class="max-w-5xl mx-auto">
@@ -13,7 +13,7 @@
         </h1>
 
         <p class="text-sm md:text-base text-gray-600 dark:text-gray-300 max-w-3xl text-justify">
-            Această pagină explică modul în care iaAuto.ro folosește cookie-uri și tehnologii similare pentru funcționarea site-ului,
+            Această pagină explică modul în care iaAuto folosește cookie-uri și tehnologii similare pentru funcționarea site-ului,
             pentru analiză și, doar cu acordul tău, pentru activități de marketing sau măsurare a campaniilor.
         </p>
 
@@ -35,7 +35,7 @@
             </p>
 
             <p class="mt-2 text-sm text-gray-700 dark:text-gray-300 leading-relaxed text-justify">
-                Pe iaAuto.ro folosim cookie-uri strict necesare pentru funcționare și, doar dacă îți dai acordul, cookie-uri opționale pentru analytics sau marketing.
+                Pe iaAuto folosim cookie-uri strict necesare pentru funcționare și, doar dacă îți dai acordul, cookie-uri opționale pentru analytics sau marketing.
                 Refuzarea cookie-urilor opționale nu blochează folosirea site-ului.
             </p>
         </article>

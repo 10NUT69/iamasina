@@ -8,7 +8,7 @@
         <link rel="manifest" href="/site.webmanifest">
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>iaAuto</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -22,7 +22,7 @@
             <div>
                 <a href="/" class="inline-flex items-center justify-center">
                     <img src="{{ asset('images/iaauto-logo.svg') }}?v=modern-20260511c"
-                         alt="iaAuto.ro"
+                         alt="iaAuto"
                          width="240"
                          height="64"
                          class="h-12 w-auto max-w-[190px] object-contain sm:h-14">

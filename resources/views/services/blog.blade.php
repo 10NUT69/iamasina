@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Blog iaAuto.ro')
-@section('meta_title', 'Blog iaAuto.ro - Ghiduri pentru cumpărători și vânzători auto')
+@section('title', 'Blog iaAuto')
+@section('meta_title', 'Blog iaAuto - Ghiduri pentru cumpărători și vânzători auto')
 @section('meta_description', 'Ghiduri simple despre cumpărarea unei mașini second-hand, acte de vânzare, verificări utile și publicarea unui anunț auto mai bun.')
 
 @section('content')
     <div class="max-w-[1536px] mx-auto">
         <header class="mb-8">
-            <p class="text-xs font-extrabold uppercase tracking-wider text-[#C81424] mb-2">Blog iaAuto.ro</p>
+            <p class="text-xs font-extrabold uppercase tracking-wider text-[#C81424] mb-2">Blog iaAuto</p>
             <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">
                 Ghiduri auto clare, fără zgomot inutil
             </h1>

@@ -29,7 +29,7 @@
 
     $dealerSeoDescription = 'Vezi ' . $activeCountSeoLabel . ' de la ' . $dealerDisplayName . ', parc auto';
     $dealerSeoDescription .= $dealerSeoLocation !== '' ? ' din ' . $dealerSeoLocation : '';
-    $dealerSeoDescription .= '. Mașini disponibile, prețuri, fotografii și contact pe iaAuto.ro.';
+    $dealerSeoDescription .= '. Mașini disponibile, prețuri, fotografii și contact pe iaAuto.';
 
     $galleryUrls = $dealer->dealer_gallery_urls;
     $dealerLogoUrl = $dealer->dealer_logo_url ?? null;

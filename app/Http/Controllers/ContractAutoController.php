@@ -22,7 +22,7 @@ class ContractAutoController extends Controller
 
         return view('services.contract-auto.index', [
             'contractTitle' => $this->title($years),
-            'contractMetaTitle' => "Contract vânzare cumpărare auto {$years} gratuit | iaAuto.ro",
+            'contractMetaTitle' => "Contract vânzare cumpărare auto {$years} gratuit | iaAuto",
             'contractMetaDescription' => self::META_DESCRIPTION,
         ]);
     }

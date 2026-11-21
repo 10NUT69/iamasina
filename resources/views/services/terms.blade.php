@@ -1,21 +1,21 @@
 @extends('layouts.app')
 
 @section('title', 'Termeni și condiții')
-@section('meta_title', 'Termeni și condiții - iaAuto.ro')
-@section('meta_description', 'Află termenii de utilizare ai platformei iaAuto.ro, regulile pentru publicarea anunțurilor auto și responsabilitățile utilizatorilor.')
+@section('meta_title', 'Termeni și condiții - iaAuto')
+@section('meta_description', 'Află termenii de utilizare ai platformei iaAuto, regulile pentru publicarea anunțurilor auto și responsabilitățile utilizatorilor.')
 
 @section('content')
     <div class="max-w-[1536px] mx-auto">
         <header class="mb-6 md:mb-8">
             <p class="text-xs font-extrabold uppercase tracking-wider text-[#C81424] mb-2">
-                iaAuto.ro
+                iaAuto
             </p>
             <h1 class="text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-900 dark:text-gray-100 mb-3">
                 Termeni și condiții
             </h1>
             <div class="max-w-4xl space-y-3 text-sm md:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
                 <p>
-                    Prin accesarea și utilizarea platformei iaAuto.ro, accepți în mod expres termenii și condițiile
+                    Prin accesarea și utilizarea platformei iaAuto, accepți în mod expres termenii și condițiile
                     de mai jos. Dacă nu ești de acord cu acești termeni, te rugăm să încetezi utilizarea platformei.
                 </p>
                 <p>
@@ -32,7 +32,7 @@
                 </h2>
                 <div class="space-y-3 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                     <p>
-                        Platforma iaAuto.ro este administrată de 10NUT, persoană fizică din România. Pentru întrebări,
+                        Platforma iaAuto este administrată de 10NUT, persoană fizică din România. Pentru întrebări,
                         sesizări sau solicitări ne poți contacta la:
                     </p>
                     <p>
@@ -53,17 +53,17 @@
                 </h2>
                 <div class="space-y-3 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                     <p>
-                        iaAuto.ro este o platformă online de anunțuri auto care facilitează publicarea de anunțuri
+                        iaAuto este o platformă online de anunțuri auto care facilitează publicarea de anunțuri
                         pentru vânzarea de autovehicule și punerea în legătură a persoanelor interesate să vândă sau
                         să cumpere mașini.
                     </p>
                     <p>
                         Platforma are exclusiv rol de intermediere tehnică și de găzduire a anunțurilor publicate de
-                        utilizatori. iaAuto.ro nu este parte în tranzacțiile, negocierile, contractele sau înțelegerile
+                        utilizatori. iaAuto nu este parte în tranzacțiile, negocierile, contractele sau înțelegerile
                         încheiate între utilizatori.
                     </p>
                     <p>
-                        iaAuto.ro nu vinde mașini în nume propriu, nu cumpără mașini, nu intermediază plăți și nu
+                        iaAuto nu vinde mașini în nume propriu, nu cumpără mașini, nu intermediază plăți și nu
                         garantează finalizarea unei tranzacții.
                     </p>
                     <p>
@@ -97,11 +97,11 @@
                         păstrarea confidențialității credențialelor de autentificare. Nu divulga parola altor persoane.
                     </p>
                     <p>
-                        iaAuto.ro nu răspunde pentru prejudicii rezultate din acces neautorizat cauzat de neglijența
+                        iaAuto nu răspunde pentru prejudicii rezultate din acces neautorizat cauzat de neglijența
                         utilizatorului.
                     </p>
                     <p>
-                        În măsura permisă de lege, iaAuto.ro poate suspenda temporar sau definitiv conturi care încalcă
+                        În măsura permisă de lege, iaAuto poate suspenda temporar sau definitiv conturi care încalcă
                         acești termeni, legislația aplicabilă sau care prezintă risc de fraudă, abuz ori utilizare
                         necorespunzătoare a platformei.
                     </p>
@@ -114,7 +114,7 @@
                 </h2>
                 <div class="space-y-3 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                     <p>
-                        Anunțurile publicate pe iaAuto.ro trebuie să descrie vehicule reale, disponibile pentru vânzare,
+                        Anunțurile publicate pe iaAuto trebuie să descrie vehicule reale, disponibile pentru vânzare,
                         și să nu inducă în eroare alți utilizatori.
                     </p>
                     <p>
@@ -141,7 +141,7 @@
                         </ul>
                     </div>
                     <p>
-                        iaAuto.ro își rezervă dreptul, fără a avea obligația, de a verifica, modifica, bloca, dezactiva
+                        iaAuto își rezervă dreptul, fără a avea obligația, de a verifica, modifica, bloca, dezactiva
                         sau șterge anunțuri ori conținut care încalcă acești termeni, legislația aplicabilă sau bunele
                         practici ale platformei, cu sau fără notificare prealabilă, în funcție de situație.
                     </p>
@@ -153,13 +153,13 @@
                     5. Gratuitatea serviciului
                 </h2>
                 <div class="space-y-3 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                    <p>Publicarea anunțurilor pe iaAuto.ro este, în prezent, gratuită și nelimitată.</p>
+                    <p>Publicarea anunțurilor pe iaAuto este, în prezent, gratuită și nelimitată.</p>
                     <p>
                         Utilizatorii pot publica unul sau mai multe anunțuri fără taxe de listare, abonamente sau
                         costuri percepute de platformă.
                     </p>
                     <p>
-                        iaAuto.ro nu încasează, în prezent, sume de bani de la utilizatori pentru publicarea anunțurilor,
+                        iaAuto nu încasează, în prezent, sume de bani de la utilizatori pentru publicarea anunțurilor,
                         afișarea acestora sau folosirea paginilor de portofoliu.
                     </p>
                     <p>
@@ -176,7 +176,7 @@
                 <div class="space-y-3 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                     <p>
                         Pentru utilizatorii care publică mai multe anunțuri, inclusiv dealeri, parcuri auto sau vânzători
-                        cu portofoliu extins, iaAuto.ro poate genera automat o pagină dedicată de portofoliu.
+                        cu portofoliu extins, iaAuto poate genera automat o pagină dedicată de portofoliu.
                     </p>
                     <p>
                         Această pagină reunește anunțurile publicate de același utilizator și are rolul de a facilita
@@ -188,7 +188,7 @@
                         aparține exclusiv utilizatorului.
                     </p>
                     <p>
-                        iaAuto.ro nu garantează calitatea, seriozitatea sau statutul juridic/comercial al dealerilor,
+                        iaAuto nu garantează calitatea, seriozitatea sau statutul juridic/comercial al dealerilor,
                         parcurilor auto sau utilizatorilor care folosesc această funcționalitate.
                     </p>
                 </div>
@@ -220,7 +220,7 @@
                         </ul>
                     </div>
                     <p>
-                        iaAuto.ro va analiza sesizarea și va lua măsuri rezonabile, cum ar fi solicitarea de clarificări,
+                        iaAuto va analiza sesizarea și va lua măsuri rezonabile, cum ar fi solicitarea de clarificări,
                         blocarea temporară a anunțului, dezactivarea contului sau ștergerea conținutului, în cel mai
                         scurt timp posibil, în funcție de situație.
                     </p>
@@ -233,7 +233,7 @@
                 </h2>
                 <div class="space-y-3 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                     <p>
-                        iaAuto.ro nu poate fi tras la răspundere pentru tranzacții nereușite, informații incorecte
+                        iaAuto nu poate fi tras la răspundere pentru tranzacții nereușite, informații incorecte
                         publicate de utilizatori, vehicule cu probleme tehnice sau juridice, diferențe între descriere
                         și realitate, pierderi financiare, daune directe sau indirecte ori orice alte consecințe rezultate
                         din interacțiunile dintre utilizatori.
@@ -249,12 +249,12 @@
                         proveniența, dreptul de proprietate și orice alte aspecte importante.
                     </p>
                     <p>
-                        iaAuto.ro nu verifică în mod sistematic identitatea utilizatorilor, documentele vehiculelor,
+                        iaAuto nu verifică în mod sistematic identitatea utilizatorilor, documentele vehiculelor,
                         istoricul mașinilor sau dreptul de proprietate asupra acestora.
                     </p>
                     <p>
                         Orice plată, avans, rezervare sau transfer de bani între utilizatori se face pe propria răspundere.
-                        iaAuto.ro nu intermediază și nu garantează plățile între utilizatori.
+                        iaAuto nu intermediază și nu garantează plățile între utilizatori.
                     </p>
                 </div>
             </article>
@@ -270,7 +270,7 @@
                     </p>
                     <p>Versiunea actuală este cea publicată pe această pagină.</p>
                     <p>
-                        Continuarea utilizării iaAuto.ro după publicarea unei versiuni actualizate a termenilor înseamnă
+                        Continuarea utilizării iaAuto după publicarea unei versiuni actualizate a termenilor înseamnă
                         acceptarea noii versiuni. Dacă nu ești de acord cu modificările, te rugăm să încetezi utilizarea
                         platformei.
                     </p>
@@ -352,7 +352,7 @@
             </h2>
             <div class="space-y-3 text-sm text-[#7f1d1d] dark:text-red-100/90 leading-relaxed">
                 <p>
-                    iaAuto.ro își propune să fie o alternativă curată, simplă și utilă pentru publicarea anunțurilor auto.
+                    iaAuto își propune să fie o alternativă curată, simplă și utilă pentru publicarea anunțurilor auto.
                 </p>
                 <p>
                     Folosirea platformei cu bun-simț, respect față de ceilalți utilizatori și atenție la corectitudinea

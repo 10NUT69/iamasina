@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Despre iaAuto.ro')
-@section('meta_title', 'Despre iaAuto.ro - Publicare gratuită de anunțuri auto')
-@section('meta_description', 'iaAuto.ro este o platformă independentă pentru publicarea gratuită și nelimitată a anunțurilor auto, creată pentru proprietari, dealeri și parcuri auto.')
+@section('title', 'Despre iaAuto')
+@section('meta_title', 'Despre iaAuto - Publicare gratuită de anunțuri auto')
+@section('meta_description', 'iaAuto este o platformă independentă pentru publicarea gratuită și nelimitată a anunțurilor auto, creată pentru proprietari, dealeri și parcuri auto.')
 
 @section('content')
     <div class="max-w-[1536px] mx-auto">

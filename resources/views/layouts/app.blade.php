@@ -6,8 +6,8 @@
     <meta name="theme-color" content="#CC2E2E">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('meta_title', view()->hasSection('title') ? view()->getSection('title') . ' - iaAuto.ro' : 'Anunțuri auto de vânzare - iaAuto.ro')</title>
-    <meta name="description" content="@yield('meta_description', 'Găsește rapid mașina potrivită pe iaAuto.ro. Anunțuri auto curate de la proprietari și parcuri auto din toată țara.')">
+    <title>@yield('meta_title', view()->hasSection('title') ? view()->getSection('title') . ' - iaAuto' : 'Anunțuri auto de vânzare - iaAuto')</title>
+    <meta name="description" content="@yield('meta_description', 'Găsește rapid mașina potrivită pe iaAuto. Anunțuri auto curate de la proprietari și parcuri auto din toată țara.')">
 
     @hasSection('canonical')
         @yield('canonical')
@@ -16,7 +16,7 @@
     @endif
 
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="ia Auto">
+    <meta property="og:site_name" content="iaAuto">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:title" content="@yield('meta_title', view()->hasSection('title') ? view()->getSection('title') : 'Anunțuri auto de vânzare')">
     <meta property="og:description" content="@yield('meta_description', 'Găsește anunțuri auto curate din zona ta.')">
@@ -60,7 +60,7 @@
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<meta name="apple-mobile-web-app-title" content="ia Auto">
+<meta name="apple-mobile-web-app-title" content="iaAuto">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -80,7 +80,7 @@
                 <picture>
                     <source media="(max-width: 639px)" srcset="{{ asset('images/iaauto-logo-nav-mobile.svg') }}?v=modern-20260511g">
                     <img src="{{ asset('images/iaauto-logo-nav.svg') }}?v=modern-20260511c"
-                         alt="iaAuto.ro"
+                         alt="iaAuto"
                          width="240"
                          height="64"
                          id="logo-img"
@@ -234,12 +234,12 @@
                 <div class="text-center md:text-left space-y-1">
                     <a href="{{ route('services.index') }}" class="inline-flex justify-center md:justify-start">
                         <img src="{{ asset('images/iaauto-logo.svg') }}?v=modern-20260511c"
-                             alt="iaAuto.ro"
+                             alt="iaAuto"
                              width="240"
                              height="64"
                              class="h-8 w-[120px] object-contain dark:hidden">
                         <img src="{{ asset('images/iaauto-logo-nav.svg') }}?v=modern-20260511c"
-                             alt="iaAuto.ro"
+                             alt="iaAuto"
                              width="240"
                              height="64"
                              class="hidden h-8 w-[120px] object-contain dark:block">
@@ -292,7 +292,7 @@
             {{-- Rând 2: Linie fină + text mic --}}
             <div class="mt-3 pt-3 border-t border-dashed border-gray-200 dark:border-gray-800 flex flex-col md:flex-row md:items-center md:justify-between gap-2 text-[10px] text-gray-400 dark:text-gray-500">
                 <p class="text-center md:text-left">
-                    &copy; {{ date('Y') }} iaAuto.ro – Toate drepturile rezervate.
+                    &copy; {{ date('Y') }} iaAuto – Toate drepturile rezervate.
                 </p>
                 <p class="text-center md:text-right">
                     Platformă de anunțuri auto. Verifică actele, istoricul și vânzătorul înainte de cumpărare.

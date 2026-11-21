@@ -3,7 +3,7 @@
 @php
     use Illuminate\Support\Str;
 
-    $siteBrand = 'iaAuto.ro';
+    $siteBrand = 'iaAuto';
     $isDeleted = $service->trashed();
     $isDeactivated = $isDeleted && $service->status === \App\Models\Service::STATUS_DEACTIVATED;
 
@@ -203,7 +203,7 @@
     if (!empty($seoSpecs)) {
         $seoDescription .= ' Detalii: ' . implode(', ', $seoSpecs) . '.';
     }
-    $seoDescription .= ' Vezi poze și contactează vânzătorul pe iaAuto.ro.';
+    $seoDescription .= ' Vezi poze și contactează vânzătorul pe iaAuto.';
     $schemaDescription = trim(preg_replace('/\s+/', ' ', strip_tags($seoDescription)) ?: '');
     $seoDescription = $limitTextAtWord($schemaDescription, 160);
 

@@ -252,7 +252,7 @@
         </div>
         <h3 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-3">Nu am găsit încă anunțuri potrivite</h3>
         <p class="mx-auto max-w-2xl text-sm md:text-base leading-relaxed text-gray-500 dark:text-gray-400">
-            iaAuto.ro este în continuă creștere, iar oferta se actualizează constant. Încearcă să lărgești căutarea sau să elimini câteva filtre.
+            iaAuto este în continuă creștere, iar oferta se actualizează constant. Încearcă să lărgești căutarea sau să elimini câteva filtre.
         </p>
 
         <div class="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">

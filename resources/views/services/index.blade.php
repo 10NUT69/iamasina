@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('title', 'Anunțuri Auto Second Hand & Noi - Mașini de Vânzare')
-@section('meta_title', 'Anunțuri Auto - Mașini de Vânzare Second Hand și Noi | iaAuto.ro')
-@section('meta_description', 'Cauți o mașină? Pe iaAuto.ro găsești mașini de vânzare second hand și noi de la proprietari și parcuri auto din România. Adaugă anunțul tău complet gratuit!')
+@section('meta_title', 'Anunțuri Auto - Mașini de Vânzare Second Hand și Noi | iaAuto')
+@section('meta_description', 'Cauți o mașină? Pe iaAuto găsești mașini de vânzare second hand și noi de la proprietari și parcuri auto din România. Adaugă anunțul tău complet gratuit!')
 @section('meta_image', asset('images/social-share.webp'))
 @section('head')
     <link rel="preload" as="image" href="{{ asset('images/homepage-hero-car.webp') }}" fetchpriority="high" media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)">
@@ -18,7 +18,7 @@
             <picture class="homepage-hero-media absolute inset-0 -z-20 block">
                 <source media="(prefers-color-scheme: dark)" srcset="{{ asset('images/homepage-hero-car-dark.webp') }}">
                 <img src="{{ asset('images/homepage-hero-car.webp') }}"
-                     alt="Mașină de vânzare pe iaAuto.ro"
+                     alt="Mașină de vânzare pe iaAuto"
                      class="homepage-hero-image h-full w-full object-cover"
                      fetchpriority="high"
                      decoding="async">

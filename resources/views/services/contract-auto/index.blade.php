@@ -138,7 +138,7 @@
         <aside id="contract-privacy" class="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm leading-relaxed dark:border-gray-800 dark:bg-[#18181B]">
             <p class="font-bold">Datele tale rămân pe dispozitivul tău.</p>
             <p class="mt-1 text-gray-600 dark:text-gray-300">
-                Contractul se completează în browser. iaAuto.ro nu primește și nu stochează numele, CNP-urile,
+                Contractul se completează în browser. iaAuto nu primește și nu stochează numele, CNP-urile,
                 adresele, celelalte informații introduse sau PDF-ul generat. Dacă alegi să distribui documentul,
                 fișierul este transmis prin aplicația selectată de tine.
             </p>

@@ -24,32 +24,32 @@
         : ($localityName ?: $countyName);
 
     if ($hasBrandModel && $localityName && $countyName) {
-        $listingMetaTitle = 'Anunțuri auto ' . $carLabel . ' în ' . $locationLabel . ' | iaAuto.ro';
+        $listingMetaTitle = 'Anunțuri auto ' . $carLabel . ' în ' . $locationLabel . ' | iaAuto';
         $listingMetaDescription = 'Cauți ' . $carLabel . ' în ' . $locationLabel . '? Vezi anunțuri auto cu mașini ' . $carLabel . ' de vânzare, second hand sau noi, de la proprietari și parcuri auto.';
     } elseif ($hasBrandModel && $countyName) {
-        $listingMetaTitle = 'Anunțuri auto ' . $carLabel . ' în ' . $countyName . ' - ' . $carLabel . ' de vânzare | iaAuto.ro';
+        $listingMetaTitle = 'Anunțuri auto ' . $carLabel . ' în ' . $countyName . ' - ' . $carLabel . ' de vânzare | iaAuto';
         $listingMetaDescription = 'Vezi anunțuri auto ' . $carLabel . ' de vânzare în județul ' . $countyName . '. Mașini second hand și noi, de la proprietari și parcuri auto.';
     } elseif ($hasBrandModel) {
-        $listingMetaTitle = 'Anunțuri auto ' . $carLabel . ' - ' . $carLabel . ' de vânzare | iaAuto.ro';
+        $listingMetaTitle = 'Anunțuri auto ' . $carLabel . ' - ' . $carLabel . ' de vânzare | iaAuto';
         $listingMetaDescription = 'Cauți ' . $carLabel . ' de vânzare? Vezi anunțuri auto cu ' . $carLabel . ' second hand și noi din România, de la proprietari și parcuri auto.';
     } elseif ($brandName && $localityName && $countyName) {
-        $listingMetaTitle = 'Anunțuri auto ' . $brandName . ' în ' . $locationLabel . ' | iaAuto.ro';
+        $listingMetaTitle = 'Anunțuri auto ' . $brandName . ' în ' . $locationLabel . ' | iaAuto';
         $listingMetaDescription = 'Cauți ' . $brandName . ' în ' . $locationLabel . '? Vezi anunțuri auto cu mașini ' . $brandName . ' de vânzare, second hand sau noi, de la proprietari și parcuri auto.';
     } elseif ($brandName && $countyName) {
-        $listingMetaTitle = 'Anunțuri auto ' . $brandName . ' în ' . $countyName . ' - Mașini ' . $brandName . ' de vânzare | iaAuto.ro';
+        $listingMetaTitle = 'Anunțuri auto ' . $brandName . ' în ' . $countyName . ' - Mașini ' . $brandName . ' de vânzare | iaAuto';
         $listingMetaDescription = 'Vezi anunțuri auto ' . $brandName . ' de vânzare în județul ' . $countyName . '. Mașini second hand și noi, de la proprietari și parcuri auto.';
     } elseif ($brandName) {
-        $listingMetaTitle = 'Anunțuri auto ' . $brandName . ' - Mașini ' . $brandName . ' de vânzare | iaAuto.ro';
+        $listingMetaTitle = 'Anunțuri auto ' . $brandName . ' - Mașini ' . $brandName . ' de vânzare | iaAuto';
         $listingMetaDescription = 'Vezi anunțuri auto ' . $brandName . ' de vânzare în România. Mașini second hand și noi, de la proprietari și parcuri auto. Filtrează după model, preț și an.';
     } elseif ($localityName && $countyName) {
-        $listingMetaTitle = 'Anunțuri auto ' . $locationLabel . ' - Mașini de vânzare | iaAuto.ro';
+        $listingMetaTitle = 'Anunțuri auto ' . $locationLabel . ' - Mașini de vânzare | iaAuto';
         $listingMetaDescription = 'Cauți mașini de vânzare în ' . $locationLabel . '? Vezi anunțuri auto second hand și noi, de la proprietari și parcuri auto.';
     } elseif ($countyName) {
-        $listingMetaTitle = 'Anunțuri auto ' . $countyName . ' - Mașini de vânzare în ' . $countyName . ' | iaAuto.ro';
-        $listingMetaDescription = 'Vezi anunțuri auto din ' . $countyName . '. Mașini de vânzare second hand și noi, de la proprietari și parcuri auto. Publică gratuit pe iaAuto.ro.';
+        $listingMetaTitle = 'Anunțuri auto ' . $countyName . ' - Mașini de vânzare în ' . $countyName . ' | iaAuto';
+        $listingMetaDescription = 'Vezi anunțuri auto din ' . $countyName . '. Mașini de vânzare second hand și noi, de la proprietari și parcuri auto. Publică gratuit pe iaAuto.';
     } else {
-        $listingMetaTitle = 'Anunțuri auto - Mașini de vânzare second hand | iaAuto.ro';
-        $listingMetaDescription = 'Cauți o mașină? Vezi anunțuri auto cu mașini de vânzare second hand și noi din România. Filtrează după marcă, model, preț, an și kilometri.';
+        $listingMetaTitle = 'Mașini de vânzare | Autoturisme second hand și noi | iaAuto';
+        $listingMetaDescription = 'Cauți o mașină? Vezi anunțuri auto cu mașini de vânzare second hand și noi din România.';
     }
 
     $listingTotalCount = isset($totalCount)
@@ -70,8 +70,8 @@
 
     if ($listingCurrentPage > 1) {
         $pageLabel = 'Pagina ' . $listingCurrentPage;
-        $listingMetaTitle = str_contains($listingMetaTitle, ' | iaAuto.ro')
-            ? str_replace(' | iaAuto.ro', ' - ' . $pageLabel . ' | iaAuto.ro', $listingMetaTitle)
+        $listingMetaTitle = str_contains($listingMetaTitle, ' | iaAuto')
+            ? str_replace(' | iaAuto', ' - ' . $pageLabel . ' | iaAuto', $listingMetaTitle)
             : $listingMetaTitle . ' - ' . $pageLabel;
         $listingMetaDescription .= ' ' . $pageLabel . ' din ' . $listingTotalPages . ' cu anunțuri active.';
     }
@@ -224,7 +224,7 @@
         {{-- Sidebar filtre (desktop) --}}
         <aside class="lg:w-[340px] lg:shrink-0">
             <div class="hidden lg:block mb-5">
-                <p class="text-3xl font-extrabold leading-tight text-gray-950 dark:text-white">Autoturisme</p>
+                <p class="text-2xl font-extrabold leading-tight text-gray-950 dark:text-white">Autoturisme de vânzare</p>
                 <p class="mt-1 text-sm leading-snug text-gray-600 dark:text-gray-300">
                     Autoturisme de vânzare - Găsește mașina potrivită pentru tine
                 </p>
@@ -481,7 +481,7 @@
             <div class="listing-mobile-heading lg:hidden mb-3">
                 <x-breadcrumbs :items="$visualBreadcrumbItems" data-listing-breadcrumb />
 
-                <h1 class="mt-3 text-3xl font-extrabold leading-tight text-gray-950 dark:text-white">Autoturisme</h1>
+                <h1 class="mt-3 text-2xl font-extrabold leading-tight text-gray-950 dark:text-white">Autoturisme de vânzare</h1>
                 <p class="mt-1 max-w-2xl text-base leading-snug text-gray-700 dark:text-gray-300">
                     Autoturisme de vânzare - Găsește mașina potrivită pentru tine
                 </p>

@@ -2,8 +2,8 @@
 
 @php
     $dealersCanonicalUrl = route('dealers.index');
-    $dealersPageName = 'Dealeri auto și parcuri auto pe iaAuto.ro';
-    $dealersIntro = 'Descoperă parcuri auto și dealeri din România care publică anunțuri pe iaAuto.ro. Intră în pagina fiecărui dealer pentru a vedea mașinile disponibile, datele de contact, fotografiile și stocul auto actualizat direct de vânzător.';
+    $dealersPageName = 'Dealeri auto și parcuri auto pe iaAuto';
+    $dealersIntro = 'Descoperă parcuri auto și dealeri din România care publică anunțuri pe iaAuto. Intră în pagina fiecărui dealer pentru a vedea mașinile disponibile, datele de contact, fotografiile și stocul auto actualizat direct de vânzător.';
     $dealersTotal = method_exists($dealers, 'total') ? (int) $dealers->total() : (int) $dealers->count();
     $dealersLabel = number_format($dealersTotal, 0, ',', '.') . ' ' . ($dealersTotal === 1 ? 'dealer auto' : 'dealeri auto');
     $activeListingsTotal = isset($dealerActiveServicesTotal) ? (int) $dealerActiveServicesTotal : null;
@@ -71,7 +71,7 @@
         '@type' => 'CollectionPage',
         '@id' => $dealersCanonicalUrl . '#dealers',
         'name' => $dealersPageName,
-        'description' => 'Descoperă parcuri auto și dealeri din România care publică anunțuri pe iaAuto.ro.',
+        'description' => 'Descoperă parcuri auto și dealeri din România care publică anunțuri pe iaAuto.',
         'url' => $dealersCanonicalUrl,
         'mainEntity' => [
             '@type' => 'ItemList',
@@ -82,8 +82,8 @@
 @endphp
 
 @section('title', 'Dealeri auto și parcuri auto')
-@section('meta_title', 'Dealeri auto și parcuri auto din România - iaAuto.ro')
-@section('meta_description', 'Descoperă dealeri auto și parcuri auto din România pe iaAuto.ro. Vezi stocuri auto, anunțuri active, mașini de vânzare și pagini dedicate pentru fiecare dealer.')
+@section('meta_title', 'Dealeri auto și parcuri auto din România - iaAuto')
+@section('meta_description', 'Descoperă dealeri auto și parcuri auto din România pe iaAuto. Vezi stocuri auto, anunțuri active, mașini de vânzare și pagini dedicate pentru fiecare dealer.')
 @section('canonical')
     <link rel="canonical" href="{{ $dealersCanonicalUrl }}">
 @endsection
@@ -148,10 +148,10 @@
         </h2>
 
         <div class="mt-5 max-w-none space-y-4 text-justify text-sm leading-6 text-gray-700 dark:text-gray-300 sm:text-base sm:leading-7">
-            <p>Pe iaAuto.ro poți descoperi parcuri auto și dealeri care își publică mașinile într-o pagină dedicată, ușor de parcurs și de filtrat. Fiecare dealer are propria pagină unde sunt grupate anunțurile active, astfel încât poți vedea rapid ce mașini are disponibile, în ce oraș se află și cum îl poți contacta.</p>
+            <p>Pe iaAuto poți descoperi parcuri auto și dealeri care își publică mașinile într-o pagină dedicată, ușor de parcurs și de filtrat. Fiecare dealer are propria pagină unde sunt grupate anunțurile active, astfel încât poți vedea rapid ce mașini are disponibile, în ce oraș se află și cum îl poți contacta.</p>
             <p>Această pagină te ajută să găsești mai ușor stocuri auto din mai multe zone ale țării, fără să cauți separat fiecare dealer. Poți intra direct în profilul unui parc auto, poți compara mașinile publicate și poți verifica anunțurile disponibile în funcție de marcă, model, preț, an, kilometraj sau localitate.</p>
-            <p>Pentru cumpărători, paginile dealerilor sunt utile atunci când vor să vadă mai multe mașini de la același vânzător. Pentru parcurile auto, iaAuto.ro oferă o modalitate simplă de a-și prezenta stocul online, cu anunțuri auto publicate într-un format clar, modern și ușor de accesat.</p>
-            <p>Lista dealerilor de pe iaAuto.ro este actualizată pe măsură ce apar parcuri auto noi și anunțuri active. Fie că ești în căutarea unei mașini second hand, a unui SUV, a unei mașini de oraș, a unei mașini de familie sau a unui autoturism premium, poți începe căutarea direct din paginile dealerilor auto prezenți pe platformă.</p>
+            <p>Pentru cumpărători, paginile dealerilor sunt utile atunci când vor să vadă mai multe mașini de la același vânzător. Pentru parcurile auto, iaAuto oferă o modalitate simplă de a-și prezenta stocul online, cu anunțuri auto publicate într-un format clar, modern și ușor de accesat.</p>
+            <p>Lista dealerilor de pe iaAuto este actualizată pe măsură ce apar parcuri auto noi și anunțuri active. Fie că ești în căutarea unei mașini second hand, a unui SUV, a unei mașini de oraș, a unei mașini de familie sau a unui autoturism premium, poți începe căutarea direct din paginile dealerilor auto prezenți pe platformă.</p>
         </div>
     </section>
 
@@ -160,7 +160,7 @@
             <div class="max-w-3xl">
                 <h2 class="text-2xl font-black text-gray-950 dark:text-white">Ai parc auto?</h2>
                 <p class="mt-2 text-sm font-semibold leading-6 text-gray-600 dark:text-gray-300 sm:text-base">
-                    Publică anunțuri pe iaAuto.ro și oferă cumpărătorilor o pagină dedicată unde pot vedea toate mașinile tale într-un singur loc.
+                    Publică anunțuri pe iaAuto și oferă cumpărătorilor o pagină dedicată unde pot vedea toate mașinile tale într-un singur loc.
                 </p>
             </div>
 

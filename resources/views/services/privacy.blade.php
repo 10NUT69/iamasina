@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('title', 'Politica de confidențialitate')
-@section('meta_title', 'Politica de confidențialitate - iaAuto.ro')
-@section('meta_description', 'Află cum sunt colectate și utilizate datele tale personale atunci când folosești iaAuto.ro.')
+@section('meta_title', 'Politica de confidențialitate - iaAuto')
+@section('meta_description', 'Află cum sunt colectate și utilizate datele tale personale atunci când folosești iaAuto.')
 
 @section('content')
     <div class="max-w-[1536px] mx-auto">

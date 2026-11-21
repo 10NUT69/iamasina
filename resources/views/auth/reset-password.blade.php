@@ -10,7 +10,7 @@
                 Setează parola nouă
             </h2>
             <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                Introdu adresa de email și noua parolă pentru contul tău iaAuto.ro.
+                Introdu adresa de email și noua parolă pentru contul tău iaAuto.
             </p>
         </div>
 

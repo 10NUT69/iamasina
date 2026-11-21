@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Contact iaAuto.ro')
-@section('meta_title', 'Contact iaAuto.ro - Întrebări și sugestii')
-@section('meta_description', 'Intră în legătură cu iaAuto.ro pentru întrebări, sugestii sau probleme legate de anunțuri auto și utilizarea platformei.')
+@section('title', 'Contact iaAuto')
+@section('meta_title', 'Contact iaAuto - Întrebări și sugestii')
+@section('meta_description', 'Intră în legătură cu iaAuto pentru întrebări, sugestii sau probleme legate de anunțuri auto și utilizarea platformei.')
 
 @section('content')
     <div class="max-w-[1536px] mx-auto">

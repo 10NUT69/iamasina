@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Contul meu - iaAuto.ro')
+@section('title', 'Contul meu')
 
 @section('content')
 

@@ -5,7 +5,7 @@
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Backup și restaurare</h1>
         <p class="text-sm text-slate-500 mt-1 max-w-4xl">
-            Exportă și restaurează baza de date și fișierele media ale platformei iaAuto.ro. Folosește importurile doar când ai verificat fișierul sursă.
+            Exportă și restaurează baza de date și fișierele media ale platformei iaAuto. Folosește importurile doar când ai verificat fișierul sursă.
         </p>
     </div>
 
