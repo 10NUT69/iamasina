@@ -83,7 +83,7 @@
         </a>
 
         <div class="p-3 sm:p-5 flex-1 flex flex-col">
-            <a href="{{ $service->public_url }}" class="block mb-4">
+            <a href="{{ $service->public_url }}" class="block mb-4" title="{{ $imageAlt }}">
                 <h3 class="{{ $titleClass }}">{{ $listingTitle }}</h3>
                 <p class="{{ $powerLineClass }}">{{ $service->putere ?? '-' }} CP{!! $engineSeparatorHtml !!}{{ $service->capacitate_cilindrica ? number_format($service->capacitate_cilindrica, 0, '', '.') : '-' }}{!! $engineUnitHtml !!}</p>
             </a>

@@ -368,13 +368,7 @@ class Service extends Model
             $this->an_fabricatie,
         ])));
 
-        $title = trim((string) $this->title);
-        $label = $title !== '' ? $title : ($vehicleLabel ?: 'Autoturism');
-
-        $normalizedLabel = Str::lower(Str::ascii($label));
-        if (!str_contains($normalizedLabel, 'de vanzare')) {
-            $label .= ' de vanzare';
-        }
+        $label = ($vehicleLabel ?: 'Autoturism') . ' de vanzare';
 
         $countyName = $this->relationLoaded('county') ? $this->county?->name : null;
         $localityName = $this->relationLoaded('locality')

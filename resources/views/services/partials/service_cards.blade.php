@@ -44,7 +44,7 @@
         </button>
 
         {{-- Link Către Anunț --}}
-        <a href="{{ $service->public_url }}" class="block flex-grow flex flex-col">
+        <a href="{{ $service->public_url }}" class="block flex-grow flex flex-col" title="{{ $imageAlt }}">
 
             {{-- Image Area --}}
             <div class="relative w-full aspect-[4/3] bg-gray-100 dark:bg-[#121212] overflow-hidden">
@@ -63,7 +63,7 @@
             {{-- Card Content --}}
             <div class="p-3 md:p-4 flex flex-col flex-grow">
                 <h3 class="text-sm md:text-lg font-bold text-gray-900 dark:text-[#F2F2F2] mb-1 uppercase tracking-tight line-clamp-2 leading-snug overflow-hidden group-hover:text-[#C81424] transition-colors min-h-[2.5rem] md:min-h-[3.5rem]"
-                    title="{{ $brandModel ?: $service->title }}">
+                    title="{{ $imageAlt }}">
                     {{ $brandModel ?: $service->title }}
                 </h3>
 

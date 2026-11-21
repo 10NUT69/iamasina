@@ -150,7 +150,7 @@
                 {{-- Header: Titlu & Preț --}}
                 <div class="flex min-w-0 flex-col md:flex-row md:justify-between md:items-start gap-2 mb-2">
                     <div class="min-w-0 flex-1 pr-0 md:pr-3">
-                        <a href="{{ $service->public_url }}" class="block min-w-0 group-hover:text-[#C81424] dark:group-hover:text-red-300 transition-colors" title="{{ $listingTitle }}">
+                        <a href="{{ $service->public_url }}" class="block min-w-0 group-hover:text-[#C81424] dark:group-hover:text-red-300 transition-colors" title="{{ $imageAlt }}">
                             <h3 class="text-lg md:text-xl font-bold text-gray-900 dark:text-gray-100 leading-snug truncate">
                                 {{ $listingTitle }}
                             </h3>
