@@ -23,6 +23,36 @@
         ? $localityName . ', ' . $countyName
         : ($localityName ?: $countyName);
 
+    $listingBudgetLabels = [
+        ':1000' => 'până la 1.000 €',
+        ':2000' => 'până la 2.000 €',
+        ':3000' => 'până la 3.000 €',
+        ':4000' => 'până la 4.000 €',
+        ':5000' => 'până la 5.000 €',
+        ':7000' => 'până la 7.000 €',
+        ':10000' => 'până la 10.000 €',
+        ':15000' => 'până la 15.000 €',
+        ':20000' => 'până la 20.000 €',
+        ':25000' => 'până la 25.000 €',
+        '3000:5000' => 'între 3.000 € și 5.000 €',
+        '5000:10000' => 'între 5.000 € și 10.000 €',
+        '10000:15000' => 'între 10.000 € și 15.000 €',
+        '15000:20000' => 'între 15.000 € și 20.000 €',
+        '20000:' => 'peste 20.000 €',
+    ];
+    $listingQuery = request()->query();
+    $priceMin = $listingQuery['pret_min'] ?? '';
+    $priceMax = $listingQuery['pret_max'] ?? '';
+    $budgetLabel = null;
+
+    if (request()->routeIs('cars.index')
+        && array_diff_key($listingQuery, ['pret_min' => true, 'pret_max' => true, 'page' => true]) === []
+        && is_string($priceMin) && is_string($priceMax)) {
+        $budgetLabel = $listingBudgetLabels[$priceMin . ':' . $priceMax] ?? null;
+    }
+
+    $listingHeading = $budgetLabel ? 'Mașini de vânzare ' . $budgetLabel : 'Autoturisme de vânzare';
+
     if ($hasBrandModel && $localityName && $countyName) {
         $listingMetaTitle = 'Anunțuri auto - ' . $carLabel . ' de vânzare în ' . $localityName . ' | iaAuto';
         $listingMetaDescription = 'Vezi anunțuri auto cu mașini ' . $carLabel . ' de vânzare în ' . $locationLabel . '. Modele second hand și noi, de la proprietari și parcuri auto.';
@@ -47,6 +77,9 @@
     } elseif ($countyName) {
         $listingMetaTitle = 'Anunțuri auto în ' . $countyName . ' - Mașini de vânzare | iaAuto';
         $listingMetaDescription = 'Vezi anunțuri auto cu mașini de vânzare în județul ' . $countyName . '. Modele second hand și noi, de la proprietari și parcuri auto.';
+    } elseif ($budgetLabel) {
+        $listingMetaTitle = $listingHeading . ' | iaAuto';
+        $listingMetaDescription = 'Vezi anunțuri cu mașini de vânzare ' . $budgetLabel . ' în România, de la proprietari și parcuri auto.';
     } else {
         $listingMetaTitle = 'Anunțuri auto - Mașini de vânzare second hand | iaAuto';
         $listingMetaDescription = 'Cauți o mașină? Vezi anunțuri auto cu mașini de vânzare second hand și noi din România. Filtrează după marcă, model, preț, an și kilometri.';
@@ -224,7 +257,7 @@
         {{-- Sidebar filtre (desktop) --}}
         <aside class="lg:w-[340px] lg:shrink-0">
             <div class="hidden lg:block mb-5">
-                <p class="text-2xl font-extrabold leading-tight text-gray-950 dark:text-white">Autoturisme de vânzare</p>
+                <p class="text-2xl font-extrabold leading-tight text-gray-950 dark:text-white" data-listing-heading>{{ $listingHeading }}</p>
                 <p class="mt-1 text-sm leading-snug text-gray-600 dark:text-gray-300">
                     Autoturisme de vânzare - Găsește mașina potrivită pentru tine
                 </p>
@@ -481,7 +514,7 @@
             <div class="listing-mobile-heading lg:hidden mb-3">
                 <x-breadcrumbs :items="$visualBreadcrumbItems" data-listing-breadcrumb />
 
-                <h1 class="mt-3 text-2xl font-extrabold leading-tight text-gray-950 dark:text-white">Autoturisme de vânzare</h1>
+                <h1 class="mt-3 text-2xl font-extrabold leading-tight text-gray-950 dark:text-white" data-listing-heading>{{ $listingHeading }}</h1>
                 <p class="mt-1 max-w-2xl text-base leading-snug text-gray-700 dark:text-gray-300">
                     Autoturisme de vânzare - Găsește mașina potrivită pentru tine
                 </p>
@@ -1357,6 +1390,18 @@
         if (url !== window.location.href) {
             window.history[replace ? 'replaceState' : 'pushState']({ listingUrl: url }, '', url);
         }
+
+        const { pathname, searchParams } = new URL(url);
+        const budgetLabels = @json($listingBudgetLabels);
+        const priceOnly = pathname === new URL(autoListingPath()).pathname
+            && [...searchParams.keys()].every((key) => ['pret_min', 'pret_max', 'page'].includes(key));
+        const priceKey = `${searchParams.get('pret_min') || ''}:${searchParams.get('pret_max') || ''}`;
+        const budgetLabel = priceOnly ? budgetLabels[priceKey] : null;
+        const heading = budgetLabel ? `Mașini de vânzare ${budgetLabel}` : 'Autoturisme de vânzare';
+
+        document.querySelectorAll('[data-listing-heading]').forEach((element) => {
+            element.textContent = heading;
+        });
     }
 
     function applyListingFilters({ replace = false, scroll = true } = {}) {

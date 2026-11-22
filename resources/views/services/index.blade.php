@@ -420,6 +420,8 @@
             </p>
         </div>
     </section>
+
+    @include('services.partials.home_explore')
 </div>
 
 <script>
