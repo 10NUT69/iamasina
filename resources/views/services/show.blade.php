@@ -536,58 +536,9 @@
         display: inline-flex;
     }
 
-    .related-listings-section .spec-pill {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 0.35rem;
-        min-width: 0;
-        padding: 0.125rem;
-        font-size: 0.875rem;
-        font-weight: 600;
-        line-height: 1.2;
-        text-align: center;
-        color: #2d3138;
-    }
-
-    .related-listings-section .spec-pill svg {
-        width: 1.4rem;
-        height: 1.4rem;
-        flex-shrink: 0;
-        color: #16181d;
-        stroke-width: 1.9;
-    }
-
-    .related-listings-section .spec-pill span {
-        min-width: 0;
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .dark .related-listings-section .spec-pill {
-        color: #e5e7eb;
-    }
-
-    .dark .related-listings-section .spec-pill svg {
-        color: #f9fafb;
-    }
-
     @media (min-width: 640px) {
         .related-listings-track {
             gap: 1rem;
-        }
-
-        .related-listings-section .spec-pill {
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-
-        .related-listings-section .spec-pill svg {
-            width: 1.25rem;
-            height: 1.25rem;
         }
     }
 
@@ -1170,7 +1121,7 @@
     </div>
 
     @if(($relatedServices ?? collect())->isNotEmpty() && $relatedServicesTitle)
-        <section class="related-listings-section mt-10 md:mt-12" aria-labelledby="related-listings-title">
+        <section class="mt-10 md:mt-12" aria-labelledby="related-listings-title">
             <div class="mb-4 flex items-center justify-between gap-3">
                 <div class="flex min-w-0 items-center gap-3">
                     <span class="h-8 w-1.5 rounded-full bg-[#E03E2D]"></span>

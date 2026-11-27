@@ -1691,35 +1691,6 @@
     }
 
 
-    .spec-pill {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 0.35rem;
-        min-width: 0;
-        padding: 0.125rem;
-        font-size: 0.875rem;
-        font-weight: 600;
-        line-height: 1.2;
-        text-align: center;
-        color: #2d3138;
-    }
-    .spec-pill svg {
-        width: 1.4rem;
-        height: 1.4rem;
-        flex-shrink: 0;
-        color: #16181d;
-        stroke-width: 1.9;
-    }
-    .spec-pill span {
-        min-width: 0;
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
     .dealer-carousel-track {
         display: grid;
         gap: 0.875rem;
@@ -1748,16 +1719,6 @@
     }
 
     @media (min-width: 640px) {
-        .spec-pill {
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-
-        .spec-pill svg {
-            width: 1.25rem;
-            height: 1.25rem;
-        }
-
         .dealer-carousel-track {
             gap: 1rem;
             grid-auto-columns: calc((100% - 1rem) / 2);
@@ -1838,14 +1799,6 @@
         .custom-select-option.is-selected {
             background: #C81424;
             color: #ffffff;
-        }
-
-        .spec-pill {
-            color: #e5e7eb;
-        }
-
-        .spec-pill svg {
-            color: #f4f4f5;
         }
 
         optgroup,

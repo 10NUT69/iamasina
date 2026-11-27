@@ -41,9 +41,7 @@
         $favoriteIconSizeClass = $isIndexCard
             ? 'w-6 h-6 sm:w-5 sm:h-5'
             : 'w-4 h-4 sm:w-5 sm:h-5';
-        $titleClass = $isIndexCard
-            ? 'text-lg font-bold text-gray-900 dark:text-white leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-[#C81424] transition-colors'
-            : 'text-sm sm:text-lg font-bold text-gray-900 dark:text-white leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-[#C81424] transition-colors';
+        $titleSizeClass = $isIndexCard ? 'text-lg' : 'text-sm sm:text-lg';
         $powerLineClass = $isIndexCard
             ? 'text-sm font-semibold text-gray-500 dark:text-gray-400 mt-1 truncate uppercase tracking-wide sm:text-xs'
             : 'text-xs font-semibold text-gray-500 dark:text-gray-400 mt-1 truncate uppercase tracking-wide';
@@ -84,7 +82,7 @@
 
         <div class="p-3 sm:p-5 flex-1 flex flex-col">
             <a href="{{ $service->public_url }}" class="block mb-4" title="{{ $imageAlt }}">
-                <h3 class="{{ $titleClass }}">{{ $listingTitle }}</h3>
+                <h3 class="{{ $titleSizeClass }} font-bold text-gray-900 dark:text-white leading-tight line-clamp-2 sm:line-clamp-1 group-hover:text-[#C81424] dark:group-hover:text-red-300 transition-colors">{{ $listingTitle }}</h3>
                 <p class="{{ $powerLineClass }}">{{ $service->putere ?? '-' }} CP{!! $engineSeparatorHtml !!}{{ $service->capacitate_cilindrica ? number_format($service->capacitate_cilindrica, 0, '', '.') : '-' }}{!! $engineUnitHtml !!}</p>
             </a>
 
@@ -113,7 +111,7 @@
                         <svg class="w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0 text-[#C81424]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         <span class="leading-snug">{{ $locationLabel }}</span>
                     </div>
-                    <div class="flex items-center text-[11px] text-gray-400 dark:text-gray-500">
+                    <div class="flex items-center text-[11px] text-gray-400">
                         <svg class="w-3 h-3 mr-1 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         <span>{{ $dateLabel }}</span>
                     </div>

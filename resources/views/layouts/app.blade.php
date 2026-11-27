@@ -245,7 +245,7 @@
                              class="hidden h-8 w-[120px] object-contain dark:block">
                     </a>
                     <p class="text-[11px] text-gray-500 dark:text-gray-500 leading-tight">
-                        Anunțuri auto curate, ușor de filtrat, de la proprietari și parcuri auto din toată țara.
+                        Anunțuri auto gratuite din România, cu mașini second-hand de la proprietari și dealeri auto.
                     </p>
                 </div>
 
@@ -290,14 +290,9 @@
             </div>
 
             {{-- Rând 2: Linie fină + text mic --}}
-            <div class="mt-3 pt-3 border-t border-dashed border-gray-200 dark:border-gray-800 flex flex-col md:flex-row md:items-center md:justify-between gap-2 text-[10px] text-gray-400 dark:text-gray-500">
-                <p class="text-center md:text-left">
-                    &copy; {{ date('Y') }} iaAuto – Toate drepturile rezervate.
-                </p>
-                <p class="text-center md:text-right">
-                    Platformă de anunțuri auto. Verifică actele, istoricul și vânzătorul înainte de cumpărare.
-                </p>
-            </div>
+            <p class="mt-3 pt-3 border-t border-dashed border-gray-200 dark:border-gray-800 text-center text-[10px] text-gray-400 dark:text-gray-500">
+                &copy; {{ date('Y') }} iaAuto – Toate drepturile rezervate.
+            </p>
         </div>
     </footer>
 
