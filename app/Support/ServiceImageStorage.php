@@ -7,8 +7,38 @@ use Illuminate\Support\Str;
 
 class ServiceImageStorage
 {
+    public const MAX_IMAGES = 30;
+    public const MAX_IMAGE_MIB = 15;
+    public const MAX_IMAGE_KB = self::MAX_IMAGE_MIB * 1024;
+    public const UPLOAD_RULES = 'image|mimes:jpeg,png,jpg,webp|max:' . self::MAX_IMAGE_KB;
+
     public const SERVICE_DIR = 'services';
     public const CARD_THUMBNAIL_DIR = 'services/thumbnails/card';
+
+    public static function listingImages(mixed $images): array
+    {
+        if (is_string($images)) {
+            $images = json_decode($images, true);
+        }
+
+        return is_array($images) ? array_values(array_filter($images)) : [];
+    }
+
+    public static function galleryRevision(array $images): string
+    {
+        return hash('sha256', json_encode($images, JSON_THROW_ON_ERROR));
+    }
+
+    public static function deleteDisplacedImages(array $previous, array $kept): void
+    {
+        $keptFiles = array_map(self::localServiceFilename(...), $kept);
+        foreach ($previous as $image) {
+            $filename = self::localServiceFilename($image);
+            if ($filename && !in_array($filename, $keptFiles, true)) {
+                self::deleteImageFiles($filename);
+            }
+        }
+    }
 
     public static function processedImageFilename(
         string $baseName,

@@ -376,16 +376,19 @@
                 {{-- DRAG & DROP FOTO --}}
                 <div>
                     <div class="relative w-full group">
-                        <input type="file" id="imageInput" name="images[]" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
+                        <input type="file" id="imageInput" multiple accept="image/jpeg,image/png,image/webp" aria-label="Alege poze pentru anunț" aria-describedby="imageCapacity" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-20">
                         <input type="hidden" id="primaryImageIndex" name="primary_image_index" value="">
+                        <div id="temporaryImageInputs"></div>
                         <div class="flex h-44 w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 transition-all group-hover:border-slate-500 group-hover:bg-white dark:border-[#444] dark:bg-[#252525] dark:group-hover:bg-[#2a2a2a]">
                             <div class="p-3 bg-white dark:bg-[#333] rounded-full shadow-sm mb-2">
                                 <svg class="w-6 h-6 text-slate-700 dark:text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                             </div>
-                            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">Click sau trage poze aici</p>
-                            <p class="text-xs text-gray-400 mt-1">Maxim 10 imagini, 15MB fiecare. Prima poză este cea principală.</p>
+                            <p id="imagePickerPrompt" class="text-sm font-semibold text-gray-700 dark:text-gray-300">Click sau trage poze aici</p>
+                            <p id="imageCapacity" class="mt-1 px-2 text-center text-sm font-semibold text-slate-700 dark:text-slate-200" role="status"></p>
+                            <p class="text-xs text-gray-400 mt-1">Maxim {{ \App\Support\ServiceImageStorage::MAX_IMAGES }} imagini, {{ \App\Support\ServiceImageStorage::MAX_IMAGE_MIB }} MB fiecare. Prima poză este cea principală.</p>
                         </div>
                     </div>
+                    <p id="imageSelectionNotice" role="status" class="mt-3 rounded-lg bg-slate-100 px-4 py-3 text-sm text-slate-700 empty:hidden dark:bg-[#333] dark:text-slate-200"></p>
                     <p id="imageError" class="hidden mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"></p>
                     <div id="previewContainer" class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 mt-4"></div>
                 </div>
@@ -508,9 +511,14 @@
                 <button type="button" id="nextBtn" class="ml-auto rounded-xl bg-[#C81424] px-8 py-3 text-sm font-bold text-white shadow-md shadow-red-700/20 transition-all hover:scale-[1.02] hover:bg-[#94111B] hover:shadow-lg">
                     Continuă
                 </button>
-                <button type="submit" id="submitBtn" class="hidden ml-auto rounded-xl bg-[#C81424] px-8 py-3 text-sm font-bold text-white shadow-md shadow-red-700/20 transition-all hover:scale-[1.02] hover:bg-[#94111B] hover:shadow-lg">
-                    Publică Anunțul
-                </button>
+                <div id="publishActions" class="hidden ml-auto flex max-w-sm flex-col items-end gap-2 pl-2">
+                    <p id="photoUploadStatus" class="text-right text-sm font-semibold text-slate-700 dark:text-slate-200" role="status"></p>
+                    <p id="photoGalleryTotal" class="hidden text-right text-sm font-bold text-slate-900 dark:text-white"></p>
+                    <progress id="photoUploadProgress" class="hidden h-2 w-full accent-[#C81424]" aria-label="Progresul încărcării pozelor" max="100" value="0"></progress>
+                    <button type="submit" id="submitBtn" aria-describedby="photoUploadStatus photoGalleryTotal" class="rounded-xl bg-[#C81424] px-8 py-3 text-sm font-bold text-white shadow-md shadow-red-700/20 transition-all hover:bg-[#94111B] disabled:cursor-not-allowed disabled:opacity-60" disabled>
+                        Publică Anunțul
+                    </button>
+                </div>
             </div>
 
         </div>
@@ -520,9 +528,9 @@
 <div id="submitOverlay" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm px-4">
     <div class="max-w-md rounded-2xl bg-white p-6 text-center shadow-2xl dark:bg-[#1E1E1E]">
         <div class="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-slate-900"></div>
-        <h2 class="text-lg font-extrabold text-gray-900 dark:text-white">Se încarcă anunțul</h2>
+        <h2 class="text-lg font-extrabold text-gray-900 dark:text-white">Se salvează anunțul</h2>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
-            Te rugăm să aștepți până se finalizează încărcarea pozelor și salvarea anunțului. Nu închide pagina și nu apăsa înapoi.
+            Te rugăm să aștepți până se finalizează salvarea anunțului.
         </p>
     </div>
 </div>
@@ -1174,6 +1182,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const dots = document.querySelectorAll('.step-dot');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
+    const publishActions = document.getElementById('publishActions');
     const submitBtn = document.getElementById('submitBtn');
     const wizardForm = document.getElementById('wizardForm');
     const countySelect = document.getElementById('county-select');
@@ -1218,13 +1227,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         prevBtn.classList.toggle('hidden', currentStep === 1);
-        if(currentStep === totalSteps) {
-            nextBtn.classList.add('hidden');
-            submitBtn.classList.remove('hidden');
-        } else {
-            nextBtn.classList.remove('hidden');
-            submitBtn.classList.add('hidden');
-        }
+        nextBtn.classList.toggle('hidden', currentStep === totalSteps);
+        publishActions.classList.toggle('hidden', currentStep !== totalSteps);
 
         if (scrollToStart && activeStep) {
             setTimeout(() => scrollToStepStart(activeStep), 80);
@@ -1842,6 +1846,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function findFieldForError(fieldName) {
         const normalizedName = String(fieldName).replace(/\.\d+$/, '');
+        if (normalizedName === 'temporary_image_ids' || normalizedName === 'primary_image_index') {
+            return document.getElementById('imageInput');
+        }
         const allFields = wizardForm ? Array.from(wizardForm.querySelectorAll('[name]')) : [];
 
         return allFields.find(field => {
@@ -2013,135 +2020,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     initCascadeFromSaved();
 
-    // === 5. IMAGE PREVIEW ===
-    const imageInput = document.getElementById('imageInput');
-    const previewContainer = document.getElementById('previewContainer');
-    const imageError = document.getElementById('imageError');
-    const primaryImageIndex = document.getElementById('primaryImageIndex');
-    const submitOverlay = document.getElementById('submitOverlay');
-    const maxImages = 10;
-    const maxImageBytes = 15 * 1024 * 1024;
-    let selectedImages = [];
-    let primaryIndex = null;
-
-    function showImageError(message) {
-        if (!imageError) return;
-        imageError.textContent = message;
-        imageError.classList.remove('hidden');
-    }
-
-    function clearImageError() {
-        if (!imageError) return;
-        imageError.textContent = '';
-        imageError.classList.add('hidden');
-    }
-
-    function syncImageInput() {
-        const dataTransfer = new DataTransfer();
-        selectedImages.forEach(file => dataTransfer.items.add(file));
-        imageInput.files = dataTransfer.files;
-        primaryImageIndex.value = primaryIndex === null ? '' : String(primaryIndex);
-    }
-
-    function renderImagePreview() {
-        previewContainer.innerHTML = '';
-
-        selectedImages.forEach((file, index) => {
-            const div = document.createElement('div');
-            div.className = 'aspect-square overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm relative dark:border-[#333] dark:bg-[#252525]';
-            div.innerHTML = `
-                <img src="" class="w-full h-full object-cover" alt="">
-                ${primaryIndex === index ? '<span class="absolute left-2 top-2 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold text-slate-700 shadow-sm backdrop-blur">Principală</span>' : '<button type="button" data-primary-index="' + index + '" title="Principală" aria-label="Principală" class="absolute left-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-sm backdrop-blur transition hover:bg-white hover:text-slate-950">★</button>'}
-                <button type="button" data-remove-index="${index}" title="Șterge poza" aria-label="Șterge poza" class="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-lg font-bold leading-none text-slate-700 shadow-sm backdrop-blur transition hover:bg-white hover:text-red-600">×</button>
-            `;
-            previewContainer.appendChild(div);
-
-            const reader = new FileReader();
-            reader.onload = function(ev) {
-                const img = div.querySelector('img');
-                if (img) img.src = ev.target.result;
-            };
-            reader.readAsDataURL(file);
-        });
-    }
-
-    if (imageInput && previewContainer) {
-        imageInput.addEventListener('change', function() {
-            clearImageError();
-            const incomingFiles = Array.from(this.files || []);
-
-            if (selectedImages.length + incomingFiles.length > maxImages) {
-                showImageError('Poți încărca maxim 10 poze. Elimină din selecție sau alege mai puține imagini.');
-                this.value = '';
-                syncImageInput();
-                return;
-            }
-
-            const oversized = incomingFiles.find(file => file.size > maxImageBytes);
-            if (oversized) {
-                showImageError(`Imaginea "${oversized.name}" este prea mare. Limita este 15MB per imagine.`);
-                this.value = '';
-                syncImageInput();
-                return;
-            }
-
-            const invalid = incomingFiles.find(file => !file.type.match('image.*'));
-            if (invalid) {
-                showImageError(`Fișierul "${invalid.name}" nu este o imagine validă.`);
-                this.value = '';
-                syncImageInput();
-                return;
-            }
-
-            selectedImages = selectedImages.concat(incomingFiles);
-            if (primaryIndex === null && selectedImages.length > 0) {
-                primaryIndex = 0;
-            }
-            syncImageInput();
-            renderImagePreview();
-        });
-
-        previewContainer.addEventListener('click', function(event) {
-            const primaryButton = event.target.closest('[data-primary-index]');
-            const removeButton = event.target.closest('[data-remove-index]');
-
-            if (primaryButton) {
-                primaryIndex = Number(primaryButton.dataset.primaryIndex);
-                syncImageInput();
-                renderImagePreview();
-            }
-
-            if (removeButton) {
-                const removeIndex = Number(removeButton.dataset.removeIndex);
-                selectedImages.splice(removeIndex, 1);
-                if (selectedImages.length === 0) {
-                    primaryIndex = null;
-                } else if (primaryIndex === removeIndex) {
-                    primaryIndex = 0;
-                } else if (primaryIndex !== null && primaryIndex > removeIndex) {
-                    primaryIndex--;
-                }
-                clearImageError();
-                syncImageInput();
-                renderImagePreview();
-            }
-        });
-    }
-
-    if (wizardForm) {
-        wizardForm.addEventListener('submit', function(event) {
-            if (!validateAllSteps()) {
-                event.preventDefault();
-                return;
-            }
-
-            submitBtn.disabled = true;
-            submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
-            submitBtn.textContent = 'Se încarcă...';
-            submitOverlay?.classList.remove('hidden');
-            submitOverlay?.classList.add('flex');
-        });
-    }
+    @include('services.partials.service-image-uploads')
 
     if (!applyServerValidationErrors(serverValidationErrors)) {
         updateStep();

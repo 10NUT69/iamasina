@@ -112,4 +112,6 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    'dealer_default_password_hash' => env('DEALER_DEFAULT_PASSWORD_HASH'),
+
 ];

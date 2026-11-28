@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ApplyServiceGalleryEdit;
 use App\Jobs\ProcessServiceImages;
+use App\Models\DealerFeedListing;
 use App\Models\Service;
 use App\Models\ServiceDeactivationFeedback;
 use App\Models\Category;
@@ -10,6 +12,7 @@ use App\Models\County;
 use App\Models\Locality;
 use App\Models\User;
 use App\Notifications\ServicePublishedConfirmation;
+use App\Services\TemporaryServiceImages;
 use App\Support\ServiceImageStorage;
 use App\Support\ServiceShowHeading;
 
@@ -42,8 +45,6 @@ use Illuminate\Validation\ValidationException;
 
 class ServiceController extends Controller
 {
-    private const MAX_SERVICE_IMAGES = 10;
-    private const MAX_SERVICE_IMAGE_KB = 15360;
     private const SERVICE_TITLE_MAX_LENGTH = 90;
     private const SERVICE_DESCRIPTION_MAX_LENGTH = 10000;
     private const RELATED_SERVICES_LIMIT = 12;
@@ -502,6 +503,11 @@ public function indexAutoPath(
     'culoareOpt',
 ])
             ->findOrFail($id);
+
+        if ($service->status === 'pending' && ! auth()->user()?->is_admin
+            && Schema::hasTable('dealer_feed_listings') && DealerFeedListing::where('service_id', $service->id)->exists()) {
+            abort(404);
+        }
 
         $canonicalUrl = $service->public_url;
         $canonicalPath = ltrim((string) parse_url($canonicalUrl, PHP_URL_PATH), '/');
@@ -999,8 +1005,12 @@ public function indexAutoPath(
     // ==========================================
     // 4. CREATE (ALINIAT CU create.blade NOU)
     // ==========================================
-    public function create()
+    public function create(Request $request, TemporaryServiceImages $temporaryImages)
     {
+        if ($request->query->has('temporary_image')) {
+            return $temporaryImages->preview($request);
+        }
+
         $brands = CarBrand::ordered()->get();
 
         $colors        = Culoare::orderBy('nume')->get();
@@ -1020,6 +1030,7 @@ public function indexAutoPath(
 
 
         return view('services.create', [
+            'temporaryImageIds' => $temporaryImages->availableIds($request, (array) $request->old('temporary_image_ids', [])),
             'categories'    => Category::orderBy('sort_order', 'asc')->get(),
 			'autoCategoryId' => $autoCategoryId,
 
@@ -1043,8 +1054,15 @@ public function indexAutoPath(
     // ==========================================
     // 5. STORE (salvează FK-uri)
     // ==========================================
-    public function store(Request $request)
+    public function store(Request $request, TemporaryServiceImages $temporaryImages)
 {
+    if ($request->boolean('upload_temporary')) {
+        return $temporaryImages->upload($request);
+    }
+    if ($request->has('remove_temporary')) {
+        return $temporaryImages->discard($request);
+    }
+
     $rules = [
         'title'       => 'required|string|max:' . self::SERVICE_TITLE_MAX_LENGTH,
         'description' => 'required|string|max:' . self::SERVICE_DESCRIPTION_MAX_LENGTH,
@@ -1061,9 +1079,11 @@ public function indexAutoPath(
         'price_type'  => 'required|in:fixed,negotiable',
         'currency'    => 'required|in:RON,EUR',
         'name'        => 'nullable|string|max:255',
-        'images'      => ['nullable', 'array', 'max:' . self::MAX_SERVICE_IMAGES],
-        'images.*'    => 'image|mimes:jpeg,png,jpg,webp|max:' . self::MAX_SERVICE_IMAGE_KB,
-        'primary_image_index' => 'nullable|integer|min:0|max:9',
+        'images'      => ['nullable', 'array', 'prohibits:temporary_image_ids', 'max:' . ServiceImageStorage::MAX_IMAGES],
+        'images.*'    => ServiceImageStorage::UPLOAD_RULES,
+        'temporary_image_ids' => ['nullable', 'array', 'list', 'max:' . ServiceImageStorage::MAX_IMAGES],
+        'temporary_image_ids.*' => ['required', 'string', 'distinct:strict', 'regex:' . TemporaryServiceImages::ID_PATTERN],
+        'primary_image_index' => 'nullable|integer|min:0|max:' . (ServiceImageStorage::MAX_IMAGES - 1),
 
         // ✅ dacă vrei parc/proprietar la creare anunț (guest)
         // dacă NU trimiți user_type din form, rămâne individual
@@ -1110,8 +1130,8 @@ public function indexAutoPath(
     $messages = [
         'title.max'         => 'Titlul poate avea maxim ' . self::SERVICE_TITLE_MAX_LENGTH . ' de caractere.',
         'description.max'   => 'Descrierea poate avea maxim ' . number_format(self::SERVICE_DESCRIPTION_MAX_LENGTH, 0, ',', '.') . ' de caractere.',
-        'images.max'        => 'Poți încărca maxim 10 imagini.',
-        'images.*.max'      => 'Una dintre imagini este prea mare (max 15MB).',
+        'images.max'        => 'Poți încărca maxim ' . ServiceImageStorage::MAX_IMAGES . ' imagini.',
+        'images.*.max'      => 'Una dintre imagini este prea mare (max ' . ServiceImageStorage::MAX_IMAGE_MIB . ' MB).',
         'images.*.uploaded' => 'Eroare la încărcare server.',
     ];
 
@@ -1123,6 +1143,57 @@ public function indexAutoPath(
     $validated = $request->validate($rules, $messages);
     $this->validateImageUploadLimits($request);
 
+    $ids = $validated['temporary_image_ids'] ?? [];
+    if ($ids !== []) {
+        $primary = $validated['primary_image_index'] ?? 0;
+        if (!isset($ids[$primary])) {
+            throw ValidationException::withMessages(['primary_image_index' => 'Alege o poză principală din selecție.']);
+        }
+        if ($primary > 0) {
+            $cover = array_splice($ids, (int) $primary, 1);
+            $ids = array_merge($cover, $ids);
+        }
+        [$service, $newUser, $pendingImages] = $temporaryImages->attach(
+            $request, $ids, fn () => $this->savePublishedService($request, $validated)
+        );
+        $this->dispatchServiceImageProcessing($service->id, $pendingImages, true);
+    } else {
+        [$service, $newUser] = $this->savePublishedService($request, $validated);
+        $pendingImages = $this->storePendingServiceImages($service, $request);
+        if ($pendingImages) {
+            $this->dispatchServiceImageProcessing($service->id, $pendingImages, true, $this->validPrimaryPendingIndex($request));
+        }
+    }
+
+    if ($newUser) {
+        Auth::login($newUser);
+        $request->session()->regenerate();
+    }
+
+    $serviceOwner = Auth::user();
+    if ($serviceOwner && (int) $serviceOwner->id === (int) $service->user_id) {
+        try {
+            $serviceOwner->notify(new ServicePublishedConfirmation($service));
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    $redirectUrl = $service->user_id
+        ? url('/contul-meu?tab=anunturi')
+        : route('cars.index');
+    $metaEventId = (string) Str::uuid();
+
+    return redirect()->to($redirectUrl)
+        ->with('ga4_listing_published_event', true)
+        ->with('meta_listing_published_event', [
+            'meta_event_id' => $metaEventId,
+        ])
+        ->with('success', 'Anunțul a fost trimis către aprobare. Îl procesăm și îl publicăm automat în scurt timp.');
+}
+
+private function savePublishedService(Request $request, array $validated): array
+{
     // 1) CALCULARE NUME UTILIZATOR (VISITOR)
     $calculatedName = $request->input('name');
     if (empty($calculatedName) && $request->filled('email')) {
@@ -1141,6 +1212,7 @@ public function indexAutoPath(
 
     // 2) LOGICA USER
     $userId = null;
+    $newUser = null;
 
     if (Auth::check()) {
         $userId = Auth::id();
@@ -1152,7 +1224,7 @@ public function indexAutoPath(
             $userType = 'individual';
         }
 
-        $user = User::create([
+        $newUser = User::create([
             'user_type' => $userType,
             'name'      => $calculatedName,
             'email'     => $request->email,
@@ -1169,9 +1241,7 @@ public function indexAutoPath(
             'address'      => $userType === 'dealer' ? $request->input('dealer_address') : null,
         ]);
 
-        Auth::login($user);
-        $request->session()->regenerate();
-        $userId = $user->id;
+        $userId = $newUser->id;
     }
 
     // 3) CREARE SERVICE
@@ -1242,43 +1312,19 @@ public function indexAutoPath(
     $service->images = [];
     $service->save();
 
-    $primaryPendingIndex = $this->validPrimaryPendingIndex($request);
-    $pendingImages = $this->storePendingServiceImages($service, $request);
-    if ($pendingImages) {
-        $this->dispatchServiceImageProcessing($service->id, $pendingImages, true, $primaryPendingIndex);
-    } else {
-        $service->save();
-    }
-
-    $serviceOwner = Auth::user();
-    if ($serviceOwner && (int) $serviceOwner->id === (int) $service->user_id) {
-        try {
-            $serviceOwner->notify(new ServicePublishedConfirmation($service));
-        } catch (\Throwable $e) {
-            report($e);
-        }
-    }
-
-    $redirectUrl = $service->user_id
-        ? url('/contul-meu?tab=anunturi')
-        : route('cars.index');
-    $metaEventId = (string) Str::uuid();
-
-    return redirect()->to($redirectUrl)
-        ->with('ga4_listing_published_event', true)
-        ->with('meta_listing_published_event', [
-            'meta_event_id' => $metaEventId,
-        ])
-        ->with('success', 'Anunțul a fost trimis către aprobare. Îl procesăm și îl publicăm automat în scurt timp.');
+    return [$service, $newUser];
 }
 
    // ==========================================
 // 6. EDIT (ALINIAT CU create.blade NOU)
 // Categoria rămâne invizibilă (autoCategoryId)
 // ==========================================
-public function edit($id)
+public function edit(Request $request, $id, TemporaryServiceImages $temporaryImages)
 {
     $service = $this->findOwnedServiceForManagement($id);
+    if ($request->query->has('temporary_image')) {
+        return $temporaryImages->preview($request, $service);
+    }
     $service->load(['generation.model.brand', 'modelRel']);
 
     // EXACT ca la create()
@@ -1301,6 +1347,7 @@ public function edit($id)
 
     return view('services.edit', [
         'service'        => $service,
+        ...$this->editGalleryDraft($request, $service, $temporaryImages),
 
         // ca în create (categoria e hidden în blade, dar ai nevoie de id-ul ei)
         'autoCategoryId' => $autoCategoryId,
@@ -1319,6 +1366,40 @@ public function edit($id)
         'normePoluare'   => $normePoluare,
         'colorOpts'      => $colorOpts,
     ]);
+}
+
+private function editGalleryDraft(Request $request, Service $service, TemporaryServiceImages $temporaryImages): array
+{
+    $images = ServiceImageStorage::listingImages($service->images);
+    $revision = ServiceImageStorage::galleryRevision($images);
+    $existing = [];
+    foreach ($images as $index => $image) {
+        $existing['existing:' . $index] = ServiceImageStorage::cardImageUrl($image) ?? asset('images/defaults/placeholder.png');
+    }
+
+    $oldOrder = array_values(array_filter((array) $request->old('gallery_order', []), 'is_string'));
+    $newIds = [];
+    foreach ($oldOrder as $token) {
+        if (str_starts_with($token, 'new:')) {
+            $newIds[] = substr($token, 4);
+        }
+    }
+    $available = $temporaryImages->availableIds($request, $newIds, $service);
+    $known = $existing + array_fill_keys(array_map(fn ($id) => 'new:' . $id, $available), null);
+    $order = $request->old('gallery_revision') === $revision ? $oldOrder : array_keys($existing);
+    $order = array_values(array_unique($order));
+    $photos = [];
+    foreach ($order as $token) {
+        if (array_key_exists($token, $known)) {
+            $photos[] = ['token' => $token, 'src' => $known[$token]];
+        }
+    }
+
+    return [
+        'galleryRevision' => $revision,
+        'galleryPhotos' => $photos,
+        'galleryDraftMissingPhotos' => count($photos) < count($order),
+    ];
 }
 
 private function ensureCurrentServiceModelInCarData(array &$carData, Service $service): void
@@ -1360,9 +1441,16 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
     // ==========================================
     // 7. UPDATE (salvează FK-uri)
     // ==========================================
-   public function update(Request $request, $id)
+   public function update(Request $request, $id, TemporaryServiceImages $temporaryImages)
 {
     $service = $this->findOwnedServiceForManagement($id);
+
+    if ($request->boolean('upload_temporary')) {
+        return $temporaryImages->upload($request, $service);
+    }
+    if ($request->has('remove_temporary')) {
+        return $temporaryImages->discard($request, $service);
+    }
 
     // forțăm categoria Autoturisme (exact ca în create)
     $autoCategoryId = Category::where('slug', 'autoturisme')->value('id')
@@ -1387,9 +1475,12 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
         'price_value' => 'nullable|numeric',
         'price_type'  => 'required|in:fixed,negotiable',
         'currency'    => 'required|in:RON,EUR',
-        'images'      => ['nullable', 'array', 'max:' . self::MAX_SERVICE_IMAGES],
-        'images.*'    => 'image|mimes:jpeg,png,jpg,webp|max:' . self::MAX_SERVICE_IMAGE_KB,
-        'primary_image_index' => 'nullable|integer|min:0|max:9',
+        'images'      => ['nullable', 'array', 'prohibits:gallery_revision', 'max:' . ServiceImageStorage::MAX_IMAGES],
+        'images.*'    => ServiceImageStorage::UPLOAD_RULES,
+        'gallery_revision' => ['required_with:gallery_order', 'string', 'regex:' . TemporaryServiceImages::ID_PATTERN],
+        'gallery_order' => ['nullable', 'array', 'list', 'max:' . ServiceImageStorage::MAX_IMAGES],
+        'gallery_order.*' => ['required', 'string', 'distinct:strict', 'regex:/\A(?:existing:(?:0|[1-9][0-9]{0,8})|new:[a-f0-9]{64})\z/'],
+        'primary_image_index' => 'nullable|integer|min:0|max:' . (ServiceImageStorage::MAX_IMAGES - 1),
         'primary_existing_image' => 'nullable|string',
 
         // FK-uri (pe care le trimite create.blade)
@@ -1426,9 +1517,10 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
     $validated = $request->validate($rules, [
         'title.max'         => 'Titlul poate avea maxim ' . self::SERVICE_TITLE_MAX_LENGTH . ' de caractere.',
         'description.max'   => 'Descrierea poate avea maxim ' . number_format(self::SERVICE_DESCRIPTION_MAX_LENGTH, 0, ',', '.') . ' de caractere.',
-        'images.max'        => 'Poți avea maxim 10 imagini în total.',
-        'images.*.max'      => 'Una dintre imagini este prea mare (max 15MB).',
+        'images.max'        => 'Poți avea maxim ' . ServiceImageStorage::MAX_IMAGES . ' imagini în total.',
+        'images.*.max'      => 'Una dintre imagini este prea mare (max ' . ServiceImageStorage::MAX_IMAGE_MIB . ' MB).',
         'images.*.uploaded' => 'Eroare la încărcare server.',
+        'gallery_order.max' => 'Poți avea maxim ' . ServiceImageStorage::MAX_IMAGES . ' poze în total.',
     ]);
 
     // Standard
@@ -1475,19 +1567,22 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
         $service->{$field} = $request->boolean($field);
     }
 
-    // IMAGINI (păstrezi ce aveai)
-    $currentImages = $this->normalizeServiceImages($service->images);
-    $this->validateImageUploadLimits($request, count($currentImages));
-    $currentImages = $this->moveExistingImageToFront($currentImages, $request->input('primary_existing_image'));
+    if (isset($validated['gallery_revision'])) {
+        $processing = $this->saveGalleryDraft($request, $service, $validated, $temporaryImages);
 
-    $service->images = $currentImages;
-    $service->save();
-
-    $primaryPendingIndex = $request->filled('primary_existing_image') ? null : $this->validPrimaryPendingIndex($request);
-    $pendingImages = $this->storePendingServiceImages($service, $request, max(0, 10 - count($currentImages)));
-    if ($pendingImages) {
-        $this->dispatchServiceImageProcessing($service->id, $pendingImages, false, $primaryPendingIndex);
+        return redirect('/contul-meu?tab=' . ($service->trashed() ? 'dezactivate' : 'anunturi'))
+            ->with('success', $processing
+                ? 'Modificările au fost salvate. Galeria actuală rămâne vizibilă până când toate pozele noi sunt procesate.'
+                : 'Anunțul a fost actualizat.');
     }
+
+    // An already-open older form can still save metadata. Its gallery needs a fresh draft.
+    $currentImages = ServiceImageStorage::listingImages($service->images);
+    if ($request->hasFile('images') || ($request->filled('primary_existing_image')
+        && $request->input('primary_existing_image') !== ($currentImages[0] ?? null))) {
+        throw ValidationException::withMessages(['gallery_order' => 'Formularul de editare a fost actualizat. Reîncarcă pagina și alege din nou pozele.']);
+    }
+    $service->save();
 
     $accountTab = $service->trashed() ? 'dezactivate' : 'anunturi';
 
@@ -1495,6 +1590,59 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
         ->with('success', $service->trashed()
             ? 'Anunțul dezactivat a fost actualizat.'
             : 'Anunțul a fost trimis către aprobare. Îl procesăm și îl publicăm automat în scurt timp.');
+}
+
+private function saveGalleryDraft(Request $request, Service $service, array $validated, TemporaryServiceImages $temporaryImages): bool
+{
+    $revision = $validated['gallery_revision'];
+    $tokens = $validated['gallery_order'] ?? [];
+    $newIds = [];
+    $order = [];
+    foreach ($tokens as $token) {
+        [$kind, $value] = explode(':', $token, 2);
+        if ($kind === 'existing') {
+            $order[] = ['existing' => (int) $value];
+        } else {
+            $order[] = ['new' => count($newIds)];
+            $newIds[] = $value;
+        }
+    }
+
+    $save = function () use ($service, $revision, $order, $newIds) {
+        $current = Service::withTrashed()->lockForUpdate()->findOrFail($service->id);
+        abort_unless((int) $current->user_id === (int) $service->user_id
+            && (!$current->trashed() || $current->status === Service::STATUS_DEACTIVATED), 404);
+        $previous = ServiceImageStorage::listingImages($current->images);
+        if (ServiceImageStorage::galleryRevision($previous) !== $revision) {
+            throw ValidationException::withMessages(['gallery_order' => 'Galeria a fost modificată între timp. Verifică pozele și salvează din nou.']);
+        }
+        foreach ($order as $item) {
+            if (isset($item['existing']) && !array_key_exists($item['existing'], $previous)) {
+                throw ValidationException::withMessages(['gallery_order' => 'Una dintre pozele existente nu aparține galeriei.']);
+            }
+        }
+
+        $current->forceFill($service->getDirty());
+        if ($newIds === []) {
+            $current->images = array_map(fn ($item) => $previous[$item['existing']], $order);
+        }
+        $current->save();
+
+        return [$current, $previous];
+    };
+
+    if ($newIds === []) {
+        [$current, $previous] = DB::transaction($save);
+        ServiceImageStorage::deleteDisplacedImages($previous, $current->images);
+        return false;
+    }
+
+    [$current, , $paths] = $temporaryImages->attach($request, $newIds, $save, $service);
+    $this->dispatchServiceImageJob(new ApplyServiceGalleryEdit(
+        $current->id, $paths, (int) $current->user_id, $revision, $current->status, $current->trashed(), $order,
+    ));
+
+    return true;
 }
 
     public function deactivate(Request $request, $id)
@@ -1681,50 +1829,14 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
         }
     }
 
-    public function deleteImage(Request $request, $id)
+    public function deleteImage($id)
     {
-        $service = $this->findOwnedServiceForManagement($id);
-
-        $imageName = $request->input('image');
-
-        if (!$imageName) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Niciun fișier specificat.',
-            ], 400);
-        }
-
-        $images = $service->images;
-
-        if (is_null($images)) {
-            $images = [];
-        } elseif (is_string($images)) {
-            $images = json_decode($images, true) ?? [];
-        }
-
-        if (!is_array($images)) {
-            $images = [];
-        }
-
-        if (!in_array($imageName, $images, true)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Imaginea nu a fost găsită în acest anunț.',
-            ], 404);
-        }
-
-        ServiceImageStorage::deleteImageFiles($imageName);
-
-        $images = array_values(array_filter($images, function ($img) use ($imageName) {
-            return $img !== $imageName;
-        }));
-
-        $service->images = $images;
-        $service->save();
+        $this->findOwnedServiceForManagement($id);
 
         return response()->json([
-            'success' => true,
-        ]);
+            'success' => false,
+            'message' => 'Reîncarcă pagina de editare, elimină poza și apasă Salvează.',
+        ], 409);
     }
 
     // ==========================================
@@ -1913,7 +2025,7 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
         }
     }
 
-    private function storePendingServiceImages(Service $service, Request $request, int $limit = 10): array
+    private function storePendingServiceImages(Service $service, Request $request, int $limit = ServiceImageStorage::MAX_IMAGES): array
     {
         if ($limit <= 0 || !$request->hasFile('images')) {
             return [];
@@ -1945,7 +2057,12 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
         bool $replaceExisting,
         ?int $primaryPendingIndex = null
     ): void {
-        $dispatch = ProcessServiceImages::dispatch($serviceId, $pendingImages, $replaceExisting, $primaryPendingIndex);
+        $this->dispatchServiceImageJob(new ProcessServiceImages($serviceId, $pendingImages, $replaceExisting, $primaryPendingIndex));
+    }
+
+    private function dispatchServiceImageJob(ProcessServiceImages $job): void
+    {
+        $dispatch = dispatch($job);
         $queue = config('queue.service_images_queue');
 
         if (is_string($queue) && trim($queue) !== '') {
@@ -1953,30 +2070,21 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
         }
     }
 
-    private function normalizeServiceImages(mixed $images): array
-    {
-        if (is_string($images)) {
-            $images = json_decode($images, true) ?: [];
-        }
-
-        return is_array($images) ? array_values(array_filter($images)) : [];
-    }
-
     private function validateImageUploadLimits(Request $request, int $existingCount = 0): void
     {
         $files = $request->file('images', []);
         $files = is_array($files) ? array_values(array_filter($files)) : [$files];
 
-        if ($existingCount + count($files) > self::MAX_SERVICE_IMAGES) {
+        if ($existingCount + count($files) > ServiceImageStorage::MAX_IMAGES) {
             throw ValidationException::withMessages([
-                'images' => 'Poți avea maxim 10 imagini în total.',
+                'images' => 'Poți avea maxim ' . ServiceImageStorage::MAX_IMAGES . ' imagini în total.',
             ]);
         }
 
         foreach ($files as $file) {
-            if ($file && $file->getSize() > self::MAX_SERVICE_IMAGE_KB * 1024) {
+            if ($file && $file->getSize() > ServiceImageStorage::MAX_IMAGE_KB * 1024) {
                 throw ValidationException::withMessages([
-                    'images' => 'Una dintre imagini este prea mare (max 15MB).',
+                    'images' => 'Una dintre imagini este prea mare (max ' . ServiceImageStorage::MAX_IMAGE_MIB . ' MB).',
                 ]);
             }
         }
@@ -1994,17 +2102,7 @@ private function ensureCurrentServiceModelInCarData(array &$carData, Service $se
         return isset($files[$index]) ? $index : null;
     }
 
-    private function moveExistingImageToFront(array $images, ?string $primaryImage): array
-    {
-        if (!$primaryImage || !in_array($primaryImage, $images, true)) {
-            return $images;
-        }
 
-        return array_values(array_unique(array_merge(
-            [$primaryImage],
-            array_filter($images, fn ($image) => $image !== $primaryImage)
-        )));
-    }
 
     private function selectedBrandForFilters(Request $request): ?CarBrand
     {

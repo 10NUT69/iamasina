@@ -66,6 +66,15 @@ return [
             'after_commit' => false,
         ],
 
+        'dealer_feeds' => [
+            'driver' => 'database',
+            'connection' => null,
+            'table' => env('DB_QUEUE_TABLE', 'jobs'),
+            'queue' => 'dealer-imports',
+            'retry_after' => 480,
+            'after_commit' => false,
+        ],
+
         'beanstalkd' => [
             'driver' => 'beanstalkd',
             'host' => env('BEANSTALKD_QUEUE_HOST', 'localhost'),

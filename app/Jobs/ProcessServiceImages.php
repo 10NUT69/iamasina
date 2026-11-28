@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Models\DealerFeedListing;
+use App\Models\DealerFeedTrial;
 use App\Models\Service;
 use App\Support\ServiceImageStorage;
 use Illuminate\Bus\Queueable;
@@ -10,6 +12,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -34,6 +37,12 @@ class ProcessServiceImages implements ShouldQueue
 
     public int $timeout = 300;
 
+    public ?array $feedTrialContext = null;
+
+    public ?array $feedImportContext = null;
+
+    public bool $failOnTimeout = false;
+
     private bool $watermarkWarningLogged = false;
 
     public function __construct(
@@ -47,7 +56,8 @@ class ProcessServiceImages implements ShouldQueue
     public function middleware(): array
     {
         return [
-            (new WithoutOverlapping('service-images-global'))
+            (new WithoutOverlapping(self::class . ':service-images-global'))
+                ->shared()
                 ->releaseAfter(15)
                 ->expireAfter($this->timeout + 120),
         ];
@@ -55,23 +65,38 @@ class ProcessServiceImages implements ShouldQueue
 
     public function handle(): void
     {
-        $service = Service::query()
-            ->with(['brandRel', 'modelRel', 'county', 'locality', 'generation.model.brand'])
-            ->find($this->serviceId);
-
-        if (!$service) {
+        $context = $this->feedTrialContext;
+        $trial = $context ? DealerFeedTrial::currentRun($context['id'], $context['run']) : null;
+        if ($context && $trial?->listing->service_id !== $this->serviceId) {
+            Storage::delete($this->pendingImages);
+            return;
+        }
+        $importContext = $this->feedImportContext;
+        $updatesGallery = $importContext['gallery'] ?? false;
+        $importItem = $importContext
+            ? DealerFeedListing::importItem($importContext['id'], $importContext['run'], 'processing', $updatesGallery)->first()
+            : null;
+        if ($importContext && $importItem?->service_id !== $this->serviceId) {
             Storage::delete($this->pendingImages);
             return;
         }
 
-        $existingImages = $this->replaceExisting ? [] : $this->normalizeImages($service->images);
-        $processedImages = [];
-        $manager = new ImageManager(new Driver());
-        $extension = $this->targetExtension();
-        $baseName = $this->baseImageName($service);
+        $service = Service::query()
+            ->with(['brandRel', 'modelRel', 'county', 'locality', 'generation.model.brand'])
+            ->find($this->serviceId);
 
+        if (!$service || (($trial || $importItem) && $service->status !== ($updatesGallery ? 'active' : 'pending'))) {
+            $trial?->finish(0, [...($trial->messages ?? []), 'Anunțul de probă nu mai este în așteptare.'], 'failed');
+            $importItem?->finishImport('failed', 'Starea anunțului nu mai permite actualizarea pozelor.', $updatesGallery);
+            Storage::delete($this->pendingImages);
+            return;
+        }
+
+        $trialMessages = $trial?->messages ?? [];
+        $previousImages = ($trial || $importItem) ? $this->normalizeImages($service->images) : [];
+        $existingImages = $this->replaceExisting ? [] : $this->normalizeImages($service->images);
         $pendingImages = array_values($this->pendingImages);
-        $availableSlots = max(0, 10 - count($existingImages));
+        $availableSlots = max(0, ServiceImageStorage::MAX_IMAGES - count($existingImages));
         $processableImages = array_slice($pendingImages, 0, $availableSlots);
         $skippedImages = array_slice($pendingImages, $availableSlots);
 
@@ -79,10 +104,71 @@ class ProcessServiceImages implements ShouldQueue
             Storage::delete($pendingPath);
         }
 
-        foreach ($processableImages as $pendingPath) {
+        $processedImages = $this->renderImages($service, $processableImages, $trialMessages, $context['positions'] ?? []);
+
+        if ($trial && $processedImages === []) {
+            $trial->finish(0, $trialMessages, 'failed');
+            Storage::delete($processableImages);
+            return;
+        }
+
+        $images = array_values(array_slice(
+            array_unique(array_merge($existingImages, $processedImages), SORT_REGULAR),
+            0,
+            ServiceImageStorage::MAX_IMAGES
+        ));
+
+        $primaryPendingIndex = $this->primaryPendingIndex();
+
+        if ($primaryPendingIndex !== null && isset($processedImages[$primaryPendingIndex])) {
+            $primaryImage = $processedImages[$primaryPendingIndex];
+            $images = array_values(array_unique(array_merge([$primaryImage], $images)));
+        }
+
+        $images = array_slice($images, 0, ServiceImageStorage::MAX_IMAGES);
+        if ($importItem) {
+            $saved = $this->finishFeedImport($importItem, $importContext['run'], $images, count($processedImages) === count($pendingImages), $updatesGallery);
+            $displacedImages = $saved
+                ? array_filter($previousImages, fn ($image) => ! in_array(ServiceImageStorage::localServiceFilename($image), $images, true))
+                : $processedImages;
+            ServiceImageStorage::deleteServiceImages($displacedImages);
+        } elseif ($trial) {
+            $saved = DB::transaction(function () use ($trial, $service, $images, $processedImages, $trialMessages) {
+                $current = Service::query()->lockForUpdate()->find($service->id);
+                if (! $current || $current->status !== 'pending') {
+                    $trial->finish(0, [...$trialMessages, 'Anunțul de probă nu mai este în așteptare.'], 'failed');
+                    return false;
+                }
+                $current->images = $images;
+                $current->save();
+                $trial->finish(count($processedImages), $trialMessages, 'complete');
+                return true;
+            });
+            ServiceImageStorage::deleteServiceImages($saved ? array_diff($previousImages, $images) : $processedImages);
+        } else {
+            $service->images = $images;
+            if ($service->status === 'active') {
+                $service->published_at = $service->published_at ?: now();
+            }
+            $service->save();
+        }
+        Storage::delete($processableImages);
+    }
+
+    protected function renderImages(Service $service, array $pendingImages, array &$trialMessages = [], array $positions = []): array
+    {
+        $processedImages = [];
+        $manager = new ImageManager(new Driver());
+        $extension = $this->targetExtension();
+        $baseName = $this->baseImageName($service);
+
+        foreach ($pendingImages as $index => $pendingPath) {
             $sourcePath = Storage::path($pendingPath);
 
             if (!is_file($sourcePath)) {
+                if ($positions !== []) {
+                    $trialMessages[] = 'Poza '.$positions[$index].': fișierul temporar lipsește.';
+                }
                 continue;
             }
 
@@ -112,6 +198,9 @@ class ProcessServiceImages implements ShouldQueue
 
                 $processedImages[] = $targetName;
             } catch (Throwable $exception) {
+                if ($positions !== []) {
+                    $trialMessages[] = 'Poza '.$positions[$index].': nu a putut fi procesată.';
+                }
                 Log::warning('Service image processing failed.', [
                     'service_id' => $service->id,
                     'source' => $pendingPath,
@@ -120,26 +209,58 @@ class ProcessServiceImages implements ShouldQueue
             }
         }
 
-        $images = array_values(array_slice(
-            array_unique(array_merge($existingImages, $processedImages), SORT_REGULAR),
-            0,
-            10
-        ));
+        return $processedImages;
+    }
 
-        $primaryPendingIndex = $this->primaryPendingIndex();
-
-        if ($primaryPendingIndex !== null && isset($processedImages[$primaryPendingIndex])) {
-            $primaryImage = $processedImages[$primaryPendingIndex];
-            $images = array_values(array_unique(array_merge([$primaryImage], $images)));
+    public function failed(?Throwable $exception): void
+    {
+        if ($this->feedImportContext) {
+            $context = $this->feedImportContext;
+            $updatesGallery = $context['gallery'] ?? false;
+            $item = DealerFeedListing::importItem($context['id'], $context['run'], 'processing', $updatesGallery)->first();
+            $item?->finishImport('failed', 'Workerul nu a putut termina procesarea pozelor.', $updatesGallery);
+            Storage::delete($this->pendingImages);
         }
-
-        $service->images = array_values(array_slice($images, 0, 10));
-        if ($service->status === 'active') {
-            $service->published_at = $service->published_at ?: now();
+        if ($this->feedTrialContext) {
+            $trial = DealerFeedTrial::currentRun($this->feedTrialContext['id'], $this->feedTrialContext['run']);
+            $trial?->finish(0, [...($trial->messages ?? []), 'Jobul de procesare nu a putut termina proba.'], 'failed');
+            Storage::delete($this->pendingImages);
         }
-        $service->save();
+    }
 
-        Storage::delete($processableImages);
+    private function finishFeedImport(DealerFeedListing $item, int $runId, array $images, bool $complete, bool $updatesGallery): bool
+    {
+        return DB::transaction(function () use ($item, $runId, $images, $complete, $updatesGallery) {
+            $service = Service::query()->lockForUpdate()->find($this->serviceId);
+            $current = DealerFeedListing::importItem($item->id, $runId, 'processing', $updatesGallery)->lockForUpdate()->first();
+            if (! $current) {
+                return false;
+            }
+            $dealer = $current->source?->dealer;
+            if (! $service || ($updatesGallery ? $service->status !== 'active' || ! $service->is_active
+                : $service->status !== 'pending' || $service->published_at !== null)
+                || $dealer?->id !== $service->user_id || $dealer->user_type !== 'dealer' || $dealer->is_active === false) {
+                $current->finishImport('failed', 'Anunțul sau contul dealerului nu mai permite procesarea pozelor.', $updatesGallery);
+                return false;
+            }
+            if (! $complete) {
+                $current->finishImport('failed', 'Cel puțin o fotografie nu a putut fi procesată.', $updatesGallery);
+                return false;
+            }
+            if ($updatesGallery && $current->sync_gallery['expected_images'] !== DealerFeedListing::photoFingerprint($service->images ?? [])) {
+                $current->finishImport('failed', 'Galeria a fost modificată în timpul sincronizării.', updatesGallery: true);
+                return false;
+            }
+
+            $service->images = $images;
+            if ($updatesGallery) {
+                $service->save();
+                $current->finishImport('published', updatesGallery: true);
+            } else {
+                $current->publishImport($service);
+            }
+            return true;
+        });
     }
 
     private function normalizeImages(mixed $images): array

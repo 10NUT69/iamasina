@@ -84,13 +84,6 @@
     // categorie (dacă la create e hidden autoCategoryId, aici păstrăm categoria existentă)
     $savedCategoryId  = old('category_id', $service->category_id ?? ($autoCategoryId ?? null));
 
-    // galerie
-    $gallery = $service->images;
-    if (is_null($gallery)) $gallery = [];
-    if (is_string($gallery)) $gallery = json_decode($gallery, true) ?? [];
-    if (!is_array($gallery)) $gallery = [];
-    $gallery = array_values(array_filter($gallery));
-
     $brandItems = collect($brands ?? []);
     $popularBrands = $brandItems->where('is_popular', true);
     $alphabeticalBrands = $brandItems->sortBy(function ($brand) {
@@ -427,59 +420,24 @@
                     <span class="text-[#C81424]">📸</span> Galerie & Preț
                 </h2>
 
-                {{-- IMAGINI EXISTENTE --}}
-                @if(count($gallery))
-                    <div class="mb-6">
-                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Imagini existente</label>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                            @foreach($gallery as $img)
-                                <div class="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-[#444] bg-white dark:bg-[#252525]"
-                                     data-server-image-card
-                                     data-server-image="{{ $img }}"
-                                     id="server-img-{{ $loop->index }}">
-                                    <img src="{{ asset('storage/services/' . $img) }}" class="w-full h-full object-cover">
-
-                                    <div class="absolute top-2 left-2 rounded bg-[#C81424] px-2 py-0.5 text-[10px] font-bold text-white pointer-events-none {{ $loop->first ? '' : 'hidden' }}" data-primary-badge>
-                                        Principală
-                                    </div>
-
-                                    <div class="absolute inset-x-1 bottom-1 flex gap-1">
-                                        <button type="button"
-                                                onclick="setExistingPrimaryImage('{{ $img }}')"
-                                                class="flex-1 rounded bg-white/90 px-2 py-1 text-[10px] font-bold text-gray-800 shadow hover:bg-white {{ $loop->first ? 'hidden' : '' }}"
-                                                data-existing-primary-action>
-                                            Setează ca principală
-                                        </button>
-                                        <button type="button"
-                                                onclick="deleteServerImage('{{ $img }}', {{ $service->id }}, 'server-img-{{ $loop->index }}')"
-                                                class="ml-auto rounded bg-red-600 px-2 py-1 text-[10px] font-bold text-white shadow hover:bg-red-700">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
-
                 {{-- DRAG & DROP FOTO NOI --}}
                 <div class="mb-8">
                     <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Adaugă imagini noi</label>
                     <div class="relative w-full group">
-                        <input type="file" id="imageInput" name="images[]" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
-                        <input type="hidden" id="primaryImageIndex" name="primary_image_index" value="">
-                        <input type="hidden" id="primaryExistingImage" name="primary_existing_image" value="{{ $gallery[0] ?? '' }}">
+                        <input type="file" id="imageInput" multiple accept="image/jpeg,image/png,image/webp" aria-label="Adaugă poze la galerie" aria-describedby="imageCapacity" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-20">
                         <div class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 dark:border-[#444] rounded-xl bg-gray-50 dark:bg-[#252525] group-hover:bg-[#fff4f5] dark:group-hover:bg-[#2a2a2a] group-hover:border-[#C81424] transition-all">
                             <div class="p-3 bg-white dark:bg-[#333] rounded-full shadow-sm mb-2">
                                 <svg class="w-6 h-6 text-[#C81424]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                             </div>
-                            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">Click sau trage poze aici</p>
-                            <p class="text-xs text-gray-400 mt-1">Maxim 10 imagini total, 15MB fiecare. Poți seta poza principală.</p>
+                            <p id="imagePickerPrompt" class="text-sm font-semibold text-gray-700 dark:text-gray-300">Click sau trage poze aici</p>
+                            <p id="imageCapacity" class="mt-1 px-2 text-center text-sm font-semibold text-slate-700 dark:text-slate-200" role="status"></p>
+                            <p class="text-xs text-gray-400 mt-1">Maxim {{ \App\Support\ServiceImageStorage::MAX_IMAGES }} imagini în total, {{ \App\Support\ServiceImageStorage::MAX_IMAGE_MIB }} MB fiecare. Poți seta poza principală.</p>
                         </div>
                     </div>
+                    <input type="hidden" name="gallery_revision" value="{{ $galleryRevision }}">
+                    <div id="temporaryImageInputs"></div>
+                    <p class="mt-3 text-xs text-gray-600 dark:text-gray-300">Folosește săgețile pentru a schimba ordinea. Prima poză este coperta. Modificările se aplică la salvare.</p>
+                    <p id="imageSelectionNotice" role="status" class="mt-3 rounded-lg bg-slate-100 px-4 py-3 text-sm text-slate-700 empty:hidden dark:bg-[#333] dark:text-slate-200"></p>
                     <p id="imageError" class="hidden mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"></p>
                     <div id="previewContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-4"></div>
                 </div>
@@ -560,9 +518,14 @@
                 <button type="button" id="nextBtn" class="ml-auto bg-gray-900 dark:bg-white text-white dark:text-black font-bold text-sm px-8 py-3 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all">
                     Continuă
                 </button>
-                <button type="submit" id="submitBtn" class="hidden ml-auto bg-[#C81424] text-white font-bold text-sm px-8 py-3 rounded-xl hover:shadow-lg hover:shadow-red-700/25 hover:scale-[1.02] transition-all">
-                    Salvează Modificările
-                </button>
+                <div id="publishActions" class="hidden ml-auto flex max-w-sm flex-col items-end gap-2 pl-2">
+                    <p id="photoUploadStatus" class="text-right text-sm font-semibold text-slate-700 dark:text-slate-200" role="status"></p>
+                    <p id="photoGalleryTotal" class="hidden text-right text-sm font-bold text-slate-900 dark:text-white"></p>
+                    <progress id="photoUploadProgress" class="hidden h-2 w-full accent-[#C81424]" aria-label="Progresul încărcării pozelor" max="100" value="0"></progress>
+                    <button type="submit" id="submitBtn" aria-describedby="photoUploadStatus photoGalleryTotal" class="bg-[#C81424] text-white font-bold text-sm px-8 py-3 rounded-xl transition-all hover:bg-[#94111B] disabled:cursor-not-allowed disabled:opacity-60" disabled>
+                        Salvează Modificările
+                    </button>
+                </div>
             </div>
 
         </div>
@@ -574,7 +537,7 @@
         <div class="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-[#C81424]"></div>
         <h2 class="text-lg font-extrabold text-gray-900 dark:text-white">Se salvează anunțul</h2>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
-            Te rugăm să aștepți până se finalizează încărcarea pozelor și salvarea modificărilor. Nu închide pagina și nu apăsa înapoi.
+            Te rugăm să aștepți până se finalizează salvarea modificărilor.
         </p>
     </div>
 </div>
@@ -598,6 +561,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const dots = document.querySelectorAll('.step-dot');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
+    const publishActions = document.getElementById('publishActions');
     const submitBtn = document.getElementById('submitBtn');
     const wizardForm = document.getElementById('wizardForm');
     const countySelect = document.getElementById('county-select');
@@ -645,13 +609,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         prevBtn.classList.toggle('hidden', currentStep === 1);
-        if (currentStep === totalSteps) {
-            nextBtn.classList.add('hidden');
-            submitBtn.classList.remove('hidden');
-        } else {
-            nextBtn.classList.remove('hidden');
-            submitBtn.classList.add('hidden');
-        }
+        nextBtn.classList.toggle('hidden', currentStep === totalSteps);
+        publishActions.classList.toggle('hidden', currentStep !== totalSteps);
 
         if (scrollToStart && activeStep) {
             setTimeout(() => scrollToStepStart(activeStep), 80);
@@ -977,6 +936,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function findFieldForError(fieldName) {
         const normalizedName = String(fieldName).replace(/\.\d+$/, '');
+        if (normalizedName === 'gallery_order' || normalizedName === 'gallery_revision') {
+            return document.getElementById('imageInput');
+        }
         const allFields = wizardForm ? Array.from(wizardForm.querySelectorAll('[name]')) : [];
 
         return allFields.find(field => {
@@ -1164,198 +1126,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // ================== 5) IMAGE PREVIEW (max 10) ==================
-    const imageInput = document.getElementById('imageInput');
-    const previewContainer = document.getElementById('previewContainer');
-    const imageError = document.getElementById('imageError');
-    const primaryImageIndex = document.getElementById('primaryImageIndex');
-    const primaryExistingImage = document.getElementById('primaryExistingImage');
-    const submitOverlay = document.getElementById('submitOverlay');
-    const maxImages = 10;
-    const maxImageBytes = 15 * 1024 * 1024;
-    let selectedImages = [];
-    let primaryIndex = null;
-
-    function existingImageCount() {
-        return document.querySelectorAll('[data-server-image-card]').length;
-    }
-
-    function showImageError(message) {
-        if (!imageError) return;
-        imageError.textContent = message;
-        imageError.classList.remove('hidden');
-    }
-
-    function clearImageError() {
-        if (!imageError) return;
-        imageError.textContent = '';
-        imageError.classList.add('hidden');
-    }
-
-    function syncImageInput() {
-        const dataTransfer = new DataTransfer();
-        selectedImages.forEach(file => dataTransfer.items.add(file));
-        imageInput.files = dataTransfer.files;
-        primaryImageIndex.value = primaryIndex === null ? '' : String(primaryIndex);
-    }
-
-    function updateExistingPrimaryBadges(selectedImage) {
-        document.querySelectorAll('[data-server-image-card]').forEach((card, index) => {
-            const badge = card.querySelector('[data-primary-badge]');
-            const primaryAction = card.querySelector('[data-existing-primary-action]');
-            const isPrimary = selectedImage
-                ? card.dataset.serverImage === selectedImage
-                : index === 0 && primaryIndex === null;
-            badge?.classList.toggle('hidden', !isPrimary);
-            primaryAction?.classList.toggle('hidden', isPrimary);
-        });
-    }
-
-    window.setExistingPrimaryImage = function(imageName) {
-        primaryExistingImage.value = imageName;
-        primaryIndex = null;
-        syncImageInput();
-        updateExistingPrimaryBadges(imageName);
-        renderImagePreview();
-    };
-
-    function renderImagePreview() {
-        previewContainer.innerHTML = '';
-
-        selectedImages.forEach((file, index) => {
-            const div = document.createElement('div');
-            div.className = 'aspect-square rounded-lg overflow-hidden border border-gray-200 shadow-sm relative bg-white dark:bg-[#252525]';
-            div.innerHTML = `
-                <img src="" class="w-full h-full object-cover" alt="">
-                ${primaryIndex === index ? '<span class="absolute left-1 top-1 rounded bg-[#C81424] px-2 py-0.5 text-[10px] font-bold text-white">Principală</span>' : ''}
-                <div class="absolute inset-x-1 bottom-1 flex gap-1">
-                    ${primaryIndex === index ? '' : '<button type="button" data-primary-index="' + index + '" class="flex-1 rounded bg-white/90 px-1 py-1 text-[10px] font-bold text-gray-800 shadow hover:bg-white">Setează ca principală</button>'}
-                    <button type="button" data-remove-index="${index}" class="ml-auto rounded bg-red-600 px-2 py-1 text-[10px] font-bold text-white shadow hover:bg-red-700">×</button>
-                </div>
-            `;
-            previewContainer.appendChild(div);
-
-            const reader = new FileReader();
-            reader.onload = function(ev) {
-                const img = div.querySelector('img');
-                if (img) img.src = ev.target.result;
-            };
-            reader.readAsDataURL(file);
-        });
-    }
-
-    if (imageInput && previewContainer) {
-        imageInput.addEventListener('change', function() {
-            clearImageError();
-            const incomingFiles = Array.from(this.files || []);
-
-            if (existingImageCount() + selectedImages.length + incomingFiles.length > maxImages) {
-                showImageError('Poți avea maxim 10 poze în total. Șterge poze existente sau alege mai puține imagini noi.');
-                this.value = '';
-                syncImageInput();
-                return;
-            }
-
-            const oversized = incomingFiles.find(file => file.size > maxImageBytes);
-            if (oversized) {
-                showImageError(`Imaginea "${oversized.name}" este prea mare. Limita este 15MB per imagine.`);
-                this.value = '';
-                syncImageInput();
-                return;
-            }
-
-            const invalid = incomingFiles.find(file => !file.type.match('image.*'));
-            if (invalid) {
-                showImageError(`Fișierul "${invalid.name}" nu este o imagine validă.`);
-                this.value = '';
-                syncImageInput();
-                return;
-            }
-
-            selectedImages = selectedImages.concat(incomingFiles);
-            syncImageInput();
-            renderImagePreview();
-        });
-
-        previewContainer.addEventListener('click', function(event) {
-            const primaryButton = event.target.closest('[data-primary-index]');
-            const removeButton = event.target.closest('[data-remove-index]');
-
-            if (primaryButton) {
-                primaryIndex = Number(primaryButton.dataset.primaryIndex);
-                primaryExistingImage.value = '';
-                syncImageInput();
-                updateExistingPrimaryBadges(null);
-                renderImagePreview();
-            }
-
-            if (removeButton) {
-                const removeIndex = Number(removeButton.dataset.removeIndex);
-                selectedImages.splice(removeIndex, 1);
-                if (selectedImages.length === 0) {
-                    primaryIndex = null;
-                } else if (primaryIndex === removeIndex) {
-                    primaryIndex = 0;
-                } else if (primaryIndex !== null && primaryIndex > removeIndex) {
-                    primaryIndex--;
-                }
-                clearImageError();
-                syncImageInput();
-                renderImagePreview();
-                updateExistingPrimaryBadges(primaryExistingImage.value || null);
-            }
-        });
-    }
-
-    // ================== 6) DELETE SERVER IMAGE ==================
-    window.deleteServerImage = function(imageName, serviceId, containerId) {
-        if (!confirm('Ești sigur că vrei să ștergi această imagine?')) return;
-
-        fetch(`/anunturi-auto-de-vanzare/${serviceId}/image`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ image: imageName })
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                const el = document.getElementById(containerId);
-                if (el) {
-                    el.style.opacity = '0';
-                    setTimeout(() => {
-                        const removedPrimary = primaryExistingImage?.value === imageName;
-                        el.remove();
-                        if (removedPrimary) {
-                            primaryExistingImage.value = document.querySelector('[data-server-image-card]')?.dataset.serverImage || '';
-                            updateExistingPrimaryBadges(primaryExistingImage.value);
-                        }
-                    }, 250);
-                }
-            } else {
-                alert('Eroare la ștergere.');
-            }
-        })
-        .catch(() => alert('Eroare la ștergere.'));
-    };
-
-    if (wizardForm) {
-        wizardForm.addEventListener('submit', function(event) {
-            if (!validateAllSteps()) {
-                event.preventDefault();
-                return;
-            }
-
-            submitBtn.disabled = true;
-            submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
-            submitBtn.textContent = 'Se salvează...';
-            submitOverlay?.classList.remove('hidden');
-            submitOverlay?.classList.add('flex');
-        });
-    }
+    @include('services.partials.service-image-uploads')
 
     // init
     initCascadeFromSaved();

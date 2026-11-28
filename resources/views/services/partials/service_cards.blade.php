@@ -102,7 +102,7 @@
                                 <span class="text-gray-500 dark:text-gray-400 text-[10px] md:text-xs font-normal">Neg.</span>
                             @endif
                         @else
-                            <span class="text-sm md:text-base font-bold text-[#C81424]">Cere ofertă</span>
+                            <span class="text-sm md:text-base font-bold text-[#C81424]">La cerere</span>
                         @endif
                     </div>
                     <span class="text-[#C81424] font-semibold flex items-center gap-1">

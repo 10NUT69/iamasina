@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\DealerFeedSource;
 use App\Models\Service;
 use App\Services\IndexNowService;
 use App\Support\ServiceImageStorage;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class AdminServiceController extends Controller
 {
@@ -263,11 +266,7 @@ class AdminServiceController extends Controller
 
                 // C. SOFT DELETE (Mută în Coș + Șterge Poze)
                 case 'soft_delete':
-                    if (!$service->trashed()) {
-                        $this->deleteImages($service); // Ștergem pozele fizic
-                        $service->images = null;       // Golim coloana images
-                        $service->save();
-                        $service->delete();            // Soft Delete (deleted_at)
+                    if ($this->moveToTrash($service)) {
                         $count++;
                     }
                     break;
@@ -302,12 +301,43 @@ class AdminServiceController extends Controller
         }
 
         // CAZ: SOFT DELETE (Coș)
-        $this->deleteImages($service);
-        $service->images = null;
-        $service->save();
-        $service->delete();
+        $this->moveToTrash($service);
 
         return back()->with('success', 'Anunț mutat în coș.');
+    }
+
+    public function trashImportedStock(Request $request, DealerFeedSource $source): RedirectResponse
+    {
+        $input = $request->validate([
+            'run_id' => ['required', 'integer', 'min:1'],
+            'expected_count' => ['required', 'integer', 'min:1'],
+        ]);
+        $moved = DB::transaction(function () use ($source, $input) {
+            $source = DealerFeedSource::query()->lockForUpdate()->findOrFail($source->id);
+            $run = $source->runs()->where('import_status', 'prepared')->findOrFail($input['run_id']);
+            if ($run->importedListings()->whereIn('import_status', ['waiting', 'processing'])->exists()) {
+                return null;
+            }
+            $services = $run->importedServices()->where('dealer_feed_listings.source_id', $source->id)
+                ->where('services.user_id', $source->dealer_id)
+                ->orderBy('services.id')->lockForUpdate()->get(['services.id', 'services.user_id', 'services.images']);
+            if ($services->count() !== (int) $input['expected_count']) {
+                return null;
+            }
+
+            foreach ($services as $service) {
+                $this->moveToTrash($service);
+            }
+
+            return $services->count();
+        });
+
+        return redirect()->route('admin.dealer-feeds.index')->withFragment('feed-history')->with(
+            $moved === null ? 'error' : 'success',
+            $moved === null
+                ? 'Numărul anunțurilor importate s-a schimbat. Verifică selecția și confirmă din nou.'
+                : $moved.' anunțuri importate au fost mutate în coș.'
+        );
     }
 
     // ==========================================================
@@ -331,6 +361,24 @@ class AdminServiceController extends Controller
     // ==========================================================
     // HELPER IMAGINI
     // ==========================================================
+    private function moveToTrash(Service $service): bool
+    {
+        return DB::transaction(function () use ($service) {
+            $current = Service::query()->where('user_id', $service->user_id)->lockForUpdate()->find($service->id);
+            if (! $current) {
+                return false;
+            }
+
+            $images = $current->images;
+            $current->images = null;
+            $current->save();
+            $current->delete();
+            DB::afterCommit(fn () => ServiceImageStorage::deleteServiceImages($images));
+
+            return true;
+        });
+    }
+
     private function deleteImages($service)
     {
         ServiceImageStorage::deleteServiceImages($service->images);

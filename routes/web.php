@@ -18,6 +18,8 @@ use App\Http\Controllers\Admin\AdminDeactivationFeedbackController;
 use App\Http\Controllers\Admin\AdminCategoryController;
 use App\Http\Controllers\Admin\AdminBackupController;
 use App\Http\Controllers\Admin\AdminAutoCatalogController;
+use App\Http\Controllers\Admin\DealerFeedSourceController;
+use App\Http\Controllers\Admin\DealerFeedTrialController;
 
 /*
 |--------------------------------------------------------------------------
@@ -214,6 +216,8 @@ Route::middleware(['auth', 'admin.access'])
             return redirect()->route('account.index');
         })->whereNumber('id')->name('login-as');
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::get('/users/dealers/create', [AdminUserController::class, 'createDealer'])->name('users.dealers.create');
+        Route::post('/users/dealers', [AdminUserController::class, 'storeDealer'])->name('users.dealers.store');
         Route::post('/users/export-emails/with-services', [AdminUserController::class, 'exportEmailsWithServices'])->name('users.export-emails.with-services');
         Route::post('/users/export-emails/without-services', [AdminUserController::class, 'exportEmailsWithoutServices'])->name('users.export-emails.without-services');
         Route::post('/users', [AdminUserController::class, 'bulkAction'])->name('users.bulk');
@@ -222,6 +226,19 @@ Route::middleware(['auth', 'admin.access'])
         Route::delete('/users/{id}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 
         Route::get('/services', [AdminServiceController::class, 'index'])->name('services.index');
+        Route::prefix('import-anunturi')->name('dealer-feeds.')->group(function () {
+            Route::get('/', [DealerFeedSourceController::class, 'index'])->name('index');
+            Route::get('/adauga', [DealerFeedSourceController::class, 'create'])->name('create');
+            Route::post('/', [DealerFeedSourceController::class, 'store'])->name('store');
+            Route::get('/{source}', [DealerFeedSourceController::class, 'edit'])->whereNumber('source')->name('edit');
+            Route::patch('/{source}', [DealerFeedSourceController::class, 'update'])->whereNumber('source')->name('update');
+            Route::post('/{source}/test', [DealerFeedSourceController::class, 'check'])->whereNumber('source')->name('check');
+            Route::post('/{source}/import', [DealerFeedSourceController::class, 'import'])->whereNumber('source')->name('import');
+            Route::delete('/{source}/anunturi', [AdminServiceController::class, 'trashImportedStock'])->whereNumber('source')->name('trash-stock');
+            Route::get('/{source}/proba', [DealerFeedTrialController::class, 'review'])->whereNumber('source')->name('trials.review');
+            Route::post('/{source}/proba', [DealerFeedTrialController::class, 'store'])->whereNumber('source')->name('trials.store');
+            Route::get('/{source}/probe/{trial}', [DealerFeedTrialController::class, 'show'])->whereNumber(['source', 'trial'])->name('trials.show');
+        });
         Route::get('/feedback-dezactivari', [AdminDeactivationFeedbackController::class, 'index'])->name('deactivation-feedback.index');
         Route::delete('/feedback-dezactivari', [AdminDeactivationFeedbackController::class, 'clear'])->name('deactivation-feedback.clear');
         Route::patch('/feedback-dezactivari/{feedback}/exclude', [AdminDeactivationFeedbackController::class, 'toggleExclusion'])->name('deactivation-feedback.exclude');

@@ -104,6 +104,11 @@
                 </span>
             </a>
 
+            <a href="{{ route('admin.dealer-feeds.index') }}"
+               class="block p-2 rounded hover:bg-gray-200 {{ request()->routeIs('admin.dealer-feeds.*') ? 'bg-gray-200 font-bold' : '' }}">
+                Import anunțuri
+            </a>
+
             <a href="{{ route('admin.users.index') }}"
                class="flex items-center justify-between p-2 rounded hover:bg-gray-200 {{ request()->routeIs('admin.users.*') ? 'bg-gray-200 font-bold' : '' }}">
                 <span>Utilizatori</span>

@@ -122,6 +122,10 @@ class TrackVisit
 
     private function isInternalRoute($request): bool
     {
+        if ($request->routeIs('services.create', 'services.edit') && $request->query->has('temporary_image')) {
+            return true;
+        }
+
         return $request->is(
             'login',
             'logout',

@@ -32,7 +32,8 @@
     }
 
     // --- PRET ---
-    $formattedPrice = number_format($service->price_value ?? 0, 0, '.', ' ');
+    $hasDisplayPrice = $service->price_value !== null;
+    $formattedPrice = $hasDisplayPrice ? number_format($service->price_value, 0, '.', ' ') : 'La cerere';
     $currency       = $service->currency ?? 'EUR';
     $priceTypeBadge = null;
     $priceTypeBadgeClass = null;
@@ -746,8 +747,8 @@
                     </div>
                 </div>
                 <div class="md:hidden flex flex-wrap items-center gap-2 pt-2">
-                    <span class="text-3xl font-extrabold text-[#E03E2D]">{{ $formattedPrice }} {{ $currency }}</span>
-                    @if($priceTypeBadge)
+                    <span class="text-3xl font-extrabold text-[#E03E2D]">{{ $formattedPrice }}{{ $hasDisplayPrice ? ' '.$currency : '' }}</span>
+                    @if($hasDisplayPrice && $priceTypeBadge)
                         <span class="relative top-px inline-block px-2 py-1 text-xs font-bold rounded uppercase md:top-0 {{ $priceTypeBadgeClass }}">{{ $priceTypeBadge }}</span>
                     @endif
                 </div>
@@ -956,9 +957,11 @@
 
                     <div class="flex items-baseline gap-2 mb-2">
                         <span class="text-4xl font-extrabold text-[#E03E2D] dark:text-red-300">{{ $formattedPrice }}</span>
-                        <span class="text-xl font-bold text-[#E03E2D] dark:text-red-300">{{ $currency }}</span>
+                        @if($hasDisplayPrice)
+                            <span class="text-xl font-bold text-[#E03E2D] dark:text-red-300">{{ $currency }}</span>
+                        @endif
                     </div>
-                    @if($priceTypeBadge)
+                    @if($hasDisplayPrice && $priceTypeBadge)
                         <span class="inline-block px-2 py-1 text-xs font-bold rounded uppercase {{ $priceTypeBadgeClass }}">{{ $priceTypeBadge }}</span>
                     @endif
                 </div>

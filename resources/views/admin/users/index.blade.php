@@ -39,6 +39,10 @@
         </div>
 
         <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full md:w-auto">
+            <a href="{{ route('admin.users.dealers.create') }}"
+               class="inline-flex items-center justify-center rounded-lg bg-slate-800 px-3 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-slate-900">
+                Creează dealer
+            </a>
             <form method="POST" action="{{ route('admin.users.export-emails.with-services') }}">
                 @csrf
                 <button type="submit"

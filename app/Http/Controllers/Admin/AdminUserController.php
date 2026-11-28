@@ -6,13 +6,54 @@ use App\Http\Controllers\Controller;
 use App\Models\Service;
 use App\Models\User;
 use App\Support\ServiceImageStorage;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class AdminUserController extends Controller
 {
+    public function createDealer(): View
+    {
+        return view('admin.users.create-dealer');
+    }
+
+    public function storeDealer(Request $request): RedirectResponse
+    {
+        $passwordHash = config('auth.dealer_default_password_hash');
+
+        if (! is_string($passwordHash) || ! Hash::isHashed($passwordHash) || ! Hash::verifyConfiguration($passwordHash)) {
+            return back()->withInput()->withErrors([
+                'dealer_setup' => 'Parola implicită pentru dealeri trebuie configurată înainte de crearea unui cont.',
+            ]);
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:120', Rule::unique(User::class)],
+            'company_name' => ['required', 'string', 'max:150', Rule::unique(User::class)],
+            'phone' => ['required', 'string', 'max:30'],
+        ], [
+            'company_name.required' => 'Completează numele parcului auto.',
+            'company_name.unique' => 'Numele parcului auto este deja folosit.',
+            'company_name.max' => 'Numele parcului auto poate avea maximum 150 de caractere.',
+            'phone.required' => 'Completează numărul de telefon al parcului auto.',
+        ]);
+
+        $dealer = User::create($validated + [
+            'user_type' => 'dealer',
+            'is_admin' => false,
+            'is_active' => true,
+            'password' => $passwordHash,
+        ]);
+
+        return redirect()->route('admin.users.index', ['search' => $dealer->id])
+            ->with('success', 'Contul de dealer a fost creat.');
+    }
+
     public function index(Request $request)
     {
         $search = trim((string) $request->input('search', ''));
