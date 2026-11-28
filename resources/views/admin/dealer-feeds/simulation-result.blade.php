@@ -31,7 +31,7 @@
             @if ($report['missing'])
                 <details class="text-slate-700">
                     <summary class="cursor-pointer font-semibold">Anunțuri care lipsesc din feed</summary>
-                    <p>Aceste anunțuri rămân publicate.</p>
+                    <p>Sincronizarea automată verifică absențele, dezactivează anunțurile eligibile și le mută în Coș după 5 zile de absență confirmată.</p>
                     <ul class="mt-2 space-y-1">
                         @foreach ($report['missing'] as $missing)
                             <li>ID {{ $missing['id'] }} · {{ $missing['title'] }}</li>

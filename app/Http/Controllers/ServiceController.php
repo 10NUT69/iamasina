@@ -1771,6 +1771,8 @@ private function saveGalleryDraft(Request $request, Service $service, array $val
                 ->where('service_id', $service->id)
                 ->update(['is_current' => false]);
 
+            DealerFeedListing::query()->where('service_id', $service->id)
+                ->whereNotNull('feed_missing_since')->update(['feed_missing_since' => null]);
             $service->status = 'active';
             $service->restore();
             $service->save();

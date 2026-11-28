@@ -30,7 +30,8 @@ class DealerFeedChanges
         $candidate = clone $service;
         $candidate->fill($attributes)->forceFill(['city' => $attributes['city']]);
         $dirty = $candidate->getDirty();
-        $action = $listing->feed_withdrawn ? 'reactivated' : ($dirty || $newGallery ? 'updated' : 'unchanged');
+        $action = $listing->feed_withdrawn || $listing->awaitingMissingCleanup()
+            ? 'reactivated' : ($dirty || $newGallery ? 'updated' : 'unchanged');
         $details = [];
         if (array_key_exists('price_value', $dirty) || array_key_exists('currency', $dirty)) {
             $price = fn ($value, $currency) => $value === null ? 'La cerere' : $value.' '.$currency;

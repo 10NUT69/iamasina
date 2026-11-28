@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\DealerFeedListing;
 use App\Models\DealerFeedSource;
+use App\Models\Service;
 use App\Support\ServiceImageStorage;
 
 class DealerFeedSimulation
@@ -20,6 +21,7 @@ class DealerFeedSimulation
         if ($source->dealer->user_type !== 'dealer' || $source->dealer->is_active === false) {
             throw new DealerFeedException('Sursa trebuie să aparțină unui dealer activ.');
         }
+        $automatic = $downloaded !== null;
         $run = $downloaded === null ? $this->checks->verifiedRun($source) : null;
         $entries = iterator_to_array($this->preview->entries(
             $downloaded ?? $this->checks->read($run), $source->mapping ?? [], $source->profile,
@@ -38,10 +40,10 @@ class DealerFeedSimulation
             'blocked' => 0,
             'is_sync' => $source->runs()->where('import_status', 'prepared')->exists() || $linked->contains('import_status', 'published'),
             'changes' => [],
-            'change_counts' => array_fill_keys(['new', 'updated', 'withdrawn', 'reactivated', 'unchanged', 'skipped', 'missing', 'galleries'], 0),
+            'change_counts' => array_fill_keys(['new', 'updated', 'withdrawn', 'reactivated', 'unchanged', 'skipped', 'missing', 'galleries', 'deactivated_missing', 'trashed_missing'], 0),
             'missing' => [],
-            'active_stock' => $linked->filter(fn ($listing) => $listing->service?->status === 'active'
-                && ! $listing->service->trashed() && $listing->service->user_id === $source->dealer_id)->count(),
+            'tracked_stock' => $linked->filter(fn ($listing) => $listing->service?->user_id === $source->dealer_id
+                && ($this->isActive($listing->service) || $listing->awaitingMissingCleanup()))->count(),
             'locations' => [],
             'branches' => [],
             'issues' => [],
@@ -70,21 +72,24 @@ class DealerFeedSimulation
                 $seen[$key] = true;
                 $listing = $linked->get($key);
                 $service = $listing?->service;
+                $awaitingCleanup = $listing?->awaitingMissingCleanup() ?? false;
+                $returningFromFeed = $automatic && $awaitingCleanup;
                 $availability = $this->changes->availability($entry['status']);
                 if ($listing && $service?->user_id !== $source->dealer_id) {
                     $errors[] = 'Anunțul asociat acestui ID nu aparține dealerului.';
                 } elseif ($listing && in_array($listing->trial?->status, ['queued', 'processing'], true)) {
                     $errors[] = 'O probă pentru acest ID este încă în curs.';
-                } elseif ($service?->trashed()) {
+                } elseif ($service?->trashed() && ! $returningFromFeed) {
                     $action = 'skipped';
-                    $warnings[] = 'Anunțul este în Coș.';
-                } elseif ($service && ! ($service->status === 'active' && $service->is_active)
+                    $warnings[] = $awaitingCleanup ? 'Anunțul este dezactivat deoarece lipsește din feed.' : 'Anunțul este dezactivat sau în Coș.';
+                } elseif ($service && ! $returningFromFeed && ! $this->isActive($service)
                     && ! ($service->status === 'pending' && $service->published_at === null)
                     && ! ($listing->feed_withdrawn && $service->status === 'expired')) {
                     $action = 'skipped';
                     $warnings[] = 'Anunțul este dezactivat sau respins.';
                 } elseif ($availability === 'withdrawn') {
-                    $action = $service?->status === 'active' ? 'withdrawn' : ($listing?->feed_withdrawn ? 'unchanged' : 'skipped');
+                    $action = $service?->status === 'active' || $returningFromFeed
+                        ? 'withdrawn' : ($listing?->feed_withdrawn ? 'unchanged' : 'skipped');
                     if ($action === 'skipped') {
                         $warnings[] = 'Anunțul este indisponibil în feed.';
                     }
@@ -109,7 +114,7 @@ class DealerFeedSimulation
                         $warnings[] = 'Se vor lua în calcul doar primele '.ServiceImageStorage::MAX_IMAGES.' de poze.';
                     }
                     $action = 'new';
-                    if ($service && ($service->status === 'active' || $listing->feed_withdrawn)) {
+                    if ($service && ($service->status === 'active' || $listing->feed_withdrawn || $returningFromFeed)) {
                         ['action' => $action, 'gallery' => $gallery, 'baseline' => $baseline, 'details' => $details] =
                             $this->changes->existing($listing, $attributes, $photos);
                     }
@@ -147,9 +152,21 @@ class DealerFeedSimulation
         }
 
         foreach ($linked as $key => $listing) {
-            if (! isset($seen[$key]) && $listing->service?->status === 'active' && ! $listing->service->trashed()
-                && $listing->service->user_id === $source->dealer_id && $listing->import_status === 'published') {
-                $result['missing'][] = ['id' => $listing->external_id, 'title' => $listing->service->title];
+            $active = $this->isActive($listing->service);
+            $awaitingCleanup = $listing->awaitingMissingCleanup();
+            if (isset($seen[$key]) || (! $active && ! $awaitingCleanup) || $listing->service->user_id !== $source->dealer_id
+                || $listing->import_status !== 'published') {
+                continue;
+            }
+
+            $id = $listing->external_id;
+            $result['missing'][] = ['id' => $id, 'title' => $listing->service->title];
+            if ($automatic && ($active || $listing->feed_missing_since->addDays(DealerFeedListing::MISSING_GRACE_DAYS)->lte(now()))) {
+                $action = $active ? 'deactivated_missing' : 'trashed_missing';
+                $result['change_counts'][$action]++;
+                if ($includePlan) {
+                    $plan[] = compact('id', 'listing', 'action');
+                }
             }
         }
         $result['change_counts']['missing'] = count($result['missing']);
@@ -160,6 +177,11 @@ class DealerFeedSimulation
         }
 
         return $result;
+    }
+
+    private function isActive(?Service $service): bool
+    {
+        return $service?->status === 'active' && $service->is_active && ! $service->trashed();
     }
 
     private function addLocationChoice(array &$result, array $entry, array $review, string $key): void

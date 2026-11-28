@@ -26,6 +26,9 @@ Release-ul de poze poate fi livrat pe baza codului de producție care conține d
 | `2026_11_27_188000_replace_dealer_feed_fallback_with_listing_locations.php` | Alegerea localității per anunț |
 | `2026_11_27_189000_add_chiajna_to_ilfov_localities.php` | Date de catalog Chiajna |
 | `2026_11_27_190000_add_dealer_feed_sync_tracking.php` | Urmărirea sincronizării |
+| `2026_11_28_000000_add_feed_missing_since_to_dealer_feed_listings.php` | Data de la care un anunț este dezactivat automat deoarece lipsește din feed |
+
+Pentru actualizarea aplicată peste un VPS care are deja feed-urile, rulează migrarea `2026_11_28_000000` înainte ca workerul `iaauto-dealer-imports` și schedulerul să folosească noul cod. Repornește acest worker după migrare. Regula verifică absențele la sincronizarea automată existentă. Pozele și miniaturile se șterg când o verificare validă mută anunțul în Coș, după cinci zile. Nu se adaugă o sarcină de cron sau o cheie `.env`.
 
 Importul folosește conexiunea `dealer_feeds`, cu `retry_after=480`, și două procese Supervisor separate. Numele `dealer-feeds-photos` activează politica existentă care acordă prioritate lucrului din coada obișnuită. Sincronizarea rulează la 00:00 și 12:00, în fusul aplicației. `DEALER_DEFAULT_PASSWORD_HASH` se configurează numai pentru fluxul Admin de creare dealer. Feed-urile au propriile joburi și folosesc stocarea temporară proprie. `database_backups/backups` rămâne separat. [Cozi](../config/queue.php) · [Prioritatea workerului de feed](../app/Services/DealerFeedQueuePriority.php) · [Scheduler](../routes/console.php)
 

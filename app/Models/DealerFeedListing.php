@@ -9,11 +9,13 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class DealerFeedListing extends Model
 {
+    public const MISSING_GRACE_DAYS = 5;
+
     protected $fillable = ['service_id', 'external_id', 'external_key'];
 
     protected function casts(): array
     {
-        return ['feed_withdrawn' => 'bool', 'sync_gallery' => 'array'];
+        return ['feed_withdrawn' => 'bool', 'sync_gallery' => 'array', 'feed_missing_since' => 'immutable_datetime'];
     }
 
     public static function externalKey(string $externalId): string
@@ -34,6 +36,15 @@ class DealerFeedListing extends Model
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class)->withTrashed();
+    }
+
+    public function awaitingMissingCleanup(): bool
+    {
+        $service = $this->service;
+
+        return $this->feed_missing_since !== null
+            && $service?->status === Service::STATUS_DEACTIVATED
+            && $service->deleted_at?->equalTo($this->feed_missing_since) === true;
     }
 
     public function trial(): HasOne

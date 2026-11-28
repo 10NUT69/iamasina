@@ -8,6 +8,7 @@ use App\Models\DealerFeedListing;
 use App\Models\DealerFeedRun;
 use App\Models\DealerFeedSource;
 use App\Models\Service;
+use App\Support\ServiceImageStorage;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -68,8 +69,8 @@ class DealerFeedImport
 
             $report = $this->simulation->run($source, includePlan: true, lockAds: true, downloaded: $downloaded);
             $counts = $report['change_counts'];
-            $active = $report['active_stock'];
-            if ($report['blocked'] || ($active >= 4 && ($counts['missing'] + $counts['withdrawn']) * 2 > $active)) {
+            $stock = $report['tracked_stock'];
+            if ($report['blocked'] || ($stock >= 4 && ($counts['missing'] + $counts['withdrawn']) * 2 > $stock)) {
                 return;
             }
             if (! $this->hasChanges($report)) {
@@ -95,7 +96,8 @@ class DealerFeedImport
     private function hasChanges(array $report): bool
     {
         $counts = $report['change_counts'];
-        return $counts['new'] + $counts['updated'] + $counts['withdrawn'] + $counts['reactivated'] > 0;
+        return $counts['new'] + $counts['updated'] + $counts['withdrawn'] + $counts['reactivated']
+            + $counts['deactivated_missing'] + $counts['trashed_missing'] > 0;
     }
 
     private function applyBaselines(array $report): void
@@ -111,7 +113,9 @@ class DealerFeedImport
             $key = DealerFeedListing::externalKey($row['id']);
             $listing = $row['listing'];
             $service = $listing?->service;
-            if ($listing && (! $service || $service->trashed() || $service->user_id !== $source->dealer_id)) {
+            $missingTransition = in_array($row['action'], ['reactivated', 'withdrawn', 'trashed_missing'], true)
+                && $listing?->awaitingMissingCleanup();
+            if ($listing && (! $service || ($service->trashed() && ! $missingTransition) || $service->user_id !== $source->dealer_id)) {
                 throw new DealerFeedException('Un anunț asociat s-a schimbat. Repetă simularea.');
             }
             if ($row['action'] !== 'new') {
@@ -155,9 +159,32 @@ class DealerFeedImport
 
     private function applyExisting(DealerFeedListing $listing, Service $service, array $row, DealerFeedSource $source, DealerFeedRun $run): void
     {
+        if ($row['action'] === 'deactivated_missing') {
+            $service->forceFill(['status' => Service::STATUS_DEACTIVATED, 'images' => $service->images ?? []])->save();
+            $service->delete();
+            $listing->forceFill(['feed_missing_since' => $service->deleted_at])->save();
+
+            return;
+        }
+
+        if ($row['action'] === 'trashed_missing') {
+            $images = $service->images;
+            $service->forceFill(['status' => 'expired', 'is_active' => false, 'images' => null])->save();
+            $service->delete();
+            $listing->forceFill(['feed_missing_since' => null])->save();
+            DB::afterCommit(fn () => ServiceImageStorage::deleteServiceImages($images));
+
+            return;
+        }
+
         if ($row['action'] === 'withdrawn') {
-            $service->forceFill(['status' => 'expired', 'is_active' => false])->save();
-            $listing->forceFill(['feed_withdrawn' => true])->save();
+            $service->forceFill(['status' => 'expired', 'is_active' => false]);
+            if ($service->trashed()) {
+                $service->restore();
+            } else {
+                $service->save();
+            }
+            $listing->forceFill(['feed_withdrawn' => true, 'feed_missing_since' => null])->save();
 
             return;
         }
@@ -167,6 +194,10 @@ class DealerFeedImport
             if ($row['action'] === 'reactivated') {
                 $service->forceFill(['status' => 'active', 'is_active' => true]);
                 $listing->feed_withdrawn = false;
+                $listing->feed_missing_since = null;
+                if ($service->trashed()) {
+                    $service->restore();
+                }
             }
             if ($service->isDirty()) {
                 $service->save();

@@ -21,6 +21,7 @@ class DealerFeedSource extends Model
     protected function casts(): array
     {
         return [
+            'dealer_id' => 'integer',
             'mapping' => 'array',
             'last_check' => 'array',
             'last_checked_at' => 'datetime',
@@ -52,7 +53,13 @@ class DealerFeedSource extends Model
     {
         return $query->whereHas('dealer', fn ($dealer) => $dealer->where('user_type', 'dealer')->where('is_active', true))
             ->whereHas('listings', fn ($listings) => $listings->where('import_status', 'published')
-                ->whereHas('service', fn ($services) => $services->withoutTrashed()));
+                ->whereHas('service', fn ($services) => $services->where(function ($state) {
+                    $state->whereNull('services.deleted_at')
+                        ->orWhere(function ($missing) {
+                            $missing->where('services.status', Service::STATUS_DEACTIVATED)
+                                ->whereColumn('services.deleted_at', 'dealer_feed_listings.feed_missing_since');
+                        });
+                })));
     }
 
     public function hasWorkInProgress(): bool
