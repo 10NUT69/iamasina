@@ -21,6 +21,7 @@ class DealerFeedPreview
         'year' => 'An fabricație',
         'mileage' => 'Kilometraj',
         'price_eur' => 'Preț',
+        'price_type' => 'Tip preț',
         'currency' => 'Monedă',
         'body' => 'Caroserie',
         'fuel' => 'Combustibil',
@@ -204,6 +205,7 @@ class DealerFeedPreview
                 $field === 'photos' && is_array($value) => $value,
                 is_string($value), is_int($value) => trim((string) $value),
                 $field !== 'id' && is_float($value) => (string) $value,
+                $field === 'price_type' => json_encode($value, JSON_THROW_ON_ERROR),
                 default => '',
             };
         }

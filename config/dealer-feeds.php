@@ -62,6 +62,7 @@ return [
         'mileage' => ['kilometri', 'mileagekm', 'km'],
         // Keep the stored mapping key used by existing sources.
         'price_eur' => ['pretineuro', 'priceeur', 'price', 'pret'],
+        'price_type' => ['pricetype', 'tippret'],
         'currency' => ['currency', 'moneda'],
         'body' => ['caroserie', 'bodytype'],
         'fuel' => ['combustibil', 'fuel'],

@@ -68,6 +68,8 @@
                                             {{ \Illuminate\Support\Str::limit((string) ($review['attributes'][$values[$field]] ?? ''), 180) ?: '—' }}
                                         @elseif ($field === 'price_eur')
                                             {{ $review['attributes']['price_value'] === null ? 'La cerere' : $review['attributes']['price_value'].' '.$review['attributes']['currency'] }}
+                                        @elseif ($field === 'price_type')
+                                            {{ $review['attributes']['price_type'] === 'fixed' ? 'Preț fix' : 'Negociabil' }}
                                         @elseif ($field === 'currency')
                                             {{ $review['attributes']['price_value'] === null ? '—' : $review['attributes']['currency'] }}
                                         @elseif ($field === 'status')

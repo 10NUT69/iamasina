@@ -38,6 +38,11 @@ class DealerFeedChanges
             $details[] = 'Preț '.$price($service->price_value, $service->currency).' → '.$price($candidate->price_value, $candidate->currency);
             unset($dirty['price_value'], $dirty['currency']);
         }
+        if (array_key_exists('price_type', $dirty)) {
+            $labels = ['fixed' => 'Preț fix', 'negotiable' => 'Negociabil'];
+            $details[] = ($labels[$service->price_type] ?? 'Tip de preț nespecificat').' → '.$labels[$candidate->price_type];
+            unset($dirty['price_type']);
+        }
         if ($dirty) {
             $details[] = 'Datele anunțului se actualizează.';
         }

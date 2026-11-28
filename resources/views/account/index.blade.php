@@ -1073,8 +1073,8 @@
                 <div class="flex flex-col gap-2 sm:min-w-[240px]">
                     <input id="dealerGalleryInput" type="file" accept="image/jpeg,image/png,image/webp" multiple
                         class="block w-full text-xs text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#C81424] file:px-3 file:py-2 file:text-xs file:font-bold file:text-white hover:file:bg-[#94111B] dark:text-gray-300">
-                    <button type="button" onclick="uploadDealerGallery()"
-                        class="inline-flex h-10 items-center justify-center rounded-lg bg-gray-900 px-4 text-xs font-bold uppercase text-white transition hover:bg-black dark:bg-white dark:text-gray-900">
+                    <button id="dealerGalleryUploadButton" type="button" onclick="uploadDealerGallery()"
+                        class="inline-flex h-10 items-center justify-center rounded-lg bg-gray-900 px-4 text-xs font-bold uppercase text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-gray-900">
                         Încarcă poze
                     </button>
                 </div>
@@ -1872,33 +1872,35 @@ function deleteDealerLogo() {
 
 async function uploadDealerGallery() {
     const input = document.getElementById("dealerGalleryInput");
-    if (!input || !input.files.length) {
+    const button = document.getElementById("dealerGalleryUploadButton");
+    if (!input || !button || button.disabled) return;
+
+    const files = Array.from(input.files);
+    if (!files.length) {
         setDealerGalleryMessage("Alege cel puțin o imagine.", false);
         return;
     }
 
-    if (!(await ensureDealerProfileReadyForUpload(setDealerGalleryMessage))) {
-        return;
-    }
+    button.disabled = true;
+    input.disabled = true;
 
-    setDealerGalleryMessage("Optimizăm imaginile înainte de încărcare...");
+    try {
+        if (!(await ensureDealerProfileReadyForUpload(setDealerGalleryMessage))) return;
 
-    const formData = new FormData();
-    const optimizedFiles = await Promise.all(
-        Array.from(input.files).map((file, index) => compressDealerGalleryFile(file, index))
-    );
+        setDealerGalleryMessage("Optimizăm imaginile înainte de încărcare...");
 
-    optimizedFiles.forEach((file) => formData.append("dealer_images[]", file));
+        const optimizedFiles = await Promise.all(files.map((file, index) => compressDealerGalleryFile(file, index)));
+        const formData = new FormData();
+        optimizedFiles.forEach((file) => formData.append("dealer_images[]", file));
 
-    fetch("{{ route('profile.dealerGallery.upload') }}", {
-        method: "POST",
-        headers: {
-            "X-CSRF-TOKEN": "{{ csrf_token() }}",
-            "Accept": "application/json"
-        },
-        body: formData
-    })
-    .then(async (res) => {
+        const res = await fetch("{{ route('profile.dealerGallery.upload') }}", {
+            method: "POST",
+            headers: {
+                "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                "Accept": "application/json"
+            },
+            body: formData
+        });
         const data = await res.json().catch(() => ({}));
 
         if (!res.ok || !data.success) {
@@ -1909,8 +1911,12 @@ async function uploadDealerGallery() {
         input.value = "";
         renderDealerGallery(data.gallery || []);
         setDealerGalleryMessage("Galeria a fost actualizată.");
-    })
-    .catch(() => setDealerGalleryMessage("Eroare de conexiune la încărcarea imaginilor.", false));
+    } catch (error) {
+        setDealerGalleryMessage("Eroare de conexiune la încărcarea imaginilor.", false);
+    } finally {
+        button.disabled = false;
+        input.disabled = false;
+    }
 }
 
 function deleteDealerGalleryImage(index) {

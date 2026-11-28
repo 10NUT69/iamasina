@@ -193,8 +193,7 @@ class ProfileController extends Controller
         $canOptimizeOnServer = extension_loaded('gd');
         $manager = $canOptimizeOnServer ? new ImageManager(new Driver()) : null;
         $targetExtension = $canOptimizeOnServer ? $this->targetDealerGalleryExtension() : null;
-        $baseName = $this->dealerGalleryBaseName($user);
-        $nextNumber = count($gallery) + 1;
+        $baseName = Str::limit($this->dealerGalleryBaseName($user), 100, '');
         $storedCount = 0;
 
         foreach (array_slice($request->file('dealer_images', []), 0, $remainingSlots) as $image) {
@@ -203,7 +202,7 @@ class ProfileController extends Controller
             }
 
             $extension = $targetExtension ?: $this->uploadedDealerGalleryExtension($image);
-            $filename = $this->availableDealerGalleryImageName($directory, $baseName, $nextNumber, $extension);
+            $filename = $baseName . '-' . Str::uuid() . '.' . $extension;
             $targetPath = $directory . DIRECTORY_SEPARATOR . $filename;
 
             try {
@@ -470,16 +469,6 @@ class ProfileController extends Controller
         $extension = strtolower($image->getClientOriginalExtension() ?: $image->guessExtension() ?: 'jpg');
 
         return preg_replace('/[^a-z0-9]/', '', $extension) ?: 'jpg';
-    }
-
-    private function availableDealerGalleryImageName(string $directory, string $baseName, int &$number, string $extension): string
-    {
-        do {
-            $filename = "{$baseName}-{$number}.{$extension}";
-            $number++;
-        } while (is_file($directory . DIRECTORY_SEPARATOR . $filename));
-
-        return $filename;
     }
 
     private function dealerLogoFileName(User $user, string $extension): string

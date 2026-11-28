@@ -127,6 +127,16 @@ class DealerFeedTrialImport
         $photos = $this->preview->photoUrls($entry['photos'], $source->profile);
         $price = str_replace(',', '.', $entry['price_eur']);
         $priceValue = preg_match('/\A\d{1,8}(?:\.\d{1,2})?\z/', $price) ? $price : null;
+        $rawPriceType = trim($entry['price_type'] ?? '');
+        $priceType = match (strtolower(Str::ascii($rawPriceType))) {
+            'fixed', 'fix', 'pret fix', 'fixed price' => 'fixed',
+            '', 'negotiable', 'negociabil', 'pret negociabil' => 'negotiable',
+            default => null,
+        };
+        if ($priceType === null) {
+            $warnings[] = 'Tipul prețului din feed nu este recunoscut. Se va folosi Negociabil.';
+            $priceType = 'negotiable';
+        }
         $mileage = $this->integer($entry['mileage'], 0, 9999999);
         $capacity = $this->integer($entry['engine_cc'], 100, 10000);
         foreach ([
@@ -164,7 +174,7 @@ class DealerFeedTrialImport
             'an_fabricatie' => $year,
             'km' => $mileage,
             'price_value' => $priceValue,
-            'price_type' => 'fixed',
+            'price_type' => $priceType,
             'currency' => $currency,
             'capacitate_cilindrica' => $capacity,
             'putere' => $power,
