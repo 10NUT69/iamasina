@@ -231,7 +231,7 @@
             </div>
         </div>
 
-        <div class="relative min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-white p-2 shadow-sm dark:border-[#303033] dark:bg-[#18181B] lg:h-[320px]">
+        <div class="relative min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-white p-2 shadow-sm dark:border-[#303033] dark:bg-[#18181B] lg:h-[320px] xl:h-auto xl:[contain:size]">
             @if(count($galleryUrls))
                 <div @class([
                     'grid gap-2',
